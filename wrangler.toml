@@ -1,0 +1,8 @@
+name = "studentathlete-dk"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "studentathlete-dk"
+database_id = "5332ad3b-d908-4e39-b863-22a2cf0e82a0"
