@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Krævet for Cloudflare Workers deployment
+  images: {
+    unoptimized: true, // Krævet for Cloudflare Workers
+  },
 };
 
 export default nextConfig;

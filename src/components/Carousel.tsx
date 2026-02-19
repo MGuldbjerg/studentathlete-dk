@@ -1,0 +1,196 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import type { Article } from "@/lib/types";
+import { ARTICLE_TYPE_LABELS } from "@/lib/types";
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("da-DK", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function SportTag({ sport, type }: { sport?: string | null; type?: string }) {
+  const label = sport ?? (type ? ARTICLE_TYPE_LABELS[type] : null);
+  if (!label) return null;
+  return (
+    <span
+      style={{ backgroundColor: "#BF0A30" }}
+      className="inline-block px-2 py-0.5 text-xs font-semibold text-white uppercase tracking-wider"
+    >
+      {label}
+    </span>
+  );
+}
+
+interface CarouselProps {
+  articles: Article[];
+}
+
+export function Carousel({ articles }: CarouselProps) {
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const next = useCallback(() => {
+    setCurrent((prev) => (prev + 1) % articles.length);
+  }, [articles.length]);
+
+  const prev = useCallback(() => {
+    setCurrent((prev) => (prev - 1 + articles.length) % articles.length);
+  }, [articles.length]);
+
+  useEffect(() => {
+    if (paused || articles.length <= 1) return;
+    const timer = setInterval(next, 6000);
+    return () => clearInterval(timer);
+  }, [paused, next, articles.length]);
+
+  if (articles.length === 0) {
+    return (
+      <div
+        className="relative w-full flex items-center justify-center"
+        style={{
+          height: "60vh",
+          minHeight: 360,
+          background: "linear-gradient(135deg, #00205B 0%, #001240 100%)",
+        }}
+      >
+        <div className="text-center text-white px-8">
+          <p className="text-sm uppercase tracking-widest mb-3" style={{ color: "#BF0A30" }}>
+            StudentAthlete.dk
+          </p>
+          <h2
+            className="text-3xl md:text-5xl font-bold mb-4"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            Dansk dækning af danske student athletes
+          </h2>
+          <p className="text-white/70 text-lg">
+            Artikler er på vej — kom tilbage snart.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const slide = articles[current];
+
+  return (
+    <div
+      className="relative w-full overflow-hidden select-none"
+      style={{ height: "60vh", minHeight: 380 }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* Baggrundsbillede eller gradient */}
+      {slide.cover_image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={slide.cover_image_url}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #00205B 0%, #0a1f4a 60%, #1a1a2e 100%)",
+          }}
+        />
+      )}
+
+      {/* Mørkt overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.15) 100%)",
+        }}
+      />
+
+      {/* Rød accent-streg i bunden */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-1"
+        style={{ backgroundColor: "#BF0A30" }}
+      />
+
+      {/* Indhold */}
+      <div className="absolute inset-0 flex flex-col justify-end px-6 md:px-16 pb-12">
+        <div className="max-w-3xl">
+          <div className="flex items-center gap-3 mb-3">
+            <SportTag sport={slide.sport} type={slide.article_type} />
+            {slide.athlete_name && (
+              <span className="text-white/70 text-sm">{slide.athlete_name}</span>
+            )}
+            {slide.published_at && (
+              <span className="text-white/50 text-sm">
+                {formatDate(slide.published_at)}
+              </span>
+            )}
+          </div>
+
+          <a href={`/artikler/${slide.slug}`}>
+            <h2
+              className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight hover:underline cursor-pointer"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              {slide.title}
+            </h2>
+          </a>
+
+          {slide.summary && (
+            <p className="text-white/75 text-base md:text-lg line-clamp-2 max-w-2xl">
+              {slide.summary}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Pile-knapper */}
+      {articles.length > 1 && (
+        <>
+          <button
+            onClick={prev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+            aria-label="Forrige artikel"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+            aria-label="Næste artikel"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </>
+      )}
+
+      {/* Punkt-indikatorer */}
+      {articles.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {articles.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className="w-2 h-2 rounded-full transition-all"
+              style={{
+                backgroundColor: i === current ? "#BF0A30" : "rgba(255,255,255,0.5)",
+                width: i === current ? "24px" : "8px",
+              }}
+              aria-label={`Gå til artikel ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
