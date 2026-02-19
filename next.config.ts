@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Krævet for Cloudflare Workers deployment
 };
 
 export default nextConfig;
