@@ -5,9 +5,9 @@
   --color-flag-blue: #00205B;
   --color-ink: #111111;
   --color-paper: #ffffff;
-  --color-muted: #666666;
-  --color-surface: #F5F5F5;
-  --color-border: #E0E0E0;
+  --color-muted: #6B6B6B;
+  --color-surface: #F7F6F4;
+  --color-border: #E2E0DC;
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
@@ -28,18 +28,63 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif);
   color: #111111;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+a { color: inherit; text-decoration: none; }
+
+/* ── Artikel-typografi ────────────────────────────────── */
+
+.article-body {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: #111111;
+}
+
+.article-body p {
+  margin-bottom: 1.375rem;
+}
+
+.article-body h2 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 0.875rem;
+  padding-top: 2rem;
+  border-top: 1px solid #E2E0DC;
+}
+
+.article-body h3 {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.article-body blockquote {
+  margin: 2.5rem 0;
+  padding: 0 0 0 1.5rem;
+  border-left: 3px solid #BF0A30;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-style: italic;
+  color: #2a2a2a;
+  line-height: 1.6;
+}
+
+/* Drop cap til features */
+.article-drop-cap .article-body p:first-of-type::first-letter {
+  font-family: var(--font-serif);
+  font-size: 4.5rem;
+  font-weight: 900;
+  line-height: 0.85;
+  float: left;
+  margin-right: 0.1em;
+  margin-top: 0.05em;
+  color: #BF0A30;
 }
