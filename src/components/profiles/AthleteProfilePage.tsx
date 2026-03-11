@@ -1,6 +1,6 @@
 import type { Athlete, Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { formatDateShort, athleteStructuredData } from "@/lib/seo";
+import { formatDateShort, athleteStructuredData, getArticleUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 interface Props { athlete: Athlete; articles: Article[] }
@@ -88,7 +88,6 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
       <div className="max-w-5xl mx-auto px-6 md:px-8 py-10">
         <Breadcrumb crumbs={[
           { label: "Hjem", href: "/" },
-          { label: "Atleter", href: "/atleter" },
           { label: athlete.name },
         ]} />
 
@@ -129,7 +128,7 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
                 </p>
                 <div className="flex flex-col">
                   {articles.map((a, i) => (
-                    <a key={a.id} href={`/artikler/${a.slug}`}
+                    <a key={a.id} href={getArticleUrl(a)}
                       className="group flex gap-4 items-start py-5 hover:bg-surface -mx-3 px-3
                                  transition-colors"
                       style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>

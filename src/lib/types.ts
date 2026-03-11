@@ -14,6 +14,7 @@ export interface Article {
   author: string | null;
   // Joined fra athletes
   athlete_name?: string | null;
+  athlete_slug?: string | null;
   sport?: string | null;
 }
 

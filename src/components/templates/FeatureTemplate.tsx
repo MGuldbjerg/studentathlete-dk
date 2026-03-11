@@ -1,5 +1,5 @@
 import type { Article, Athlete } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData } from "@/lib/seo";
+import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
@@ -77,7 +77,7 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
             {/* Byline i bunden */}
             <div className="flex items-center gap-3 text-sm text-white/50">
               {athlete && (
-                <a href={`/atleter/${athlete.slug}`}
+                <a href={getAthleteUrl(athlete.slug)}
                   className="text-white/80 font-semibold hover:text-white transition-colors">
                   {athlete.name}
                 </a>

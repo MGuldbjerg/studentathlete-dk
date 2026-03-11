@@ -1,5 +1,5 @@
 import type { Article, Athlete } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData } from "@/lib/seo";
+import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
@@ -66,7 +66,7 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
           style={{ borderColor: "#E2E0DC" }}>
           <div className="flex items-center gap-2 text-muted">
             {athlete && (
-              <a href={`/atleter/${athlete.slug}`}
+              <a href={getAthleteUrl(athlete.slug)}
                 className="font-semibold text-ink hover:underline">
                 {athlete.name}
               </a>

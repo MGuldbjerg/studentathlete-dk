@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Article } from "@/lib/types";
+import { getArticleUrl } from "@/lib/seo";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 
 function formatDate(dateStr: string | null): string {
@@ -92,6 +93,8 @@ export function Carousel({ articles }: CarouselProps) {
           src={slide.cover_image_url}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
+          fetchPriority={current === 0 ? "high" : "auto"}
+          loading={current === 0 ? "eager" : "lazy"}
         />
       ) : (
         <div
@@ -133,7 +136,7 @@ export function Carousel({ articles }: CarouselProps) {
             )}
           </div>
 
-          <a href={`/artikler/${slide.slug}`}>
+          <a href={getArticleUrl(slide)}>
             <h2
               className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight hover:underline cursor-pointer"
               style={{ fontFamily: "var(--font-serif)" }}

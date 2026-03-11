@@ -9,7 +9,12 @@
     "lint": "eslint",
     "build:worker": "next build && npx @opennextjs/cloudflare build",
     "deploy": "npm run build:worker && wrangler deploy",
-    "preview": "npm run build:worker && wrangler dev"
+    "preview": "npm run build:worker && wrangler dev",
+    "pipeline:seed": "tsx pipeline/seed/seed-athletes.ts",
+    "pipeline:scrape": "tsx pipeline/scrape/scrape-rosters.ts",
+    "pipeline:discover": "tsx pipeline/discover/check-sources.ts",
+    "pipeline:generate": "tsx pipeline/generate/generate-articles.ts",
+    "pipeline:import-csv": "tsx pipeline/seed/import-csv.ts"
   },
   "dependencies": {
     "next": "16.1.6",
@@ -17,15 +22,18 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@cloudflare/workers-types": "^4.20260219.0",
     "@opennextjs/cloudflare": "^1.16.5",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.35",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cheerio": "^1.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

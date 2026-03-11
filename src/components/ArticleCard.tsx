@@ -1,5 +1,6 @@
 import type { Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
+import { getArticleUrl } from "@/lib/seo";
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "";
@@ -15,7 +16,7 @@ export function ArticleCard({ article }: { article: Article }) {
 
   return (
     <a
-      href={`/artikler/${article.slug}`}
+      href={getArticleUrl(article)}
       className="group flex flex-col bg-white border border-border hover:border-flag-red transition-colors duration-200"
     >
       {/* Billede eller farvet plade */}

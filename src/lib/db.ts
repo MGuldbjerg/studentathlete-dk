@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Article, Athlete, School } from "./types";
+import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getDB(): Promise<any | null> {
@@ -16,14 +17,19 @@ const ARTICLE_SELECT = `
   a.id, a.title, a.slug, a.summary, a.content, a.article_type,
   a.author, a.cover_image_url, a.published, a.published_at,
   a.created_at, a.updated_at, a.athlete_id,
-  at.name as athlete_name, at.sport
+  at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;
 
 // ─── Artikler ────────────────────────────────────────────────────────────────
 
 export async function getLatestArticles(limit = 5): Promise<Article[]> {
   const db = await getDB();
-  if (!db) return [];
+  if (!db) {
+    return MOCK_ARTICLES
+      .filter((a) => a.published === 1)
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .slice(0, limit);
+  }
   try {
     const r = await db
       .prepare(
@@ -41,7 +47,9 @@ export async function getLatestArticles(limit = 5): Promise<Article[]> {
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
   const db = await getDB();
-  if (!db) return null;
+  if (!db) {
+    return MOCK_ARTICLES.find((a) => a.slug === slug && a.published === 1) ?? null;
+  }
   try {
     const r = await db
       .prepare(
@@ -60,7 +68,24 @@ export async function getArticles({
   q = "", sport = "", limit = 18, offset = 0,
 }: { q?: string; sport?: string; limit?: number; offset?: number } = {}): Promise<Article[]> {
   const db = await getDB();
-  if (!db) return [];
+  if (!db) {
+    let filtered = MOCK_ARTICLES.filter((a) => a.published === 1);
+    if (q) {
+      const lq = q.toLowerCase();
+      filtered = filtered.filter(
+        (a) =>
+          a.title.toLowerCase().includes(lq) ||
+          (a.summary ?? "").toLowerCase().includes(lq) ||
+          (a.athlete_name ?? "").toLowerCase().includes(lq),
+      );
+    }
+    if (sport) {
+      filtered = filtered.filter((a) => a.sport === sport);
+    }
+    return filtered
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .slice(offset, offset + limit);
+  }
   try {
     const conditions: string[] = ["a.published = 1"];
     const params: (string | number)[] = [];
@@ -88,7 +113,12 @@ export async function getArticlesByAthleteId(
   athleteId: number, limit = 6
 ): Promise<Article[]> {
   const db = await getDB();
-  if (!db) return [];
+  if (!db) {
+    return MOCK_ARTICLES
+      .filter((a) => a.athlete_id === athleteId && a.published === 1)
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .slice(0, limit);
+  }
   try {
     const r = await db
       .prepare(
@@ -108,7 +138,15 @@ export async function getArticlesByUniversity(
   university: string, limit = 4
 ): Promise<Article[]> {
   const db = await getDB();
-  if (!db) return [];
+  if (!db) {
+    const athleteIds = MOCK_ATHLETES
+      .filter((a) => a.university === university)
+      .map((a) => a.id);
+    return MOCK_ARTICLES
+      .filter((a) => a.athlete_id !== null && athleteIds.includes(a.athlete_id) && a.published === 1)
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .slice(0, limit);
+  }
   try {
     const r = await db
       .prepare(
@@ -128,7 +166,9 @@ export async function getArticlesByUniversity(
 
 export async function getAthleteBySlug(slug: string): Promise<Athlete | null> {
   const db = await getDB();
-  if (!db) return null;
+  if (!db) {
+    return MOCK_ATHLETES.find((a) => a.slug === slug) ?? null;
+  }
   try {
     const r = await db
       .prepare("SELECT * FROM athletes WHERE slug = ?")
@@ -142,7 +182,12 @@ export async function getAthletesByUniversity(
   university: string, limit = 20
 ): Promise<Athlete[]> {
   const db = await getDB();
-  if (!db) return [];
+  if (!db) {
+    return MOCK_ATHLETES
+      .filter((a) => a.university === university && a.active === 1)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, limit);
+  }
   try {
     const r = await db
       .prepare(
@@ -158,7 +203,9 @@ export async function getAthletesByUniversity(
 
 export async function getSchoolBySlug(slug: string): Promise<School | null> {
   const db = await getDB();
-  if (!db) return null;
+  if (!db) {
+    return MOCK_SCHOOLS.find((s) => s.slug === slug) ?? null;
+  }
   try {
     const r = await db
       .prepare("SELECT * FROM schools WHERE slug = ?")
@@ -166,4 +213,62 @@ export async function getSchoolBySlug(slug: string): Promise<School | null> {
       .first();
     return (r as School) ?? null;
   } catch { return null; }
+}
+
+// ─── Sitemap / Feed hjælpere ────────────────────────────────────────────────
+
+export async function getAllArticleSlugs(): Promise<
+  { slug: string; sport: string | null; updated_at: string }[]
+> {
+  const db = await getDB();
+  if (!db) {
+    return MOCK_ARTICLES
+      .filter((a) => a.published === 1)
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .map((a) => ({ slug: a.slug, sport: a.sport ?? null, updated_at: a.updated_at }));
+  }
+  try {
+    const r = await db
+      .prepare(
+        `SELECT a.slug, at.sport, a.updated_at
+         FROM articles a
+         LEFT JOIN athletes at ON a.athlete_id = at.id
+         WHERE a.published = 1
+         ORDER BY a.published_at DESC`
+      )
+      .all();
+    return (r.results ?? []) as { slug: string; sport: string | null; updated_at: string }[];
+  } catch { return []; }
+}
+
+export async function getAllAthleteSlugs(): Promise<
+  { slug: string; updated_at: string }[]
+> {
+  const db = await getDB();
+  if (!db) {
+    return MOCK_ATHLETES
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((a) => ({ slug: a.slug, updated_at: a.updated_at }));
+  }
+  try {
+    const r = await db
+      .prepare("SELECT slug, updated_at FROM athletes ORDER BY name")
+      .all();
+    return (r.results ?? []) as { slug: string; updated_at: string }[];
+  } catch { return []; }
+}
+
+export async function getAllSchoolSlugs(): Promise<{ slug: string }[]> {
+  const db = await getDB();
+  if (!db) {
+    return MOCK_SCHOOLS
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((s) => ({ slug: s.slug }));
+  }
+  try {
+    const r = await db
+      .prepare("SELECT slug FROM schools ORDER BY name")
+      .all();
+    return (r.results ?? []) as { slug: string }[];
+  } catch { return []; }
 }

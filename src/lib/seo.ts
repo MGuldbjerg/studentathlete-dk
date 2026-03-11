@@ -25,7 +25,23 @@ export function formatDateShort(dateStr: string | null): string {
   return formatDate(dateStr, { day: "numeric", month: "short", year: "numeric" });
 }
 
-// JSON-LD structured data builders
+// ─── URL-hjælpere ────────────────────────────────────────────────────────────
+
+export function getArticleUrl(article: Pick<Article, "slug" | "sport">): string {
+  const sport = (article.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
+  return `/${sport}/${article.slug}`;
+}
+
+export function getAthleteUrl(slug: string): string {
+  return `/${slug}`;
+}
+
+export function getSchoolUrl(slug: string): string {
+  return `/${slug}`;
+}
+
+// ─── JSON-LD structured data ─────────────────────────────────────────────────
+
 export function articleStructuredData(
   article: Article,
   athlete?: Athlete | null
@@ -37,7 +53,7 @@ export function articleStructuredData(
     description: article.summary ?? undefined,
     datePublished: article.published_at ?? undefined,
     dateModified: article.updated_at,
-    url: `${BASE_URL}/artikler/${article.slug}`,
+    url: `${BASE_URL}${getArticleUrl(article)}`,
     image: article.cover_image_url
       ? [{ "@type": "ImageObject", url: article.cover_image_url }]
       : undefined,
@@ -53,7 +69,7 @@ export function articleStructuredData(
       ? {
           "@type": "Person",
           name: athlete.name,
-          url: `${BASE_URL}/atleter/${athlete.slug}`,
+          url: `${BASE_URL}${getAthleteUrl(athlete.slug)}`,
           sport: athlete.sport,
           affiliation: { "@type": "CollegeOrUniversity", name: athlete.university },
         }
@@ -73,7 +89,7 @@ export function athleteStructuredData(
     "@context": "https://schema.org",
     "@type": "ProfilePage",
     name: `${athlete.name} – StudentAthlete.dk`,
-    url: `${BASE_URL}/atleter/${athlete.slug}`,
+    url: `${BASE_URL}${getAthleteUrl(athlete.slug)}`,
     mainEntity: {
       "@type": "Person",
       name: athlete.name,
@@ -93,7 +109,7 @@ export function athleteStructuredData(
     about: articles.map((a) => ({
       "@type": "NewsArticle",
       headline: a.title,
-      url: `${BASE_URL}/artikler/${a.slug}`,
+      url: `${BASE_URL}${getArticleUrl(a)}`,
     })),
     inLanguage: "da",
   };
@@ -104,7 +120,7 @@ export function schoolStructuredData(school: School): object {
     "@context": "https://schema.org",
     "@type": "CollegeOrUniversity",
     name: school.name,
-    url: school.website ?? undefined,
+    url: school.website ?? `${BASE_URL}${getSchoolUrl(school.slug)}`,
     address: school.state
       ? { "@type": "PostalAddress", addressRegion: school.state, addressCountry: "US" }
       : undefined,

@@ -1,5 +1,5 @@
 import type { Article, Athlete } from "@/lib/types";
-import { formatDate, articleStructuredData } from "@/lib/seo";
+import { formatDate, articleStructuredData, getAthleteUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
@@ -121,7 +121,7 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
                       </div>
                     ))}
                   </dl>
-                  <a href={`/atleter/${athlete.slug}`}
+                  <a href={getAthleteUrl(athlete.slug)}
                     className="inline-block mt-5 text-xs font-bold tracking-[0.12em] uppercase hover:underline"
                     style={{ color: "#BF0A30" }}>
                     Se fuld profil →

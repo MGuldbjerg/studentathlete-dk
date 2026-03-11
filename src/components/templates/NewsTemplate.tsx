@@ -1,6 +1,6 @@
 import type { Article, Athlete } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData } from "@/lib/seo";
+import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
@@ -72,7 +72,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
           <div className="flex items-center justify-between py-3 text-sm flex-wrap gap-2">
             <div className="flex items-center gap-2 text-muted">
               {athlete && (
-                <a href={`/atleter/${athlete.slug}`}
+                <a href={getAthleteUrl(athlete.slug)}
                   className="font-semibold text-ink hover:underline decoration-flag-red">
                   {athlete.name}
                 </a>

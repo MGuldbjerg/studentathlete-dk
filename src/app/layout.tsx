@@ -33,6 +33,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="da">
+      <head>
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="StudentAthlete.dk"
+          href="/feed.xml"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}
       >

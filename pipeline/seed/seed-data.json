@@ -1,0 +1,91 @@
+{
+  "athletes": [
+    {
+      "name": "Anders Haas",
+      "sport": "Football",
+      "position": "Kicker",
+      "hometown": "København, Danmark",
+      "university": "University of Nebraska",
+      "university_state": "NE",
+      "division": "NCAA D1",
+      "year_enrolled": 2023
+    },
+    {
+      "name": "Magnus Møller",
+      "sport": "Football",
+      "position": "Offensive Lineman",
+      "hometown": "Vejle, Danmark",
+      "university": "University of Illinois",
+      "university_state": "IL",
+      "division": "NCAA D1",
+      "year_enrolled": 2024
+    },
+    {
+      "name": "Will Arnesen",
+      "sport": "Soccer",
+      "position": "Forward",
+      "hometown": "København, Danmark",
+      "university": "Ohio State University",
+      "university_state": "OH",
+      "division": "NCAA D1",
+      "year_enrolled": 2022
+    },
+    {
+      "name": "Jeppe Runge",
+      "sport": "Soccer",
+      "position": "Attacker",
+      "hometown": "Odense, Danmark",
+      "university": "Penn State University",
+      "university_state": "PA",
+      "division": "NCAA D1",
+      "year_enrolled": 2023
+    }
+  ],
+  "schools": [
+    {
+      "name": "University of Nebraska",
+      "state": "NE",
+      "division": "NCAA D1",
+      "conference": "Big Ten",
+      "website": "https://huskers.com",
+      "roster_urls": {
+        "football": "https://huskers.com/sports/football/roster"
+      }
+    },
+    {
+      "name": "University of Illinois",
+      "state": "IL",
+      "division": "NCAA D1",
+      "conference": "Big Ten",
+      "website": "https://fightingillini.com",
+      "roster_urls": {
+        "football": "https://fightingillini.com/sports/football/roster"
+      }
+    },
+    {
+      "name": "Ohio State University",
+      "state": "OH",
+      "division": "NCAA D1",
+      "conference": "Big Ten",
+      "website": "https://ohiostatebuckeyes.com",
+      "roster_urls": {
+        "mens_soccer": "https://ohiostatebuckeyes.com/sports/mens-soccer/roster"
+      }
+    },
+    {
+      "name": "Penn State University",
+      "state": "PA",
+      "division": "NCAA D1",
+      "conference": "Big Ten",
+      "website": "https://gopsusports.com",
+      "roster_urls": {
+        "mens_soccer": "https://gopsusports.com/sports/mens-soccer/roster"
+      }
+    }
+  ],
+  "_meta": {
+    "description": "Seed-data for StudentAthlete.dk. Tilføj flere atleter og skoler her.",
+    "format": "Atleter skal have mindst name, sport og university. Skoler skal have mindst name, state og division.",
+    "last_updated": "2026-03-11"
+  }
+}

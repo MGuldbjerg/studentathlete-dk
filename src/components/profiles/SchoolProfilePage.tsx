@@ -1,6 +1,6 @@
 import type { School, Athlete, Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { formatDateShort, schoolStructuredData } from "@/lib/seo";
+import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 interface Props { school: School; athletes: Athlete[]; articles: Article[] }
@@ -59,8 +59,7 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
       {/* ── Faktaboks ─────────────────────────────────────────── */}
       <div style={{ backgroundColor: "#F7F6F4", borderBottom: "1px solid #E2E0DC" }}>
         <div className="max-w-5xl mx-auto px-6 md:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x"
-            >
+          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x">
             {[
               { label: "Division",         value: school.division },
               { label: "Conference",       value: school.conference ?? "–" },
@@ -83,7 +82,6 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
       <div className="max-w-5xl mx-auto px-6 md:px-8 py-10">
         <Breadcrumb crumbs={[
           { label: "Hjem", href: "/" },
-          { label: "Skoler", href: "/skoler" },
           { label: school.name },
         ]} />
 
@@ -97,7 +95,7 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
             {athletes.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {athletes.map((a) => (
-                  <a key={a.id} href={`/atleter/${a.slug}`}
+                  <a key={a.id} href={getAthleteUrl(a.slug)}
                     className="group flex items-center gap-4 p-4 transition-colors
                                hover:bg-surface"
                     style={{ border: "1px solid #E2E0DC" }}>
@@ -139,7 +137,7 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
               </p>
               <div className="flex flex-col">
                 {articles.map((a, i) => (
-                  <a key={a.id} href={`/artikler/${a.slug}`}
+                  <a key={a.id} href={getArticleUrl(a)}
                     className="group flex gap-3 py-4 hover:bg-surface -mx-3 px-3 transition-colors"
                     style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>
                     {a.cover_image_url && (
