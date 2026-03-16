@@ -25,31 +25,29 @@ export default async function HomePage({
   ]);
 
   const hasFilter = q || sport;
+  const [featuredArticle, ...restArticles] = articles;
 
   return (
     <main>
       {/* Karrusel — kun på forsiden uden filter */}
       {!hasFilter && <Carousel articles={carouselArticles} />}
 
-      {/* Kategori-nav */}
+      {/* Sport-filter-bar */}
       <Suspense fallback={null}>
         <CategoryNav />
       </Suspense>
 
-      {/* Søgefelt (mobil) + søgeresultat-header */}
+      {/* Søgefelt (mobil) + sektion-header */}
       <div className="px-4 md:px-8 py-5 border-b border-border">
-        {/* Mobil søgefelt */}
         <div className="md:hidden mb-4">
           <Suspense fallback={null}>
             <SearchBar defaultValue={q} />
           </Suspense>
         </div>
 
-        {/* Sektion-header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Rød accent-streg */}
-            <div className="w-1 h-6" style={{ backgroundColor: "#BF0A30" }} />
+            <div className="w-1 h-6 rounded-full" style={{ backgroundColor: "#BF0A30" }} />
             <h2
               className="text-xl font-bold text-ink"
               style={{ fontFamily: "var(--font-serif)" }}
@@ -66,13 +64,13 @@ export default async function HomePage({
               href="/"
               className="text-sm text-muted hover:text-ink transition-colors"
             >
-              Nulstil filter ×
+              Nulstil filter &times;
             </a>
           )}
         </div>
       </div>
 
-      {/* Artikel-grid */}
+      {/* Artikler — modulært grid */}
       <div className="px-4 md:px-8 py-8">
         {articles.length === 0 ? (
           <div className="text-center py-20 text-muted">
@@ -90,12 +88,20 @@ export default async function HomePage({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {articles.map((article) => (
-              <div key={article.id} className="bg-white">
-                <ArticleCard article={article} />
+          <div className="space-y-6">
+            {/* Tophistorie — stor featured card */}
+            {featuredArticle && (
+              <ArticleCard article={featuredArticle} featured />
+            )}
+
+            {/* Resten i 3-kolonne grid */}
+            {restArticles.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {restArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>

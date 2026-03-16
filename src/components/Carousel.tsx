@@ -2,25 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Article } from "@/lib/types";
-import { getArticleUrl } from "@/lib/seo";
-import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("da-DK", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
+import { getSportColor, ARTICLE_TYPE_LABELS } from "@/lib/types";
+import { getArticleUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
 
 function SportTag({ sport, type }: { sport?: string | null; type?: string }) {
   const label = sport ?? (type ? ARTICLE_TYPE_LABELS[type] : null);
   if (!label) return null;
+  const color = getSportColor(sport);
   return (
     <span
-      style={{ backgroundColor: "#BF0A30" }}
-      className="inline-block px-2 py-0.5 text-xs font-semibold text-white uppercase tracking-wider"
+      style={{ backgroundColor: color }}
+      className="inline-block px-2.5 py-0.5 text-xs font-semibold text-white uppercase tracking-wider rounded-sm"
     >
       {label}
     </span>
@@ -67,7 +59,7 @@ export function Carousel({ articles }: CarouselProps) {
             className="text-3xl md:text-5xl font-bold mb-4"
             style={{ fontFamily: "var(--font-serif)" }}
           >
-            Dansk dækning af danske student athletes
+            Dansk dækning af student athletes i USA
           </h2>
           <p className="text-white/70 text-lg">
             Artikler er på vej — kom tilbage snart.
@@ -78,6 +70,8 @@ export function Carousel({ articles }: CarouselProps) {
   }
 
   const slide = articles[current];
+  const relTime = formatRelativeTime(slide.published_at);
+  const readTime = getReadingTime(slide.content);
 
   return (
     <div
@@ -115,10 +109,10 @@ export function Carousel({ articles }: CarouselProps) {
         }}
       />
 
-      {/* Rød accent-streg i bunden */}
+      {/* Sport-farvet accent i bunden */}
       <div
         className="absolute bottom-0 left-0 right-0 h-1"
-        style={{ backgroundColor: "#BF0A30" }}
+        style={{ backgroundColor: getSportColor(slide.sport) }}
       />
 
       {/* Indhold */}
@@ -127,18 +121,13 @@ export function Carousel({ articles }: CarouselProps) {
           <div className="flex items-center gap-3 mb-3">
             <SportTag sport={slide.sport} type={slide.article_type} />
             {slide.athlete_name && (
-              <span className="text-white/70 text-sm">{slide.athlete_name}</span>
-            )}
-            {slide.published_at && (
-              <span className="text-white/50 text-sm">
-                {formatDate(slide.published_at)}
-              </span>
+              <span className="text-white/80 text-sm font-medium">{slide.athlete_name}</span>
             )}
           </div>
 
           <a href={getArticleUrl(slide)}>
             <h2
-              className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight hover:underline cursor-pointer"
+              className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight hover:underline decoration-2 underline-offset-4 cursor-pointer"
               style={{ fontFamily: "var(--font-serif)" }}
             >
               {slide.title}
@@ -146,10 +135,16 @@ export function Carousel({ articles }: CarouselProps) {
           </a>
 
           {slide.summary && (
-            <p className="text-white/75 text-base md:text-lg line-clamp-2 max-w-2xl">
+            <p className="text-white/75 text-base md:text-lg line-clamp-2 max-w-2xl mb-3">
               {slide.summary}
             </p>
           )}
+
+          {/* Relativ tid + læsetid */}
+          <div className="flex items-center gap-3 text-white/50 text-sm">
+            {relTime && <span>{relTime}</span>}
+            <span>{readTime} min. læsning</span>
+          </div>
         </div>
       </div>
 
@@ -184,9 +179,11 @@ export function Carousel({ articles }: CarouselProps) {
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className="w-2 h-2 rounded-full transition-all"
+              className="h-2 rounded-full transition-all"
               style={{
-                backgroundColor: i === current ? "#BF0A30" : "rgba(255,255,255,0.5)",
+                backgroundColor: i === current
+                  ? getSportColor(articles[i].sport)
+                  : "rgba(255,255,255,0.4)",
                 width: i === current ? "24px" : "8px",
               }}
               aria-label={`Gå til artikel ${i + 1}`}

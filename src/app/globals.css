@@ -88,3 +88,13 @@ a { color: inherit; text-decoration: none; }
   margin-top: 0.05em;
   color: #BF0A30;
 }
+
+/* ── Scrollbar-hide til CategoryNav ─────────────────── */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

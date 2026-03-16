@@ -1,75 +1,200 @@
 {
   "athletes": [
     {
-      "name": "Anders Haas",
-      "sport": "Football",
-      "position": "Kicker",
-      "hometown": "København, Danmark",
-      "university": "University of Nebraska",
-      "university_state": "NE",
+      "name": "Marie Eline Madsen",
+      "sport": "andet",
+      "position": null,
+      "hometown": "Viborg, Danmark",
+      "university": "North Carolina State University",
+      "university_state": "NC",
       "division": "NCAA D1",
-      "year_enrolled": 2023
+      "year_enrolled": 2024,
+      "active": 1
     },
     {
-      "name": "Magnus Møller",
-      "sport": "Football",
-      "position": "Offensive Lineman",
-      "hometown": "Vejle, Danmark",
-      "university": "University of Illinois",
-      "university_state": "IL",
-      "division": "NCAA D1",
-      "year_enrolled": 2024
-    },
-    {
-      "name": "Will Arnesen",
-      "sport": "Soccer",
+      "name": "Laura Ziegler",
+      "sport": "basketball",
       "position": "Forward",
-      "hometown": "København, Danmark",
-      "university": "Ohio State University",
-      "university_state": "OH",
+      "hometown": "Herlev, Danmark",
+      "university": "University of Louisville",
+      "university_state": "KY",
       "division": "NCAA D1",
-      "year_enrolled": 2022
+      "year_enrolled": 2021,
+      "active": 1
     },
     {
-      "name": "Jeppe Runge",
-      "sport": "Soccer",
-      "position": "Attacker",
+      "name": "Bertil Rygaard Hansen",
+      "sport": "fodbold",
+      "position": "Forward",
+      "hometown": "Slagelse, Danmark",
+      "university": "University of North Carolina",
+      "university_state": "NC",
+      "division": "NCAA D1",
+      "year_enrolled": 2024,
+      "active": 1
+    },
+    {
+      "name": "Dikte Bang",
+      "sport": "fodbold",
+      "position": "Midtbane",
       "hometown": "Odense, Danmark",
       "university": "Penn State University",
       "university_state": "PA",
       "division": "NCAA D1",
-      "year_enrolled": 2023
+      "year_enrolled": 2025,
+      "active": 1
+    },
+    {
+      "name": "Gry Boe Thrysøe",
+      "sport": "fodbold",
+      "position": "Midtbane",
+      "hometown": "Klarup, Danmark",
+      "university": "Old Dominion University",
+      "university_state": "VA",
+      "division": "NCAA D1",
+      "year_enrolled": 2020,
+      "active": 1
+    },
+    {
+      "name": "Frederikke Foss",
+      "sport": "andet",
+      "position": "Forward",
+      "hometown": "Gentofte, Danmark",
+      "university": "University of Maine",
+      "university_state": "ME",
+      "division": "NCAA D1",
+      "year_enrolled": 2024,
+      "active": 1
+    },
+    {
+      "name": "Sofie Skott Dahl",
+      "sport": "andet",
+      "position": "Defenseman",
+      "hometown": "Herning, Danmark",
+      "university": "University of Vermont",
+      "university_state": "VT",
+      "division": "NCAA D1",
+      "year_enrolled": 2022,
+      "active": 1
+    },
+    {
+      "name": "Oliver Søgaard-Andersen",
+      "sport": "svømning",
+      "position": null,
+      "hometown": "København, Danmark",
+      "university": "University of Southern California",
+      "university_state": "CA",
+      "division": "NCAA D1",
+      "year_enrolled": 2024,
+      "active": 1
+    },
+    {
+      "name": "Casper Puggaard",
+      "sport": "svømning",
+      "position": null,
+      "hometown": "Kastrup, Danmark",
+      "university": "University of California, Berkeley",
+      "university_state": "CA",
+      "division": "NCAA D1",
+      "year_enrolled": 2025,
+      "active": 1
+    },
+    {
+      "name": "Sebastian Reventlow-Mourier",
+      "sport": "fodbold",
+      "position": "Midtbane",
+      "hometown": "Viborg, Danmark",
+      "university": "University of South Carolina",
+      "university_state": "SC",
+      "division": "NCAA D1",
+      "year_enrolled": 2024,
+      "active": 1
+    },
+    {
+      "name": "Daniel Helle",
+      "sport": "fodbold",
+      "position": "Midtbane",
+      "hometown": "Odense, Danmark",
+      "university": "St. Bonaventure University",
+      "university_state": "NY",
+      "division": "NCAA D1",
+      "year_enrolled": 2024,
+      "active": 1
+    },
+    {
+      "name": "Morten Andersen",
+      "sport": "football",
+      "position": "Kicker",
+      "hometown": "Struer, Danmark",
+      "university": "Michigan State University",
+      "university_state": "MI",
+      "division": "NCAA D1",
+      "year_enrolled": 1978,
+      "active": 0
+    },
+    {
+      "name": "August Holmgren",
+      "sport": "andet",
+      "position": null,
+      "hometown": "Espergærde, Danmark",
+      "university": "University of San Diego",
+      "university_state": "CA",
+      "division": "NCAA D1",
+      "year_enrolled": 2017,
+      "active": 0
+    },
+    {
+      "name": "Patrick Bunk-Andersen",
+      "sport": "fodbold",
+      "position": "Forsvar",
+      "hometown": "Hvidovre, Danmark",
+      "university": "Clemson University",
+      "university_state": "SC",
+      "division": "NCAA D1",
+      "year_enrolled": 2015,
+      "active": 0
+    },
+    {
+      "name": "Anders Haas",
+      "sport": "basketball",
+      "position": "Guard",
+      "hometown": "København, Danmark",
+      "university": "University at Albany",
+      "university_state": "NY",
+      "division": "NCAA D1",
+      "year_enrolled": 2013,
+      "active": 0
     }
   ],
   "schools": [
     {
-      "name": "University of Nebraska",
-      "state": "NE",
+      "name": "North Carolina State University",
+      "state": "NC",
       "division": "NCAA D1",
-      "conference": "Big Ten",
-      "website": "https://huskers.com",
+      "conference": "ACC",
+      "website": "https://gopack.com",
       "roster_urls": {
-        "football": "https://huskers.com/sports/football/roster"
+        "womens_golf": "https://gopack.com/sports/womens-golf/roster"
       }
     },
     {
-      "name": "University of Illinois",
-      "state": "IL",
+      "name": "University of Louisville",
+      "state": "KY",
       "division": "NCAA D1",
-      "conference": "Big Ten",
-      "website": "https://fightingillini.com",
+      "conference": "ACC",
+      "website": "https://gocards.com",
       "roster_urls": {
-        "football": "https://fightingillini.com/sports/football/roster"
+        "womens_basketball": "https://gocards.com/sports/womens-basketball/roster"
       }
     },
     {
-      "name": "Ohio State University",
-      "state": "OH",
+      "name": "University of North Carolina",
+      "state": "NC",
       "division": "NCAA D1",
-      "conference": "Big Ten",
-      "website": "https://ohiostatebuckeyes.com",
+      "conference": "ACC",
+      "website": "https://goheels.com",
       "roster_urls": {
-        "mens_soccer": "https://ohiostatebuckeyes.com/sports/mens-soccer/roster"
+        "mens_soccer": "https://goheels.com/sports/mens-soccer/roster"
       }
     },
     {
@@ -79,13 +204,124 @@
       "conference": "Big Ten",
       "website": "https://gopsusports.com",
       "roster_urls": {
-        "mens_soccer": "https://gopsusports.com/sports/mens-soccer/roster"
+        "womens_soccer": "https://gopsusports.com/sports/womens-soccer/roster"
+      }
+    },
+    {
+      "name": "Old Dominion University",
+      "state": "VA",
+      "division": "NCAA D1",
+      "conference": "Sun Belt",
+      "website": "https://odusports.com",
+      "roster_urls": {
+        "womens_soccer": "https://odusports.com/sports/womens-soccer/roster"
+      }
+    },
+    {
+      "name": "University of Maine",
+      "state": "ME",
+      "division": "NCAA D1",
+      "conference": "Hockey East",
+      "website": "https://goblackbears.com",
+      "roster_urls": {
+        "womens_ice_hockey": "https://goblackbears.com/sports/womens-ice-hockey/roster"
+      }
+    },
+    {
+      "name": "University of Vermont",
+      "state": "VT",
+      "division": "NCAA D1",
+      "conference": "Hockey East",
+      "website": "https://uvmathletics.com",
+      "roster_urls": {
+        "womens_ice_hockey": "https://uvmathletics.com/sports/womens-ice-hockey/roster"
+      }
+    },
+    {
+      "name": "University of Southern California",
+      "state": "CA",
+      "division": "NCAA D1",
+      "conference": "Big Ten",
+      "website": "https://usctrojans.com",
+      "roster_urls": {
+        "mens_swimming": "https://usctrojans.com/sports/mens-swimming-and-diving/roster"
+      }
+    },
+    {
+      "name": "University of California, Berkeley",
+      "state": "CA",
+      "division": "NCAA D1",
+      "conference": "ACC",
+      "website": "https://calbears.com",
+      "roster_urls": {
+        "mens_swimming": "https://calbears.com/sports/mens-swimming-and-diving/roster"
+      }
+    },
+    {
+      "name": "University of South Carolina",
+      "state": "SC",
+      "division": "NCAA D1",
+      "conference": "Sun Belt",
+      "website": "https://gamecocksonline.com",
+      "roster_urls": {
+        "mens_soccer": "https://gamecocksonline.com/sports/msoc/roster"
+      }
+    },
+    {
+      "name": "St. Bonaventure University",
+      "state": "NY",
+      "division": "NCAA D1",
+      "conference": "Atlantic 10",
+      "website": "https://gobonnies.com",
+      "roster_urls": {
+        "mens_soccer": "https://gobonnies.com/sports/mens-soccer/roster"
+      }
+    },
+    {
+      "name": "Michigan State University",
+      "state": "MI",
+      "division": "NCAA D1",
+      "conference": "Big Ten",
+      "website": "https://msuspartans.com",
+      "roster_urls": {
+        "football": "https://msuspartans.com/sports/football/roster"
+      }
+    },
+    {
+      "name": "University of San Diego",
+      "state": "CA",
+      "division": "NCAA D1",
+      "conference": "West Coast",
+      "website": "https://usdtoreros.com",
+      "roster_urls": {
+        "mens_tennis": "https://usdtoreros.com/sports/mens-tennis/roster"
+      }
+    },
+    {
+      "name": "Clemson University",
+      "state": "SC",
+      "division": "NCAA D1",
+      "conference": "ACC",
+      "website": "https://clemsontigers.com",
+      "roster_urls": {
+        "mens_soccer": "https://clemsontigers.com/sports/mens-soccer/roster"
+      }
+    },
+    {
+      "name": "University at Albany",
+      "state": "NY",
+      "division": "NCAA D1",
+      "conference": "America East",
+      "website": "https://ualbanysports.com",
+      "roster_urls": {
+        "mens_basketball": "https://ualbanysports.com/sports/mens-basketball/roster"
       }
     }
   ],
   "_meta": {
-    "description": "Seed-data for StudentAthlete.dk. Tilføj flere atleter og skoler her.",
+    "description": "Seed-data for StudentAthlete.dk med verificerede danske NCAA-atleter.",
     "format": "Atleter skal have mindst name, sport og university. Skoler skal have mindst name, state og division.",
-    "last_updated": "2026-03-11"
+    "last_updated": "2026-03-16",
+    "notes": "Alle atleter er verificeret via universitets-rostersider, ESPN, SwimSwam, EliteProspects eller sportsmedier. Frederikke Foss og Sofie Skott Dahl spiller ishockey (sport='Andet'). August Holmgren spiller tennis (sport='Andet'). Svoemning bruges som sport-slug for svoemning."
   }
 }

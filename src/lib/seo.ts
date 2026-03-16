@@ -25,6 +25,22 @@ export function formatDateShort(dateStr: string | null): string {
   return formatDate(dateStr, { day: "numeric", month: "short", year: "numeric" });
 }
 
+export function formatRelativeTime(dateStr: string | null): string {
+  if (!dateStr) return "";
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 1) return "Lige nu";
+  if (diffMin < 60) return `${diffMin} min. siden`;
+  if (diffHours < 24) return `${diffHours}t siden`;
+  if (diffDays < 7) return `${diffDays}d siden`;
+  return formatDate(dateStr, { day: "numeric", month: "short" });
+}
+
 // ─── URL-hjælpere ────────────────────────────────────────────────────────────
 
 export function getArticleUrl(article: Pick<Article, "slug" | "sport">): string {

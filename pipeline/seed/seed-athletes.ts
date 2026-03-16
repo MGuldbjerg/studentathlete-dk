@@ -11,12 +11,13 @@ import seedData from "./seed-data.json";
 interface SeedAthlete {
   name: string;
   sport: string;
-  position?: string;
-  hometown?: string;
+  position?: string | null;
+  hometown?: string | null;
   university: string;
-  university_state?: string;
+  university_state?: string | null;
   division?: string;
-  year_enrolled?: number;
+  year_enrolled?: number | null;
+  active?: number;
 }
 
 interface SeedSchool {

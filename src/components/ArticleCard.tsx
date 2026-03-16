@@ -1,25 +1,103 @@
 import type { Article } from "@/lib/types";
-import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { getArticleUrl } from "@/lib/seo";
+import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
+import { getArticleUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("da-DK", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+interface ArticleCardProps {
+  article: Article;
+  featured?: boolean;
 }
 
-export function ArticleCard({ article }: { article: Article }) {
+export function ArticleCard({ article, featured = false }: ArticleCardProps) {
   const typeLabel = ARTICLE_TYPE_LABELS[article.article_type] ?? article.article_type;
+  const sportColor = getSportColor(article.sport);
+  const readingTime = getReadingTime(article.content);
+  const relTime = formatRelativeTime(article.published_at);
+
+  if (featured) {
+    return (
+      <a
+        href={getArticleUrl(article)}
+        className="group relative flex flex-col md:flex-row bg-white border border-border hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+      >
+        {/* Billede — stor */}
+        <div className="relative overflow-hidden md:w-3/5 aspect-[16/9] md:aspect-auto bg-surface">
+          {article.cover_image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={article.cover_image_url}
+              alt={article.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-end p-6"
+              style={{
+                background: `linear-gradient(135deg, ${sportColor}, ${sportColor}dd)`,
+              }}
+            >
+              <span className="text-white/40 text-sm uppercase tracking-wider">
+                {article.sport ?? typeLabel}
+              </span>
+            </div>
+          )}
+          {/* Sport-farvet accent */}
+          <div
+            className="absolute top-0 left-0 w-1 h-full"
+            style={{ backgroundColor: sportColor }}
+          />
+        </div>
+
+        {/* Indhold */}
+        <div className="flex flex-col flex-1 p-6 md:p-8 justify-center gap-3">
+          {/* Sport-tag */}
+          <div className="flex items-center gap-3">
+            {article.sport && (
+              <span
+                className="inline-block px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white rounded-sm"
+                style={{ backgroundColor: sportColor }}
+              >
+                {article.sport}
+              </span>
+            )}
+            <span className="text-xs text-muted">{typeLabel}</span>
+          </div>
+
+          {/* Titel — serif */}
+          <h2
+            className="text-xl md:text-2xl lg:text-3xl font-bold text-ink leading-tight group-hover:underline decoration-1 underline-offset-4"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            {article.title}
+          </h2>
+
+          {/* Summary */}
+          {article.summary && (
+            <p className="text-muted text-sm md:text-base line-clamp-3">
+              {article.summary}
+            </p>
+          )}
+
+          {/* Atlet + meta */}
+          <div className="flex items-center gap-3 pt-2 mt-auto">
+            {article.athlete_name && (
+              <span className="text-sm font-medium text-ink">
+                {article.athlete_name}
+              </span>
+            )}
+            <span className="text-xs text-muted">{relTime}</span>
+            <span className="text-xs text-muted">{readingTime} min. læsning</span>
+          </div>
+        </div>
+      </a>
+    );
+  }
 
   return (
     <a
       href={getArticleUrl(article)}
-      className="group flex flex-col bg-white border border-border hover:border-flag-red transition-colors duration-200"
+      className="group flex flex-col bg-white hover:shadow-md transition-shadow duration-300"
     >
-      {/* Billede eller farvet plade */}
+      {/* Billede */}
       <div className="relative overflow-hidden aspect-[16/9] bg-surface">
         {article.cover_image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -32,7 +110,7 @@ export function ArticleCard({ article }: { article: Article }) {
           <div
             className="w-full h-full flex items-end p-3"
             style={{
-              background: "linear-gradient(135deg, #00205B, #001240)",
+              background: `linear-gradient(135deg, ${sportColor}, ${sportColor}dd)`,
             }}
           >
             <span className="text-white/30 text-xs uppercase tracking-wider">
@@ -40,21 +118,21 @@ export function ArticleCard({ article }: { article: Article }) {
             </span>
           </div>
         )}
-        {/* Rød top-streg */}
+        {/* Sport-farvet top-streg */}
         <div
           className="absolute top-0 left-0 right-0 h-0.5"
-          style={{ backgroundColor: "#BF0A30" }}
+          style={{ backgroundColor: sportColor }}
         />
       </div>
 
       {/* Indhold */}
       <div className="flex flex-col flex-1 p-4 gap-2">
-        {/* Tags */}
+        {/* Sport-tag + type */}
         <div className="flex items-center gap-2 flex-wrap">
           {article.sport && (
             <span
-              className="text-xs font-semibold uppercase tracking-wider"
-              style={{ color: "#BF0A30" }}
+              className="inline-block px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-white rounded-sm"
+              style={{ backgroundColor: sportColor }}
             >
               {article.sport}
             </span>
@@ -62,9 +140,9 @@ export function ArticleCard({ article }: { article: Article }) {
           <span className="text-xs text-muted">{typeLabel}</span>
         </div>
 
-        {/* Titel */}
+        {/* Titel — serif */}
         <h3
-          className="text-base font-bold text-ink leading-snug group-hover:underline line-clamp-3"
+          className="text-base font-bold text-ink leading-snug group-hover:underline decoration-1 underline-offset-2 line-clamp-3"
           style={{ fontFamily: "var(--font-serif)" }}
         >
           {article.title}
@@ -77,14 +155,18 @@ export function ArticleCard({ article }: { article: Article }) {
           </p>
         )}
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-border mt-auto">
+        {/* Footer: atlet + tid + læsetid */}
+        <div className="flex items-center gap-2 pt-2 border-t border-border mt-auto text-xs text-muted">
           {article.athlete_name && (
-            <span className="text-xs text-muted truncate">{article.athlete_name}</span>
+            <>
+              <span className="font-medium text-ink truncate">
+                {article.athlete_name}
+              </span>
+              <span className="text-border">|</span>
+            </>
           )}
-          <span className="text-xs text-muted ml-auto">
-            {formatDate(article.published_at)}
-          </span>
+          <span>{relTime}</span>
+          <span className="ml-auto">{readingTime} min.</span>
         </div>
       </div>
     </a>

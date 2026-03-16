@@ -46,15 +46,30 @@ export interface School {
   website: string | null;
 }
 
+export const SPORT_COLORS: Record<string, string> = {
+  football: "#4A6741",
+  basketball: "#C2571A",
+  baseball: "#8B2D2D",
+  atletik: "#2E6B8A",
+  svømning: "#1B7A8A",
+  fodbold: "#2D5A27",
+  andet: "#6B6B6B",
+};
+
+export function getSportColor(sport: string | null | undefined): string {
+  if (!sport) return "#6B6B6B";
+  return SPORT_COLORS[sport.toLowerCase()] ?? "#6B6B6B";
+}
+
 export const SPORTS = [
-  { label: "Alle", slug: "" },
-  { label: "Football", slug: "football" },
-  { label: "Basketball", slug: "basketball" },
-  { label: "Baseball", slug: "baseball" },
-  { label: "Atletik", slug: "atletik" },
-  { label: "Svømning", slug: "svømning" },
-  { label: "Fodbold", slug: "fodbold" },
-  { label: "Andet", slug: "andet" },
+  { label: "Alle", slug: "", icon: "all" },
+  { label: "Football", slug: "football", icon: "football" },
+  { label: "Basketball", slug: "basketball", icon: "basketball" },
+  { label: "Baseball", slug: "baseball", icon: "baseball" },
+  { label: "Atletik", slug: "atletik", icon: "atletik" },
+  { label: "Svømning", slug: "svømning", icon: "svømning" },
+  { label: "Fodbold", slug: "fodbold", icon: "fodbold" },
+  { label: "Andet", slug: "andet", icon: "andet" },
 ] as const;
 
 export const ARTICLE_TYPE_LABELS: Record<string, string> = {
