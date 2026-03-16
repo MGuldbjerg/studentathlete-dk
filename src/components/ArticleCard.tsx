@@ -1,6 +1,7 @@
 import type { Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { getArticleUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
+import { PlaceholderCover } from "./PlaceholderCover";
 
 interface ArticleCardProps {
   article: Article;
@@ -29,16 +30,12 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div
-              className="w-full h-full flex items-end p-6"
-              style={{
-                background: `linear-gradient(135deg, ${sportColor}, ${sportColor}dd)`,
-              }}
-            >
-              <span className="text-white/40 text-sm uppercase tracking-wider">
-                {article.sport ?? typeLabel}
-              </span>
-            </div>
+            <PlaceholderCover
+              sport={article.sport}
+              athleteName={article.athlete_name}
+              university={article.athlete_name ? undefined : undefined}
+              size="lg"
+            />
           )}
           {/* Sport-farvet accent */}
           <div
@@ -107,16 +104,10 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div
-            className="w-full h-full flex items-end p-3"
-            style={{
-              background: `linear-gradient(135deg, ${sportColor}, ${sportColor}dd)`,
-            }}
-          >
-            <span className="text-white/30 text-xs uppercase tracking-wider">
-              {article.sport ?? typeLabel}
-            </span>
-          </div>
+          <PlaceholderCover
+            sport={article.sport}
+            athleteName={article.athlete_name}
+          />
         )}
         {/* Sport-farvet top-streg */}
         <div

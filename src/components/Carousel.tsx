@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Article } from "@/lib/types";
 import { getSportColor, ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { getArticleUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
+import { PlaceholderCover } from "./PlaceholderCover";
 
 function SportTag({ sport, type }: { sport?: string | null; type?: string }) {
   const label = sport ?? (type ? ARTICLE_TYPE_LABELS[type] : null);
@@ -91,13 +92,13 @@ export function Carousel({ articles }: CarouselProps) {
           loading={current === 0 ? "eager" : "lazy"}
         />
       ) : (
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(135deg, #00205B 0%, #0a1f4a 60%, #1a1a2e 100%)",
-          }}
-        />
+        <div className="absolute inset-0">
+          <PlaceholderCover
+            sport={slide.sport}
+            athleteName={slide.athlete_name}
+            size="lg"
+          />
+        </div>
       )}
 
       {/* Mørkt overlay */}
