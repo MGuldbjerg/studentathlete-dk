@@ -225,6 +225,21 @@ export async function getAllAthletes(): Promise<Athlete[]> {
   } catch { return []; }
 }
 
+export async function getAlumniAthletes(): Promise<Athlete[]> {
+  const db = await getDB();
+  if (!db) {
+    return MOCK_ATHLETES
+      .filter((a) => a.active === 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  try {
+    const r = await db
+      .prepare("SELECT * FROM athletes WHERE active = 0 ORDER BY sport, name")
+      .all();
+    return (r.results ?? []) as Athlete[];
+  } catch { return []; }
+}
+
 // ─── Skoler ──────────────────────────────────────────────────────────────────
 
 export async function getSchoolBySlug(slug: string): Promise<School | null> {
