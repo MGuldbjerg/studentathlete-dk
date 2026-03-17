@@ -16,7 +16,23 @@ interface SchoolWithRoster extends School {
   website: string;
 }
 
-const SPORTS = ["football", "basketball", "baseball", "soccer", "track-and-field", "swimming-and-diving"];
+const SPORTS = ["football", "basketball", "baseball", "soccer", "track-and-field", "swimming-and-diving", "golf", "tennis", "rowing", "gymnastics", "ice-hockey", "volleyball"];
+
+/** Normalisér scraper-sportnavn til intern nøgle (lowercase, dansk) */
+const SPORT_MAP: Record<string, string> = {
+  "football": "football",
+  "basketball": "basketball",
+  "baseball": "baseball",
+  "soccer": "fodbold",
+  "track-and-field": "atletik",
+  "swimming-and-diving": "svømning",
+  "golf": "golf",
+  "tennis": "tennis",
+  "rowing": "roning",
+  "gymnastics": "gymnastik",
+  "ice-hockey": "ishockey",
+  "volleyball": "volleyball",
+};
 const USER_AGENT = "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
 
 async function fetchRosterPage(url: string): Promise<string | null> {
@@ -50,7 +66,7 @@ async function scrapeSchool(
 
     for (const athlete of danishAthletes) {
       const slug = generateSlug(athlete.name);
-      const sportLabel = sport.charAt(0).toUpperCase() + sport.slice(1);
+      const sportLabel = SPORT_MAP[sport] ?? sport;
 
       try {
         await db.execute(
