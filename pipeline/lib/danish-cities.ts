@@ -116,22 +116,15 @@ export const DANISH_CITIES: string[] = [
 
 /**
  * Tjekker om en hometown-streng indikerer en dansk atlet.
- * Primær metode: hometown slutter med ", Danmark" eller ", Denmark".
- * Sekundær metode: byen før komma matcher et dansk bynavn præcist.
+ * Kræver at hometown indeholder "Danmark" eller "Denmark" som selvstændigt ord.
+ * Bynavn-matching alene er ikke pålideligt (Viborg, SD; Elsinore, MO osv.).
  */
 export function isDanishHometown(hometown: string | null): boolean {
   if (!hometown) return false;
   const lower = hometown.toLowerCase().trim();
 
-  // Primær: slutter med landemarkør (f.eks. "Odense, Danmark")
   for (const marker of DANISH_COUNTRY_MARKERS) {
-    if (lower.endsWith(marker.toLowerCase())) return true;
-  }
-
-  // Sekundær: byen før komma matcher en dansk by præcist
-  const city = lower.split(",")[0].trim();
-  for (const danishCity of DANISH_CITIES) {
-    if (city === danishCity.toLowerCase()) return true;
+    if (lower.includes(marker.toLowerCase())) return true;
   }
 
   return false;
