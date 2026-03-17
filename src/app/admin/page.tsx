@@ -18,11 +18,19 @@ export default async function AdminDashboard({
     <main className="min-h-screen bg-surface">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-ink mb-1">Kladder</h1>
-        <p className="text-muted text-sm mb-6">
+        <p className="text-muted text-sm mb-4">
           {drafts.length === 0
             ? "Ingen kladder at gennemse"
             : `${drafts.length} kladde${drafts.length === 1 ? "" : "r"} venter`}
         </p>
+
+        <Link
+          href={`/admin/tilfoej?token=${token}`}
+          className="inline-block mb-6 px-4 py-2 text-sm font-semibold text-white rounded-lg"
+          style={{ backgroundColor: "#00205B" }}
+        >
+          + Tilføj atlet
+        </Link>
 
         <div className="flex flex-col gap-3">
           {drafts.map((draft) => (
