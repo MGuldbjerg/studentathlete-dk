@@ -3,13 +3,24 @@ import type { Article, Athlete, School } from "./types";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getDB(): Promise<any | null> {
+export async function getDB(): Promise<any | null> {
   try {
     const ctx = await getCloudflareContext({ async: true });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (ctx.env as any).DB ?? null;
   } catch {
     return null;
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getEnv(): Promise<Record<string, any>> {
+  try {
+    const ctx = await getCloudflareContext({ async: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return ctx.env as any;
+  } catch {
+    return {};
   }
 }
 
@@ -194,6 +205,21 @@ export async function getAthletesByUniversity(
         "SELECT * FROM athletes WHERE university = ? AND active = 1 ORDER BY name LIMIT ?"
       )
       .bind(university, limit)
+      .all();
+    return (r.results ?? []) as Athlete[];
+  } catch { return []; }
+}
+
+export async function getAllAthletes(): Promise<Athlete[]> {
+  const db = await getDB();
+  if (!db) {
+    return MOCK_ATHLETES
+      .filter((a) => a.active === 1)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  try {
+    const r = await db
+      .prepare("SELECT * FROM athletes WHERE active = 1 ORDER BY sport, name")
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
