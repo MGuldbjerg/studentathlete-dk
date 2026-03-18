@@ -240,6 +240,71 @@ export async function getAlumniAthletes(): Promise<Athlete[]> {
   } catch { return []; }
 }
 
+export async function getAthletesBySport(
+  sport: string, limit = 50
+): Promise<Athlete[]> {
+  const db = await getDB();
+  if (!db) {
+    return MOCK_ATHLETES
+      .filter((a) => a.sport.toLowerCase() === sport.toLowerCase() && a.active === 1)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, limit);
+  }
+  try {
+    const r = await db
+      .prepare("SELECT * FROM athletes WHERE sport = ? AND active = 1 ORDER BY name LIMIT ?")
+      .bind(sport, limit)
+      .all();
+    return (r.results ?? []) as Athlete[];
+  } catch { return []; }
+}
+
+export async function getArticlesBySport(
+  sport: string, limit = 12
+): Promise<Article[]> {
+  const db = await getDB();
+  if (!db) {
+    return MOCK_ARTICLES
+      .filter((a) => a.sport?.toLowerCase() === sport.toLowerCase() && a.published === 1)
+      .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
+      .slice(0, limit);
+  }
+  try {
+    const r = await db
+      .prepare(
+        `SELECT ${ARTICLE_SELECT}
+         FROM articles a
+         LEFT JOIN athletes at ON a.athlete_id = at.id
+         WHERE at.sport = ? AND a.published = 1
+         ORDER BY a.published_at DESC LIMIT ?`
+      )
+      .bind(sport, limit)
+      .all();
+    return (r.results ?? []) as Article[];
+  } catch { return []; }
+}
+
+export async function countAthletesBySport(sport: string): Promise<{ active: number; alumni: number }> {
+  const db = await getDB();
+  if (!db) {
+    const active = MOCK_ATHLETES.filter((a) => a.sport.toLowerCase() === sport.toLowerCase() && a.active === 1).length;
+    const alumni = MOCK_ATHLETES.filter((a) => a.sport.toLowerCase() === sport.toLowerCase() && a.active === 0).length;
+    return { active, alumni };
+  }
+  try {
+    const r = await db
+      .prepare("SELECT active, COUNT(*) as cnt FROM athletes WHERE sport = ? GROUP BY active")
+      .bind(sport)
+      .all();
+    let active = 0, alumni = 0;
+    for (const row of (r.results ?? []) as { active: number; cnt: number }[]) {
+      if (row.active === 1) active = row.cnt;
+      else alumni = row.cnt;
+    }
+    return { active, alumni };
+  } catch { return { active: 0, alumni: 0 }; }
+}
+
 // ─── Skoler ──────────────────────────────────────────────────────────────────
 
 export async function getSchoolBySlug(slug: string): Promise<School | null> {

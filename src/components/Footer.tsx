@@ -24,20 +24,30 @@ export function Footer() {
           <h5 className="text-white/80 text-sm font-semibold uppercase tracking-wider mb-3">
             Sportsgrene
           </h5>
-          <ul className="space-y-1.5">
-            {["Football", "Basketball", "Baseball", "Atletik", "Svømning", "Fodbold"].map(
-              (sport) => (
-                <li key={sport}>
-                  <a
-                    href={`/?sport=${sport.toLowerCase()}`}
-                    className="text-white/60 text-sm hover:text-white transition-colors"
-                  >
-                    {sport}
-                  </a>
-                </li>
-              )
-            )}
-          </ul>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+            {[
+              { label: "Football", slug: "football" },
+              { label: "Basketball", slug: "basketball" },
+              { label: "Baseball", slug: "baseball" },
+              { label: "Fodbold", slug: "fodbold" },
+              { label: "Svømning", slug: "svømning" },
+              { label: "Atletik", slug: "atletik" },
+              { label: "Golf", slug: "golf" },
+              { label: "Tennis", slug: "tennis" },
+              { label: "Roning", slug: "roning" },
+              { label: "Gymnastik", slug: "gymnastik" },
+              { label: "Ishockey", slug: "ishockey" },
+              { label: "Volleyball", slug: "volleyball" },
+            ].map((sport) => (
+              <a
+                key={sport.slug}
+                href={`/${sport.slug}`}
+                className="text-white/60 text-sm hover:text-white transition-colors"
+              >
+                {sport.label}
+              </a>
+            ))}
+          </div>
         </div>
 
         {/* Links */}

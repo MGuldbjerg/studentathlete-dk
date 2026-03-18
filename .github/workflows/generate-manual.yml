@@ -1,6 +1,10 @@
-name: Generer artikler (manuelt)
+name: Generer artikler
 
 on:
+  # Automatisk: én gang dagligt kl. 07:00 UTC (efter morgen-discovery)
+  schedule:
+    - cron: '30 7 * * *'
+  # Manuelt: kan altid trigges fra GitHub
   workflow_dispatch:
 
 jobs:

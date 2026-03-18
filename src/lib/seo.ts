@@ -49,11 +49,11 @@ export function getArticleUrl(article: Pick<Article, "slug" | "sport">): string 
 }
 
 export function getAthleteUrl(slug: string): string {
-  return `/${slug}`;
+  return `/atleter/${slug}`;
 }
 
 export function getSchoolUrl(slug: string): string {
-  return `/${slug}`;
+  return `/skoler/${slug}`;
 }
 
 // ─── JSON-LD structured data ─────────────────────────────────────────────────

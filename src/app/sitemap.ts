@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs } from "@/lib/db";
 import { BASE_URL } from "@/lib/seo";
+import { getSportSlugs } from "@/lib/sport-content";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, athletes, schools] = await Promise.all([
@@ -16,7 +17,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1.0,
     },
+    {
+      url: `${BASE_URL}/atleter`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
+      url: `${BASE_URL}/viden`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ];
+
+  // Sport-landingssider (pillar pages)
+  const sportPages: MetadataRoute.Sitemap = getSportSlugs().map((slug) => ({
+    url: `${BASE_URL}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.9,
+  }));
 
   const articlePages: MetadataRoute.Sitemap = articles.map((a) => {
     const sport = (a.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
@@ -29,17 +50,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const athletePages: MetadataRoute.Sitemap = athletes.map((a) => ({
-    url: `${BASE_URL}/${a.slug}`,
+    url: `${BASE_URL}/atleter/${a.slug}`,
     lastModified: new Date(a.updated_at),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
 
   const schoolPages: MetadataRoute.Sitemap = schools.map((s) => ({
-    url: `${BASE_URL}/${s.slug}`,
+    url: `${BASE_URL}/skoler/${s.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.5,
   }));
 
-  return [...staticPages, ...articlePages, ...athletePages, ...schoolPages];
+  return [...staticPages, ...sportPages, ...articlePages, ...athletePages, ...schoolPages];
 }

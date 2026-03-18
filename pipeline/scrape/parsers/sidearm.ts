@@ -13,30 +13,55 @@ export function isSidearm(html: string): boolean {
   );
 }
 
+/**
+ * Hent kun den første direkte tekst-node fra et element.
+ * Undgår at .text() konkatenerer nested child-tekst og giver duplikater.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function firstTextNode($: any, el: any): string {
+  if (!el || el.length === 0) return "";
+  // Forsøg at finde første direkte tekst-node
+  const contents = el.contents();
+  for (let i = 0; i < contents.length; i++) {
+    const node = contents[i];
+    if (node.type === "text") {
+      const t = $(node).text().trim();
+      if (t) return t;
+    }
+  }
+  // Fallback: tag den første child-elements tekst
+  const firstChild = el.children().first();
+  if (firstChild.length) return firstChild.text().trim();
+  return el.text().trim();
+}
+
 export function parseSidearm(html: string): RosterEntry[] {
   const $ = cheerio.load(html);
   const players: RosterEntry[] = [];
 
   // Primær selector: Sidearm roster player cards
+  // NB: Sidearm HTML nester ofte tekst i child-spans, så .text() på containeren
+  // kan give duplikeret output (fx "Denver, CODenver, CO"). Vi bruger
+  // firstTextNode() til kun at hente den første tekst.
   $(".sidearm-roster-player").each((_, el) => {
     const name =
-      $(el).find(".sidearm-roster-player-name a").text().trim() ||
-      $(el).find(".sidearm-roster-player-name").text().trim() ||
-      $(el).find('[class*="name"]').first().text().trim();
+      $(el).find(".sidearm-roster-player-name a").first().text().trim() ||
+      firstTextNode($, $(el).find(".sidearm-roster-player-name")) ||
+      firstTextNode($, $(el).find('[class*="name"]').first());
 
     const position =
-      $(el).find(".sidearm-roster-player-position").text().trim() ||
-      $(el).find('[class*="position"]').first().text().trim() ||
+      firstTextNode($, $(el).find(".sidearm-roster-player-position")) ||
+      firstTextNode($, $(el).find('[class*="position"]').first()) ||
       null;
 
     const hometown =
-      $(el).find(".sidearm-roster-player-hometown").text().trim() ||
-      $(el).find('[class*="hometown"]').first().text().trim() ||
+      firstTextNode($, $(el).find(".sidearm-roster-player-hometown")) ||
+      firstTextNode($, $(el).find('[class*="hometown"]').first()) ||
       null;
 
     const year =
-      $(el).find(".sidearm-roster-player-academic-year").text().trim() ||
-      $(el).find('[class*="year"]').first().text().trim() ||
+      firstTextNode($, $(el).find(".sidearm-roster-player-academic-year")) ||
+      firstTextNode($, $(el).find('[class*="year"]').first()) ||
       null;
 
     if (name) {

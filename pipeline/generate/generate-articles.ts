@@ -72,6 +72,12 @@ function buildPrompt(
   }
 }
 
+// ─── Sikkerhedsnet ──────────────────────────────────────────────────────────
+// Maks antal artikler per kørsel (forhindrer løbsk token-forbrug)
+const MAX_ARTICLES_PER_RUN = 5;
+// Maks antal kladder der må ligge ugodkendt (pause hvis for mange hober sig op)
+const MAX_PENDING_DRAFTS = 20;
+
 async function main(): Promise<void> {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error("Mangler ANTHROPIC_API_KEY. Sæt den i miljøvariabler.");
@@ -81,6 +87,25 @@ async function main(): Promise<void> {
   const anthropic = new Anthropic();
   const db = createD1Client();
 
+  // Sikkerhedsnet 1: Tjek antal ventende kladder
+  const draftCount = await db.query<{ cnt: number }>(
+    "SELECT COUNT(*) as cnt FROM articles WHERE published = 0",
+  );
+  const pendingDrafts = draftCount.results[0]?.cnt ?? 0;
+  if (pendingDrafts >= MAX_PENDING_DRAFTS) {
+    console.log(
+      `⚠ ${pendingDrafts} ugodkendte kladder — springer generering over. Godkend eller afvis kladder i admin-panelet.`,
+    );
+    return;
+  }
+
+  // Sikkerhedsnet 2: Reset stories der har siddet i "drafting" i over 1 time (crashed run)
+  await db.execute(
+    `UPDATE stories SET status = 'new'
+     WHERE status = 'drafting'
+     AND datetime(discovered_at, '+1 hour') < datetime('now')`,
+  );
+
   // Hent nye historier der endnu ikke er konverteret
   const result = await db.query<StoryWithAthlete>(
     `SELECT s.*, a.name as athlete_name, a.sport, a.university, a.hometown
@@ -89,7 +114,8 @@ async function main(): Promise<void> {
      WHERE s.status = 'new'
      AND s.content_raw IS NOT NULL
      ORDER BY s.relevance_score DESC
-     LIMIT 10`,
+     LIMIT ?`,
+    [MAX_ARTICLES_PER_RUN],
   );
 
   const stories = result.results;
@@ -99,11 +125,23 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log(`Genererer artikler for ${stories.length} historie(r)...\n`);
+  console.log(`Genererer artikler for ${stories.length} historie(r) (maks ${MAX_ARTICLES_PER_RUN} per kørsel)...\n`);
 
   let generated = 0;
+  let totalTokens = 0;
 
   for (const story of stories) {
+    // Sikkerhedsnet 3: Tjek om der allerede findes en artikel for denne story
+    const existing = await db.query<{ cnt: number }>(
+      "SELECT COUNT(*) as cnt FROM articles WHERE story_id = ?",
+      [story.id],
+    );
+    if ((existing.results[0]?.cnt ?? 0) > 0) {
+      console.log(`  ⊘ Story ${story.id} har allerede en artikel — springer over.`);
+      await db.execute('UPDATE stories SET status = ? WHERE id = ?', ["drafted", story.id]);
+      continue;
+    }
+
     const articleType = selectArticleType(story);
     const model = selectModel(story);
     const prompt = buildPrompt(story, articleType);
@@ -157,6 +195,7 @@ async function main(): Promise<void> {
       );
 
       generated++;
+      totalTokens += response.usage.input_tokens + response.usage.output_tokens;
       console.log(
         `  ✓ "${parsed.title}" (${model}, ${response.usage.input_tokens}+${response.usage.output_tokens} tokens)`,
       );
@@ -170,7 +209,7 @@ async function main(): Promise<void> {
     }
   }
 
-  console.log(`\nFærdig. Genereret ${generated} artikeludkast.`);
+  console.log(`\nFærdig. Genereret ${generated} artikeludkast. Token-forbrug: ~${totalTokens}.`);
 }
 
 main().catch((err) => {
