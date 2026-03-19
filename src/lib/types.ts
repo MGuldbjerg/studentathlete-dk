@@ -31,6 +31,7 @@ export interface Athlete {
   year_enrolled: number | null;
   active: number;
   photo_url: string | null;
+  photo_credit: string | null;
   profile_summary: string | null;
   created_at: string;
   updated_at: string;

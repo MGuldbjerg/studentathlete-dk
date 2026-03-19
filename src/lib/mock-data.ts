@@ -21,6 +21,7 @@ export const MOCK_ATHLETES: Athlete[] = [
     year_enrolled: 2023,
     active: 1,
     photo_url: null,
+    photo_credit: null,
     profile_summary:
       "Anders Haas er en dansk kicker på University of Nebraskas football-hold, Cornhuskers. Han voksede op i Brøndby og spillede fodbold i Danmark, inden han skiftede til amerikansk football. Haas har udmærket sig som en af Big Tens mest pålidelige kickers med en field goal-procent på over 85 % i sin første sæson.",
     created_at: "2025-08-15T10:00:00Z",
@@ -39,6 +40,7 @@ export const MOCK_ATHLETES: Athlete[] = [
     year_enrolled: 2024,
     active: 1,
     photo_url: null,
+    photo_credit: null,
     profile_summary:
       "Sofie Østergaard repræsenterer University of Florida Gators i svømning. Hun har specialiseret sig i freestyle og individuel medley og har tidligere svømmet for Aarhus Svømmeklub. Østergaard har allerede sat flere personlige rekorder i sin debutsæson i SEC-konferencen.",
     created_at: "2025-09-01T08:00:00Z",
@@ -57,6 +59,7 @@ export const MOCK_ATHLETES: Athlete[] = [
     year_enrolled: 2024,
     active: 1,
     photo_url: null,
+    photo_credit: null,
     profile_summary:
       "Mathias Kjeldsen spiller guard for Gonzaga Bulldogs. Han udviklede sit talent i Københavns Basketball Klub og det danske ungdomslandshold, før han fik tilbudt et fuldt stipendium til West Coast Conference-holdet. Kjeldsen er kendt for sin boldhåndtering og evne til at organisere spillet.",
     created_at: "2025-09-10T12:00:00Z",
@@ -75,6 +78,7 @@ export const MOCK_ATHLETES: Athlete[] = [
     year_enrolled: 2023,
     active: 1,
     photo_url: null,
+    photo_credit: null,
     profile_summary:
       "Freja Nielsen spiller midtbane for Duke Blue Devils i ACC-konferencen. Hun har tidligere spillet for OB's kvindehold i Danmark og har repræsenteret det danske U21-landshold. Nielsen er en teknisk stærk spiller med et godt overblik og præcise afleveringer.",
     created_at: "2025-07-20T09:00:00Z",
@@ -93,6 +97,7 @@ export const MOCK_ATHLETES: Athlete[] = [
     year_enrolled: 2024,
     active: 1,
     photo_url: null,
+    photo_credit: null,
     profile_summary:
       "Oliver Sørensen spiller tennis for University of San Diego Toreros. Han voksede op i Helsingør og spillede på eliteniveau i dansk tennis, inden han flyttede til Californien. Sørensen spiller typisk som nr. 2 eller 3 single og har bidraget til holdets stærke WCC-sæson.",
     created_at: "2025-08-25T14:00:00Z",

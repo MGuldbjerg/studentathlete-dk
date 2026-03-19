@@ -38,10 +38,15 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
                         flex flex-col md:flex-row gap-8 items-start md:items-end">
           {/* Foto */}
           {athlete.photo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={athlete.photo_url} alt={athlete.name}
-              className="w-36 h-44 md:w-44 md:h-56 object-cover flex-shrink-0"
-              style={{ border: "2px solid rgba(255,255,255,0.12)" }} />
+            <div className="flex-shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={athlete.photo_url} alt={athlete.name}
+                className="w-36 h-44 md:w-44 md:h-56 object-cover"
+                style={{ border: "2px solid rgba(255,255,255,0.12)" }} />
+              {athlete.photo_credit && (
+                <p className="text-[10px] text-white/30 mt-1">{athlete.photo_credit}</p>
+              )}
+            </div>
           ) : (
             <div className="w-36 h-44 md:w-44 md:h-56 flex-shrink-0
                             flex items-center justify-center text-5xl font-black text-white/20"
@@ -87,7 +92,8 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
       {/* ── Indhold ────────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 md:px-8 py-10">
         <Breadcrumb crumbs={[
-          { label: "Hjem", href: "/" },
+          { label: "Forside", href: "/" },
+          { label: "Atleter", href: "/atleter" },
           { label: athlete.name },
         ]} />
 

@@ -56,6 +56,22 @@ export function getSchoolUrl(slug: string): string {
   return `/skoler/${slug}`;
 }
 
+// ─── OG-billeder ─────────────────────────────────────────────────────────────
+
+export function getOgImageUrl(params: {
+  title: string;
+  subtitle?: string;
+  sport?: string | null;
+  type?: "article" | "athlete" | "sport";
+}): string {
+  const url = new URL("/api/og", BASE_URL);
+  url.searchParams.set("title", params.title);
+  if (params.subtitle) url.searchParams.set("subtitle", params.subtitle);
+  if (params.sport) url.searchParams.set("sport", params.sport);
+  if (params.type) url.searchParams.set("type", params.type);
+  return url.toString();
+}
+
 // ─── JSON-LD structured data ─────────────────────────────────────────────────
 
 export function articleStructuredData(

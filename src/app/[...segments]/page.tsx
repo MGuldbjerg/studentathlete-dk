@@ -11,7 +11,7 @@ import {
   getArticlesBySport,
   countAthletesBySport,
 } from "@/lib/db";
-import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl } from "@/lib/seo";
+import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl } from "@/lib/seo";
 import { getSportContent } from "@/lib/sport-content";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
@@ -33,15 +33,28 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     const sportContent = getSportContent(slug);
     if (sportContent) {
       const canonicalUrl = `${BASE_URL}/${slug}`;
+      const ogImage = getOgImageUrl({
+        title: sportContent.title,
+        subtitle: sportContent.intro,
+        sport: slug,
+        type: "sport",
+      });
       return {
         title: `${sportContent.title} – danske atleter i NCAA | StudentAthlete.dk`,
         description: sportContent.metaDescription,
         openGraph: {
           title: `${sportContent.title} | StudentAthlete.dk`,
           description: sportContent.metaDescription,
+          images: [{ url: ogImage, width: 1200, height: 630, alt: sportContent.title }],
           type: "website",
           siteName: "StudentAthlete.dk",
           url: canonicalUrl,
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: `${sportContent.title} | StudentAthlete.dk`,
+          description: sportContent.metaDescription,
+          images: [ogImage],
         },
         alternates: { canonical: canonicalUrl },
         robots: { index: true, follow: true },
@@ -64,22 +77,29 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         const description =
           athlete.profile_summary ??
           `${athlete.name} spiller ${athlete.sport} for ${athlete.university}. Følg den danske student athlete på StudentAthlete.dk.`;
+        const ogImage = athlete.photo_url
+          ?? getOgImageUrl({
+               title: athlete.name,
+               subtitle: `${athlete.university} · ${athlete.sport}`,
+               sport: athlete.sport,
+               type: "athlete",
+             });
         return {
           title: `${athlete.name} – ${athlete.sport} | StudentAthlete.dk`,
           description,
           openGraph: {
             title: `${athlete.name} | StudentAthlete.dk`,
             description,
-            images: athlete.photo_url ? [{ url: athlete.photo_url, alt: athlete.name }] : [],
+            images: [{ url: ogImage, width: 1200, height: 630, alt: athlete.name }],
             type: "profile",
             siteName: "StudentAthlete.dk",
             url: `${BASE_URL}${getAthleteUrl(slug)}`,
           },
           twitter: {
-            card: athlete.photo_url ? "summary_large_image" : "summary",
+            card: "summary_large_image",
             title: `${athlete.name} | StudentAthlete.dk`,
             description,
-            images: athlete.photo_url ? [athlete.photo_url] : undefined,
+            images: [ogImage],
           },
           alternates: { canonical: `${BASE_URL}${getAthleteUrl(slug)}` },
           robots: { index: true, follow: true },
@@ -113,9 +133,15 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     const normalizedSport = (article?.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
     if (article && normalizedSport === prefix) {
       const canonicalUrl = `${BASE_URL}${getArticleUrl(article)}`;
-      const images = article.cover_image_url
-        ? [{ url: article.cover_image_url, width: 1200, height: 630, alt: article.title }]
-        : [];
+      const ogImage = article.cover_image_url
+        ?? getOgImageUrl({
+             title: article.title,
+             subtitle: article.athlete_name
+               ? `${article.athlete_name} · ${article.sport ?? ""}`
+               : (article.sport ?? ""),
+             sport: article.sport,
+             type: "article",
+           });
 
       return {
         title: `${article.title} | StudentAthlete.dk`,
@@ -123,7 +149,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         openGraph: {
           title: article.title,
           description: article.summary ?? undefined,
-          images,
+          images: [{ url: ogImage, width: 1200, height: 630, alt: article.title }],
           type: "article",
           publishedTime: article.published_at ?? undefined,
           modifiedTime: article.updated_at,
@@ -133,10 +159,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           url: canonicalUrl,
         },
         twitter: {
-          card: article.cover_image_url ? "summary_large_image" : "summary",
+          card: "summary_large_image",
           title: article.title,
           description: article.summary ?? undefined,
-          images: article.cover_image_url ? [article.cover_image_url] : undefined,
+          images: [ogImage],
         },
         alternates: { canonical: canonicalUrl },
         robots: { index: true, follow: true },
