@@ -107,6 +107,25 @@ Atletdata tilføjes i `pipeline/seed/seed-data.json` og indsættes med `bash scr
 | `npm run dev` | Start lokal dev-server |
 | `npm run deploy` | Deploy til Cloudflare |
 
+## Pipeline-scraping: Cloudflare Browser Rendering (VIGTIG)
+
+**Inden du ændrer scraping- eller discovery-logik**, overvej Cloudflare Browser Rendering API:
+
+| Opgave | Brug dette | Hvorfor |
+|--------|-----------|---------|
+| Crawl skolers nyhedssektioner | **CF /crawl** med `render: false`, `formats: ["markdown"]` | Gratis under beta, følger links automatisk, finder flere historier end enkelt-URL-fetch |
+| Roster-sider der returnerer tom HTML | **CF /scrape** med `render: true` | Headless browser renderer JS — løser SPA-problemet |
+| Roster-sider med data i HTML | Behold `fetch()` + Cheerio | Gratis og hurtigt |
+| Struktureret data-udtræk | **UNDGÅ** CF JSON-format | Bruger Workers AI-tokens — brug markdown + Cheerio i stedet |
+
+**API**: `https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering/crawl`
+**Token**: Kræver "Browser Rendering - Edit" permission i CF dashboard.
+**Gratis plan**: 10 min browser-tid/dag (kun `render: true`). `render: false` er gratis under beta.
+**Begrænsninger**: Fast User-Agent (`CloudflareBrowserRenderingCrawler/1.0`), respekterer robots.txt.
+**Fuld reference**: `memory/reference-cf-browser-rendering.md`
+
+Relevante filer: `pipeline/scrape/scrape-rosters.ts`, `pipeline/discover/check-sources.ts`, `pipeline/lib/auto-sources.ts`
+
 ## Workflow for designændringer
 1. Start dev-serveren
 2. Lav ændringer i koden

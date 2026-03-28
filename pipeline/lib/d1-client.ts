@@ -33,27 +33,56 @@ export class D1Client {
     sql: string,
     params: unknown[] = [],
   ): Promise<D1QueryResult<T>> {
-    const response = await fetch(`${this.baseUrl}/query`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.apiToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ sql, params }),
-    });
+    return this.queryWithRetry<T>(sql, params);
+  }
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`D1 API fejl (${response.status}): ${text}`);
+  private async queryWithRetry<T = Record<string, unknown>>(
+    sql: string,
+    params: unknown[],
+    maxRetries = 3,
+  ): Promise<D1QueryResult<T>> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch(`${this.baseUrl}/query`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.apiToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sql, params }),
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`D1 API fejl (${response.status}): ${text}`);
+        }
+
+        const data = (await response.json()) as D1Response<T>;
+
+        if (!data.success) {
+          throw new Error(`D1 query fejl: ${data.errors.map((e) => e.message).join(", ")}`);
+        }
+
+        return data.result[0];
+      } catch (err) {
+        const isNetworkError =
+          err instanceof TypeError ||
+          (err instanceof Error &&
+            /ECONNRESET|ETIMEDOUT|fetch failed|network/i.test(err.message));
+
+        if (isNetworkError && attempt < maxRetries - 1) {
+          const delay = 1000 * 2 ** attempt;
+          console.warn(
+            `  D1 netværksfejl (forsøg ${attempt + 1}/${maxRetries}), prøver igen om ${delay}ms...`,
+          );
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
+        throw err;
+      }
     }
-
-    const data = (await response.json()) as D1Response<T>;
-
-    if (!data.success) {
-      throw new Error(`D1 query fejl: ${data.errors.map((e) => e.message).join(", ")}`);
-    }
-
-    return data.result[0];
+    // Burde aldrig nås — TypeScript kræver return
+    throw new Error("queryWithRetry: uventet tilstand");
   }
 
   async execute(sql: string, params: unknown[] = []): Promise<void> {

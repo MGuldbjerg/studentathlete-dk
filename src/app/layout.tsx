@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Suspense } from "react";
 import { Header } from "@/components/Header";
+import { CategoryNav } from "@/components/CategoryNav";
 import { Footer } from "@/components/Footer";
+import { AdSlot } from "@/components/ui/AdSlot";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,7 +48,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}
       >
         <Header />
+        <Suspense fallback={null}>
+          <CategoryNav />
+        </Suspense>
+        <AdSlot slot="header-leaderboard" className="my-3" />
         {children}
+        <AdSlot slot="pre-footer" className="my-6" />
         <Footer />
       </body>
     </html>

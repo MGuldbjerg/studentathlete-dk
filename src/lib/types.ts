@@ -45,6 +45,14 @@ export interface School {
   division: string;
   conference: string | null;
   website: string | null;
+  common_name?: string | null;
+  nickname?: string | null;
+  city?: string | null;
+  platform_type?: string | null;
+  platform_detected_at?: string | null;
+  news_feed_url?: string | null;
+  news_feed_type?: string | null;
+  news_last_checked_at?: string | null;
 }
 
 export const SPORT_COLORS: Record<string, string> = {
@@ -53,6 +61,7 @@ export const SPORT_COLORS: Record<string, string> = {
   baseball: "#8B2D2D",
   atletik: "#2E6B8A",
   svømning: "#1B7A8A",
+  svoemning: "#1B7A8A",
   fodbold: "#2D5A27",
   golf: "#3D6B4F",
   tennis: "#8B6914",
@@ -74,7 +83,7 @@ export const SPORTS = [
   { label: "Basketball", slug: "basketball", icon: "basketball" },
   { label: "Baseball", slug: "baseball", icon: "baseball" },
   { label: "Fodbold", slug: "fodbold", icon: "fodbold" },
-  { label: "Svømning", slug: "svømning", icon: "svømning" },
+  { label: "Svømning", slug: "svoemning", icon: "svømning" },
   { label: "Atletik", slug: "atletik", icon: "atletik" },
   { label: "Golf", slug: "golf", icon: "golf" },
   { label: "Tennis", slug: "tennis", icon: "tennis" },
@@ -100,6 +109,26 @@ export const SPORT_NORMALIZE: Record<string, string> = {
   "ice-hockey": "ishockey",
   "volleyball": "volleyball",
 };
+
+/** Map URL-slug til DB-sportnavn (kun for slugs der afviger fra DB-værdi) */
+const URL_TO_DB_SPORT: Record<string, string> = {
+  svoemning: "svømning",
+};
+
+/** Map DB-sportnavn til URL-safe slug */
+const DB_SPORT_TO_URL: Record<string, string> = {
+  svømning: "svoemning",
+};
+
+/** Konvertér URL-slug til den sport-streng der bruges i databasen */
+export function urlSlugToDbSport(slug: string): string {
+  return URL_TO_DB_SPORT[slug] ?? slug;
+}
+
+/** Konvertér DB-sportnavn til URL-safe slug */
+export function dbSportToUrlSlug(sport: string): string {
+  return DB_SPORT_TO_URL[sport.toLowerCase()] ?? sport.toLowerCase().replace(/\s+/g, "-");
+}
 
 export const ARTICLE_TYPE_LABELS: Record<string, string> = {
   profile: "Spillerprofil",

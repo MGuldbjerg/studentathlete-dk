@@ -30,7 +30,7 @@ export function CategoryNav() {
   const activeSport = searchParams.get("sport") ?? "";
 
   return (
-    <nav className="w-full overflow-x-auto border-b border-border bg-white scrollbar-hide">
+    <nav className="w-full overflow-x-auto border-b border-border bg-white scrollbar-hide sticky top-0 z-40">
       <div className="flex items-center min-w-max px-4 md:px-8 gap-1">
         {SPORTS.map((sport) => {
           const sportColor = sport.slug ? getSportColor(sport.slug) : "#00205B";

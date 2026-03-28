@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getDraftArticles } from "@/lib/admin";
+import { validateAdminToken, getDraftArticles, getAllArticles } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 
 export default async function AdminDashboard({
@@ -12,60 +12,152 @@ export default async function AdminDashboard({
   const valid = await validateAdminToken(token ?? null);
   if (!valid) notFound();
 
-  const drafts = await getDraftArticles();
+  const [drafts, allArticles] = await Promise.all([
+    getDraftArticles(),
+    getAllArticles(),
+  ]);
+  const published = allArticles.filter((a) => a.published === 1);
 
   return (
     <main className="min-h-screen bg-surface">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-ink mb-1">Kladder</h1>
-        <p className="text-muted text-sm mb-4">
-          {drafts.length === 0
-            ? "Ingen kladder at gennemse"
-            : `${drafts.length} kladde${drafts.length === 1 ? "" : "r"} venter`}
-        </p>
+        <h1 className="text-2xl font-bold text-ink mb-4">Admin</h1>
 
-        <Link
-          href={`/admin/tilfoej?token=${token}`}
-          className="inline-block mb-6 px-4 py-2 text-sm font-semibold text-white rounded-lg"
-          style={{ backgroundColor: "#00205B" }}
-        >
-          + Tilføj atlet
-        </Link>
-
-        <div className="flex flex-col gap-3">
-          {drafts.map((draft) => (
-            <Link
-              key={draft.id}
-              href={`/admin/${draft.id}?token=${token}`}
-              className="block bg-paper rounded-lg border border-border p-4 active:scale-[0.98] transition-transform"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                {draft.sport && (
-                  <span
-                    className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded"
-                    style={{ backgroundColor: getSportColor(draft.sport) }}
-                  >
-                    {draft.sport}
-                  </span>
-                )}
-                <span className="text-[11px] text-muted">
-                  {ARTICLE_TYPE_LABELS[draft.article_type] ?? draft.article_type}
-                </span>
-              </div>
-              <h2
-                className="text-lg font-bold text-ink leading-snug"
-                style={{ fontFamily: "var(--font-serif)" }}
-              >
-                {draft.title}
-              </h2>
-              <div className="flex items-center gap-2 mt-2 text-xs text-muted">
-                {draft.athlete_name && <span>{draft.athlete_name}</span>}
-                {draft.athlete_name && <span>·</span>}
-                <span>{new Date(draft.created_at).toLocaleDateString("da-DK")}</span>
-              </div>
-            </Link>
-          ))}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <Link
+            href={`/admin/ny-artikel?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold text-white rounded-lg"
+            style={{ backgroundColor: "#00205B" }}
+          >
+            + Ny artikel
+          </Link>
+          <Link
+            href={`/admin/tilfoej?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            + Tilføj atlet
+          </Link>
+          <Link
+            href={`/admin/atleter?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Atleter
+          </Link>
+          <Link
+            href={`/admin/sider?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Sider
+          </Link>
+          <Link
+            href={`/admin/pipeline?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Pipeline
+          </Link>
         </div>
+
+        {/* Kladder */}
+        <section className="mb-10">
+          <h2 className="text-lg font-bold text-ink mb-1">Kladder</h2>
+          <p className="text-muted text-sm mb-3">
+            {drafts.length === 0
+              ? "Ingen kladder at gennemse"
+              : `${drafts.length} kladde${drafts.length === 1 ? "" : "r"} venter`}
+          </p>
+
+          <div className="flex flex-col gap-3">
+            {drafts.map((draft) => (
+              <div
+                key={draft.id}
+                className="bg-paper rounded-lg border border-border p-4"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {draft.sport && (
+                    <span
+                      className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded"
+                      style={{ backgroundColor: getSportColor(draft.sport) }}
+                    >
+                      {draft.sport}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-muted">
+                    {ARTICLE_TYPE_LABELS[draft.article_type] ?? draft.article_type}
+                  </span>
+                </div>
+                <h3
+                  className="text-lg font-bold text-ink leading-snug"
+                  style={{ fontFamily: "var(--font-serif)" }}
+                >
+                  {draft.title}
+                </h3>
+                <div className="flex items-center gap-2 mt-2 text-xs text-muted">
+                  {draft.athlete_name && <span>{draft.athlete_name}</span>}
+                  {draft.athlete_name && <span>·</span>}
+                  <span>{new Date(draft.created_at).toLocaleDateString("da-DK")}</span>
+                </div>
+                <div className="flex gap-3 mt-3">
+                  <Link
+                    href={`/admin/rediger/${draft.id}?token=${token}`}
+                    className="text-sm font-medium hover:underline"
+                    style={{ color: "#00205B" }}
+                  >
+                    Rediger
+                  </Link>
+                  <Link
+                    href={`/admin/${draft.id}?token=${token}`}
+                    className="text-sm font-medium text-muted hover:underline"
+                  >
+                    Forhåndsvis
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Publicerede artikler */}
+        <section>
+          <h2 className="text-lg font-bold text-ink mb-1">Publicerede artikler</h2>
+          <p className="text-muted text-sm mb-3">
+            {published.length} artikel{published.length === 1 ? "" : "er"}
+          </p>
+
+          <div className="flex flex-col gap-2">
+            {published.map((article) => (
+              <div
+                key={article.id}
+                className="bg-paper rounded-lg border border-border px-4 py-3 flex items-center justify-between"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    {article.sport && (
+                      <span
+                        className="text-[10px] font-semibold uppercase tracking-wider text-white px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: getSportColor(article.sport) }}
+                      >
+                        {article.sport}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-muted">
+                      {ARTICLE_TYPE_LABELS[article.article_type] ?? article.article_type}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-ink truncate">
+                    {article.title}
+                  </p>
+                </div>
+                <Link
+                  href={`/admin/rediger/${article.id}?token=${token}`}
+                  className="text-sm font-medium flex-shrink-0 ml-4 hover:underline"
+                  style={{ color: "#00205B" }}
+                >
+                  Rediger
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

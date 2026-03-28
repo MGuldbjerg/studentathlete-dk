@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { validateAdminToken, getDraftArticleById } from "@/lib/admin";
+import Link from "next/link";
+import { validateAdminToken, getArticleById } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminActions } from "./AdminActions";
@@ -19,7 +20,7 @@ export default async function AdminArticlePage({
   const id = parseInt(idStr, 10);
   if (isNaN(id)) notFound();
 
-  const article = await getDraftArticleById(id);
+  const article = await getArticleById(id);
   if (!article) notFound();
 
   return (
@@ -60,6 +61,13 @@ export default async function AdminArticlePage({
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted mb-8 border-b border-border pb-4">
           <span>Oprettet: {new Date(article.created_at).toLocaleDateString("da-DK")}</span>
           {article.author && <span>Forfatter: {article.author}</span>}
+          <Link
+            href={`/admin/rediger/${article.id}?token=${token}`}
+            className="font-medium hover:underline"
+            style={{ color: "#00205B" }}
+          >
+            Rediger →
+          </Link>
         </div>
 
         {/* Artikelindhold */}

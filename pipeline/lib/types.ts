@@ -57,3 +57,14 @@ export interface RosterEntry {
   hometown: string | null;
   year: string | null;
 }
+
+export interface RosterCheck {
+  id: number;
+  school_id: number;
+  sport: string;
+  roster_url: string | null;
+  status: "pending" | "success" | "empty" | "error" | "js_required";
+  athletes_found: number;
+  checked_at: string | null;
+  error_message: string | null;
+}

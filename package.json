@@ -14,7 +14,12 @@
     "pipeline:scrape": "tsx pipeline/scrape/scrape-rosters.ts",
     "pipeline:discover": "tsx pipeline/discover/check-sources.ts",
     "pipeline:generate": "tsx pipeline/generate/generate-articles.ts",
-    "pipeline:import-csv": "tsx pipeline/seed/import-csv.ts"
+    "pipeline:import-csv": "tsx pipeline/seed/import-csv.ts",
+    "pipeline:import-schools": "tsx pipeline/seed/import-schools-csv.ts",
+    "pipeline:detect-platforms": "tsx pipeline/scrape/detect-platforms.ts",
+    "pipeline:scrape-js": "tsx pipeline/scrape/scrape-js-rosters.ts",
+    "pipeline:naia-urls": "tsx pipeline/scrape/naia-urls.ts",
+    "pipeline:report": "tsx pipeline/report/coverage-report.ts"
   },
   "dependencies": {
     "next": "16.1.6",

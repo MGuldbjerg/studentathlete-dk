@@ -91,7 +91,7 @@ NCAA soccer-sæsonen er kort og intens: august til december, med ca. 20 kampe. F
 Den danske fodboldtradition med fokus på boldbehandling, positionsspil og taktisk disciplin passer godt til college soccer. Mange danske spillere opnår startpladser fra dag ét og bidrager til deres holds succes på højeste niveau.`,
   },
 
-  svømning: {
+  svoemning: {
     title: "Svømning",
     intro:
       "Danske svømmere på NCAA-hold i USA. Fra danske svømmeklubber til college pools — følg de danske talenter.",

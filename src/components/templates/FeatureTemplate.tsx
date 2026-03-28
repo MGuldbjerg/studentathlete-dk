@@ -3,6 +3,7 @@ import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { AdSlot } from "@/components/ui/AdSlot";
 
 interface Props {
   article: Article;
@@ -105,12 +106,23 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
         </div>
 
         {/* ── Brødtekst med drop cap ─────────────────────────────── */}
-        <div className="max-w-3xl mx-auto px-6 md:px-8 py-10 article-drop-cap">
-          <ArticleBody content={article.content} />
+        <div className="max-w-4xl mx-auto px-6 md:px-8 py-10 flex gap-8">
+          <div className="flex-1 max-w-3xl article-drop-cap">
+            <ArticleBody content={article.content} />
 
-          <div className="mt-12 pt-8 border-t border-border">
-            <RelatedArticles articles={relatedArticles} title="Læs også" />
+            <AdSlot slot="article-footer" className="my-6" />
+
+            <div className="mt-12 pt-8 border-t border-border">
+              <RelatedArticles articles={relatedArticles} title="Læs også" />
+            </div>
           </div>
+
+          {/* ── Sidebar (kun desktop) ─────────────────────────── */}
+          <aside className="hidden lg:block w-[300px] flex-shrink-0">
+            <div className="sticky top-20">
+              <AdSlot slot="sidebar" />
+            </div>
+          </aside>
         </div>
       </article>
     </>

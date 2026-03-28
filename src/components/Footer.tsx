@@ -30,7 +30,7 @@ export function Footer() {
               { label: "Basketball", slug: "basketball" },
               { label: "Baseball", slug: "baseball" },
               { label: "Fodbold", slug: "fodbold" },
-              { label: "Svømning", slug: "svømning" },
+              { label: "Svømning", slug: "svoemning" },
               { label: "Atletik", slug: "atletik" },
               { label: "Golf", slug: "golf" },
               { label: "Tennis", slug: "tennis" },

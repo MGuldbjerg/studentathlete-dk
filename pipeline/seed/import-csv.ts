@@ -122,8 +122,6 @@ async function main(): Promise<void> {
         await createSourcesForAthlete(
           db,
           newAthlete.results[0].id,
-          row.school,
-          row.sport || "Andet",
         );
         sourcesCreated++;
       }

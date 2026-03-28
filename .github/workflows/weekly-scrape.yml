@@ -11,6 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
+    strategy:
+      matrix:
+        division: [D1, D2, D3]
+      max-parallel: 1
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,8 +26,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Scrape rosters for danske atleter
-        run: npx tsx pipeline/scrape/scrape-rosters.ts
+      - name: Scrape rosters (${{ matrix.division }})
+        run: npx tsx pipeline/scrape/scrape-rosters.ts --division ${{ matrix.division }} --limit 500 --max-age-days 30
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

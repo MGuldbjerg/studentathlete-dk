@@ -3,6 +3,7 @@ import { formatDate, articleStructuredData, getAthleteUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { AdSlot } from "@/components/ui/AdSlot";
 
 interface Props {
   article: Article;
@@ -133,6 +134,7 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
 
           <div className="h-px mb-10" style={{ backgroundColor: "#E2E0DC" }} />
           <ArticleBody content={article.content} />
+          <AdSlot slot="article-footer" className="my-6" />
           <RelatedArticles articles={relatedArticles} title="Mere om rekruttering" />
         </div>
       </article>

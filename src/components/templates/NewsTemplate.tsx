@@ -4,6 +4,7 @@ import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { AdSlot } from "@/components/ui/AdSlot";
 
 interface Props {
   article: Article;
@@ -21,9 +22,10 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
         __html: JSON.stringify(articleStructuredData(article, athlete))
       }} />
 
-      <article>
+      <div className="max-w-4xl mx-auto flex gap-8">
+      <article className="flex-1 max-w-2xl">
         {/* ── Artikel-header ─────────────────────────────────────── */}
-        <header className="max-w-2xl mx-auto px-5 md:px-0 pt-10 pb-0">
+        <header className="px-5 md:px-0 pt-10 pb-0">
           <div className="mb-8">
             <Breadcrumb crumbs={[
               { label: "Hjem", href: "/" },
@@ -97,7 +99,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
 
         {/* ── Hero-billede ───────────────────────────────────────── */}
         {article.cover_image_url && (
-          <div className="max-w-2xl mx-auto px-5 md:px-0 mt-8">
+          <div className="px-5 md:px-0 mt-8">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={article.cover_image_url} alt={article.title}
               className="w-full object-cover max-h-[28rem]" />
@@ -105,12 +107,15 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
         )}
 
         {/* ── Brødtekst ──────────────────────────────────────────── */}
-        <div className="max-w-2xl mx-auto px-5 md:px-0 pt-8 pb-2">
+        <div className="px-5 md:px-0 pt-8 pb-2">
           <ArticleBody content={article.content} />
         </div>
 
+        {/* ── Annonce efter artikel ────────────────────────────── */}
+        <AdSlot slot="article-footer" className="my-6" />
+
         {/* ── Tags ───────────────────────────────────────────────── */}
-        <div className="max-w-2xl mx-auto px-5 md:px-0 pt-6 pb-10 border-t border-border mt-4">
+        <div className="px-5 md:px-0 pt-6 pb-10 border-t border-border mt-4">
           <div className="flex flex-wrap gap-2">
             {[article.sport, typeLabel, "Student athlete"].filter(Boolean).map((tag) => (
               <span key={tag}
@@ -124,6 +129,14 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
           <RelatedArticles articles={relatedArticles} />
         </div>
       </article>
+
+      {/* ── Sidebar (kun desktop) ─────────────────────────────── */}
+      <aside className="hidden lg:block w-[300px] flex-shrink-0">
+        <div className="sticky top-20 pt-10">
+          <AdSlot slot="sidebar" />
+        </div>
+      </aside>
+      </div>
     </>
   );
 }

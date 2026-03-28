@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import { Carousel } from "@/components/Carousel";
 import { ArticleCard } from "@/components/ArticleCard";
-import { CategoryNav } from "@/components/CategoryNav";
+import { AdSlot } from "@/components/ui/AdSlot";
+
 import { SearchBar } from "@/components/SearchBar";
 import { getLatestArticles, getArticles } from "@/lib/db";
 
@@ -31,11 +32,6 @@ export default async function HomePage({
     <main>
       {/* Karrusel — kun på forsiden uden filter */}
       {!hasFilter && <Carousel articles={carouselArticles} />}
-
-      {/* Sport-filter-bar */}
-      <Suspense fallback={null}>
-        <CategoryNav />
-      </Suspense>
 
       {/* Søgefelt (mobil) + sektion-header */}
       <div className="px-4 md:px-8 py-5 border-b border-border">
@@ -69,6 +65,9 @@ export default async function HomePage({
           )}
         </div>
       </div>
+
+      {/* Annonce efter karrusel */}
+      <AdSlot slot="after-carousel" className="my-6" />
 
       {/* Artikler — modulært grid */}
       <div className="px-4 md:px-8 py-8">

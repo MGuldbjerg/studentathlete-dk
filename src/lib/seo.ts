@@ -1,4 +1,5 @@
 import type { Article, Athlete, School } from "./types";
+import { dbSportToUrlSlug } from "./types";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
@@ -44,7 +45,7 @@ export function formatRelativeTime(dateStr: string | null): string {
 // ─── URL-hjælpere ────────────────────────────────────────────────────────────
 
 export function getArticleUrl(article: Pick<Article, "slug" | "sport">): string {
-  const sport = (article.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
+  const sport = dbSportToUrlSlug(article.sport ?? "sport");
   return `/${sport}/${article.slug}`;
 }
 

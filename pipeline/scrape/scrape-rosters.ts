@@ -1,8 +1,8 @@
 /**
  * Scraper der henter rosters fra college-websites og finder danske atleter.
- * Kør med: npx tsx pipeline/scrape/scrape-rosters.ts
+ * Bruger roster_checks-tabellen for inkrementel tracking.
  *
- * Respekterer rate limiting (1 sek mellem requests) og robots.txt-konventioner.
+ * Kør med: npx tsx pipeline/scrape/scrape-rosters.ts [--division D1] [--limit 500] [--max-age-days 30]
  */
 
 import { createD1Client } from "../lib/d1-client";
@@ -10,126 +10,372 @@ import type { D1Client } from "../lib/d1-client";
 import { parseRoster } from "./parsers";
 import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
+import { backfillSources } from "../lib/auto-sources";
 import type { School } from "../lib/types";
 
-interface SchoolWithRoster extends School {
+interface RosterCheckWithSchool {
+  check_id: number;
+  school_id: number;
+  sport: string;
+  roster_url: string | null;
+  // School-felter
+  name: string;
+  slug: string;
+  state: string | null;
+  division: string;
+  conference: string | null;
   website: string;
+  platform_type: string | null;
 }
 
-const SPORTS = ["football", "basketball", "baseball", "soccer", "track-and-field", "swimming-and-diving", "golf", "tennis", "rowing", "gymnastics", "ice-hockey", "volleyball"];
-
-/** Normalisér scraper-sportnavn til intern nøgle (lowercase, dansk) */
 const SPORT_MAP: Record<string, string> = {
-  "football": "football",
-  "basketball": "basketball",
-  "baseball": "baseball",
-  "soccer": "fodbold",
+  football: "football",
+  basketball: "basketball",
+  baseball: "baseball",
+  soccer: "fodbold",
   "track-and-field": "atletik",
   "swimming-and-diving": "svømning",
-  "golf": "golf",
-  "tennis": "tennis",
-  "rowing": "roning",
-  "gymnastics": "gymnastik",
+  golf: "golf",
+  tennis: "tennis",
+  rowing: "roning",
+  gymnastics: "gymnastik",
   "ice-hockey": "ishockey",
-  "volleyball": "volleyball",
+  volleyball: "volleyball",
 };
+
 const USER_AGENT = "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
 
-async function fetchRosterPage(url: string): Promise<string | null> {
+/** PrestoSports bruger egne sport-koder i roster.aspx?path= */
+const PRESTO_SPORT_CODES: Record<string, string[]> = {
+  football: ["football"],
+  basketball: ["mbball", "wbball"],
+  baseball: ["baseball"],
+  soccer: ["msoc", "wsoc"],
+  "track-and-field": ["mtrack", "wtrack"],
+  "swimming-and-diving": ["mswim", "wswim"],
+  golf: ["mgolf", "wgolf"],
+  tennis: ["mten", "wten"],
+  rowing: ["rowing"],
+  gymnastics: ["wgym"],
+  "ice-hockey": ["mihockey", "wihockey"],
+  volleyball: ["wvball"],
+};
+
+/**
+ * Generér mulige roster-URLs for en skole/sport baseret på platform.
+ * Returnerer flere kandidater i prioriteret rækkefølge.
+ */
+function getRosterUrls(website: string, sport: string, platformType: string | null): string[] {
+  const urls: string[] = [];
+
+  if (platformType === "prestosports") {
+    const codes = PRESTO_SPORT_CODES[sport] ?? [sport];
+    for (const code of codes) {
+      urls.push(`${website}/roster.aspx?path=${code}`);
+    }
+  } else {
+    // Sidearm og andre: prøv standard + mens/womens varianter
+    urls.push(`${website}/sports/${sport}/roster`);
+    urls.push(`${website}/sports/mens-${sport}/roster`);
+    urls.push(`${website}/sports/womens-${sport}/roster`);
+  }
+
+  return urls;
+}
+
+interface CliArgs {
+  division: string | null;
+  limit: number;
+  maxAgeDays: number;
+}
+
+function parseArgs(): CliArgs {
+  const args = process.argv.slice(2);
+  let division: string | null = null;
+  let limit = 500;
+  let maxAgeDays = 30;
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--division" && args[i + 1]) {
+      division = args[i + 1];
+      i++;
+    } else if (args[i] === "--limit" && args[i + 1]) {
+      limit = parseInt(args[i + 1], 10) || 500;
+      i++;
+    } else if (args[i] === "--max-age-days" && args[i + 1]) {
+      maxAgeDays = parseInt(args[i + 1], 10) || 30;
+      i++;
+    }
+  }
+
+  return { division, limit, maxAgeDays };
+}
+
+interface FetchResult {
+  html: string | null;
+  httpStatus: number;
+  result: "ok" | "not_found" | "timeout" | "error";
+  size: number;
+}
+
+async function fetchRosterPage(url: string): Promise<FetchResult> {
   try {
     const response = await fetch(url, {
       headers: { "User-Agent": USER_AGENT },
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(5000),
+      redirect: "follow",
     });
-    if (!response.ok) return null;
-    return await response.text();
+    const text = response.ok ? await response.text() : null;
+    return {
+      html: text,
+      httpStatus: response.status,
+      result: response.ok ? "ok" : "not_found",
+      size: text?.length ?? 0,
+    };
   } catch {
-    return null;
+    return { html: null, httpStatus: 0, result: "timeout", size: 0 };
   }
 }
 
-async function scrapeSchool(
+/** Log URL-forsøg til url_probes og skip allerede kendte fejl */
+async function fetchWithProbeLog(
   db: D1Client,
-  school: SchoolWithRoster,
-): Promise<number> {
-  let totalFound = 0;
+  schoolId: number,
+  url: string,
+): Promise<string | null> {
+  // Tjek om vi allerede har prøvet denne URL og den fejlede
+  const existing = await db.query<{ result: string }>(
+    "SELECT result FROM url_probes WHERE school_id = ? AND url = ? AND purpose = 'roster_scrape'",
+    [schoolId, url],
+  );
+  if (existing.results.length > 0 && existing.results[0].result !== "ok") {
+    return null; // Allerede prøvet, fejlede — spring over
+  }
 
-  for (const sport of SPORTS) {
-    const rosterUrl = `${school.website}/sports/${sport}/roster`;
-    const html = await fetchRosterPage(rosterUrl);
-    if (!html) continue;
+  const { html, httpStatus, result, size } = await fetchRosterPage(url);
 
-    const roster = parseRoster(html);
-    const danishAthletes = roster.filter((entry) =>
-      isDanishHometown(entry.hometown),
+  // Log forsøget
+  try {
+    await db.execute(
+      `INSERT OR REPLACE INTO url_probes (school_id, url, purpose, http_status, result, response_size)
+       VALUES (?, ?, 'roster_scrape', ?, ?, ?)`,
+      [schoolId, url, httpStatus, result, size],
     );
+  } catch {
+    // Log-fejl skal ikke stoppe scrapingen
+  }
 
-    for (const athlete of danishAthletes) {
-      const slug = generateSlug(athlete.name);
-      const sportLabel = SPORT_MAP[sport] ?? sport;
+  return html;
+}
 
-      try {
-        await db.execute(
-          `INSERT OR IGNORE INTO athletes
-           (name, slug, sport, position, hometown, university, university_state, division)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            athlete.name,
-            slug,
-            sportLabel,
-            athlete.position,
-            athlete.hometown,
-            school.name,
-            school.state,
-            school.division,
-          ],
-        );
-        totalFound++;
-      } catch (err) {
-        console.error(`  Fejl ved "${athlete.name}": ${err}`);
+async function main(): Promise<void> {
+  const { division, limit, maxAgeDays } = parseArgs();
+  const db = createD1Client();
+
+  // Registrér pipeline-kørsel
+  await db.execute(
+    `INSERT INTO pipeline_runs (run_type, status) VALUES ('roster_scrape', 'running')`,
+  );
+  const runResult = await db.query<{ id: number }>(
+    "SELECT id FROM pipeline_runs ORDER BY id DESC LIMIT 1",
+  );
+  const runId = runResult.results[0]?.id;
+
+  // Byg division-filter
+  const divisionFilter = division ? `NCAA ${division}` : "%";
+
+  console.log(
+    `Henter roster-checks (division: ${division ?? "alle"}, limit: ${limit}, max-age: ${maxAgeDays} dage)...`,
+  );
+
+  const result = await db.query<RosterCheckWithSchool>(
+    `SELECT
+       rc.id as check_id, rc.school_id, rc.sport, rc.roster_url,
+       s.name, s.slug, s.state, s.division, s.conference, s.website, s.platform_type
+     FROM roster_checks rc
+     JOIN schools s ON rc.school_id = s.id
+     WHERE s.website IS NOT NULL
+       AND s.division LIKE ?
+       AND (rc.checked_at IS NULL
+            OR datetime(rc.checked_at, '+' || ? || ' days') < datetime('now'))
+       AND rc.status != 'js_required'
+     ORDER BY rc.checked_at ASC NULLS FIRST
+     LIMIT ?`,
+    [divisionFilter, maxAgeDays, limit],
+  );
+
+  const checks = result.results;
+
+  if (checks.length === 0) {
+    console.log("Ingen roster-checks klar til scraping.");
+    if (runId) {
+      await db.execute(
+        `UPDATE pipeline_runs SET status = 'completed', finished_at = datetime('now'),
+         items_processed = 0, items_found = 0 WHERE id = ?`,
+        [runId],
+      );
+    }
+    return;
+  }
+
+  console.log(`Scraper ${checks.length} roster-sider...\n`);
+
+  let totalFound = 0;
+  let totalProcessed = 0;
+  let totalErrors = 0;
+
+  for (const check of checks) {
+    try {
+      // Prøv flere URL-kandidater baseret på platform
+      const candidateUrls = getRosterUrls(check.website, check.sport, check.platform_type);
+      let html: string | null = null;
+      let usedUrl: string | null = null;
+
+      for (const url of candidateUrls) {
+        html = await fetchWithProbeLog(db, check.school_id, url);
+        if (html) {
+          usedUrl = url;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 500));
       }
+
+      if (!html) {
+        await db.execute(
+          `UPDATE roster_checks
+           SET status = 'error', checked_at = datetime('now'), error_message = 'Fetch fejlede for alle URL-varianter'
+           WHERE id = ?`,
+          [check.check_id],
+        );
+        totalErrors++;
+        totalProcessed++;
+        await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+
+      // Gem den URL der virkede
+      if (usedUrl && usedUrl !== check.roster_url) {
+        await db.execute(
+          "UPDATE roster_checks SET roster_url = ? WHERE id = ?",
+          [usedUrl, check.check_id],
+        );
+      }
+
+      // Tjek om siden er JS-renderet (meget kort HTML body)
+      if (html.length < 500 && !html.includes("<table") && !html.includes("sidearm-roster")) {
+        await db.execute(
+          `UPDATE roster_checks
+           SET status = 'js_required', checked_at = datetime('now'),
+               error_message = 'JS-renderet side (HTML < 500 chars)'
+           WHERE id = ?`,
+          [check.check_id],
+        );
+        totalProcessed++;
+        await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+
+      const roster = parseRoster(html);
+      const danishAthletes = roster.filter((entry) => isDanishHometown(entry.hometown));
+
+      let athletesInCheck = 0;
+      for (const athlete of danishAthletes) {
+        const slug = generateSlug(athlete.name);
+        const sportLabel = SPORT_MAP[check.sport] ?? check.sport;
+
+        try {
+          await db.execute(
+            `INSERT OR IGNORE INTO athletes
+             (name, slug, sport, position, hometown, university, university_state, division)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              athlete.name,
+              slug,
+              sportLabel,
+              athlete.position,
+              athlete.hometown,
+              check.name,
+              check.state,
+              check.division,
+            ],
+          );
+          athletesInCheck++;
+          totalFound++;
+        } catch (err) {
+          console.error(`  Fejl ved "${athlete.name}": ${err}`);
+        }
+      }
+
+      // Opdatér roster_check status
+      const status = danishAthletes.length > 0 ? "success" : roster.length > 0 ? "empty" : "error";
+      const errorMsg = roster.length === 0 ? "Ingen roster-data fundet i HTML" : null;
+
+      await db.execute(
+        `UPDATE roster_checks
+         SET status = ?, athletes_found = ?, checked_at = datetime('now'), error_message = ?
+         WHERE id = ?`,
+        [status, athletesInCheck, errorMsg, check.check_id],
+      );
+
+      if (danishAthletes.length > 0) {
+        console.log(
+          `  ${check.name} / ${check.sport}: Fandt ${danishAthletes.length} dansk(e) atlet(er)`,
+        );
+      }
+    } catch (err) {
+      console.error(
+        `  Fejl ved check ${check.check_id} (${check.name} / ${check.sport}): ${err}`,
+      );
+      totalErrors++;
     }
 
-    if (danishAthletes.length > 0) {
-      console.log(
-        `  ${school.name} / ${sport}: Fandt ${danishAthletes.length} dansk(e) atlet(er)`,
-      );
+    totalProcessed++;
+
+    if (totalProcessed % 100 === 0) {
+      console.log(`  Fremgang: ${totalProcessed}/${checks.length} (fundet: ${totalFound})...`);
     }
 
     // Rate limiting: 1 sekund mellem requests
     await new Promise((r) => setTimeout(r, 1000));
   }
 
-  return totalFound;
-}
+  // Opdatér pipeline-kørsel
+  if (runId) {
+    await db.execute(
+      `UPDATE pipeline_runs
+       SET status = 'completed', finished_at = datetime('now'),
+           items_processed = ?, items_found = ?
+       WHERE id = ?`,
+      [totalProcessed, totalFound, runId],
+    );
+  }
 
-async function main(): Promise<void> {
-  const db = createD1Client();
+  // Backfill kilder for nye atleter
+  if (totalFound > 0) {
+    console.log("\nOpretter overvågningskilder for nye atleter...");
+    const backfilled = await backfillSources(db);
+    if (backfilled > 0) {
+      console.log(`  Oprettede kilder for ${backfilled} atlet(er).`);
+    }
+  }
 
-  console.log("Henter skoler med websites...");
-  const result = await db.query<SchoolWithRoster>(
-    "SELECT * FROM schools WHERE website IS NOT NULL",
+  console.log(
+    `\nFærdig. Behandlet: ${totalProcessed}, fundet: ${totalFound} nye danske atlet(er), fejl: ${totalErrors}.`,
   );
-  const schools = result.results;
-
-  if (schools.length === 0) {
-    console.log("Ingen skoler med websites fundet. Kør seed først.");
-    return;
-  }
-
-  console.log(`Scraper rosters for ${schools.length} skole(r)...\n`);
-
-  let totalFound = 0;
-  for (const school of schools) {
-    console.log(`Scraper: ${school.name}...`);
-    const found = await scrapeSchool(db, school);
-    totalFound += found;
-  }
-
-  console.log(`\nFærdig. Fandt ${totalFound} nye danske atlet(er) i alt.`);
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error("Scraping fejlede:", err);
+  try {
+    const db = createD1Client();
+    await db.execute(
+      `UPDATE pipeline_runs SET status = 'failed', finished_at = datetime('now'),
+       error_message = ? WHERE status = 'running' AND run_type = 'roster_scrape'
+       ORDER BY id DESC LIMIT 1`,
+      [String(err)],
+    );
+  } catch {
+    // Kan ikke opdatere pipeline_runs — ignorer
+  }
   process.exit(1);
 });

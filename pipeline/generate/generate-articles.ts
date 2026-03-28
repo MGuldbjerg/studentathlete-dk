@@ -80,8 +80,8 @@ const MAX_PENDING_DRAFTS = 20;
 
 async function main(): Promise<void> {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("Mangler ANTHROPIC_API_KEY. Sæt den i miljøvariabler.");
-    process.exit(1);
+    console.log("ANTHROPIC_API_KEY ikke sat — springer artikelgenerering over.");
+    return;
   }
 
   const anthropic = new Anthropic();

@@ -3,6 +3,7 @@ import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { AdSlot } from "@/components/ui/AdSlot";
 
 interface Props {
   article: Article;
@@ -132,6 +133,7 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
         )}
 
         <ArticleBody content={article.content} />
+        <AdSlot slot="article-footer" className="my-6" />
         <RelatedArticles articles={relatedArticles} title="Tidligere opdateringer" />
       </article>
     </>

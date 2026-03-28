@@ -11,8 +11,10 @@ import {
   getArticlesBySport,
   countAthletesBySport,
 } from "@/lib/db";
+import { getPageBySlug } from "@/lib/admin";
 import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl } from "@/lib/seo";
 import { getSportContent } from "@/lib/sport-content";
+import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
@@ -20,6 +22,7 @@ import { NewsTemplate } from "@/components/templates/NewsTemplate";
 import { FeatureTemplate } from "@/components/templates/FeatureTemplate";
 import { RecruitingTemplate } from "@/components/templates/RecruitingTemplate";
 import { SeasonUpdateTemplate } from "@/components/templates/SeasonUpdateTemplate";
+import { ArticleBody } from "@/components/ui/ArticleBody";
 
 type Params = Promise<{ segments: string[] }>;
 
@@ -57,6 +60,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           images: [ogImage],
         },
         alternates: { canonical: canonicalUrl },
+        robots: { index: true, follow: true },
+      };
+    }
+
+    // Statisk side fra pages-tabellen
+    const page = await getPageBySlug(slug);
+    if (page) {
+      return {
+        title: `${page.title} | StudentAthlete.dk`,
+        description: page.meta_description ?? undefined,
+        alternates: { canonical: `${BASE_URL}/${slug}` },
         robots: { index: true, follow: true },
       };
     }
@@ -130,7 +144,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
     // /{sport}/{slug} → artikel
     const article = await getArticleBySlug(slug);
-    const normalizedSport = (article?.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
+    const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport");
     if (article && normalizedSport === prefix) {
       const canonicalUrl = `${BASE_URL}${getArticleUrl(article)}`;
       const ogImage = article.cover_image_url
@@ -183,10 +197,11 @@ export default async function DynamicPage({ params }: { params: Params }) {
     // Sport-landingsside
     const sportContent = getSportContent(slug);
     if (sportContent) {
+      const dbSport = urlSlugToDbSport(slug);
       const [articles, athletes, counts] = await Promise.all([
-        getArticlesBySport(slug, 7),
-        getAthletesBySport(slug, 30),
-        countAthletesBySport(slug),
+        getArticlesBySport(dbSport, 7),
+        getAthletesBySport(dbSport, 30),
+        countAthletesBySport(dbSport),
       ]);
       return (
         <SportLandingPage
@@ -196,6 +211,24 @@ export default async function DynamicPage({ params }: { params: Params }) {
           athletes={athletes}
           counts={counts}
         />
+      );
+    }
+
+    // Statisk side fra pages-tabellen
+    const page = await getPageBySlug(slug);
+    if (page) {
+      return (
+        <main className="min-h-screen bg-surface">
+          <article className="max-w-2xl mx-auto px-4 py-12">
+            <h1
+              className="text-3xl md:text-4xl font-bold text-ink mb-8"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              {page.title}
+            </h1>
+            <ArticleBody content={page.content} />
+          </article>
+        </main>
       );
     }
 
@@ -235,7 +268,7 @@ export default async function DynamicPage({ params }: { params: Params }) {
 
     // /{sport}/{slug} → artikel
     const article = await getArticleBySlug(slug);
-    const normalizedSport = (article?.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
+    const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport");
     if (article && normalizedSport === prefix) {
       const [athlete, relatedArticles] = await Promise.all([
         article.athlete_slug ? getAthleteBySlug(article.athlete_slug) : null,
