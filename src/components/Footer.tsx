@@ -7,12 +7,12 @@ export function Footer() {
       <div className="px-6 md:px-12 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Om siden */}
         <div>
-          <h4
-            className="text-white font-bold text-lg mb-3"
-            style={{ fontFamily: "var(--font-serif)" }}
-          >
-            StudentAthlete<span style={{ color: "#BF0A30" }}>.dk</span>
-          </h4>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-white.svg"
+            alt="StudentAthlete.dk"
+            className="h-8 w-auto mb-3 opacity-90"
+          />
           <p className="text-white/60 text-sm leading-relaxed">
             Danmarks dedikerede medie for danske student athletes i USA.
             Vi dækker profiler, nyheder og sæsonopdateringer.

@@ -12,6 +12,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { parseRoster } from "../scrape/parsers";
 import { classifyHometown } from "./country-normalize";
+import { writeExcelReport } from "./write-excel";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -291,9 +292,16 @@ async function main(): Promise<void> {
   };
 
   const reportDir = path.join(__dirname);
-  const reportPath = path.join(reportDir, `international-report-${new Date().toISOString().slice(0, 10)}.json`);
-  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-  console.log(`\nRapport gemt: ${reportPath}`);
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const jsonPath = path.join(reportDir, `international-report-${dateStr}.json`);
+  fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2));
+  console.log(`\nJSON-rapport gemt: ${jsonPath}`);
+
+  // Excel-rapport
+  const xlsxPath = path.join(reportDir, `international-report-${dateStr}.xlsx`);
+  await writeExcelReport(report, xlsxPath);
+  console.log(`Excel-rapport gemt: ${xlsxPath}`);
+
   console.log(`Færdig: ${new Date().toISOString()}`);
 }
 

@@ -18,6 +18,8 @@ function getSportColorSafe(sport: string | null): string {
  *   sport    – sport-nøgle for farve
  *   type     – "article" | "athlete" | "sport"
  */
+const LOGO_URL = "https://studentathlete.dk/logo-white.png";
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const title = searchParams.get("title") || "StudentAthlete.dk";
@@ -184,22 +186,20 @@ export async function GET(req: NextRequest) {
           )}
         </div>
 
-        {/* SA.dk branding */}
-        <div
+        {/* Logo-branding */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={LOGO_URL}
+          alt=""
+          width={200}
+          height={36}
           style={{
             position: "absolute",
             bottom: 28,
             right: 40,
-            display: "flex",
+            opacity: 0.4,
           }}
-        >
-          <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.35)" }}>
-            StudentAthlete
-          </span>
-          <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(191,10,48,0.55)" }}>
-            .dk
-          </span>
-        </div>
+        />
 
         {/* Rød bund-streg */}
         <div

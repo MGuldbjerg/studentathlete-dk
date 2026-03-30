@@ -13,17 +13,13 @@ export function Header() {
         style={{ backgroundColor: "#00205B" }}
       >
         {/* Logo */}
-        <a href="/" className="flex flex-col leading-none">
-          <span
-            className="text-xl md:text-2xl font-bold text-white tracking-tight"
-            style={{ fontFamily: "var(--font-serif)" }}
-          >
-            StudentAthlete
-            <span style={{ color: "#BF0A30" }}>.dk</span>
-          </span>
-          <span className="text-white/50 text-xs tracking-widest uppercase">
-            Dansk dækning af student athletes
-          </span>
+        <a href="/" className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-white.svg"
+            alt="StudentAthlete.dk"
+            className="h-8 md:h-10 w-auto"
+          />
         </a>
 
         {/* Desktop søgefelt i header */}
