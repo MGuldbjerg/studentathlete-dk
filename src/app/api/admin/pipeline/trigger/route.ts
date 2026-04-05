@@ -6,6 +6,7 @@ const REPO = "MGuldbjerg/studentathlete-dk";
 
 const WORKFLOWS: Record<string, { file: string; label: string }> = {
   discover: { file: "discover-daily.yml", label: "Find nye historier" },
+  backfill: { file: "backfill-content.yml", label: "Hent manglende indhold" },
   generate: { file: "generate-manual.yml", label: "Generér artikler" },
   scrape: { file: "weekly-scrape.yml", label: "Scrap rosters" },
   "scrape-js": { file: "daily-js-scrape.yml", label: "Scrap JS-rosters" },
@@ -53,7 +54,11 @@ export async function POST(req: NextRequest) {
     );
 
     if (res.status === 204) {
-      return NextResponse.json({ message: `${workflow.label} startet via GitHub Actions` });
+      return NextResponse.json({
+        message: `${workflow.label} startet via GitHub Actions`,
+        workflowFile: workflow.file,
+        triggeredAt: new Date().toISOString(),
+      });
     }
 
     const text = await res.text();
