@@ -15,6 +15,42 @@ export interface ExtractedStory {
 const USER_AGENT =
   "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
 
+/**
+ * Domæner der udelukkende indeholder stats/profiler — ingen artikel-indhold.
+ * Stories fra disse domæner filtreres fra inden de gemmes i databasen.
+ */
+const BLOCKED_DOMAINS = [
+  "espn.com",
+  "transfermarkt.",
+  "fiba.basketball",
+  "nfl.com",
+  "pro-football-reference.com",
+  "sports-reference.com",
+  "baseball-reference.com",
+  "basketball-reference.com",
+  "hockey-reference.com",
+  "profootballhof.com",
+  "profootballreference.com",
+  "statmuse.com",
+  "sofascore.com",
+  "soccerway.com",
+  "whoscored.com",
+  "fbref.com",
+  "lineups.com",
+  "legacy.com",        // nekrologer
+  "findagrave.com",    // gravsteder
+  "ancestry.com",
+];
+
+export function isBlockedDomain(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return BLOCKED_DOMAINS.some((d) => hostname.includes(d));
+  } catch {
+    return false;
+  }
+}
+
 async function fetchPage(url: string): Promise<string | null> {
   try {
     const response = await fetch(url, {
@@ -101,7 +137,7 @@ async function extractFromRss(
     const searchText = `${title} ${description}`.toLowerCase();
     if (!searchText.includes(lastName)) return;
 
-    if (link) {
+    if (link && !isBlockedDomain(link)) {
       stories.push({
         url: link,
         headline: title,
@@ -121,7 +157,7 @@ async function extractFromRss(
     const searchText = `${title} ${summary}`.toLowerCase();
     if (!searchText.includes(lastName)) return;
 
-    if (link) {
+    if (link && !isBlockedDomain(link)) {
       stories.push({
         url: link,
         headline: title,

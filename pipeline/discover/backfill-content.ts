@@ -11,7 +11,7 @@
  */
 
 import { createD1Client } from "../lib/d1-client";
-import { fetchStoryContent } from "./extract-story";
+import { fetchStoryContent, isBlockedDomain } from "./extract-story";
 
 interface StoryToBackfill {
   id: number;
@@ -91,6 +91,16 @@ async function main(): Promise<void> {
   let skipped = 0;
 
   for (const story of stories) {
+    if (isBlockedDomain(story.source_url)) {
+      console.log(`  BLOK  [${story.id}] ${story.headline?.slice(0, 60) ?? story.source_url}`);
+      // Marker som rejected så den ikke kommer igen
+      if (!dryRun) {
+        await db.execute(`UPDATE stories SET status = 'rejected' WHERE id = ?`, [story.id]);
+      }
+      skipped++;
+      continue;
+    }
+
     try {
       const content = await fetchStoryContent(story.source_url);
 
