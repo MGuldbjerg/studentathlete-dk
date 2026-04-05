@@ -92,6 +92,19 @@
   }
 }
 
+/* ── Pipeline progress bar animation ────────────────── */
+
+@keyframes pipeline-progress {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(150%); }
+  100% { transform: translateX(400%); }
+}
+
+.animate-pipeline-progress {
+  animation: pipeline-progress 1.6s ease-in-out infinite;
+  width: 35% !important;
+}
+
 /* ── Scrollbar-hide til CategoryNav ─────────────────── */
 
 .scrollbar-hide {

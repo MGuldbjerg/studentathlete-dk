@@ -10,6 +10,7 @@ import { resolve } from "node:path";
 
 const PORT = 3099;
 const PROJECT_ROOT = resolve(import.meta.dirname, "..");
+const MAX_LOG_LINES = 200;
 
 interface StepConfig {
   label: string;
@@ -45,6 +46,7 @@ const STEPS: Record<string, StepConfig> = {
 
 // Simpel lås — kun én kørsel ad gangen
 let running: { step: string; startedAt: Date } | null = null;
+let logLines: string[] = [];
 
 function corsHeaders(res: ServerResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -81,6 +83,7 @@ function handleRun(req: IncomingMessage, res: ServerResponse) {
   }
 
   running = { step, startedAt: new Date() };
+  logLines = [];
   console.log(`▶ Starter: ${config.label}`);
 
   const child = spawn("npx", ["tsx", config.script], {
@@ -89,17 +92,23 @@ function handleRun(req: IncomingMessage, res: ServerResponse) {
     stdio: ["ignore", "pipe", "pipe"],
   });
 
-  let output = "";
+  function appendLog(text: string) {
+    const newLines = text.split("\n").filter((l) => l.trim() !== "");
+    logLines.push(...newLines);
+    if (logLines.length > MAX_LOG_LINES) {
+      logLines = logLines.slice(-MAX_LOG_LINES);
+    }
+  }
 
   child.stdout.on("data", (data: Buffer) => {
     const text = data.toString();
-    output += text;
+    appendLog(text);
     process.stdout.write(text);
   });
 
   child.stderr.on("data", (data: Buffer) => {
     const text = data.toString();
-    output += text;
+    appendLog(text);
     process.stderr.write(text);
   });
 
@@ -116,6 +125,17 @@ function handleRun(req: IncomingMessage, res: ServerResponse) {
 function handleResult(_req: IncomingMessage, res: ServerResponse) {
   json(res, 200, {
     running: running ? { step: running.step, label: STEPS[running.step].label, startedAt: running.startedAt } : null,
+  });
+}
+
+function handleLogs(_req: IncomingMessage, res: ServerResponse) {
+  const elapsedSeconds = running
+    ? Math.round((Date.now() - running.startedAt.getTime()) / 1000)
+    : null;
+  json(res, 200, {
+    lines: logLines,
+    elapsedSeconds,
+    running: running !== null,
   });
 }
 
@@ -136,6 +156,8 @@ const server = createServer((req, res) => {
     handleRun(req, res);
   } else if (url === "/poll" && req.method === "GET") {
     handleResult(req, res);
+  } else if (url === "/logs" && req.method === "GET") {
+    handleLogs(req, res);
   } else {
     json(res, 404, { error: "Ikke fundet" });
   }
@@ -148,5 +170,6 @@ server.listen(PORT, () => {
     console.log(`    POST /run/${id}  — ${cfg.label}`);
   }
   console.log(`    GET  /status     — Vis status`);
-  console.log(`    GET  /poll       — Polling (kører noget?)\n`);
+  console.log(`    GET  /poll       — Polling (kører noget?)`);
+  console.log(`    GET  /logs       — Sidste output-linjer\n`);
 });
