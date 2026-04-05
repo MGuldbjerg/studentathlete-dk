@@ -5,6 +5,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { AdSlot } from "@/components/ui/AdSlot";
+import { SourceBox } from "@/components/ui/SourceBox";
 
 interface Props {
   article: Article;
@@ -109,6 +110,11 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
         {/* ── Brødtekst ──────────────────────────────────────────── */}
         <div className="px-5 md:px-0 pt-8 pb-2">
           <ArticleBody content={article.content} />
+        </div>
+
+        {/* ── Kilde ──────────────────────────────────────────────── */}
+        <div className="px-5 md:px-0">
+          <SourceBox sourceUrl={article.source_url} />
         </div>
 
         {/* ── Annonce efter artikel ────────────────────────────── */}

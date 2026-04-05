@@ -3,7 +3,7 @@ import { dbSportToUrlSlug } from "./types";
 
 export const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://studentathlete-dk.m-guldbjerg.workers.dev";
+  "https://studentathlete.dk";
 
 export function getReadingTime(content: string): number {
   const wordCount = content.trim().split(/\s+/).length;

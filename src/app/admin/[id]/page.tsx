@@ -58,9 +58,12 @@ export default async function AdminArticlePage({
           <p className="text-muted text-base mb-6">{article.summary}</p>
         )}
 
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted mb-8 border-b border-border pb-4">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted mb-4 border-b border-border pb-4">
           <span>Oprettet: {new Date(article.created_at).toLocaleDateString("da-DK")}</span>
           {article.author && <span>Forfatter: {article.author}</span>}
+          {article.llm_provider && (
+            <span>LLM: {article.llm_provider}/{article.model_used}</span>
+          )}
           <Link
             href={`/admin/rediger/${article.id}?token=${token}`}
             className="font-medium hover:underline"
@@ -69,6 +72,20 @@ export default async function AdminArticlePage({
             Rediger →
           </Link>
         </div>
+
+        {article.source_url && (
+          <a
+            href={article.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm mb-8 px-4 py-3 rounded-lg border border-border bg-surface hover:bg-gray-50 transition-colors"
+            style={{ color: "#00205B" }}
+          >
+            <span className="font-semibold">Kilde:</span>
+            <span className="truncate underline">{article.source_url}</span>
+            <span className="shrink-0">↗</span>
+          </a>
+        )}
 
         {/* Artikelindhold */}
         <ArticleBody content={article.content} />

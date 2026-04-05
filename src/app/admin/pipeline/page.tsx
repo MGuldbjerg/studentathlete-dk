@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { validateAdminToken, getPipelineStats } from "@/lib/admin";
+import { PipelineActions } from "./PipelineActions";
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -59,6 +60,12 @@ export default async function PipelinePage({
             Tilbage
           </Link>
         </div>
+
+        {/* Pipeline-handlinger */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-ink mb-3">Kør pipeline</h2>
+          <PipelineActions token={token!} />
+        </section>
 
         {!stats ? (
           <p className="text-muted">Kunne ikke hente statistik.</p>

@@ -13,6 +13,7 @@ import { parseRoster } from "./parsers";
 import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
 import { backfillSources } from "../lib/auto-sources";
+import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 
 interface JsRosterCheck {
   check_id: number;
@@ -161,16 +162,20 @@ async function main(): Promise<void> {
     const roster = parseRoster(html);
     const danishAthletes = roster.filter((entry) => isDanishHometown(entry.hometown));
 
+    const academicYear = getAcademicYear();
     let athletesInCheck = 0;
     for (const athlete of danishAthletes) {
       const slug = generateSlug(athlete.name);
       const sportLabel = SPORT_MAP[check.sport] ?? check.sport;
+      const { classYear, expectedGraduation, yearEnrolled } =
+        resolveClassYear(athlete.year, academicYear);
 
       try {
         await db.execute(
           `INSERT OR IGNORE INTO athletes
-           (name, slug, sport, position, hometown, university, university_state, division)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+           (name, slug, sport, position, hometown, university, university_state, division,
+            class_year, expected_graduation, year_enrolled)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             athlete.name,
             slug,
@@ -180,8 +185,22 @@ async function main(): Promise<void> {
             check.school_name,
             check.school_state,
             check.division,
+            classYear,
+            expectedGraduation,
+            yearEnrolled,
           ],
         );
+
+        // Opdatér eksisterende atleter med class_year
+        await db.execute(
+          `UPDATE athletes
+           SET class_year = ?, expected_graduation = ?,
+               year_enrolled = COALESCE(year_enrolled, ?),
+               updated_at = datetime('now')
+           WHERE slug = ? AND (class_year IS NULL OR class_year != ?)`,
+          [classYear, expectedGraduation, yearEnrolled, slug, classYear],
+        );
+
         athletesInCheck++;
         totalFound++;
       } catch (err) {

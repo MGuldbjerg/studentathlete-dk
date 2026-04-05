@@ -13,6 +13,10 @@ MIGRATIONS=(
   db/migration-004-pages.sql
   db/migration-005-school-feeds.sql
   db/migration-006-photo-credit.sql
+  db/migration-007-class-year.sql
+  db/migration-008-llm-usage.sql
+  db/migration-009-preferred-name.sql
+  db/migration-010-style-corrections.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do

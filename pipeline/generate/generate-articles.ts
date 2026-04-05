@@ -1,15 +1,16 @@
 /**
- * Genererer artikeludkast fra fundne historier via Claude API.
+ * Genererer artikeludkast fra fundne historier via LLM provider-kæde.
  * Kør med: npx tsx pipeline/generate/generate-articles.ts
  *
- * Kræver: ANTHROPIC_API_KEY miljøvariabel.
+ * Prøver gratis providere i rækkefølge: Mistral → Gemini → Groq → CF AI → Anthropic.
  * Gemmer kladder i articles-tabellen med published = 0.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import { createD1Client } from "../lib/d1-client";
 import { generateSlug } from "../lib/slug";
-import { SYSTEM_PROMPT } from "./prompts/system";
+import { ProviderChain } from "../lib/llm/provider-chain";
+import { buildSystemPrompt } from "./prompts/system";
+import type { StyleCorrectionEntry } from "./prompts/system";
 import { newsPrompt } from "./prompts/news";
 import { featurePrompt } from "./prompts/feature";
 import { seasonUpdatePrompt } from "./prompts/season-update";
@@ -20,15 +21,10 @@ import type { Story } from "../lib/types";
 
 interface StoryWithAthlete extends Story {
   athlete_name: string;
+  preferred_name: string | null;
   sport: string;
   university: string;
   hometown: string | null;
-}
-
-// Haiku for korte nyheder, Sonnet for features
-function selectModel(story: StoryWithAthlete): string {
-  if (story.relevance_score > 70) return "claude-sonnet-4-5-20250929";
-  return "claude-haiku-4-5-20241022";
 }
 
 function selectArticleType(story: StoryWithAthlete): string {
@@ -52,6 +48,7 @@ function buildPrompt(
 ): string {
   const context: ArticleContext = {
     athleteName: story.athlete_name,
+    preferredName: story.preferred_name,
     sport: story.sport,
     university: story.university,
     hometown: story.hometown,
@@ -79,13 +76,27 @@ const MAX_ARTICLES_PER_RUN = 5;
 const MAX_PENDING_DRAFTS = 20;
 
 async function main(): Promise<void> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.log("ANTHROPIC_API_KEY ikke sat — springer artikelgenerering over.");
+  const db = createD1Client();
+  const chain = new ProviderChain(db);
+
+  const available = chain.getAvailableProviders();
+  if (available.length === 0) {
+    console.log(
+      "Ingen LLM-providere tilgængelige. Sæt mindst én af:\n" +
+        "  MISTRAL_API_KEY, GEMINI_API_KEY, GROQ_API_KEY,\n" +
+        "  CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID, ANTHROPIC_API_KEY",
+    );
     return;
   }
+  console.log(`Tilgængelige LLM-providere: ${available.join(", ")}`);
 
-  const anthropic = new Anthropic();
-  const db = createD1Client();
+  // Hent stilguide-rettelser
+  const corrResult = await db.query<StyleCorrectionEntry>(
+    "SELECT wrong_phrase, correct_phrase, note FROM style_corrections WHERE active = 1 LIMIT 50",
+  );
+  const corrections = corrResult.results;
+  const systemPrompt = buildSystemPrompt(corrections);
+  console.log(`Stilguide: ${corrections.length} rettelse(r) loaded`);
 
   // Sikkerhedsnet 1: Tjek antal ventende kladder
   const draftCount = await db.query<{ cnt: number }>(
@@ -108,11 +119,12 @@ async function main(): Promise<void> {
 
   // Hent nye historier der endnu ikke er konverteret
   const result = await db.query<StoryWithAthlete>(
-    `SELECT s.*, a.name as athlete_name, a.sport, a.university, a.hometown
+    `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
      AND s.content_raw IS NOT NULL
+     AND datetime(s.discovered_at, '+14 days') >= datetime('now')
      ORDER BY s.relevance_score DESC
      LIMIT ?`,
     [MAX_ARTICLES_PER_RUN],
@@ -143,7 +155,6 @@ async function main(): Promise<void> {
     }
 
     const articleType = selectArticleType(story);
-    const model = selectModel(story);
     const prompt = buildPrompt(story, articleType);
 
     // Marker som "drafting" så den ikke behandles igen
@@ -153,26 +164,22 @@ async function main(): Promise<void> {
     ]);
 
     try {
-      const response = await anthropic.messages.create({
-        model,
+      const response = await chain.generate({
+        system: systemPrompt,
+        prompt,
         max_tokens: 2000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: prompt }],
       });
 
-      const text =
-        response.content[0].type === "text" ? response.content[0].text : "";
-
-      const parsed = parseArticleOutput(text, articleType);
+      const parsed = parseArticleOutput(response.text, articleType);
       const slug = generateSlug(parsed.title);
 
-      // Gem som kladde (published = 0)
+      // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering
       await db.execute(
         `INSERT INTO articles
          (title, slug, content, summary, article_type, athlete_id,
           source_url, story_id, model_used, tokens_input, tokens_output,
-          published, author)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'StudentAthlete.dk')`,
+          published, author, llm_provider, original_content)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'StudentAthlete.dk', ?, ?)`,
         [
           parsed.title,
           slug,
@@ -182,9 +189,11 @@ async function main(): Promise<void> {
           story.athlete_id,
           story.source_url,
           story.id,
-          model,
-          response.usage.input_tokens,
-          response.usage.output_tokens,
+          response.model,
+          response.tokens_input,
+          response.tokens_output,
+          response.provider,
+          parsed.content,
         ],
       );
 
@@ -195,9 +204,9 @@ async function main(): Promise<void> {
       );
 
       generated++;
-      totalTokens += response.usage.input_tokens + response.usage.output_tokens;
+      totalTokens += response.tokens_input + response.tokens_output;
       console.log(
-        `  ✓ "${parsed.title}" (${model}, ${response.usage.input_tokens}+${response.usage.output_tokens} tokens)`,
+        `  ✓ "${parsed.title}" (${response.provider}/${response.model}, ${response.tokens_input}+${response.tokens_output} tokens)`,
       );
     } catch (err) {
       console.error(`  ✗ Fejl ved story ${story.id}: ${err}`);

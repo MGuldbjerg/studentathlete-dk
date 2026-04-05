@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, updateAthlete } from "@/lib/admin";
+import { validateAdminToken, deleteStyleCorrection } from "@/lib/admin";
 
-export async function PUT(
+export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -13,24 +13,14 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { token, photo_url, photo_credit, preferred_name } = body as {
-      token: string;
-      photo_url?: string | null;
-      photo_credit?: string | null;
-      preferred_name?: string | null;
-    };
+    const { token } = body as { token: string };
 
     const valid = await validateAdminToken(token ?? null);
     if (!valid) {
       return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
     }
 
-    await updateAthlete(id, {
-      photo_url: photo_url?.trim() || null,
-      photo_credit: photo_credit?.trim() || null,
-      preferred_name: preferred_name?.trim() || null,
-    });
-
+    await deleteStyleCorrection(id);
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Serverfejl";

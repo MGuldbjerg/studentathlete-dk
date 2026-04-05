@@ -85,15 +85,15 @@ export function PlaceholderCover({
         </span>
       )}
 
-      {/* SA.dk logo i hjørnet */}
-      <span
-        className={`absolute text-white/20 font-bold ${
-          isLarge ? "bottom-4 right-5 text-sm" : "bottom-2 right-3 text-[9px]"
+      {/* Logo i hjørnet */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-white.svg"
+        alt=""
+        className={`absolute opacity-20 ${
+          isLarge ? "bottom-4 right-5 h-5" : "bottom-2 right-3 h-3"
         }`}
-        style={{ fontFamily: "var(--font-serif)" }}
-      >
-        SA.dk
-      </span>
+      />
     </div>
   );
 }

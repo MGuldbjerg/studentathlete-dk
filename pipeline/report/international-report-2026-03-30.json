@@ -1,0 +1,1435 @@
+{
+  "metadata": {
+    "generated_at": "2026-03-30T07:01:41.991Z",
+    "sample_size": 502,
+    "schools_with_data": 262,
+    "schools_by_division": {
+      "D1": 372,
+      "D2": 65,
+      "D3": 65
+    },
+    "total_schools_in_db": 1162,
+    "scale_factor": 4.435114503816794
+  },
+  "totals": {
+    "athletes": 21825,
+    "international": 839,
+    "international_pct": 3.8,
+    "estimated_total": 96796,
+    "estimated_international": 3721
+  },
+  "by_country": [
+    {
+      "country": "Canada",
+      "count": 174,
+      "pct": 20.7,
+      "estimated": 772,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 71
+        },
+        {
+          "sport": "soccer",
+          "count": 35
+        },
+        {
+          "sport": "baseball",
+          "count": 19
+        }
+      ]
+    },
+    {
+      "country": "UK",
+      "count": 67,
+      "pct": 8,
+      "estimated": 297,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 15
+        },
+        {
+          "sport": "tennis",
+          "count": 14
+        },
+        {
+          "sport": "football",
+          "count": 14
+        }
+      ]
+    },
+    {
+      "country": "Germany",
+      "count": 62,
+      "pct": 7.4,
+      "estimated": 275,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 27
+        },
+        {
+          "sport": "football",
+          "count": 16
+        },
+        {
+          "sport": "tennis",
+          "count": 13
+        }
+      ]
+    },
+    {
+      "country": "Australia",
+      "count": 51,
+      "pct": 6.1,
+      "estimated": 226,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 29
+        },
+        {
+          "sport": "track-and-field",
+          "count": 7
+        },
+        {
+          "sport": "basketball",
+          "count": 7
+        }
+      ]
+    },
+    {
+      "country": "Spain",
+      "count": 39,
+      "pct": 4.6,
+      "estimated": 173,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 12
+        },
+        {
+          "sport": "soccer",
+          "count": 9
+        },
+        {
+          "sport": "track-and-field",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "country": "France",
+      "count": 37,
+      "pct": 4.4,
+      "estimated": 164,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 12
+        },
+        {
+          "sport": "soccer",
+          "count": 6
+        },
+        {
+          "sport": "track-and-field",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "country": "Italy",
+      "count": 25,
+      "pct": 3,
+      "estimated": 111,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 7
+        },
+        {
+          "sport": "volleyball",
+          "count": 4
+        },
+        {
+          "sport": "soccer",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "country": "Mexico",
+      "count": 24,
+      "pct": 2.9,
+      "estimated": 106,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 7
+        },
+        {
+          "sport": "soccer",
+          "count": 4
+        },
+        {
+          "sport": "golf",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "country": "Turkey",
+      "count": 20,
+      "pct": 2.4,
+      "estimated": 89,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 15
+        },
+        {
+          "sport": "tennis",
+          "count": 2
+        },
+        {
+          "sport": "basketball",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Serbia",
+      "count": 17,
+      "pct": 2,
+      "estimated": 75,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 5
+        },
+        {
+          "sport": "soccer",
+          "count": 4
+        },
+        {
+          "sport": "basketball",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "country": "Netherlands",
+      "count": 17,
+      "pct": 2,
+      "estimated": 75,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 5
+        },
+        {
+          "sport": "track-and-field",
+          "count": 5
+        },
+        {
+          "sport": "soccer",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Brazil",
+      "count": 16,
+      "pct": 1.9,
+      "estimated": 71,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 6
+        },
+        {
+          "sport": "volleyball",
+          "count": 6
+        },
+        {
+          "sport": "football",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Sweden",
+      "count": 16,
+      "pct": 1.9,
+      "estimated": 71,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 3
+        },
+        {
+          "sport": "tennis",
+          "count": 3
+        },
+        {
+          "sport": "track-and-field",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "country": "Japan",
+      "count": 15,
+      "pct": 1.8,
+      "estimated": 67,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 7
+        },
+        {
+          "sport": "football",
+          "count": 3
+        },
+        {
+          "sport": "tennis",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "country": "Argentina",
+      "count": 13,
+      "pct": 1.5,
+      "estimated": 58,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 5
+        },
+        {
+          "sport": "volleyball",
+          "count": 3
+        },
+        {
+          "sport": "tennis",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "country": "Poland",
+      "count": 11,
+      "pct": 1.3,
+      "estimated": 49,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 6
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 4
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Nigeria",
+      "count": 11,
+      "pct": 1.3,
+      "estimated": 49,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 7
+        },
+        {
+          "sport": "basketball",
+          "count": 3
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Portugal",
+      "count": 10,
+      "pct": 1.2,
+      "estimated": 44,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 7
+        },
+        {
+          "sport": "tennis",
+          "count": 2
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "New Zealand",
+      "count": 10,
+      "pct": 1.2,
+      "estimated": 44,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 3
+        },
+        {
+          "sport": "tennis",
+          "count": 2
+        },
+        {
+          "sport": "football",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Ireland",
+      "count": 9,
+      "pct": 1.1,
+      "estimated": 40,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 4
+        },
+        {
+          "sport": "track-and-field",
+          "count": 4
+        },
+        {
+          "sport": "golf",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Puerto Rico",
+      "count": 9,
+      "pct": 1.1,
+      "estimated": 40,
+      "top_sports": [
+        {
+          "sport": "baseball",
+          "count": 4
+        },
+        {
+          "sport": "volleyball",
+          "count": 3
+        },
+        {
+          "sport": "golf",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Switzerland",
+      "count": 9,
+      "pct": 1.1,
+      "estimated": 40,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 6
+        },
+        {
+          "sport": "football",
+          "count": 2
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Ghana",
+      "count": 7,
+      "pct": 0.8,
+      "estimated": 31,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 3
+        },
+        {
+          "sport": "basketball",
+          "count": 2
+        },
+        {
+          "sport": "track-and-field",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Hungary",
+      "count": 7,
+      "pct": 0.8,
+      "estimated": 31,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 2
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        },
+        {
+          "sport": "volleyball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Israel",
+      "count": 7,
+      "pct": 0.8,
+      "estimated": 31,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 3
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 2
+        },
+        {
+          "sport": "football",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Latvia",
+      "count": 7,
+      "pct": 0.8,
+      "estimated": 31,
+      "top_sports": [
+        {
+          "sport": "track-and-field",
+          "count": 2
+        },
+        {
+          "sport": "soccer",
+          "count": 2
+        },
+        {
+          "sport": "football",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "India",
+      "count": 7,
+      "pct": 0.8,
+      "estimated": 31,
+      "top_sports": [
+        {
+          "sport": "golf",
+          "count": 3
+        },
+        {
+          "sport": "football",
+          "count": 2
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "South Africa",
+      "count": 7,
+      "pct": 0.8,
+      "estimated": 31,
+      "top_sports": [
+        {
+          "sport": "track-and-field",
+          "count": 4
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 2
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Jamaica",
+      "count": 6,
+      "pct": 0.7,
+      "estimated": 27,
+      "top_sports": [
+        {
+          "sport": "track-and-field",
+          "count": 4
+        },
+        {
+          "sport": "football",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Taiwan",
+      "count": 6,
+      "pct": 0.7,
+      "estimated": 27,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 3
+        },
+        {
+          "sport": "golf",
+          "count": 2
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Venezuela",
+      "count": 5,
+      "pct": 0.6,
+      "estimated": 22,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 2
+        },
+        {
+          "sport": "football",
+          "count": 1
+        },
+        {
+          "sport": "baseball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Bahamas",
+      "count": 5,
+      "pct": 0.6,
+      "estimated": 22,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 3
+        },
+        {
+          "sport": "baseball",
+          "count": 1
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Greece",
+      "count": 5,
+      "pct": 0.6,
+      "estimated": 22,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 3
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Ukraine",
+      "count": 5,
+      "pct": 0.6,
+      "estimated": 22,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 2
+        },
+        {
+          "sport": "tennis",
+          "count": 2
+        },
+        {
+          "sport": "football",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "China",
+      "count": 5,
+      "pct": 0.6,
+      "estimated": 22,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        },
+        {
+          "sport": "football",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Bolivia",
+      "count": 5,
+      "pct": 0.6,
+      "estimated": 22,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 4
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Colombia",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 1
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        },
+        {
+          "sport": "basketball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Croatia",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 2
+        },
+        {
+          "sport": "football",
+          "count": 1
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Dominican Republic",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 2
+        },
+        {
+          "sport": "basketball",
+          "count": 1
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Czech Republic",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "country": "Norway",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 3
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Russia",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 2
+        },
+        {
+          "sport": "football",
+          "count": 1
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Senegal",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 3
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Slovakia",
+      "count": 4,
+      "pct": 0.5,
+      "estimated": 18,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 2
+        },
+        {
+          "sport": "volleyball",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Romania",
+      "count": 3,
+      "pct": 0.4,
+      "estimated": 13,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 1
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Denmark",
+      "count": 3,
+      "pct": 0.4,
+      "estimated": 13,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 1
+        },
+        {
+          "sport": "basketball",
+          "count": 1
+        },
+        {
+          "sport": "volleyball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Belgium",
+      "count": 3,
+      "pct": 0.4,
+      "estimated": 13,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "country": "Austria",
+      "count": 3,
+      "pct": 0.4,
+      "estimated": 13,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 1
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Bulgaria",
+      "count": 3,
+      "pct": 0.4,
+      "estimated": 13,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 2
+        },
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Kenya",
+      "count": 3,
+      "pct": 0.4,
+      "estimated": 13,
+      "top_sports": [
+        {
+          "sport": "track-and-field",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "country": "Thailand",
+      "count": 3,
+      "pct": 0.4,
+      "estimated": 13,
+      "top_sports": [
+        {
+          "sport": "golf",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "country": "Cameroon",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        },
+        {
+          "sport": "football",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Paraguay",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 1
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Barbados",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 1
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Cyprus",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 1
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Morocco",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Philippines",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 1
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Trinidad and Tobago",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "track-and-field",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Zimbabwe",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "track-and-field",
+          "count": 1
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Montenegro",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        },
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Lithuania",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        },
+        {
+          "sport": "track-and-field",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Finland",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "country": "Peru",
+      "count": 2,
+      "pct": 0.2,
+      "estimated": 9,
+      "top_sports": [
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        },
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Ecuador",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Belarus",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Bermuda",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Slovenia",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Bosnia",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Jordan",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "North Macedonia",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Qatar",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Chile",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "volleyball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Haiti",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "football",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Uruguay",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Estonia",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Malaysia",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "swimming-and-diving",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Iceland",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "soccer",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Egypt",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "basketball",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "country": "Singapore",
+      "count": 1,
+      "pct": 0.1,
+      "estimated": 4,
+      "top_sports": [
+        {
+          "sport": "tennis",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "by_sport": [
+    {
+      "sport": "football",
+      "total": 16681,
+      "international": 190,
+      "international_pct": 1.1
+    },
+    {
+      "sport": "soccer",
+      "total": 693,
+      "international": 158,
+      "international_pct": 22.8
+    },
+    {
+      "sport": "volleyball",
+      "total": 596,
+      "international": 75,
+      "international_pct": 12.6
+    },
+    {
+      "sport": "baseball",
+      "total": 1100,
+      "international": 32,
+      "international_pct": 2.9
+    },
+    {
+      "sport": "basketball",
+      "total": 447,
+      "international": 70,
+      "international_pct": 15.7
+    },
+    {
+      "sport": "tennis",
+      "total": 344,
+      "international": 145,
+      "international_pct": 42.2
+    },
+    {
+      "sport": "golf",
+      "total": 171,
+      "international": 35,
+      "international_pct": 20.5
+    },
+    {
+      "sport": "track-and-field",
+      "total": 1368,
+      "international": 93,
+      "international_pct": 6.8
+    },
+    {
+      "sport": "swimming-and-diving",
+      "total": 425,
+      "international": 41,
+      "international_pct": 9.6
+    }
+  ],
+  "by_division": [
+    {
+      "division": "NCAA D1",
+      "total": 16540,
+      "international": 719,
+      "international_pct": 4.3
+    },
+    {
+      "division": "NCAA D2",
+      "total": 3444,
+      "international": 100,
+      "international_pct": 2.9
+    },
+    {
+      "division": "NCAA D3",
+      "total": 1841,
+      "international": 20,
+      "international_pct": 1.1
+    }
+  ]
+}

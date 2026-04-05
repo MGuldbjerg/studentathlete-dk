@@ -24,10 +24,11 @@ export async function getEnv(): Promise<Record<string, any>> {
   }
 }
 
-const ARTICLE_SELECT = `
+export const ARTICLE_SELECT = `
   a.id, a.title, a.slug, a.summary, a.content, a.article_type,
   a.author, a.cover_image_url, a.published, a.published_at,
-  a.created_at, a.updated_at, a.athlete_id,
+  a.created_at, a.updated_at, a.athlete_id, a.source_url,
+  a.model_used, a.llm_provider, a.original_content,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;
 

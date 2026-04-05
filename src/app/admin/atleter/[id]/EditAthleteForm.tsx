@@ -12,6 +12,7 @@ export function EditAthleteForm({
 }) {
   const [photoUrl, setPhotoUrl] = useState(athlete.photo_url ?? "");
   const [photoCredit, setPhotoCredit] = useState(athlete.photo_credit ?? "");
+  const [preferredName, setPreferredName] = useState(athlete.preferred_name ?? "");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
@@ -27,6 +28,7 @@ export function EditAthleteForm({
           token,
           photo_url: photoUrl || null,
           photo_credit: photoCredit || null,
+          preferred_name: preferredName || null,
         }),
       });
 
@@ -47,6 +49,24 @@ export function EditAthleteForm({
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Foretrukket navn */}
+      <div className="bg-paper rounded-lg border border-border p-4">
+        <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
+          Foretrukket navn
+        </p>
+        <input
+          type="text"
+          value={preferredName}
+          onChange={(e) => setPreferredName(e.target.value)}
+          placeholder={athlete.name}
+          className="w-full px-3 py-2.5 border border-border rounded-lg bg-paper text-ink text-sm
+                     placeholder:text-muted focus:outline-none focus:border-flag-blue"
+        />
+        <p className="text-[11px] text-muted mt-1">
+          Det korte navn der bruges i artikler efter første omtale (fx &quot;Marie Eline&quot; i stedet for &quot;Marie Eline Madsen&quot;). Tomt = fuldt navn bruges.
+        </p>
+      </div>
+
       {/* Nuværende status */}
       <div className="bg-paper rounded-lg border border-border p-4">
         <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
@@ -152,7 +172,7 @@ export function EditAthleteForm({
         className="py-3 rounded-lg font-semibold text-white transition-opacity disabled:opacity-50"
         style={{ backgroundColor: "#00205B" }}
       >
-        {saving ? "Gemmer…" : "Gem foto"}
+        {saving ? "Gemmer…" : "Gem ændringer"}
       </button>
 
       {/* Slet foto */}

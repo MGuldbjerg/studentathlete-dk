@@ -4,6 +4,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { AdSlot } from "@/components/ui/AdSlot";
+import { SourceBox } from "@/components/ui/SourceBox";
 
 interface Props {
   article: Article;
@@ -96,9 +97,13 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
             { label: article.title },
           ]} />
 
+          <div className="h-px mb-10 mt-8" style={{ backgroundColor: "#E2E0DC" }} />
+          <ArticleBody content={article.content} />
+          <SourceBox sourceUrl={article.source_url} />
+
           {/* Atletfaktaboks */}
           {athlete && (
-            <aside className="mt-8 mb-10">
+            <aside className="mt-10 mb-10">
               {/* Rød venstre-linje */}
               <div className="flex">
                 <div className="w-[3px] flex-shrink-0 mr-5"
@@ -132,8 +137,6 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
             </aside>
           )}
 
-          <div className="h-px mb-10" style={{ backgroundColor: "#E2E0DC" }} />
-          <ArticleBody content={article.content} />
           <AdSlot slot="article-footer" className="my-6" />
           <RelatedArticles articles={relatedArticles} title="Mere om rekruttering" />
         </div>

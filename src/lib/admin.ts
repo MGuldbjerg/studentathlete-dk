@@ -1,13 +1,6 @@
-import { getDB, getEnv } from "./db";
-import { getOgImageUrl } from "./seo";
+import { getDB, getEnv, ARTICLE_SELECT } from "./db";
+import { generateSlug } from "./slug";
 import type { Article, Athlete } from "./types";
-
-const ARTICLE_SELECT = `
-  a.id, a.title, a.slug, a.summary, a.content, a.article_type,
-  a.author, a.cover_image_url, a.published, a.published_at,
-  a.created_at, a.updated_at, a.athlete_id,
-  at.name as athlete_name, at.sport, at.slug as athlete_slug
-`;
 
 // ─── Token-validering ───────────────────────────────────────────────────────
 
@@ -88,12 +81,9 @@ export async function publishArticle(id: number): Promise<void> {
   let coverUrl: string | null = article?.cover_image_url ?? null;
 
   if (!coverUrl && article) {
-    // Use athlete photo if available, otherwise generate OG image
-    coverUrl = article.photo_url ?? getOgImageUrl({
-      title: article.title,
-      sport: article.sport,
-      type: "article",
-    });
+    // Brug atletfoto hvis tilgængeligt — OG-billeder bruges kun til meta-tags,
+    // ikke som synligt cover i artiklen (ImageResponse virker ikke som inline <img>)
+    coverUrl = article.photo_url ?? null;
   }
 
   await db
@@ -177,16 +167,8 @@ export async function updateArticle(
   sets.push("updated_at = datetime('now')");
   // Regenerer slug hvis title ændres
   if (fields.title) {
-    const slug = fields.title
-      .toLowerCase()
-      .replace(/æ/g, "ae").replace(/ø/g, "oe").replace(/å/g, "aa")
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 120);
     sets.push("slug = ?");
-    params.push(slug);
+    params.push(generateSlug(fields.title));
   }
 
   params.push(id);
@@ -207,14 +189,7 @@ export async function createArticle(fields: {
   const db = await getDB();
   if (!db) throw new Error("Ingen database");
 
-  const slug = fields.title
-    .toLowerCase()
-    .replace(/æ/g, "ae").replace(/ø/g, "oe").replace(/å/g, "aa")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 120);
+  const slug = generateSlug(fields.title);
 
   await db
     .prepare(
@@ -230,6 +205,63 @@ export async function createArticle(fields: {
     .bind(slug)
     .first();
   return (r as { id: number })?.id ?? 0;
+}
+
+// ─── Stilguide (style_corrections) ──────────────────────────────────────────
+
+export interface StyleCorrection {
+  id: number;
+  wrong_phrase: string;
+  correct_phrase: string;
+  category: string;
+  note: string | null;
+  active: number;
+  created_at: string;
+}
+
+export async function getStyleCorrections(): Promise<StyleCorrection[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        "SELECT * FROM style_corrections WHERE active = 1 ORDER BY category, created_at DESC"
+      )
+      .all();
+    return (r.results ?? []) as StyleCorrection[];
+  } catch {
+    return [];
+  }
+}
+
+export async function createStyleCorrection(fields: {
+  wrong_phrase: string;
+  correct_phrase: string;
+  category: string;
+  note: string | null;
+}): Promise<number> {
+  const db = await getDB();
+  if (!db) throw new Error("Ingen database");
+  await db
+    .prepare(
+      `INSERT INTO style_corrections (wrong_phrase, correct_phrase, category, note)
+       VALUES (?, ?, ?, ?)`
+    )
+    .bind(fields.wrong_phrase, fields.correct_phrase, fields.category, fields.note)
+    .run();
+  const r = await db
+    .prepare("SELECT id FROM style_corrections ORDER BY id DESC LIMIT 1")
+    .first();
+  return (r as { id: number })?.id ?? 0;
+}
+
+export async function deleteStyleCorrection(id: number): Promise<void> {
+  const db = await getDB();
+  if (!db) return;
+  await db
+    .prepare("UPDATE style_corrections SET active = 0 WHERE id = ?")
+    .bind(id)
+    .run();
 }
 
 // ─── Side-queries til admin ─────────────────────────────────────────────────
@@ -292,14 +324,7 @@ export async function createAthlete(fields: {
   const db = await getDB();
   if (!db) throw new Error("Ingen database");
 
-  const slug = fields.name
-    .toLowerCase()
-    .replace(/æ/g, "ae").replace(/ø/g, "oe").replace(/å/g, "aa")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80);
+  const slug = generateSlug(fields.name, 80);
 
   await db
     .prepare(
@@ -339,18 +364,26 @@ export async function getAthleteById(id: number): Promise<Athlete | null> {
   }
 }
 
-export async function updateAthletePhoto(
+export async function updateAthlete(
   id: number,
-  photoUrl: string | null,
-  photoCredit: string | null,
+  fields: {
+    photo_url?: string | null;
+    photo_credit?: string | null;
+    preferred_name?: string | null;
+  },
 ): Promise<void> {
   const db = await getDB();
   if (!db) return;
   await db
     .prepare(
-      `UPDATE athletes SET photo_url = ?, photo_credit = ?, updated_at = datetime('now') WHERE id = ?`
+      `UPDATE athletes SET photo_url = ?, photo_credit = ?, preferred_name = ?, updated_at = datetime('now') WHERE id = ?`
     )
-    .bind(photoUrl, photoCredit, id)
+    .bind(
+      fields.photo_url ?? null,
+      fields.photo_credit ?? null,
+      fields.preferred_name ?? null,
+      id,
+    )
     .run();
 }
 

@@ -55,6 +55,12 @@ export default async function AdminDashboard({
           >
             Pipeline
           </Link>
+          <Link
+            href={`/admin/stilguide?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Stilguide
+          </Link>
         </div>
 
         {/* Kladder */}

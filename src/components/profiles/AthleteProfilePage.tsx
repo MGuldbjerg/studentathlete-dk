@@ -12,6 +12,8 @@ const STAT_ROWS = (a: Athlete) => [
   { label: "Universitet", value: a.university },
   { label: "Stat",     value: a.university_state },
   { label: "Division", value: a.division },
+  { label: "Årgang",   value: a.class_year },
+  { label: "Forventet dimission", value: a.expected_graduation?.toString() },
   { label: "Optaget",  value: a.year_enrolled?.toString() },
   { label: "Status",   value: a.active ? "Aktiv" : "Tidligere atlet" },
 ].filter((r) => r.value);

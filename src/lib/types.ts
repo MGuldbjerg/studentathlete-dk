@@ -11,11 +11,15 @@ export interface Article {
   updated_at: string;
   athlete_id: number | null;
   cover_image_url: string | null;
+  source_url: string | null;
+  model_used: string | null;
+  llm_provider: string | null;
   author: string | null;
+  original_content: string | null;
   // Joined fra athletes
-  athlete_name?: string | null;
-  athlete_slug?: string | null;
-  sport?: string | null;
+  athlete_name: string | null;
+  athlete_slug: string | null;
+  sport: string | null;
 }
 
 export interface Athlete {
@@ -32,7 +36,10 @@ export interface Athlete {
   active: number;
   photo_url: string | null;
   photo_credit: string | null;
+  preferred_name: string | null;
   profile_summary: string | null;
+  class_year: string | null;
+  expected_graduation: number | null;
   created_at: string;
   updated_at: string;
 }

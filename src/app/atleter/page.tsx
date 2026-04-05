@@ -72,6 +72,7 @@ function AthleteGrid({ athletes, faded = false }: { athletes: Athlete[]; faded?:
                   <p className="text-xs text-muted truncate">
                     {athlete.university}
                     {athlete.position && ` · ${athlete.position}`}
+                    {athlete.class_year && ` · ${athlete.class_year}`}
                   </p>
                 </div>
               </Link>

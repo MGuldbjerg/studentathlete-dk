@@ -24,6 +24,49 @@ export function EditArticleForm({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
+  // Vis original-toggle
+  const [showOriginal, setShowOriginal] = useState(false);
+  const hasOriginal = !!article.original_content;
+
+  // Hurtig-rettelse
+  const [showCorrectionForm, setShowCorrectionForm] = useState(false);
+  const [corrWrong, setCorrWrong] = useState("");
+  const [corrCorrect, setCorrCorrect] = useState("");
+  const [corrCategory, setCorrCategory] = useState("oversaettelse");
+  const [corrSaving, setCorrSaving] = useState(false);
+  const [corrMessage, setCorrMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  async function handleAddCorrection() {
+    if (!corrWrong.trim() || !corrCorrect.trim()) return;
+    setCorrSaving(true);
+    setCorrMessage(null);
+    try {
+      const res = await fetch("/api/admin/stilguide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          wrong_phrase: corrWrong.trim(),
+          correct_phrase: corrCorrect.trim(),
+          category: corrCategory,
+          note: null,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setCorrMessage({ type: "err", text: (body as { error?: string }).error ?? "Fejl" });
+      } else {
+        setCorrMessage({ type: "ok", text: "Tilføjet til stilguiden!" });
+        setCorrWrong("");
+        setCorrCorrect("");
+      }
+    } catch {
+      setCorrMessage({ type: "err", text: "Netværksfejl" });
+    } finally {
+      setCorrSaving(false);
+    }
+  }
+
   async function handleSave() {
     setSaving(true);
     setMessage(null);
@@ -129,17 +172,96 @@ export function EditArticleForm({
 
       {/* Indhold */}
       <div>
-        <label className="block text-xs font-semibold text-muted mb-1">
-          Indhold (markdown)
-        </label>
-        <MarkdownToolbar textareaRef={textareaRef} value={content} onChange={setContent} />
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={24}
-          className={`${inputClass} font-mono text-[13px] leading-relaxed resize-y`}
-        />
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-xs font-semibold text-muted">
+            Indhold (markdown)
+          </label>
+          {hasOriginal && (
+            <button
+              type="button"
+              onClick={() => setShowOriginal(!showOriginal)}
+              className="text-xs text-muted hover:text-ink transition-colors"
+            >
+              {showOriginal ? "← Vis redigeret" : "Vis original"}
+            </button>
+          )}
+        </div>
+        {showOriginal ? (
+          <textarea
+            value={article.original_content ?? ""}
+            readOnly
+            rows={24}
+            className={`${inputClass} font-mono text-[13px] leading-relaxed resize-y bg-gray-50 cursor-default`}
+          />
+        ) : (
+          <>
+            <MarkdownToolbar textareaRef={textareaRef} value={content} onChange={setContent} />
+            <textarea
+              ref={textareaRef}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={24}
+              className={`${inputClass} font-mono text-[13px] leading-relaxed resize-y`}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Hurtig-rettelse til stilguide */}
+      <div className="border border-border rounded-lg">
+        <button
+          type="button"
+          onClick={() => setShowCorrectionForm(!showCorrectionForm)}
+          className="w-full text-left px-4 py-2.5 text-sm font-medium text-muted hover:text-ink transition-colors"
+        >
+          {showCorrectionForm ? "▾" : "▸"} Tilføj rettelse til stilguide
+        </button>
+        {showCorrectionForm && (
+          <div className="px-4 pb-4 flex flex-col gap-2">
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                value={corrWrong}
+                onChange={(e) => setCorrWrong(e.target.value)}
+                placeholder="Forkert frase"
+                className={`${inputClass} text-xs`}
+              />
+              <input
+                type="text"
+                value={corrCorrect}
+                onChange={(e) => setCorrCorrect(e.target.value)}
+                placeholder="Korrekt frase"
+                className={`${inputClass} text-xs`}
+              />
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={corrCategory}
+                onChange={(e) => setCorrCategory(e.target.value)}
+                className={`${inputClass} text-xs flex-1`}
+              >
+                <option value="oversaettelse">Oversættelse</option>
+                <option value="idiom">Idiom</option>
+                <option value="terminologi">Terminologi</option>
+                <option value="stil">Stil</option>
+              </select>
+              <button
+                type="button"
+                onClick={handleAddCorrection}
+                disabled={corrSaving || !corrWrong.trim() || !corrCorrect.trim()}
+                className="px-4 py-2 text-xs font-semibold text-white rounded-lg transition-opacity disabled:opacity-50"
+                style={{ backgroundColor: "#00205B" }}
+              >
+                {corrSaving ? "…" : "Tilføj"}
+              </button>
+            </div>
+            {corrMessage && (
+              <p className={`text-xs ${corrMessage.type === "ok" ? "text-green-700" : "text-flag-red"}`}>
+                {corrMessage.text}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Feedback */}
