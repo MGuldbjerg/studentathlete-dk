@@ -78,11 +78,12 @@ export async function publishArticle(id: number): Promise<void> {
       sport: string | null;
     } | null;
 
-  let coverUrl: string | null = article?.cover_image_url ?? null;
+  // OG-billede-URLs er kun til meta-tags — bruges IKKE som synligt cover
+  const rawCover = article?.cover_image_url ?? null;
+  let coverUrl: string | null =
+    rawCover && !rawCover.includes("/api/og") ? rawCover : null;
 
   if (!coverUrl && article) {
-    // Brug atletfoto hvis tilgængeligt — OG-billeder bruges kun til meta-tags,
-    // ikke som synligt cover i artiklen (ImageResponse virker ikke som inline <img>)
     coverUrl = article.photo_url ?? null;
   }
 
