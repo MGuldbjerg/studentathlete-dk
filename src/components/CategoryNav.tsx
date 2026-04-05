@@ -20,6 +20,20 @@ function SportIcon({ icon, size = 16 }: { icon: string; size?: number }) {
       return <svg {...props}><path d="M2 16c1.5-1 3-2 4.5-1s3 2 4.5 1 3-2 4.5-1 3 2 4.5 1" /><path d="M2 20c1.5-1 3-2 4.5-1s3 2 4.5 1 3-2 4.5-1 3 2 4.5 1" /><circle cx="8" cy="8" r="2" /><path d="M10 8l4 4-2 3" /></svg>;
     case "fodbold":
       return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M12 2l3 5h5l1 5-4 4 1 5-5 1-4-4-4 4-5-1 1-5-4-4 1-5h5z" /></svg>;
+    case "golf":
+      return <svg {...props}><path d="M17 3v10l-5-3v-7z" /><line x1="17" y1="13" x2="17" y2="20" /><ellipse cx="17" cy="21" rx="3" ry="1.5" /></svg>;
+    case "tennis":
+      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M5.5 5.5C8.5 8.5 8.5 15.5 5.5 18.5" /><path d="M18.5 5.5C15.5 8.5 15.5 15.5 18.5 18.5" /></svg>;
+    case "roning":
+      return <svg {...props}><path d="M3 17l5-10 5 5 5-10" /><path d="M3 17l3 3M13 12l3 3" /></svg>;
+    case "gymnastik":
+      return <svg {...props}><circle cx="12" cy="4" r="2" /><path d="M12 6v5M9 8l-4 5M15 8l4 5M9 11l-1 7M15 11l1 7" /></svg>;
+    case "ishockey":
+      return <svg {...props}><path d="M18 4L6 16" /><path d="M6 16l-2 3h4" /><ellipse cx="12" cy="21" rx="6" ry="2" /></svg>;
+    case "volleyball":
+      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M12 2C9 6 9 18 12 22" /><path d="M12 2C15 6 15 18 12 22" /><path d="M2 9h20M2 15h20" /></svg>;
+    case "andet":
+      return <svg {...props}><polygon points="12,2 14.9,8.3 22,9.3 17,14.1 18.2,21.1 12,17.8 5.8,21.1 7,14.1 2,9.3 9.1,8.3" /></svg>;
     default:
       return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>;
   }

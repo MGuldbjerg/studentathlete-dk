@@ -22,11 +22,19 @@ export function Header() {
           />
         </a>
 
-        {/* Desktop søgefelt i header */}
-        <div className="hidden md:block w-full max-w-sm">
-          <Suspense fallback={null}>
-            <SearchBar />
-          </Suspense>
+        {/* Desktop navigation + søgefelt */}
+        <div className="hidden md:flex items-center gap-6 flex-1 justify-end">
+          <a
+            href="/atleter"
+            className="text-sm font-medium text-white/70 hover:text-white transition-colors whitespace-nowrap"
+          >
+            Atleter
+          </a>
+          <div className="w-full max-w-sm">
+            <Suspense fallback={null}>
+              <SearchBar />
+            </Suspense>
+          </div>
         </div>
       </div>
     </header>

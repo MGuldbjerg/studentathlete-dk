@@ -57,6 +57,11 @@ export function Footer() {
           </h5>
           <ul className="space-y-1.5">
             <li>
+              <a href="/atleter" className="text-white/60 text-sm hover:text-white transition-colors">
+                Alle atleter
+              </a>
+            </li>
+            <li>
               <a href="/om" className="text-white/60 text-sm hover:text-white transition-colors">
                 Om StudentAthlete.dk
               </a>
