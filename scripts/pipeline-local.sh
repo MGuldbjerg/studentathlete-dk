@@ -36,6 +36,10 @@ case "$STEP" in
     echo "=== Tjekker kilder for historier ==="
     npx tsx pipeline/discover/check-sources.ts "${@:2}"
     ;;
+  backfill)
+    echo "=== Backfiller content_raw for eksisterende stories ==="
+    npx tsx pipeline/discover/backfill-content.ts "${@:2}"
+    ;;
   generate)
     echo "=== Genererer artikeludkast ==="
     npx tsx pipeline/generate/generate-articles.ts
@@ -59,6 +63,9 @@ case "$STEP" in
     echo "--- Trin 3b: Check sources ---"
     npx tsx pipeline/discover/check-sources.ts
     echo ""
+    echo "--- Trin 3c: Backfill manglende content ---"
+    npx tsx pipeline/discover/backfill-content.ts --limit 100
+    echo ""
     echo "--- Trin 4: Generate ---"
     npx tsx pipeline/generate/generate-articles.ts
     echo ""
@@ -68,7 +75,7 @@ case "$STEP" in
     echo "=== Pipeline færdig ==="
     ;;
   *)
-    echo "Brug: bash scripts/pipeline-local.sh [seed|import-schools|detect|scrape|scrape-js|discover-feeds|discover|generate|report|all]"
+    echo "Brug: bash scripts/pipeline-local.sh [seed|import-schools|detect|scrape|scrape-js|discover-feeds|discover|backfill|generate|report|all]"
     exit 1
     ;;
 esac
