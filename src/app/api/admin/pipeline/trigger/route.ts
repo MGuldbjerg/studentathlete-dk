@@ -10,6 +10,7 @@ const WORKFLOWS: Record<string, { file: string; label: string }> = {
   generate: { file: "generate-manual.yml", label: "Generér artikler" },
   scrape: { file: "weekly-scrape.yml", label: "Scrap rosters" },
   "scrape-js": { file: "daily-js-scrape.yml", label: "Scrap JS-rosters" },
+  "backfill-class-year": { file: "backfill-class-year.yml", label: "Backfill årgangsbetegnelser" },
 };
 
 export async function POST(req: NextRequest) {

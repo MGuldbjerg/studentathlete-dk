@@ -14,6 +14,7 @@ const STEPS: Step[] = [
   { id: "generate", label: "Generér artikler", description: "Skriver udkast fra nye historier" },
   { id: "scrape", label: "Scrap rosters", description: "Opdaterer atleter fra universiteter" },
   { id: "scrape-js", label: "Scrap JS-rosters", description: "JS-renderede sider via CF" },
+  { id: "backfill-class-year", label: "Backfill årgangsbetegnelser", description: "Sætter class_year for atleter der mangler den" },
 ];
 
 type Phase = "queued" | "running" | "done";
