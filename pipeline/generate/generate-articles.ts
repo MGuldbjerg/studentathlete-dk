@@ -75,7 +75,19 @@ const MAX_ARTICLES_PER_RUN = 5;
 // Maks antal kladder der må ligge ugodkendt (pause hvis for mange hober sig op)
 const MAX_PENDING_DRAFTS = 20;
 
+function parseArgs(): { maxAgeDays: number } {
+  const args = process.argv.slice(2);
+  let maxAgeDays = 2;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--max-age-days" && args[i + 1]) {
+      maxAgeDays = parseInt(args[i + 1], 10) || 2;
+    }
+  }
+  return { maxAgeDays };
+}
+
 async function main(): Promise<void> {
+  const { maxAgeDays } = parseArgs();
   const db = createD1Client();
   const chain = new ProviderChain(db);
 
@@ -117,6 +129,8 @@ async function main(): Promise<void> {
      AND datetime(discovered_at, '+1 hour') < datetime('now')`,
   );
 
+  console.log(`Datofilter: kun historier fundet inden for de seneste ${maxAgeDays} dage.`);
+
   // Hent nye historier der endnu ikke er konverteret
   const result = await db.query<StoryWithAthlete>(
     `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown
@@ -124,10 +138,10 @@ async function main(): Promise<void> {
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
      AND s.content_raw IS NOT NULL
-     AND datetime(s.discovered_at, '+14 days') >= datetime('now')
+     AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
      ORDER BY s.relevance_score DESC
      LIMIT ?`,
-    [MAX_ARTICLES_PER_RUN],
+    [maxAgeDays, MAX_ARTICLES_PER_RUN],
   );
 
   const stories = result.results;

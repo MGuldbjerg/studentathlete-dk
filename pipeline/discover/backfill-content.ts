@@ -24,7 +24,7 @@ interface StoryToBackfill {
 function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean } {
   const args = process.argv.slice(2);
   let limit = 50;
-  let maxAgeDays = 14;
+  let maxAgeDays = 2;
   let dryRun = false;
 
   for (let i = 0; i < args.length; i++) {
