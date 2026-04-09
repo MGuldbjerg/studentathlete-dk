@@ -32,6 +32,57 @@ interface AthleteRef {
 
 interface SourceWithAthlete extends Source {
   athlete_name: string;
+  university: string | null;
+  sport: string | null;
+}
+
+/**
+ * Returnerer sportsspecifikke nøgleord der bruges til at validere
+ * at en Google News-artikel faktisk handler om atletik og ikke en
+ * navnedobbeltgænger.
+ */
+function getSportTerms(sport: string | null): string[] {
+  const s = (sport ?? "").toLowerCase();
+  const shared = ["ncaa", "athlete", "team", "season", "coach", "conference"];
+  if (s.includes("swim")) return [...shared, "swim", "pool", "freestyle", "relay", "backstroke", "butterfly", "breaststroke", "diving"];
+  if (s.includes("football")) return [...shared, "football", "touchdown", "quarterback", "receiver", "kicker", "linebacker", "sec", "big ten", "acc", "big 12"];
+  if (s.includes("soccer")) return [...shared, "soccer", "goal", "midfielder", "forward", "defender", "goalkeeper", "mls", "corner"];
+  if (s.includes("basketball")) return [...shared, "basketball", "points", "rebounds", "assists", "guard", "forward", "center", "nba"];
+  if (s.includes("baseball")) return [...shared, "baseball", "pitcher", "batting", "home run", "strikeout", "mlb"];
+  if (s.includes("track") || s.includes("field")) return [...shared, "track", "field", "sprint", "hurdles", "javelin", "shot put", "relay"];
+  if (s.includes("golf")) return [...shared, "golf", "birdie", "eagle", "par", "pga", "stroke"];
+  if (s.includes("tennis")) return [...shared, "tennis", "serve", "forehand", "backhand", "atp", "wta", "set", "match"];
+  if (s.includes("volleyball")) return [...shared, "volleyball", "spike", "setter", "blocker"];
+  if (s.includes("lacrosse")) return [...shared, "lacrosse", "stick", "crease"];
+  if (s.includes("wrestling")) return [...shared, "wrestling", "pin", "takedown", "weight class"];
+  if (s.includes("rowing")) return [...shared, "rowing", "crew", "regatta", "stroke", "sculls"];
+  return shared;
+}
+
+/**
+ * Validerer at en Google News-artikel faktisk handler om den rigtige atlet.
+ * Tjekker at enten universitetsnavnet ELLER sportskontext fremgår af teksten.
+ * Forhindrer false positives fra navnedobbeltgængere (fx musikere, politikere).
+ */
+function isRelevantGoogleNewsStory(
+  story: { headline: string | null; summary: string | null },
+  athleteName: string,
+  university: string | null,
+  sport: string | null,
+): boolean {
+  const text = `${story.headline ?? ""} ${story.summary ?? ""}`.toLowerCase();
+
+  // Tjek universitetsord (spring korte ord over — "of", "the", "at" er støj)
+  if (university) {
+    const uniWords = university.toLowerCase().split(/\s+/).filter((w) => w.length > 4);
+    if (uniWords.some((w) => text.includes(w))) return true;
+  }
+
+  // Tjek sportsspecifikke termer
+  const sportTerms = getSportTerms(sport);
+  if (sportTerms.some((t) => text.includes(t))) return true;
+
+  return false;
 }
 
 function parseArgs(): { limit: number } {
@@ -166,7 +217,7 @@ async function checkGoogleNewsSources(
 ): Promise<{ checked: number; found: number }> {
   // Hent aktive Google News-kilder der er klar til tjek
   const result = await db.query<SourceWithAthlete>(
-    `SELECT s.*, a.name as athlete_name
+    `SELECT s.*, a.name as athlete_name, a.university, a.sport
      FROM sources s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.active = 1
@@ -196,7 +247,14 @@ async function checkGoogleNewsSources(
       );
 
       let foundInSource = 0;
+      let rejectedInSource = 0;
       for (const story of stories) {
+        // Valider at artiklen faktisk handler om denne atlet og ikke en navnedobbeltgænger
+        if (!isRelevantGoogleNewsStory(story, source.athlete_name, source.university, source.sport)) {
+          rejectedInSource++;
+          continue;
+        }
+
         const urlHash = createHash("sha256").update(story.url).digest("hex");
 
         let contentRaw = story.content;
@@ -205,11 +263,14 @@ async function checkGoogleNewsSources(
           await new Promise((r) => setTimeout(r, 500));
         }
 
+        // Fuld navnematch i søgeforespørgslen giver score 60
+        const relevanceScore = 60;
+
         try {
           await db.execute(
             `INSERT OR IGNORE INTO stories
-             (athlete_id, source_id, source_url, url_hash, headline, summary, content_raw, source_type)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+             (athlete_id, source_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               source.athlete_id,
               source.id,
@@ -219,6 +280,7 @@ async function checkGoogleNewsSources(
               story.summary,
               contentRaw,
               "google_news",
+              relevanceScore,
             ],
           );
           foundInSource++;
@@ -226,6 +288,10 @@ async function checkGoogleNewsSources(
         } catch {
           // Duplikat
         }
+      }
+
+      if (rejectedInSource > 0) {
+        console.log(`  ${source.athlete_name}: ${rejectedInSource} afvist (forkert person / mangler sport- eller universitetskontext)`);
       }
 
       if (foundInSource > 0) {
