@@ -77,10 +77,10 @@ const MAX_PENDING_DRAFTS = 20;
 
 function parseArgs(): { maxAgeDays: number } {
   const args = process.argv.slice(2);
-  let maxAgeDays = 2;
+  let maxAgeDays = 7; // 7 dage: fanger nyheder der er opdaget men ikke endnu genereret
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--max-age-days" && args[i + 1]) {
-      maxAgeDays = parseInt(args[i + 1], 10) || 2;
+      maxAgeDays = parseInt(args[i + 1], 10) || 7;
     }
   }
   return { maxAgeDays };
@@ -129,17 +129,44 @@ async function main(): Promise<void> {
      AND datetime(discovered_at, '+1 hour') < datetime('now')`,
   );
 
-  console.log(`Datofilter: kun historier fundet inden for de seneste ${maxAgeDays} dage.`);
+  // Diagnostik: vis hvad der faktisk ligger i databasen
+  const diagResult = await db.query<{
+    total: number;
+    has_content: number;
+    summary_only: number;
+    headline_only: number;
+    too_old: number;
+  }>(
+    `SELECT
+       COUNT(CASE WHEN datetime(discovered_at, '+' || ? || ' days') >= datetime('now') THEN 1 END) as total,
+       COUNT(CASE WHEN content_raw IS NOT NULL AND datetime(discovered_at, '+' || ? || ' days') >= datetime('now') THEN 1 END) as has_content,
+       COUNT(CASE WHEN content_raw IS NULL AND summary IS NOT NULL AND datetime(discovered_at, '+' || ? || ' days') >= datetime('now') THEN 1 END) as summary_only,
+       COUNT(CASE WHEN content_raw IS NULL AND summary IS NULL AND datetime(discovered_at, '+' || ? || ' days') >= datetime('now') THEN 1 END) as headline_only,
+       COUNT(CASE WHEN datetime(discovered_at, '+' || ? || ' days') < datetime('now') THEN 1 END) as too_old
+     FROM stories WHERE status = 'new'`,
+    [maxAgeDays, maxAgeDays, maxAgeDays, maxAgeDays, maxAgeDays],
+  );
+  const diag = diagResult.results[0];
+  console.log(`\nHistorier (status='new', seneste ${maxAgeDays} dage):`);
+  console.log(`  Fuldt indhold (content_raw): ${diag?.has_content ?? 0}`);
+  console.log(`  Kun summary:                 ${diag?.summary_only ?? 0}`);
+  console.log(`  Kun headline:                ${diag?.headline_only ?? 0}`);
+  console.log(`  For gamle (ignoreres):       ${diag?.too_old ?? 0}`);
+  console.log(`  Total inden for vindue:      ${diag?.total ?? 0}\n`);
 
-  // Hent nye historier der endnu ikke er konverteret
+  // Hent nye historier der endnu ikke er konverteret.
+  // content_raw er ikke påkrævet — summary fra RSS-feeds er nok til artikelgenerering.
+  // Sortering: foretrækker rigt indhold (content_raw > summary > headline).
   const result = await db.query<StoryWithAthlete>(
     `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
-     AND s.content_raw IS NOT NULL
+     AND (s.content_raw IS NOT NULL OR s.summary IS NOT NULL OR s.headline IS NOT NULL)
      AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
-     ORDER BY s.relevance_score DESC
+     ORDER BY
+       CASE WHEN s.content_raw IS NOT NULL THEN 0 WHEN s.summary IS NOT NULL THEN 1 ELSE 2 END,
+       s.relevance_score DESC
      LIMIT ?`,
     [maxAgeDays, MAX_ARTICLES_PER_RUN],
   );
@@ -148,6 +175,9 @@ async function main(): Promise<void> {
 
   if (stories.length === 0) {
     console.log("Ingen nye historier at generere artikler fra.");
+    if ((diag?.too_old ?? 0) > 0) {
+      console.log(`  Tip: ${diag?.too_old} historier findes men er ældre end ${maxAgeDays} dage. Kør med --max-age-days 7 for at inkludere dem.`);
+    }
     return;
   }
 
@@ -170,6 +200,9 @@ async function main(): Promise<void> {
 
     const articleType = selectArticleType(story);
     const prompt = buildPrompt(story, articleType);
+
+    const contentSource = story.content_raw ? "content_raw" : story.summary ? "summary" : "headline only";
+    console.log(`  → Story ${story.id}: ${story.athlete_name} — kilde: ${contentSource}, type: ${articleType}`);
 
     // Marker som "drafting" så den ikke behandles igen
     await db.execute('UPDATE stories SET status = ? WHERE id = ?', [

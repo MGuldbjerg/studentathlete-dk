@@ -10,7 +10,7 @@ on:
       max_age_days:
         description: 'Ignorer historier ældre end N dage'
         required: false
-        default: '2'
+        default: '7'
 
 jobs:
   generate:
@@ -28,7 +28,7 @@ jobs:
       - run: npm ci
 
       - name: Generer artikeludkast fra nye historier
-        run: npx tsx pipeline/generate/generate-articles.ts --max-age-days ${{ github.event.inputs.max_age_days || '2' }}
+        run: npx tsx pipeline/generate/generate-articles.ts --max-age-days ${{ github.event.inputs.max_age_days || '7' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
