@@ -63,6 +63,25 @@ export function PipelineActions({ token }: { token: string }) {
   } | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Opdater browser-fane-titlen så status ses uden at skifte fane
+  useEffect(() => {
+    const original = document.title;
+    if (!runState) return () => { document.title = original; };
+
+    const stepLabel = STEPS.find((s) => s.id === runState.step)?.label ?? "Pipeline";
+    if (runState.phase === "queued") {
+      document.title = `[ Venter ] ${stepLabel}`;
+    } else if (runState.phase === "running") {
+      document.title = `[ Korer ] ${stepLabel}`;
+    } else if (runState.phase === "done") {
+      document.title = runState.conclusion === "success"
+        ? `[ Faerdig ] ${stepLabel}`
+        : `[ Fejl ] ${stepLabel}`;
+    }
+
+    return () => { document.title = original; };
+  }, [runState?.phase, runState?.step, runState?.conclusion]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Poll GitHub Actions status mens noget kører
   useEffect(() => {
     if (!runState || runState.phase === "done") return;

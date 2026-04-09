@@ -50,8 +50,10 @@ export async function GET(req: NextRequest) {
   const data = await res.json() as { workflow_runs: GhRun[] };
   const runs: GhRun[] = data.workflow_runs ?? [];
 
-  // Find den kørsel der blev trigget efter `after`-tidsstemplet
-  const afterDate = after ? new Date(after) : null;
+  // Find den kørsel der blev trigget efter `after`-tidsstemplet.
+  // Trækker 30s fra for at absorbere clockskew og netværkslatens:
+  // GitHub stemplede run.created_at ~200ms FØR vores triggeredAt blev sat.
+  const afterDate = after ? new Date(new Date(after).getTime() - 30_000) : null;
   const run = afterDate
     ? runs.find((r) => new Date(r.created_at) >= afterDate)
     : runs[0];
