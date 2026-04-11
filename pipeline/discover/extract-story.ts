@@ -114,12 +114,21 @@ async function extractFromHtml(
   return stories;
 }
 
+/** Parser en dato-streng fra RSS pubDate eller Atom published/updated. */
+function parsePubDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 /**
  * Udtræk historier fra en RSS/Atom-feed der nævner atleten.
+ * @param maxAgeDays - Afvis artikler ældre end N dage (undefined = ingen grænse)
  */
 async function extractFromRss(
   feedUrl: string,
   athleteName: string,
+  maxAgeDays?: number,
 ): Promise<ExtractedStory[]> {
   const xml = await fetchPage(feedUrl);
   if (!xml) return [];
@@ -127,6 +136,7 @@ async function extractFromRss(
   const $ = cheerio.load(xml, { xml: true });
   const stories: ExtractedStory[] = [];
   const lastName = athleteName.split(" ").pop()?.toLowerCase() ?? "";
+  const cutoff = maxAgeDays ? new Date(Date.now() - maxAgeDays * 86_400_000) : null;
 
   // RSS 2.0 items
   $("item").each((_, el) => {
@@ -136,6 +146,11 @@ async function extractFromRss(
 
     const searchText = `${title} ${description}`.toLowerCase();
     if (!searchText.includes(lastName)) return;
+
+    if (cutoff) {
+      const pubDate = parsePubDate($(el).find("pubDate").text().trim());
+      if (pubDate && pubDate < cutoff) return; // For gammel
+    }
 
     if (link && !isBlockedDomain(link)) {
       stories.push({
@@ -156,6 +171,12 @@ async function extractFromRss(
 
     const searchText = `${title} ${summary}`.toLowerCase();
     if (!searchText.includes(lastName)) return;
+
+    if (cutoff) {
+      const dateStr = $(el).find("published").text().trim() || $(el).find("updated").text().trim();
+      const pubDate = parsePubDate(dateStr);
+      if (pubDate && pubDate < cutoff) return; // For gammel
+    }
 
     if (link && !isBlockedDomain(link)) {
       stories.push({
@@ -212,9 +233,10 @@ export async function extractStories(
   sourceUrl: string,
   athleteName: string,
   sourceType: string,
+  maxAgeDays?: number,
 ): Promise<ExtractedStory[]> {
   if (sourceType === "rss") {
-    return extractFromRss(sourceUrl, athleteName);
+    return extractFromRss(sourceUrl, athleteName, maxAgeDays);
   }
   return extractFromHtml(sourceUrl, athleteName);
 }

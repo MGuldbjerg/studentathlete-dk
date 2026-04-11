@@ -244,6 +244,7 @@ async function checkGoogleNewsSources(
         source.url,
         source.athlete_name,
         "rss",
+        7, // Google News: kun artikler fra de seneste 7 dage
       );
 
       let foundInSource = 0;
