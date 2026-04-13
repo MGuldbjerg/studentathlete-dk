@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-04-13
+**Sidst opdateret**: 2026-04-13 (problem dokumenteret 2026-04-13)
 **Fase**: Pipeline fungerer / redaktionel gennemgang
 
 ## Oversigt
@@ -41,13 +41,95 @@ Kladder skal gennemgås manuelt i `/admin` — godkend, rediger eller afvis. Kva
 
 ## Næste skridt
 
-1. **Gennemgå kladder** — godkend eller afvis de 5 genererede artikler i `/admin`
-2. **Trigger generate manuelt** igen for at tømme backloggen hurtigere (5 pr. kørsel)
-3. **Google News-historier om forkerte personer**: eksisterende fejlklader (Peter Webster / musikartikel) afvises manuelt i admin
+1. **Gennemgå kladder** — godkend eller afvis kladder i `/admin` (inkl. Laura Ziegler-kladden)
+2. **Prioritet: Google News redirect-fix + kilde-rangordning** — se dedikeret afsnit nedenfor
+3. **Trigger generate manuelt** igen for at tømme backloggen hurtigere (5 pr. kørsel)
 4. **Vurder artikel-kvalitet** — kladder fra kun headline/summary er kortere; overvej om de skal slettes eller redigeres
-5. **Cloudflare Browser Rendering** til backfill — ville give `content_raw` for JS-renderede athletics-sider (pt. er `content_raw = 0` for alle historier)
+5. **Cloudflare Browser Rendering** til backfill — ville give `content_raw` for JS-renderede athletics-sider
 6. **Billedgenerering** (modul 8 — ikke påbegyndt)
 7. **Social media automation** (modul 7 — ikke påbegyndt)
+
+---
+
+## NÆSTE SESSION: Google News redirect-fix + kilde-rangordning
+
+### Problemet
+
+Google News er en aggregator. Dens RSS-feed returnerer URLs der ser sådan ud:
+```
+https://news.google.com/rss/articles/CBMi...
+```
+Disse er Googles egne redirect-links, der videresender til den faktiske artikel. Problemet:
+
+1. **Svindel-redirects**: Nogle sider (fx i Laura Ziegler-casen) lader Google News linke til dem, men redirecter besøgende til "du har vundet en million"-sider eller lignende. Source_url i databasen peger på Google News-linket, men den faktiske destination er en svindelside.
+2. **Forkert URL i databasen**: Vi gemmer Google News-redirect-URL'en, ikke den rigtige artikel-URL. Kildevisningen i admin og på artikelsiden peger på et Google-link, ikke det originale medie.
+3. **Ingen tillids-rangordning**: Alle URL-domæner behandles ens — en artikel fra ESPN og en fra en ukendt blog får samme vægt.
+
+### Løsning
+
+**Trin 1 — Følg redirect til faktisk URL** (`pipeline/discover/check-sources.ts`, `checkGoogleNewsSources`)
+
+For hvert Google News-hit: lav en HEAD-request (eller GET med `redirect: "follow"`) og hent den endelige URL efter alle redirects. Brug denne som `source_url` i databasen i stedet for Google News-linket.
+
+```typescript
+async function resolveRedirect(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      method: "HEAD",
+      redirect: "follow",
+      signal: AbortSignal.timeout(8000),
+      headers: { "User-Agent": USER_AGENT },
+    });
+    return res.url; // Endelig URL efter redirects
+  } catch {
+    return null;
+  }
+}
+```
+
+Hvis `resolveRedirect` returnerer null (timeout, netværksfejl) → afvis historien.
+
+**Trin 2 — Domænerangordning** (ny fil: `pipeline/lib/source-trust.ts`)
+
+Klassificér domæner i tre lag:
+
+| Lag | Eksempler | Handling |
+|-----|-----------|----------|
+| **Trusted** | ncaa.com, espn.com (kun til trust-tjek, ikke indhold), golfweek.com, swimswam.com, si.com, usatoday.com, collegiateathletics-domæner, .edu | Behold — sæt `relevance_score += 20` |
+| **Neutral** | Lokale aviser, ukendte nyhedssites | Behold som nu |
+| **Afvis** | Kendte scam-mønstre, pop-up sider, sites uden ordentlig TLD, redirecter til anden URL end den forventede | Marker som `status='rejected'` |
+
+Scam-detektionen kan baseres på:
+- Finale URL's domæne er forskelligt fra det domæne Google News antydede i RSS-titlen/summary
+- TLD-tjek: afvis `.xyz`, `.click`, `.top`, `.win`, `.loan`, `.gdn` og lignende high-risk TLD'er
+- Redirect-kæde er mere end N hop (tegn på cloaking)
+
+**Trin 3 — Gem faktisk URL, ikke Google-link**
+
+I `INSERT INTO stories`, brug den resolved URL som `source_url` (ikke Google News-URL'en). Google News-URL'en kan gemmes i et separat felt hvis ønsket, men er ikke nødvendig.
+
+**Trin 4 — Relevance-score baseret på kilde-lag**
+
+```
+school_feed (RSS/HTML)  → relevance_score 80 (fuld match) / 40 (efternavn)
+google_news trusted     → relevance_score 70
+google_news neutral     → relevance_score 50
+google_news afvist      → INSERT OR IGNORE + status='rejected'
+```
+
+### Filer der skal ændres
+
+| Fil | Hvad |
+|-----|------|
+| `pipeline/lib/source-trust.ts` | NY — trusted-domæner, scam-TLD'er, `classifyDomain()`, `resolveRedirect()` |
+| `pipeline/discover/check-sources.ts` | `checkGoogleNewsSources`: kald `resolveRedirect()` + `classifyDomain()` per story |
+| `pipeline/discover/extract-story.ts` | Ingen ændring nødvendig |
+
+### Hvad det løser
+
+- Laura Ziegler-problemet: redirect til svindelside fanges af enten scam-TLD-tjek eller domain-mismatch-tjek
+- Forkerte source_url'er erstattes med de faktiske artikel-URL'er
+- Ranglisten giver generate-scriptet bedre sortering (trusted sources genereres først)
 
 ## Kendte problemer
 
