@@ -31,7 +31,7 @@ jobs:
         id: generate
         run: |
           npx tsx pipeline/generate/generate-articles.ts --max-age-days ${{ github.event.inputs.max_age_days || '7' }} 2>&1 | tee /tmp/generate-output.txt
-          echo "count=$(grep -oP '(?<=Generated )\d+' /tmp/generate-output.txt | tail -1 || echo '?')" >> $GITHUB_OUTPUT
+          echo "count=$(grep -oP '(?<=Genereret )\d+' /tmp/generate-output.txt | tail -1 || echo '0')" >> $GITHUB_OUTPUT
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -48,14 +48,19 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           ARTICLE_COUNT: ${{ steps.generate.outputs.count }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then
-            COLOR=3066993
-            TITLE="✅ Nye artikler klar"
-            DESC="**${ARTICLE_COUNT:-?}** artikeludkast genereret og klar til review.\n[Åbn admin-panel](https://studentathlete.dk/admin/stilguide)"
-          else
+          COUNT="${ARTICLE_COUNT:-0}"
+          if [ "$JOB_STATUS" != "success" ]; then
             COLOR=15158332
             TITLE="❌ Pipeline fejlede"
             DESC="Artikelgenerering fejlede. Tjek [GitHub Actions](https://github.com/MGuldbjerg/studentathlete-dk/actions) for detaljer."
+          elif [ "$COUNT" = "0" ]; then
+            COLOR=10070709
+            TITLE="⏭️ Ingen nye historier"
+            DESC="Pipeline kørte uden fejl, men fandt ingen nye historier at generere artikler fra."
+          else
+            COLOR=3066993
+            TITLE="✅ ${COUNT} artikeludkast klar"
+            DESC="Klar til review i [admin-panelet](https://studentathlete.dk/admin)."
           fi
           curl -s -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
