@@ -60,7 +60,7 @@ jobs:
           else
             COLOR=3066993
             TITLE="✅ ${COUNT} artikeludkast klar"
-            DESC="Klar til review i [admin-panelet](https://studentathlete.dk/admin)."
+            DESC="Klar til review i admin-panelet."
           fi
           curl -s -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
