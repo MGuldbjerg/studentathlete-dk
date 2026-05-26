@@ -227,7 +227,6 @@ export async function fetchStoryContent(url: string): Promise<string | null> {
 
 /**
  * Hovedfunktion: udtræk historier fra en kilde (per-atlet).
- * Bruges stadig af Google News-kilden.
  */
 export async function extractStories(
   sourceUrl: string,

@@ -26,9 +26,10 @@ Hvis ALLE er færdige → gå til trin 6.
 
 ### 3. Research
 
-1. Læs atletdata fra `pipeline/seed/seed-data.json` og `pipeline/seed/research-progress.md`
-2. Læs `CLAUDE.md` for designsystem og artikelformat
-3. Læs eksisterende artikeltemplates i `pipeline/generate/prompts/` for stil og format
+1. Læs `pipeline/seed/athlete-index.md` for atletens grunddata (navn, sport, position, hjemby, uni)
+2. Søg atletens navn i `pipeline/seed/research-progress.md` og læs KUN den relevante sektion
+3. Læs `CLAUDE.md` for tech-stack og regler. Læs `DESIGN.md` kun hvis du laver UI-ændringer
+4. Læs `pipeline/generate/prompts/system.ts` for redaktionel stemme + den relevante artikel-prompt (news/feature/season-update/recruiting)
 
 ### 4. Generér artikel
 

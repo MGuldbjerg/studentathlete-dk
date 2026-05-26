@@ -10,7 +10,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { homedir } from "node:os";
 import { createD1Client } from "../lib/d1-client";
-import { createSourcesForAthlete } from "../lib/auto-sources";
 import { generateSlug } from "../lib/slug";
 
 interface CsvRow {
@@ -71,7 +70,6 @@ async function main(): Promise<void> {
 
   let imported = 0;
   let skipped = 0;
-  let sourcesCreated = 0;
 
   for (const row of rows) {
     if (!row.name || !row.school) {
@@ -111,21 +109,6 @@ async function main(): Promise<void> {
         ],
       );
 
-      // Hent den nye atlets ID
-      const newAthlete = await db.query<{ id: number }>(
-        "SELECT id FROM athletes WHERE slug = ?",
-        [slug],
-      );
-
-      if (newAthlete.results.length > 0) {
-        // Opret overvågningskilder
-        await createSourcesForAthlete(
-          db,
-          newAthlete.results[0].id,
-        );
-        sourcesCreated++;
-      }
-
       imported++;
       console.log(`  ✓ ${row.name} (${row.school})`);
     } catch (err) {
@@ -136,7 +119,6 @@ async function main(): Promise<void> {
   console.log(`\nResultat:`);
   console.log(`  Importeret: ${imported}`);
   console.log(`  Sprunget over: ${skipped}`);
-  console.log(`  Kilder oprettet for: ${sourcesCreated}`);
 }
 
 main().catch((err) => {

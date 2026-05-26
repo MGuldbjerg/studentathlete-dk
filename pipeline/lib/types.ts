@@ -10,7 +10,7 @@ export interface Source {
   athlete_id: number | null;
   school_id: number | null;
   url: string;
-  source_type: "athletics_page" | "rss" | "conference" | "google_news";
+  source_type: "athletics_page" | "rss" | "conference";
   check_interval_hours: number;
   last_checked_at: string | null;
   last_found_at: string | null;

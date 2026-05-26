@@ -1,6 +1,7 @@
 // Run once after deploying: npx tsx workers/discord-bot/register-commands.ts
 // Requires: DISCORD_APP_ID and DISCORD_BOT_TOKEN env vars
 
+async function main() {
 const APP_ID = process.env.DISCORD_APP_ID;
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
@@ -48,3 +49,6 @@ if (res.ok) {
   console.error("Failed:", res.status, await res.text());
   process.exit(1);
 }
+}
+
+main();

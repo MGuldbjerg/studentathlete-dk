@@ -43,6 +43,10 @@ export default function RootLayout({
           title="StudentAthlete.dk"
           href="/feed.xml"
         />
+        {/* Cloudflare Web Analytics (klient-side backup til D1-tracking)
+            Token hentes i: CF Dashboard → Analytics → Web Analytics → Add site
+            Aktiver ved at uncommente linjen nedenfor og indsætte din token: */}
+        {/* <script defer src="https://static.cloudflare.com/insights/metrics/script.min.js" spa="true" data-cf-beacon='{"token":"DIN_TOKEN_HER"}' /> */}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased`}

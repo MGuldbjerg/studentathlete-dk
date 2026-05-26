@@ -12,7 +12,6 @@ import { createD1Client } from "../lib/d1-client";
 import { parseRoster } from "./parsers";
 import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
-import { backfillSources } from "../lib/auto-sources";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 
 interface JsRosterCheck {
@@ -226,15 +225,6 @@ async function main(): Promise<void> {
 
     // 2 sek mellem browser-requests for at spare budget
     await new Promise((r) => setTimeout(r, 2000));
-  }
-
-  // Backfill kilder
-  if (totalFound > 0) {
-    console.log("\nOpretter overvågningskilder for nye atleter...");
-    const backfilled = await backfillSources(db);
-    if (backfilled > 0) {
-      console.log(`  Oprettede kilder for ${backfilled} atlet(er).`);
-    }
   }
 
   console.log(

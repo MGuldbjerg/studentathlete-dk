@@ -5,6 +5,11 @@ compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
+routes = [
+  { pattern = "studentathlete.dk/*", zone_name = "studentathlete.dk" },
+  { pattern = "www.studentathlete.dk/*", zone_name = "studentathlete.dk" }
+]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "studentathlete-dk"

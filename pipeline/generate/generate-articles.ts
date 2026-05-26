@@ -54,7 +54,7 @@ function buildPrompt(
     hometown: story.hometown,
     sourceUrl: story.source_url,
     headline: story.headline ?? "",
-    content: story.content_raw ?? story.summary ?? "",
+    content: story.content_raw?.slice(0, 4000) ?? story.summary?.slice(0, 2000) ?? "",
   };
 
   switch (articleType) {
@@ -119,6 +119,7 @@ async function main(): Promise<void> {
     console.log(
       `⚠ ${pendingDrafts} ugodkendte kladder — springer generering over. Godkend eller afvis kladder i admin-panelet.`,
     );
+    console.log(`SKIP_REASON=max_pending_drafts pending=${pendingDrafts} threshold=${MAX_PENDING_DRAFTS}`);
     return;
   }
 
@@ -178,6 +179,7 @@ async function main(): Promise<void> {
     if ((diag?.too_old ?? 0) > 0) {
       console.log(`  Tip: ${diag?.too_old} historier findes men er ældre end ${maxAgeDays} dage. Kør med --max-age-days 7 for at inkludere dem.`);
     }
+    console.log(`SKIP_REASON=no_eligible_stories window_days=${maxAgeDays} has_content=${diag?.has_content ?? 0} summary_only=${diag?.summary_only ?? 0} headline_only=${diag?.headline_only ?? 0} too_old=${diag?.too_old ?? 0} pending_drafts=${pendingDrafts}`);
     return;
   }
 

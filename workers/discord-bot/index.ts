@@ -47,7 +47,7 @@ async function verifySignature(
   }
 }
 
-async function triggerWorkflow(workflowFile: string, pat: string): Promise<boolean> {
+async function triggerWorkflow(workflowFile: string, pat: string): Promise<{ ok: boolean; status: number; body: string }> {
   const res = await fetch(
     `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${workflowFile}/dispatches`,
     {
@@ -57,11 +57,13 @@ async function triggerWorkflow(workflowFile: string, pat: string): Promise<boole
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
         "Content-Type": "application/json",
+        "User-Agent": "studentathlete-discord-bot/1.0",
       },
       body: JSON.stringify({ ref: "main" }),
     },
   );
-  return res.status === 204;
+  const body = await res.text();
+  return { ok: res.status === 204, status: res.status, body };
 }
 
 function jsonResponse(data: unknown, status = 200): Response {
@@ -103,9 +105,9 @@ export default {
         });
       }
 
-      const ok = await triggerWorkflow(workflow.file, env.GITHUB_PAT);
+      const result = await triggerWorkflow(workflow.file, env.GITHUB_PAT);
 
-      if (ok) {
+      if (result.ok) {
         return jsonResponse({
           type: 4,
           data: {
@@ -126,7 +128,7 @@ export default {
             embeds: [
               {
                 title: "❌ Kunne ikke starte workflow",
-                description: "GitHub API fejlede. Tjek at GitHub PAT er gyldigt og har Actions-rettigheder.",
+                description: `GitHub API svarede **${result.status}**:\n\`\`\`${result.body.slice(0, 300)}\`\`\``,
                 color: 15158332,
               },
             ],
