@@ -1,5 +1,6 @@
 import { createD1Client } from "../lib/d1-client.ts";
 
+async function main() {
 const WEBHOOK = process.env.DISCORD_WEBHOOK_URL;
 if (!WEBHOOK) throw new Error("Mangler DISCORD_WEBHOOK_URL");
 
@@ -99,3 +100,9 @@ if (!res.ok) {
 }
 
 console.log("Weekly digest sendt til Discord.");
+}
+
+main().catch((err) => {
+  console.error("Weekly digest fejlede:", err);
+  process.exit(1);
+});
