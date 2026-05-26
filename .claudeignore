@@ -1,0 +1,17 @@
+# Afhængigheder
+node_modules/
+
+# Build-output
+.next/
+.open-next/
+out/
+build/
+.wrangler/
+
+# Lock-filer og log-filer
+package-lock.json
+yarn.lock
+*.log
+
+# Store rapport-JSON-filer (ikke kode — hentes via pipeline)
+pipeline/report/*.json
