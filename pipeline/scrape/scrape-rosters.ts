@@ -8,6 +8,11 @@
 import { createD1Client } from "../lib/d1-client";
 import type { D1Client } from "../lib/d1-client";
 import { parseRoster } from "./parsers";
+import {
+  renderPage,
+  isBrowserRenderAvailable,
+  BrowserRenderError,
+} from "../lib/browser-render";
 import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
@@ -87,6 +92,8 @@ interface CliArgs {
   division: string | null;
   limit: number;
   maxAgeDays: number;
+  render: boolean;
+  renderBudget: number;
 }
 
 function parseArgs(): CliArgs {
@@ -94,6 +101,8 @@ function parseArgs(): CliArgs {
   let division: string | null = null;
   let limit = 500;
   let maxAgeDays = 30;
+  let render = true; // CF Browser Rendering fallback til JS-sider (slå fra med --no-render)
+  let renderBudget = 60; // max render-kald per kørsel (beskytter gratis browser-tid ~10 min/dag)
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--division" && args[i + 1]) {
@@ -105,10 +114,15 @@ function parseArgs(): CliArgs {
     } else if (args[i] === "--max-age-days" && args[i + 1]) {
       maxAgeDays = parseInt(args[i + 1], 10) || 30;
       i++;
+    } else if (args[i] === "--no-render") {
+      render = false;
+    } else if (args[i] === "--render-budget" && args[i + 1]) {
+      renderBudget = parseInt(args[i + 1], 10) || 60;
+      i++;
     }
   }
 
-  return { division, limit, maxAgeDays };
+  return { division, limit, maxAgeDays, render, renderBudget };
 }
 
 interface FetchResult {
@@ -169,8 +183,19 @@ async function fetchWithProbeLog(
 }
 
 async function main(): Promise<void> {
-  const { division, limit, maxAgeDays } = parseArgs();
+  const { division, limit, maxAgeDays, render, renderBudget } = parseArgs();
   const db = createD1Client();
+
+  const renderEnabled = render && isBrowserRenderAvailable();
+  let rendersUsed = 0;
+  let renderQuotaExhausted = false;
+  if (render && !isBrowserRenderAvailable()) {
+    console.log(
+      "  ℹ Browser Rendering ikke konfigureret (mangler CLOUDFLARE_API_TOKEN/ACCOUNT_ID) — kører uden render-fallback.",
+    );
+  } else if (renderEnabled) {
+    console.log(`  Browser Rendering-fallback aktiv (budget: ${renderBudget} sider/kørsel).`);
+  }
 
   // Registrér pipeline-kørsel
   await db.execute(
@@ -188,6 +213,15 @@ async function main(): Promise<void> {
     `Henter roster-checks (division: ${division ?? "alle"}, limit: ${limit}, max-age: ${maxAgeDays} dage)...`,
   );
 
+  // Når render er aktiv kan vi nu håndtere JS-renderede sider: medtag 'js_required'
+  // (uanset alder — de er aldrig blevet parset) og prioritér dem først, da deres
+  // roster-URL allerede er bekræftet 200 OK.
+  const jsStatusFilter = renderEnabled ? "" : "AND rc.status != 'js_required'";
+  const jsAgeBypass = renderEnabled ? "OR rc.status = 'js_required'" : "";
+  const jsOrder = renderEnabled
+    ? "CASE WHEN rc.status = 'js_required' THEN 0 ELSE 1 END,"
+    : "";
+
   const result = await db.query<RosterCheckWithSchool>(
     `SELECT
        rc.id as check_id, rc.school_id, rc.sport, rc.roster_url,
@@ -197,9 +231,10 @@ async function main(): Promise<void> {
      WHERE s.website IS NOT NULL
        AND s.division LIKE ?
        AND (rc.checked_at IS NULL
-            OR datetime(rc.checked_at, '+' || ? || ' days') < datetime('now'))
-       AND rc.status != 'js_required'
-     ORDER BY rc.checked_at ASC NULLS FIRST
+            OR datetime(rc.checked_at, '+' || ? || ' days') < datetime('now')
+            ${jsAgeBypass})
+       ${jsStatusFilter}
+     ORDER BY ${jsOrder} rc.checked_at ASC NULLS FIRST
      LIMIT ?`,
     [divisionFilter, maxAgeDays, limit],
   );
@@ -261,21 +296,69 @@ async function main(): Promise<void> {
         );
       }
 
-      // Tjek om siden er JS-renderet (meget kort HTML body)
-      if (html.length < 500 && !html.includes("<table") && !html.includes("sidearm-roster")) {
+      // Parse plain HTML først. Tom roster = muligvis en JS-renderet side.
+      let roster = parseRoster(html);
+      let renderedUsed = false;
+
+      // Fallback: render JS-tunge sider via CF Browser Rendering (budget-begrænset).
+      if (
+        roster.length === 0 &&
+        renderEnabled &&
+        !renderQuotaExhausted &&
+        rendersUsed < renderBudget &&
+        usedUrl
+      ) {
+        rendersUsed++;
+        try {
+          const rendered = await renderPage(usedUrl);
+          if (rendered) {
+            const renderedRoster = parseRoster(rendered);
+            if (renderedRoster.length > 0) {
+              html = rendered;
+              roster = renderedRoster;
+              renderedUsed = true;
+              console.log(
+                `  ⟳ ${check.name} / ${check.sport}: renderet (${renderedRoster.length} rækker)`,
+              );
+            }
+          }
+        } catch (err) {
+          if (err instanceof BrowserRenderError && err.quotaExhausted) {
+            renderQuotaExhausted = true;
+            const why = err.status === 429
+              ? "daglig browser-tid opbrugt (429)"
+              : `adgang nægtet — tjek token-permission (${err.message})`;
+            console.warn(`  ⚠ Browser Rendering stoppet for resten af kørslen: ${why}.`);
+          } else {
+            console.warn(
+              `  ⚠ Render fejlede (${check.name}): ${err instanceof Error ? err.message : String(err)}`,
+            );
+          }
+        }
+      }
+
+      // Stadig ingen data og siden ligner JS → marker js_required (til render i en senere kørsel).
+      if (
+        roster.length === 0 &&
+        html.length < 1500 &&
+        !html.includes("<table") &&
+        !html.toLowerCase().includes("sidearm")
+      ) {
         await db.execute(
           `UPDATE roster_checks
            SET status = 'js_required', checked_at = datetime('now'),
-               error_message = 'JS-renderet side (HTML < 500 chars)'
+               error_message = ?
            WHERE id = ?`,
-          [check.check_id],
+          [
+            renderedUsed ? "Render gav ingen roster-data" : "JS-renderet side (kræver render)",
+            check.check_id,
+          ],
         );
         totalProcessed++;
         await new Promise((r) => setTimeout(r, 1000));
         continue;
       }
 
-      const roster = parseRoster(html);
       const danishAthletes = roster.filter((entry) => isDanishHometown(entry.hometown));
 
       const academicYear = getAcademicYear();
@@ -369,7 +452,8 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    `\nFærdig. Behandlet: ${totalProcessed}, fundet: ${totalFound} nye danske atlet(er), fejl: ${totalErrors}.`,
+    `\nFærdig. Behandlet: ${totalProcessed}, fundet: ${totalFound} nye danske atlet(er), fejl: ${totalErrors}.` +
+      (renderEnabled ? ` Render brugt: ${rendersUsed}/${renderBudget}.` : ""),
   );
 }
 
