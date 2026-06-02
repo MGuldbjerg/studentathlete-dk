@@ -11,14 +11,14 @@ ATLET: ${context.athleteName}, ${context.sport}, ${context.university}${context.
 HJEMBY: ${context.hometown ?? "Ukendt"}
 KILDE: ${context.sourceUrl}
 OVERSKRIFT FRA KILDE: ${context.headline}
-KILDEINDHOLD:
-${context.content}
+KILDEINDHOLD (brug KUN fakta herfra — tilføj intet der ikke fremgår):
+${context.content || "[Kun overskriften er kendt — ingen yderligere kildetekst.]"}
 
 Artiklen skal:
-- Være MINIMUM 300 ord
+- Have en passende længde: 300-500 ord hvis kilden har substans; ellers 150-250 ord — fyld ikke op med opdigtet indhold
 - Have en overskrift i stilen "[Navn] skifter til [Universitet]" (maks 80 tegn)
 - Starte med en ingress der annoncerer skiftet/rekrutteringen
-- Beskrive universitetet og deres program i sporten
-- Inkludere relevante detaljer om division, konference osv.
+- Nævne universitetet og sporten som de fremgår af ATLET-blokken — opfind ikke detaljer om programmets historie, faciliteter, træner el.lign.
+- Nævne division/konference KUN hvis det fremgår af kilden — gæt ikke
 - Væve kildehenvisning naturligt ind (fx "oplyser universitetets atletikafdeling")`;
 }

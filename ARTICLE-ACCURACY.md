@@ -15,7 +15,7 @@ Most stories reach the generator with only a `headline` + RSS `summary` (1–3 s
 - English source → Danish article: translation laundering hides invented facts from editors.
 
 ## Plan (cheapest first)
-**Step 1 — Prompt hardening (zero cost):**
+**Step 1 — Prompt hardening (zero cost): ✅ DONE (June 2026)** — `system.ts` rule 16 (ban invented stats/scores/dates/quotes; omit if missing) + rule 2 now content-conditional; all 4 prompts: empty-content fallback, conditional word count (no padding), stats only-if-in-source; season-comparison line removed; recruiting university-description restricted.
 1. Add grounding rule to `system.ts`: only use stats/scores/dates/names explicitly in the KILDEINDHOLD block; never invent — if the source has none, write shorter.
 2. Each prompt: when content is empty, instruct a short 150–200 word headline-only article (no stats/quotes/background).
 3. Remove the season-comparison line in `season-update.ts`; restrict the university-description line in `recruiting.ts`.

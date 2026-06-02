@@ -21,15 +21,15 @@ ATLET: ${context.athleteName}, ${context.sport}, ${context.university}${context.
 HJEMBY: ${context.hometown ?? "Ukendt"}
 KILDE: ${context.sourceUrl}
 OVERSKRIFT FRA KILDE: ${context.headline}
-KILDEINDHOLD:
-${context.content}
+KILDEINDHOLD (brug KUN fakta herfra — tilføj intet der ikke fremgår):
+${context.content || "[Kun overskriften er kendt — ingen yderligere kildetekst.]"}
 
 Artiklen skal:
-- Være MINIMUM 300 ord
+- Have en passende længde: 300-400 ord hvis kilden har substans; ellers 150-250 ord — fyld ikke op med opdigtet indhold
 - Have en fængende overskrift (maks 80 tegn)
 - Starte med en kort ingress (1-2 sætninger der opsummerer historien)
 - Forklare begivenheden med den danske atlet i centrum
 - Nævne øvrige relevante holdkammerater/modstandere hvor det giver kontekst
-- Inkludere relevante statistikker fra kilden
+- Inkludere statistikker KUN hvis de fremgår af kilden — opfind dem aldrig; udelad hvis de mangler
 - Væve kildehenvisning naturligt ind (fx "skriver universitetets hjemmeside")`;
 }
