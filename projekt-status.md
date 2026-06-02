@@ -33,9 +33,21 @@ Pipeline: discovery (skole-feeds) → generering → kladder i admin.
 - [x] **Google News fjernet** (april 2026): `auto-sources.ts` slettet, `checkGoogleNewsSources()` og hjælpefunktioner fjernet fra `check-sources.ts`. Pipeline bruger nu kun skole-feeds som datakilde. `source-trust.ts` beholdes.
 - [x] **Server-side analytics** (april 2026): `src/middleware.ts` logger pageviews til D1 via `ctx.waitUntil()` (nul latency). Admin-dashboard på `/admin/analytics` med datointerval-vælger (presets + custom). CF Web Analytics-beacon klar til aktivering (token mangler — se `layout.tsx`).: `auto-sources.ts` slettet, `checkGoogleNewsSources()` og hjælpefunktioner fjernet fra `check-sources.ts`. Pipeline bruger nu kun skole-feeds som datakilde. `source-trust.ts` beholdes.
 
+- [x] **Discord-digest fixet** (2026-06-02): `weekly-digest.ts` brugte `created_at` på `stories` (kolonnen findes ikke — tabellen bruger `discovered_at`) → SQLITE_ERROR, begge planlagte kørsler fejlede. Talte også `status='published'` på stories (forekommer aldrig; lifecycle er new→drafting→drafted) → rettet til `status='drafted'`. Verificeret: manuel kørsel grøn, digest leveret til Discord.
+
 ## Aktuel status
 
-Pipeline kører og producerer kladder. Seneste kørsel genererede 5 artikler fra 194 historier med summary. Backlog: ~189 historier resterende i `status='new'` (behandles 5 ad gangen per daglig kørsel).
+Pipeline kører. **Off-season** (juni): skole-feeds er stille — discovery finder ~1 historie/uge. Få kladder genereres pt. (datagrundlag, ikke fejl).
+
+**Detektion-overhaul (juni 2026)** — fokus: billig/gratis automatisk atlet- + nyhedsopdagelse (se `WORKLOG-detection.md`):
+- **CF Browser Rendering** (`pipeline/lib/browser-render.ts`) som fallback i roster-scraping for JS-sider (de ~0,5% success-rate skyldes JS-blokerede Sidearm-sider). ⚠ Kræver "Browser Rendering"-permission på CF-token (auth-fejl 10000 indtil da; degraderer pænt til plain scraping).
+- **Præcis nyhedsmatching** (`extract-story.ts`): Unicode hele-ord + bekræftelse (fuldt navn/fornavn/sport-kontekst); almindelige efternavne kræver fornavn. Dræber navnedobbeltgængere.
+- **Dansk by-detektion** (`danish-cities.ts`): by-liste som 2. signal (fanger rosters uden "Denmark"-markør); US-stat-guard bevaret.
+- **Google News genindført** (`google-news.ts` + `verify-story.ts`): navnesøgning + matcher + isBlockedDomain + LLM-verifikation af ALLE kandidater (`source_type='google_news_rss'`). Daglig workflow 05:30 UTC.
+- **Roster-prioritering**: skoler der allerede har en dansker scrapes først.
+- **Oprydning**: 545 døde `google_news`-rækker (status='new') arkiveret → generate's fantom-backlog = 0.
+
+**Frossen backlog ryddet**: de gamle Google News-rækker er nu `status='archived'` (reversibelt).
 
 Kladder skal gennemgås manuelt i `/admin` — godkend, rediger eller afvis.
 
@@ -50,8 +62,14 @@ Kladder skal gennemgås manuelt i `/admin` — godkend, rediger eller afvis.
 4. **Gennemgå kladder** — godkend eller afvis i `/admin`
 5. **Trigger generate manuelt** for at tømme backloggen (~189 historier, 5 pr. kørsel)
 
+### Artikel-nøjagtighed (NY — se `ARTICLE-ACCURACY.md`)
+- **Prompt-hærdning (gratis, gør først)**: forbyd opdigtede stats/scores/datoer i `system.ts`; kort headline-only-artikel når kilde mangler; fjern sæson-sammenligning. Største nøjagtighedsgevinst, nul kost.
+- **Content-tier-bevidst generering** + send DB-fakta (position/division/class_year) ind i prompts.
+- **Post-gen fact-check-pass** (gratis, mønster fra `verify-story.ts`) → `articles.fabrication_risk`.
+- **$15 Claude-kredit**: rut features/season_update til Claude først (~$0,08–0,50/md ved nuværende volumen).
+
 ### Kode (prioriteret)
-6. **CF Browser Rendering til backfill** — ændre `backfill-content.ts` til at bruge CF `/scrape` endpoint — løser `content_raw = NULL` for JS-sider
+6. **CF Browser Rendering til backfill** — render-helper findes nu (`browser-render.ts`); kobl `renderPage()` ind i `backfill-content.ts` som fallback (prioritér efter `relevance_score`). Løser `content_raw = NULL` — også rod-fix for artikel-nøjagtighed.
 7. **Box score-berigelse** *(plan: `pure-toasting-fountain.md`)* — kræver CF Browser Rendering
 8. **Statiske sider** — Om, Kontakt, AI-brug (30 min, indsæt indhold via admin → Sider)
 9. **Billedgenerering** (modul 8) — Unsplash API anbefales som start
@@ -71,4 +89,4 @@ Kladder skal gennemgås manuelt i `/admin` — godkend, rediger eller afvis.
 
 - `fetchStoryContent` bruger plain HTTP og fejler for JS-renderede college-sider ved discovery OG backfill (samme funktion) — backfill-steget giver nul merværdi for disse URL'er
 - GitHub Actions clockskew: `run.created_at` stempletes ~200ms inden `triggeredAt` returneres til klienten — `>=`-sammenligning skal have buffer
-- Google News som aggregator-kilde er uegnet: scam-redirects (Laura Ziegler-case), ingen fuldt indhold, navnedobbeltgænger-problemer — fjernet april 2026
+- Google News blev fjernet april 2026 (scam-redirects, navnedobbeltgængere) — **genindført juni 2026** med løsning på dobbeltgænger-problemet: præcis hele-ord-matcher + LLM-verifikation af alle kandidater + domæne-blocklist + obituary-filter. Den oprindelige svaghed var manglende disambiguering, ikke kilden selv.
