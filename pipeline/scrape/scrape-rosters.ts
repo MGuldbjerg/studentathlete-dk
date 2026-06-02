@@ -222,19 +222,28 @@ async function main(): Promise<void> {
     ? "CASE WHEN rc.status = 'js_required' THEN 0 ELSE 1 END,"
     : "";
 
+  // Prioritér skoler der ALLEREDE har mindst én dansk atlet — de er klart mest
+  // sandsynlige til at have flere (rekrutterings-netværk). Fokuserer de begrænsede
+  // fetches/renders på de mest produktive skoler først.
   const result = await db.query<RosterCheckWithSchool>(
     `SELECT
        rc.id as check_id, rc.school_id, rc.sport, rc.roster_url,
        s.name, s.slug, s.state, s.division, s.conference, s.website, s.platform_type
      FROM roster_checks rc
      JOIN schools s ON rc.school_id = s.id
+     LEFT JOIN (
+       SELECT university, COUNT(*) AS dane_count
+       FROM athletes WHERE active = 1 GROUP BY university
+     ) da ON da.university = s.name
      WHERE s.website IS NOT NULL
        AND s.division LIKE ?
        AND (rc.checked_at IS NULL
             OR datetime(rc.checked_at, '+' || ? || ' days') < datetime('now')
             ${jsAgeBypass})
        ${jsStatusFilter}
-     ORDER BY ${jsOrder} rc.checked_at ASC NULLS FIRST
+     ORDER BY ${jsOrder}
+       CASE WHEN da.dane_count > 0 THEN 0 ELSE 1 END,
+       rc.checked_at ASC NULLS FIRST
      LIMIT ?`,
     [divisionFilter, maxAgeDays, limit],
   );

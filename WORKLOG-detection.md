@@ -28,8 +28,11 @@ Baseline (2026-06-02, live D1):
       → {isAboutAthlete, confidence, reason}. Strict JSON prompt, fences stripped, fail-open. Runs on free
       ProviderChain now; uses Anthropic automatically once ANTHROPIC_API_KEY ($15 credit) is set. 14/14 tests.
       Wired into google-news.ts. (_verify-test.ts kept as a co-located test.)
-- [ ] 6. Prioritize roster scraping from intl report (high-yield schools first)
-- [ ] 7. Archive dead google_news rows (reversible UPDATE, not DELETE)
+- [x] 6. Prioritize roster scraping — scrape-rosters.ts query now LEFT JOINs a per-school Danish-athlete
+      count and orders schools-with-Danes first (after js_required). (Saved intl report has no per-school
+      data; "already has a Dane" is the strongest available signal.) SQL validated against live D1.
+- [x] 7. Archived 545 dead google_news status='new' rows → status='archived' (reversible). Left the 36
+      already-'drafted' ones (linked to real articles). generate's phantom backlog now 0.
 
 ## Key facts for resuming
 - CF /content: POST https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/browser-rendering/content
