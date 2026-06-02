@@ -13,7 +13,9 @@ Baseline (2026-06-02, live D1):
       ⚠ BLOCKED ON CONFIG: existing CLOUDFLARE_API_TOKEN lacks "Browser Rendering" permission (CF auth error 10000).
       Code degrades gracefully (logs once, stops render, continues plain scraping). To activate: add
       "Browser Rendering — Edit" permission to the token (or new token) → render fallback goes live automatically.
-- [ ] 2. Precise news matching (word-boundary + corroborating token) — extract-story.ts matchAthletes()
+- [x] 2. Precise news matching — extract-story.ts matchAthletes() now Unicode word-boundary + corroboration
+      (full name 90 / first+last 80 / +sport-context 60 / last-only 35; common surnames need first name).
+      MIN_RELEVANCE=30 exported. check-sources.ts now selects sport. 9/9 assertions pass.
 - [ ] 3. Danish hometown detection via city list — danish-cities.ts isDanishHometown()
 - [ ] 4. Re-add free news source (Google News RSS) with precise matching
 - [ ] 5. LLM disambiguation/verification layer — free chain now, Claude-ready ($15 credit later)

@@ -250,16 +250,63 @@ export interface SchoolStoryMatch extends ExtractedStory {
 interface AthleteRef {
   id: number;
   name: string;
+  sport?: string;
 }
 
-/** Udtræk efternavn (sidste ord) fra et atletnavn */
-function getLastName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return parts[parts.length - 1].toLowerCase();
+/** Mindste relevance_score for at en match gemmes (lavere = for usikker). */
+export const MIN_RELEVANCE = 30;
+
+/**
+ * Meget almindelige danske efternavne. Et match på KUN efternavnet er her
+ * for usikkert (kan være en anden person, træner el. lign.) — kræv fornavn/fuldt navn.
+ */
+const COMMON_SURNAMES = new Set([
+  "hansen", "nielsen", "jensen", "pedersen", "andersen", "christensen",
+  "larsen", "sørensen", "sorensen", "rasmussen", "jørgensen", "jorgensen",
+  "petersen", "madsen", "kristensen", "olsen", "thomsen", "christiansen",
+  "poulsen", "johansen", "møller", "moller", "mortensen", "knudsen",
+  "jakobsen", "jacobsen", "mikkelsen", "schmidt",
+]);
+
+/** Sport (dansk label i db) → engelske nøgleord der bekræfter konteksten i et US-feed. */
+const SPORT_KEYWORDS: Record<string, string[]> = {
+  fodbold: ["soccer"],
+  football: ["football", "gridiron"],
+  basketball: ["basketball", "hoops"],
+  svømning: ["swim", "diving", "natation"],
+  tennis: ["tennis"],
+  golf: ["golf"],
+  roning: ["rowing", "crew"],
+  atletik: ["track", "cross country", "athletics", "distance"],
+  ishockey: ["hockey"],
+  volleyball: ["volleyball"],
+  baseball: ["baseball"],
+  gymnastik: ["gymnastics"],
+};
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** Match en tekst mod en liste af atleter. Returnér matches med relevance_score. */
-function matchAthletes(
+/**
+ * Hele-ord-match (Unicode-bevidst). Forhindrer at "lund" matcher "Lundqvist"
+ * eller "englund". \p{L} dækker også ø/å/æ, så danske navne brydes korrekt.
+ */
+function containsWord(haystackLower: string, needleLower: string): boolean {
+  if (!needleLower) return false;
+  const re = new RegExp(
+    `(^|[^\\p{L}])${escapeRegex(needleLower)}([^\\p{L}]|$)`,
+    "u",
+  );
+  return re.test(haystackLower);
+}
+
+/**
+ * Match en tekst mod en liste af atleter med bekræftelse for at undgå navnedobbeltgængere.
+ * Score: fuldt navn 90 · fornavn+efternavn 80 · efternavn+sport-kontekst 60 · kun efternavn 35.
+ * Almindelige efternavne kræver fornavn/fuldt navn (ellers droppes de).
+ */
+export function matchAthletes(
   text: string,
   athletes: AthleteRef[],
 ): Array<{ athlete: AthleteRef; relevance_score: number }> {
@@ -267,16 +314,28 @@ function matchAthletes(
   const matches: Array<{ athlete: AthleteRef; relevance_score: number }> = [];
 
   for (const athlete of athletes) {
-    const lastName = getLastName(athlete.name);
-    if (lastName.length < 2) continue;
+    const parts = athlete.name.trim().toLowerCase().split(/\s+/);
+    const lastName = parts[parts.length - 1];
+    const firstName = parts.length > 1 ? parts[0] : "";
+    if (lastName.length < 3) continue; // for korte efternavne = for støjende
 
-    if (!lowerText.includes(lastName)) continue;
+    // Krav: efternavnet skal optræde som helt ord
+    if (!containsWord(lowerText, lastName)) continue;
 
-    // Fuldt navn giver højere score
-    const fullName = athlete.name.toLowerCase();
-    const relevance = lowerText.includes(fullName) ? 80 : 40;
+    const fullNamePresent = lowerText.includes(athlete.name.toLowerCase());
+    const firstNamePresent = firstName.length >= 2 && containsWord(lowerText, firstName);
+    const sportKws = athlete.sport ? SPORT_KEYWORDS[athlete.sport] ?? [] : [];
+    const sportPresent = sportKws.some((kw) => lowerText.includes(kw));
+    const isCommon = COMMON_SURNAMES.has(lastName);
 
-    matches.push({ athlete, relevance_score: relevance });
+    let score: number;
+    if (fullNamePresent) score = 90;
+    else if (firstNamePresent) score = 80;
+    else if (sportPresent && !isCommon) score = 60;
+    else if (!isCommon) score = 35;
+    else continue; // almindeligt efternavn uden fornavn/fuldt navn → for risikabelt
+
+    if (score >= MIN_RELEVANCE) matches.push({ athlete, relevance_score: score });
   }
 
   return matches;

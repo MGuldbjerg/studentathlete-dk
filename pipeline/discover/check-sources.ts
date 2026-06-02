@@ -24,6 +24,7 @@ interface SchoolWithFeed {
 interface AthleteRef {
   id: number;
   name: string;
+  sport?: string;
 }
 
 
@@ -75,7 +76,7 @@ async function checkSchoolFeeds(
     try {
       // Hent alle aktive atleter på denne skole
       const athleteResult = await db.query<AthleteRef>(
-        `SELECT id, name FROM athletes WHERE university = ? AND active = 1`,
+        `SELECT id, name, sport FROM athletes WHERE university = ? AND active = 1`,
         [school.name],
       );
       const athletes = athleteResult.results;
