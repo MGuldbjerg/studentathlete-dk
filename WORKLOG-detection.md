@@ -19,8 +19,15 @@ Baseline (2026-06-02, live D1):
 - [x] 3. Danish hometown detection via city list — isDanishHometown() now matches DANISH_CITIES as a
       second signal (whole-word, Unicode) on top of the country marker; US-state guard moved to module
       scope and applied first so "Copenhagen, NY"/"Viborg, SD" still rejected. 13/13 assertions pass.
-- [ ] 4. Re-add free news source (Google News RSS) with precise matching
-- [ ] 5. LLM disambiguation/verification layer — free chain now, Claude-ready ($15 credit later)
+- [x] 4. Free news source: pipeline/discover/google-news.ts + google-news-daily.yml (05:30 UTC).
+      Quoted full-name search (targeted query killed recall — verified empirically). Requires name in
+      snippet (matchAthletes) + isBlockedDomain on <source> URL + obituary-title filter + ALWAYS LLM-verify
+      (open web = doppelgängers). source_type='google_news_rss' (distinct from old dead 'google_news').
+      Verified end-to-end: namesakes rejected (librarian/obituary), real tennis news kept.
+- [x] 5. LLM verification: pipeline/discover/verify-story.ts — verifyStory(candidate, athlete, chain?)
+      → {isAboutAthlete, confidence, reason}. Strict JSON prompt, fences stripped, fail-open. Runs on free
+      ProviderChain now; uses Anthropic automatically once ANTHROPIC_API_KEY ($15 credit) is set. 14/14 tests.
+      Wired into google-news.ts. (_verify-test.ts kept as a co-located test.)
 - [ ] 6. Prioritize roster scraping from intl report (high-yield schools first)
 - [ ] 7. Archive dead google_news rows (reversible UPDATE, not DELETE)
 
