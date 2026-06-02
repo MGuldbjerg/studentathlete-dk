@@ -125,42 +125,54 @@ const FALSE_POSITIVE_PATTERNS = [
   /\b(ga|sc|wi|me)\b.*denmark/i,  // US-stat før Denmark
 ];
 
+/** US-stat-identifikatorer — bruges til at afvise US-adresser (modulniveau, genbruges). */
+const US_STATE_IDENTIFIERS = new Set([
+  // 2-bogstavs forkortelser
+  "al","ak","az","ar","ca","co","ct","de","fl","ga","hi","id","il","in","ia",
+  "ks","ky","la","me","md","ma","mi","mn","ms","mo","mt","ne","nv","nh","nj",
+  "nm","ny","nc","nd","oh","ok","or","pa","ri","sc","sd","tn","tx","ut","vt",
+  "va","wa","wv","wi","wy","dc",
+  // Uformelle forkortelser (roster-data bruger ofte disse)
+  "ala","ariz","ark","calif","colo","conn","del","fla","ill","ind","kan",
+  "ky","mich","minn","miss","mont","neb","nev","mex","dak","okla","ore",
+  "penn","tenn","tex","vir","wash","wis","wyo",
+]);
+
+/** Hele-ord-match (Unicode-bevidst, så ø/å/æ brydes korrekt). */
+function containsCity(lowerHometown: string, lowerCity: string): boolean {
+  const escaped = lowerCity.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^\\p{L}])${escaped}([^\\p{L}]|$)`, "u").test(lowerHometown);
+}
+
+const DANISH_CITIES_LOWER = DANISH_CITIES.map((c) => c.toLowerCase());
+
 /**
  * Tjekker om en hometown-streng indikerer en dansk atlet.
- * Kræver at hometown indeholder "Danmark" eller "Denmark",
- * men filtrerer kendte US-false-positives (Denmark, SC; Denmark HS osv.).
+ * To signaler: (1) eksplicit land-marker "Denmark"/"Danmark", ELLER (2) en dansk by
+ * som helt ord. Begge filtreres for kendte US-false-positives (Denmark, SC; Denmark HS;
+ * Viborg, SD; Copenhagen, NY osv.) via FP-mønstre + US-stat-suffiks efter komma.
  */
 export function isDanishHometown(hometown: string | null): boolean {
   if (!hometown) return false;
   const lower = hometown.toLowerCase().trim();
 
-  // Tjek om det indeholder et dansk land-marker
-  const hasDanishMarker = DANISH_COUNTRY_MARKERS.some(
-    (marker) => lower.includes(marker.toLowerCase()),
-  );
-  if (!hasDanishMarker) return false;
-
-  // Filtrér kendte false positives
+  // Filtrér kendte false positives (Denmark, SC; Denmark HS osv.)
   if (FALSE_POSITIVE_PATTERNS.some((pattern) => pattern.test(lower))) return false;
 
-  // Ekstra sikkerhed: hvis hometown indeholder en US-stat-forkortelse efter komma,
-  // er det sandsynligvis en US-adresse (f.eks. "Denmark, SC" eller "Denmark, Wis.")
+  // US-adresse? hometown med US-stat-forkortelse efter komma (fx "Viborg, SD",
+  // "Copenhagen, NY", "Denmark, Wis.") → afvis uanset by-/landmatch.
   const parts = lower.split(",").map((p) => p.trim());
   if (parts.length >= 2) {
     const lastPart = parts[parts.length - 1].replace(/[^a-z]/g, "");
-    const US_STATE_IDENTIFIERS = new Set([
-      // 2-bogstavs forkortelser
-      "al","ak","az","ar","ca","co","ct","de","fl","ga","hi","id","il","in","ia",
-      "ks","ky","la","me","md","ma","mi","mn","ms","mo","mt","ne","nv","nh","nj",
-      "nm","ny","nc","nd","oh","ok","or","pa","ri","sc","sd","tn","tx","ut","vt",
-      "va","wa","wv","wi","wy","dc",
-      // Uformelle forkortelser (roster-data bruger ofte disse)
-      "ala","ariz","ark","calif","colo","conn","del","fla","ill","ind","kan",
-      "ky","mich","minn","miss","mont","neb","nev","mex","dak","okla","ore",
-      "penn","tenn","tex","vir","wash","wis","wyo",
-    ]);
     if (US_STATE_IDENTIFIERS.has(lastPart)) return false;
   }
 
-  return true;
+  // Signal 1: eksplicit dansk land-marker
+  const hasDanishMarker = DANISH_COUNTRY_MARKERS.some(
+    (marker) => lower.includes(marker.toLowerCase()),
+  );
+  if (hasDanishMarker) return true;
+
+  // Signal 2: en dansk by optræder som helt ord (efter US-filtrene ovenfor)
+  return DANISH_CITIES_LOWER.some((city) => containsCity(lower, city));
 }
