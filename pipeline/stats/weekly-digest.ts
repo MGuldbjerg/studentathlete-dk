@@ -23,9 +23,9 @@ const [articles, athletes, stories, totals] = await Promise.all([
   db.query<{ found: number; generated: number }>(`
     SELECT
       COUNT(*) as found,
-      SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as generated
+      SUM(CASE WHEN status = 'drafted' THEN 1 ELSE 0 END) as generated
     FROM stories
-    WHERE datetime(created_at) >= datetime('now', '-7 days')
+    WHERE datetime(discovered_at) >= datetime('now', '-7 days')
   `),
   db.query<{ total_articles: number; total_athletes: number; published: number }>(`
     SELECT
@@ -70,8 +70,8 @@ const embed = {
       inline: true,
     },
     {
-      name: "Historier fundet → udgivet",
-      value: `${storiesFound} fundet → ${storiesGenerated} udgivet (${conversionRate}%)`,
+      name: "Historier fundet → kladder",
+      value: `${storiesFound} fundet → ${storiesGenerated} kladder (${conversionRate}%)`,
       inline: true,
     },
     {
