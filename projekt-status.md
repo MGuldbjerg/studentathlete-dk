@@ -48,7 +48,11 @@ Pipeline: discovery (skole-feeds) → generering → kladder i admin.
 
 - [x] **Discord-digest fixet** (2026-06-02): `weekly-digest.ts` brugte `created_at` på `stories` (kolonnen findes ikke — tabellen bruger `discovered_at`) → SQLITE_ERROR, begge planlagte kørsler fejlede. Talte også `status='published'` på stories (forekommer aldrig; lifecycle er new→drafting→drafted) → rettet til `status='drafted'`. Verificeret: manuel kørsel grøn, digest leveret til Discord.
 
-- [x] **Discord-kommando-notifikationer** (juni 2026): Discord-botten (`workers/discord-bot/index.ts`) udløser 4 workflows via slash-kommandoer (`/discover`→discover-daily, `/generate`→generate-manual, `/scrape`→weekly-scrape, `/stats`→weekly-digest) og lover "du får besked når det er færdigt". Men kun `/generate` (+ `/stats` via selve digesten) svarede tilbage. Tilføjet færdig-notifikation til `discover-daily.yml` (inline step) + `weekly-scrape.yml` (separat `notify`-job → ÉN besked for D1–D3-matrixen, ikke 3). Begge scoped til `github.event_name == 'workflow_dispatch'` (manuelle/Discord-/admin-kørsler — ikke cron-spam; discover kører hver 6. time). YAML-valideret; ikke live-trigget (ville køre rigtig discovery + poste i delt Discord — uden for opgaven). **Resterende gap (tilbudt)**: `/stats` giver ingen besked hvis selve digest-jobbet fejler.
+- [x] **Discord-kommando-notifikationer** (juni 2026): Discord-botten (`workers/discord-bot/index.ts`) udløser 4 workflows via slash-kommandoer (`/discover`→discover-daily, `/generate`→generate-manual, `/scrape`→weekly-scrape, `/stats`→weekly-digest) og lover "du får besked når det er færdigt". Før svarede kun `/generate` (+ `/stats` via selve digesten). Nu giver alle 4 besked — både manuelle OG planlagte kørsler:
+  - `discover-daily.yml`: inline notify-step. **Manuelle** kørsler altid; **planlagte** (hver 6. time) kun når der blev fundet nye historier (step `id: discover` parser "Fundet N" fra check-sources → `outputs.found`) eller ved fejl → ingen no-op-spam.
+  - `weekly-scrape.yml`: separat `notify`-job (ÉN besked for D1–D3-matrixen, ikke 3) på `always()` → både manuel og planlagt søndags-cron (ugentlig = lav støj).
+  - `weekly-digest.yml`: succes poster digesten selv; tilføjet `if: failure()`-besked så et brudt digest-job ikke fejler tavst (jf. SQLITE-fejlen 2026-06-02). Både planlagt + manuel.
+  - YAML-valideret (3 filer parser, betingelser OK). Ikke live-trigget (ville køre rigtige jobs + poste i delt Discord → blokeret som uden for opgaven). Verificér ved at køre `/discover` fra Discord.
 
 ## Aktuel status
 

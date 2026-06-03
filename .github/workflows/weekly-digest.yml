@@ -28,3 +28,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # Succes poster digesten selv (scriptet ovenfor). Her dækkes KUN fejl-tilfældet,
+      # så et brudt digest-job ikke fejler tavst (jf. SQLITE-fejlen 2026-06-02).
+      # Gælder både planlagt og manuel (/stats) kørsel.
+      - name: Discord-notifikation ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Ugentlig digest fejlede\",\"description\":\"Statistik-digesten kunne ikke sendes. [Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

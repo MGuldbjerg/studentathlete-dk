@@ -22,25 +22,30 @@ jobs:
       - run: npm ci
 
       - name: Tjek kilder for nye historier
-        run: npx tsx pipeline/discover/check-sources.ts --limit 200
+        id: discover
+        run: |
+          npx tsx pipeline/discover/check-sources.ts --limit 200 2>&1 | tee /tmp/discover.txt
+          echo "found=$(grep -oP '(?<=Fundet )\d+' /tmp/discover.txt | tail -1 || echo 0)" >> "$GITHUB_OUTPUT"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
 
-      # Kun for manuelt udløste kørsler (Discord /discover, admin-knap, GitHub UI) —
-      # ikke for de planlagte cron-kørsler hver 6. time (ellers spam i Discord).
+      # Notifikation: manuelle kørsler (Discord /discover, admin, GitHub UI) altid.
+      # Planlagte cron-kørsler (hver 6. time) KUN når der faktisk blev fundet nye
+      # historier — eller ved fejl. Ellers ville et tomt no-op spamme Discord 4x/dag.
       - name: Discord-notifikation
-        if: always() && github.event_name == 'workflow_dispatch'
+        if: always() && (github.event_name == 'workflow_dispatch' || job.status != 'success' || steps.discover.outputs.found != '0')
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           JOB_STATUS: ${{ job.status }}
+          FOUND: ${{ steps.discover.outputs.found }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ "$JOB_STATUS" = "success" ]; then
             COLOR=3066993
             TITLE="✅ Discovery færdig"
-            DESC="Discovery kørte uden fejl. Tjek admin for nye historier."
+            DESC="Fandt ${FOUND:-0} ny(e) historie(r). Tjek admin."
           else
             COLOR=15158332
             TITLE="❌ Discovery fejlede"

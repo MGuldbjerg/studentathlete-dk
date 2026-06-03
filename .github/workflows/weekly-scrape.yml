@@ -34,11 +34,10 @@ jobs:
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
 
   # Én samlet Discord-besked efter alle matrix-divisioner (ikke 3 separate).
-  # Kun for manuelt udløste kørsler (Discord /scrape, admin-knap, GitHub UI) —
-  # ikke den planlagte søndags-cron (ellers ugentlig støj uden handling).
+  # Både manuelle (Discord /scrape) OG den planlagte søndags-cron — ugentlig, så lav støj.
   notify:
     needs: scrape
-    if: always() && github.event_name == 'workflow_dispatch'
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Discord-notifikation
