@@ -40,7 +40,9 @@ Pipeline: discovery (skole-feeds) → generering → kladder i admin.
 Pipeline kører. **Off-season** (juni): skole-feeds er stille — discovery finder ~1 historie/uge. Få kladder genereres pt. (datagrundlag, ikke fejl).
 
 **Detektion-overhaul (juni 2026)** — fokus: billig/gratis automatisk atlet- + nyhedsopdagelse (se `WORKLOG-detection.md`):
-- **CF Browser Rendering** (`pipeline/lib/browser-render.ts`) som fallback i roster-scraping for JS-sider (de ~0,5% success-rate skyldes JS-blokerede Sidearm-sider). ⚠ Kræver "Browser Rendering"-permission på CF-token (auth-fejl 10000 indtil da; degraderer pænt til plain scraping).
+- **PARSER-FIX (juni 2026, største atlet-unlock)**: `parseRoster` (`parsers/index.ts`) faldt aldrig tilbage til den generiske tabel-parser når `parseSidearm` gav 0 → **2.368 roster-checks hentede 200 OK men blev fejlagtigt 'error'** (Sidearm-tabel-layout). Fix: fald tilbage til `parseGeneric`. Stikprøve: ~27% genvindes straks af parser-fixet (~620 rosters), resten er JS-shells til render. 2.288 fetch-ok 'error'-rækker er nulstillet (`checked_at=NULL`) → genscrapes med fixet ved næste kørsel.
+- **CF Browser Rendering** (`pipeline/lib/browser-render.ts`) som fallback i roster-scraping + backfill for JS-sider. ✅ Token-permission tilføjet (render virker; 429 = per-minut rate limit → retry/backoff). Resterende JS-shell 'error'/js_required genvindes herigennem.
+- **Roster-audit**: 599/1761 skoler mangler website helt (uscrapebare — separat opgave). 'empty'-status (4.533) = roster parset, ingen danskere (normalt, ikke fejl).
 - **Præcis nyhedsmatching** (`extract-story.ts`): Unicode hele-ord + bekræftelse (fuldt navn/fornavn/sport-kontekst); almindelige efternavne kræver fornavn. Dræber navnedobbeltgængere.
 - **Dansk by-detektion** (`danish-cities.ts`): by-liste som 2. signal (fanger rosters uden "Denmark"-markør); US-stat-guard bevaret.
 - **Google News genindført** (`google-news.ts` + `verify-story.ts`): navnesøgning + matcher + isBlockedDomain + LLM-verifikation af ALLE kandidater (`source_type='google_news_rss'`). Daglig workflow 05:30 UTC.
