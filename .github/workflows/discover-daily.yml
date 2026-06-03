@@ -27,3 +27,25 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      # Kun for manuelt udløste kørsler (Discord /discover, admin-knap, GitHub UI) —
+      # ikke for de planlagte cron-kørsler hver 6. time (ellers spam i Discord).
+      - name: Discord-notifikation
+        if: always() && github.event_name == 'workflow_dispatch'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then
+            COLOR=3066993
+            TITLE="✅ Discovery færdig"
+            DESC="Discovery kørte uden fejl. Tjek admin for nye historier."
+          else
+            COLOR=15158332
+            TITLE="❌ Discovery fejlede"
+            DESC="Discovery fejlede. [Se loggen]($RUN_URL)."
+          fi
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"$TITLE\",\"description\":\"$DESC\",\"color\":$COLOR,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
