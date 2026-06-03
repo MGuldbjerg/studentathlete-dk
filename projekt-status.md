@@ -62,15 +62,22 @@ Kladder skal gennemgås manuelt i `/admin` — godkend, rediger eller afvis.
 4. **Gennemgå kladder** — godkend eller afvis i `/admin`
 5. **Trigger generate manuelt** for at tømme backloggen (~189 historier, 5 pr. kørsel)
 
-### Artikel-nøjagtighed (NY — se `ARTICLE-ACCURACY.md`)
-- **Prompt-hærdning (gratis, gør først)**: forbyd opdigtede stats/scores/datoer i `system.ts`; kort headline-only-artikel når kilde mangler; fjern sæson-sammenligning. Største nøjagtighedsgevinst, nul kost.
-- **Content-tier-bevidst generering** + send DB-fakta (position/division/class_year) ind i prompts.
-- **Post-gen fact-check-pass** (gratis, mønster fra `verify-story.ts`) → `articles.fabrication_risk`.
-- **$15 Claude-kredit**: rut features/season_update til Claude først (~$0,08–0,50/md ved nuværende volumen).
+### Artikel-nøjagtighed — TO-FASE GENERERING BYGGET (juni 2026, plan: `clever-popping-storm.md`)
+Pipeline er nu: **backfill (fase 0) → faktaark/fact-finding (fase 1) → skriv fra faktaark (fase 2) → verificér (fase 3)**. Kører i `generate-manual.yml`.
+- [x] Prompt-hærdning (`system.ts` regel 16; betinget længde; ingen sæson-sammenligning).
+- [x] **Fase 0**: `renderPage()` fallback i `backfill-content.ts` (dormant til CF token-permission).
+- [x] **Fase 1**: `build-factsheet.ts` — udtrækker struktureret faktaark (stats + **kvalitative** fakta + citater, kilde-tagget); `fact_status` gate. Verificeret: midtbane-recap (0 mål/assists) fanget korrekt uden hallucination. Se [[feedback-article-prose-vs-stats]].
+- [x] **Fase 2**: `generate-articles.ts` skriver KUN fra faktaark; DB-fakta via `athleteFactsBlock`.
+- [x] **Fase 3**: `verify-article.ts` → `articles.fabrication_risk` + `fact_flags`; badge i admin. Kildebaseret prosa flages IKKE; kun upålagte påstande (fangede opdigtet alder "21" i test).
+- [x] **$15 Claude**: `preferProvider:"anthropic"` for feature/season_update (dormant til `ANTHROPIC_API_KEY` sættes).
+- [ ] **Box scores (v2)** — task #16: detektér+render+udtræk box score som `source:"boxscore"` i fase 1; tal-kryds-tjek i fase 3. Box scores = grundsandhed for TAL, aldrig erstatning for kvalitativ prosa.
 
-### Kode (prioriteret)
-6. **CF Browser Rendering til backfill** — render-helper findes nu (`browser-render.ts`); kobl `renderPage()` ind i `backfill-content.ts` som fallback (prioritér efter `relevance_score`). Løser `content_raw = NULL` — også rod-fix for artikel-nøjagtighed.
-7. **Box score-berigelse** *(plan: `pure-toasting-fountain.md`)* — kræver CF Browser Rendering
+### Kræver dig (credentials)
+- **CF token**: tilføj "Browser Rendering — Edit" permission → aktiverer render i roster-scrape + backfill.
+- **`ANTHROPIC_API_KEY`** ($15-kredit): sæt som GitHub-secret → verifikation + feature-skrivning opgraderes automatisk til Claude.
+
+### Kode (øvrigt)
+8. **Statiske sider** — Om, Kontakt, AI-brug (30 min, indsæt indhold via admin → Sider)
 8. **Statiske sider** — Om, Kontakt, AI-brug (30 min, indsæt indhold via admin → Sider)
 9. **Billedgenerering** (modul 8) — Unsplash API anbefales som start
 10. **Social media automation** (modul 7) — Bluesky AT Protocol API (gratis)
