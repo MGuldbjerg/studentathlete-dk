@@ -10,6 +10,9 @@
 
 import { createD1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
+import { fetchHtml, extractMainText } from "../discover/extract-story";
+import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
+import { enrichFactSheetWithBoxScore } from "./box-score";
 
 interface StoryRow {
   id: number;
@@ -58,17 +61,21 @@ const SCHEMA_HINT = `{
   "box_score_url": string|null   // if the source links a box score / stats page
 }`;
 
-function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean } {
+function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxScore: boolean; boxScoreBudget: number } {
   const args = process.argv.slice(2);
   let limit = 20;
   let maxAgeDays = 14;
   let dryRun = false;
+  let boxScore = true; // box-score-berigelse via CF render (slå fra med --no-boxscore)
+  let boxScoreBudget = 8; // max box-score-renders per kørsel (beskytter gratis browser-tid)
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) limit = parseInt(args[i + 1], 10) || 20;
     if (args[i] === "--max-age-days" && args[i + 1]) maxAgeDays = parseInt(args[i + 1], 10) || 14;
     if (args[i] === "--dry-run") dryRun = true;
+    if (args[i] === "--no-boxscore") boxScore = false;
+    if (args[i] === "--boxscore-budget" && args[i + 1]) boxScoreBudget = parseInt(args[i + 1], 10) || 8;
   }
-  return { limit, maxAgeDays, dryRun };
+  return { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget };
 }
 
 /** Strip markdown-fences og udtræk første JSON-objekt. */
@@ -188,9 +195,15 @@ export async function buildFactSheet(
 }
 
 async function main(): Promise<void> {
-  const { limit, maxAgeDays, dryRun } = parseArgs();
+  const { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget } = parseArgs();
   const db = createD1Client();
   const chain = new ProviderChain(db);
+
+  const renderEnabled = boxScore && isBrowserRenderAvailable();
+  let rendersUsed = 0;
+  let renderQuotaExhausted = false;
+  let boxScoreFound = 0;
+  if (renderEnabled) console.log(`Box-score-berigelse aktiv (budget: ${boxScoreBudget} render/kørsel).`);
 
   const result = await db.query<StoryRow>(
     `SELECT s.id, s.headline, s.summary, s.content_raw, s.source_url,
@@ -209,11 +222,42 @@ async function main(): Promise<void> {
 
   let built = 0, noSubstance = 0, failed = 0;
   for (const story of stories) {
-    const { factSheet, status } = await buildFactSheet(story, chain);
+    const result = await buildFactSheet(story, chain);
+    let factSheet = result.factSheet;
+    const status = result.status;
+
+    // Box-score-berigelse: grundsandhed for TAL (aldrig erstatning for kvalitativ prosa).
+    // Kun for byggede faktaark, inden for render-budget, og kun hvis quota ikke er opbrugt.
+    if (factSheet && status === "built" && renderEnabled && !renderQuotaExhausted && rendersUsed < boxScoreBudget) {
+      try {
+        const enriched = await enrichFactSheetWithBoxScore(
+          factSheet,
+          { sourceUrl: story.source_url, athleteName: story.athlete_name, sport: story.sport },
+          chain,
+          { fetchHtml, renderPage: (u) => renderPage(u), extractText: extractMainText },
+        );
+        if (enriched.rendered) rendersUsed++;
+        if (enriched.found) {
+          factSheet = enriched.factSheet;
+          boxScoreFound++;
+        }
+      } catch (err) {
+        if (err instanceof BrowserRenderError && err.quotaExhausted) {
+          renderQuotaExhausted = true;
+          console.warn(`  ⚠ Browser Rendering opbrugt — box scores stoppet resten af kørslen (${err.message})`);
+        } else {
+          console.warn(`  ⚠ Box-score-fejl [${story.id}]: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+    }
+
+    const boxStats = factSheet ? factSheet.stats.filter((s) => s.source === "boxscore").length : 0;
     const facts = factSheet
       ? factSheet.stats.length + factSheet.qualitative.length + factSheet.quotes.length
       : 0;
-    console.log(`  [${status}] ${story.id} ${story.headline?.slice(0, 60) ?? ""} (${facts} fakta)`);
+    console.log(
+      `  [${status}] ${story.id} ${story.headline?.slice(0, 60) ?? ""} (${facts} fakta${boxStats ? `, ${boxStats} box-score` : ""})`,
+    );
 
     if (!dryRun) {
       await db.execute(
@@ -226,7 +270,10 @@ async function main(): Promise<void> {
     else failed++;
   }
 
-  console.log(`\nFærdig. Bygget: ${built} | Uden substans: ${noSubstance} | Fejlet: ${failed}`);
+  console.log(
+    `\nFærdig. Bygget: ${built} | Uden substans: ${noSubstance} | Fejlet: ${failed}` +
+      (renderEnabled ? ` | Box scores: ${boxScoreFound} fundet (${rendersUsed}/${boxScoreBudget} render)` : ""),
+  );
 }
 
 // Kør kun main() når filen eksekveres direkte (ikke ved import i tests).

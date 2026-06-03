@@ -202,6 +202,16 @@ export async function fetchStoryContent(url: string): Promise<string | null> {
 }
 
 /**
+ * Hent rå HTML (links bevaret — modsat fetchStoryContent/content_raw, der returnerer
+ * ren tekst). Bruges af box-score-berigelsen til at scanne kildesiden for box-score-links.
+ * NB: box scores er FAKTA-kilder, ikke artikel-kilder, så isBlockedDomain gælder bevidst
+ * IKKE den efterfølgende box-score-hentning (sports-reference/statmuse m.fl. er ønskede her).
+ */
+export async function fetchHtml(url: string): Promise<string | null> {
+  return fetchPage(url);
+}
+
+/**
  * Udtræk hovedindholdet (ren tekst) fra en HTML-streng. Genbruges af både plain
  * fetch og CF Browser Rendering (rendered HTML) i backfill.
  */

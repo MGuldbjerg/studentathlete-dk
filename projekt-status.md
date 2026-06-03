@@ -1,15 +1,16 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-03 (to-fase generering + detektion-overhaul + roster parser-fix)
+**Sidst opdateret**: 2026-06-03 (box scores v2 bygget — sidste plan-trin færdigt)
 
 ## 👉 Næste session — start her (handoff 2026-06-03)
-**Alt er committet + pushet til main. To-fase generering + detektion-overhaul + roster parser-fix er live.**
+**Box scores v2 (plan-trin 7) er bygget + unit-testet (39 tests grønne) + typecheck ren, committet + pushet til main. Sidste plan-trin i to-fase-generering er færdigt. Mangler kun live in-season validering på en rigtig recap m. box-score-link (off-season nu → ingen at ride på; fail-open, så det aldrig blokerer en artikel).**
 
 1. **Parser-fix VIRKER i prod** ✅ — scrape-run `26870990500` færdig: **+5 nye danske atleter** (124→129 aktive), **113 'error'→parsed** (8308→8195). `parseRoster` faldt aldrig tilbage til generisk tabel-parser → fejlagtigt-'error' Sidearm-tabel-sider. Aktuelle tal: **133 atleter / 129 aktive · roster_checks: 71 success / 4646 empty / 8195 error / 108 js_required.**
    - **Fortsætter automatisk**: ~2.288 fetch-ok 'error'-rækker blev nulstillet (`checked_at=NULL`); kun én batch (500/division) er kørt. Den ugentlige scrape (søndag 04:00 UTC) tygger resten — atlettal stiger uden indgriben. Render (rate-limited) tager JS-shell-resten. Vil man fremskynde: trigger `weekly-scrape.yml` igen.
 2. **DU mangler at gøre**: sæt `ANTHROPIC_API_KEY` som GitHub-secret ($15-kredit) → aktiverer Claude-routing (feature/season) + opgraderer fakta-verifikation. Indtil da kører alt på gratis-kæden (fungerer fint).
 3. **CF token**: Browser Rendering-permission tilføjet ✅ (render virker; 429 = per-minut rate limit → `renderPage` retry/backoff).
-4. **Eneste resterende build**: box scores v2 (plan `clever-popping-storm.md` trin 7) — detektér+render+udtræk box score (`source:"boxscore"`) i fase 1; tal-kryds-tjek i fase 3. Box scores = grundsandhed for TAL, aldrig erstatning for kvalitativ prosa (se [[feedback-article-prose-vs-stats]]).
+4. **Box scores v2 BYGGET** ✅ (plan `clever-popping-storm.md` trin 7) — `pipeline/generate/box-score.ts` (ny): `findBoxScoreUrl` (deterministisk link-detektion, ingen LLM), `extractBoxScoreStats` (LLM, fail-open), `mergeBoxScoreIntoFactSheet` (tagger `source:"boxscore"`, overstyrer aldrig prosa, dedupe), `renderBoxScoreBlock` (fase 3 autoritativ tal-blok), `enrichFactSheetWithBoxScore` (orkestrering, ≤1 render/historie, deps injiceret). Wiret i fase 1 (`build-factsheet.ts`: `--no-boxscore`, `--boxscore-budget N` default 8) + fase 3 (`verify-article.ts`: tal der modsiger box scoren → `fabrication_risk='high'`). Tests: `_boxscore-test.ts` (39 grønne). Wiring-smoke-test mod live D1 OK (0 historier off-season). Ingen migration/workflow-ændring (kolonner + steps fandtes). **Mangler**: live in-season validering på en rigtig recap m. box-score-link (off-season = ingen at ride på nu; fail-open så det aldrig blokerer).
+   - **Bevidst begrænsning**: link-scan bruger plain fetch af kildesiden — JS-shell-recaps uden statisk box-score-link fanges ikke (renderer ikke kildesiden for at finde linket; kun selve box scoren renderes). Dækker recaps med server-renderet "Box Score"-anker (de fleste Sidearm-templates + CMS-sider).
 5. **Udskudt** (bevidst): 599 juco/NAIA missing-website skoler — lav dansk-densitet; NCAA er fuldt dækket.
 
 **Verificér to-fase pipeline manuelt**: `build-factsheet.ts` → `generate-articles.ts` → `verify-article.ts` (kører i `generate-manual.yml` i den rækkefølge). Off-season nu, så få nye historier.
@@ -84,7 +85,7 @@ Pipeline er nu: **backfill (fase 0) → faktaark/fact-finding (fase 1) → skriv
 - [x] **Fase 2**: `generate-articles.ts` skriver KUN fra faktaark; DB-fakta via `athleteFactsBlock`.
 - [x] **Fase 3**: `verify-article.ts` → `articles.fabrication_risk` + `fact_flags`; badge i admin. Kildebaseret prosa flages IKKE; kun upålagte påstande (fangede opdigtet alder "21" i test).
 - [x] **$15 Claude**: `preferProvider:"anthropic"` for feature/season_update (dormant til `ANTHROPIC_API_KEY` sættes).
-- [ ] **Box scores (v2)** — task #16: detektér+render+udtræk box score som `source:"boxscore"` i fase 1; tal-kryds-tjek i fase 3. Box scores = grundsandhed for TAL, aldrig erstatning for kvalitativ prosa.
+- [x] **Box scores (v2)** — task #16 BYGGET (juni 2026): `box-score.ts` detektér (`findBoxScoreUrl`, regelbaseret) + render + udtræk (`extractBoxScoreStats`, fail-open) box score som `source:"boxscore"` i fase 1 (`build-factsheet.ts`); tal-kryds-tjek i fase 3 (`verify-article.ts` — modstrid m. box score → `high`). Box scores = grundsandhed for TAL, aldrig erstatning for kvalitativ prosa. 39 unit-tests grønne; typecheck ren; wiring verificeret mod live D1. Afventer in-season validering på rigtig recap.
 
 ### Kræver dig (credentials)
 - **CF token**: tilføj "Browser Rendering — Edit" permission → aktiverer render i roster-scrape + backfill.

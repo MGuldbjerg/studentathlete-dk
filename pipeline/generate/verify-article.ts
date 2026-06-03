@@ -11,6 +11,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
+import { renderBoxScoreBlock } from "./box-score";
 
 export interface VerifyArticleInput {
   title: string;
@@ -65,7 +66,19 @@ export async function verifyArticle(
   factSheetText: string,
   profileFacts: string,
   chain: ChainLike,
+  boxScoreText?: string | null,
 ): Promise<ArticleVerdict | null> {
+  // Box scoren er GRUNDSANDHED for tal: et tal i artiklen der modsiger den = fabrikation (high).
+  const boxScoreLines = boxScoreText
+    ? [
+        "BOX SCORE (authoritative numbers — official final score / stat line):",
+        boxScoreText,
+        "If the ARTICLE states any number (final score, stat) that CONTRADICTS the BOX SCORE, " +
+          'that is a fabrication: fabrication_risk MUST be "high" and the contradiction listed in flags.',
+        "",
+      ]
+    : [];
+
   const prompt = [
     "PROFILE (known true facts):",
     profileFacts,
@@ -73,12 +86,14 @@ export async function verifyArticle(
     "FACT SHEET (only permitted facts):",
     factSheetText || "(empty)",
     "",
+    ...boxScoreLines,
     "ARTICLE:",
     article.title,
     article.content.slice(0, 4000),
     "",
     'Respond ONLY with JSON: {"fabrication_risk": "low"|"medium"|"high", "flags": ["<short unsupported claim>", ...]}',
-    "high = any invented number/score/date/age/quote/event; medium = minor unsupported detail; low = all claims supported.",
+    "high = any invented number/score/date/age/quote/event, OR any number contradicting the box score; " +
+      "medium = minor unsupported detail; low = all claims supported.",
   ].join("\n");
 
   let text: string;
@@ -155,8 +170,11 @@ async function main(): Promise<void> {
   let high = 0, medium = 0, low = 0, unverified = 0;
   for (const ar of articles) {
     let factSheetText = "";
+    let boxScoreText: string | null = null;
     try {
-      factSheetText = renderFactSheet(JSON.parse(ar.fact_sheet ?? "{}") as FactSheet);
+      const fs = JSON.parse(ar.fact_sheet ?? "{}") as FactSheet;
+      factSheetText = renderFactSheet(fs);
+      boxScoreText = renderBoxScoreBlock(fs);
     } catch {
       /* tomt faktaark */
     }
@@ -165,6 +183,7 @@ async function main(): Promise<void> {
       factSheetText,
       profileString(ar),
       chain,
+      boxScoreText,
     );
 
     if (!verdict) {
