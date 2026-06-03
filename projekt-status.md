@@ -1,6 +1,12 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-04-15 (Server-side analytics implementeret)
+**Sidst opdateret**: 2026-06-03 (to-fase generering + detektion-overhaul + roster parser-fix)
+
+## ⏳ In-flight (session-handoff 2026-06-03)
+- **Roster-scrape kører**: GitHub Actions run `26870990500` (weekly-scrape, D1/D2/D3 matrix) med parser-fixet + render. **Baseline før kørsel: 128 atleter · 66 success · 8308 error.** NÆSTE: når kørslen er færdig, mål delta (nye atleter, error↓, nye danskere) — `SELECT COUNT(*) FROM athletes` + roster_checks status. 2.288 fetch-ok 'error'-rækker blev nulstillet (`checked_at=NULL`) → genscrapes nu.
+- **CF token**: Browser Rendering-permission ER tilføjet (render virker). 429 = per-minut rate limit (gratis-tier) → `renderPage` retry/backoff.
+- **Mangler stadig**: sæt `ANTHROPIC_API_KEY` (GitHub-secret, $15-kredit) → aktiverer Claude-routing (features) + opgraderer verifikation.
+- **Eneste resterende build**: box scores v2 (plan `clever-popping-storm.md` trin 7) — detektér+render+udtræk box score som `source:"boxscore"` i fase 1; tal-kryds-tjek i fase 3.
 **Fase**: Pipeline fungerer / redaktionel gennemgang
 
 ## Oversigt
