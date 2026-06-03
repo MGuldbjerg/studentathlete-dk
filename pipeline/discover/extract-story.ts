@@ -198,7 +198,14 @@ async function extractFromRss(
 export async function fetchStoryContent(url: string): Promise<string | null> {
   const html = await fetchPage(url);
   if (!html) return null;
+  return extractMainText(html);
+}
 
+/**
+ * Udtræk hovedindholdet (ren tekst) fra en HTML-streng. Genbruges af både plain
+ * fetch og CF Browser Rendering (rendered HTML) i backfill.
+ */
+export function extractMainText(html: string): string | null {
   const $ = cheerio.load(html);
 
   // Fjern navigation, footer, scripts, styles

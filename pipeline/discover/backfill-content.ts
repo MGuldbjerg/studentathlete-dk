@@ -11,7 +11,12 @@
  */
 
 import { createD1Client } from "../lib/d1-client";
-import { fetchStoryContent, isBlockedDomain } from "./extract-story";
+import { fetchStoryContent, extractMainText, isBlockedDomain } from "./extract-story";
+import {
+  renderPage,
+  isBrowserRenderAvailable,
+  BrowserRenderError,
+} from "../lib/browser-render";
 
 interface StoryToBackfill {
   id: number;
@@ -21,11 +26,19 @@ interface StoryToBackfill {
   discovered_at: string;
 }
 
-function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean } {
+function parseArgs(): {
+  limit: number;
+  maxAgeDays: number;
+  dryRun: boolean;
+  render: boolean;
+  renderBudget: number;
+} {
   const args = process.argv.slice(2);
   let limit = 50;
   let maxAgeDays = 2;
   let dryRun = false;
+  let render = true; // CF Browser Rendering fallback for JS-sider (slå fra med --no-render)
+  let renderBudget = 40; // max render-kald per kørsel (beskytter gratis browser-tid)
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) {
@@ -37,16 +50,30 @@ function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean } {
     if (args[i] === "--dry-run") {
       dryRun = true;
     }
+    if (args[i] === "--no-render") {
+      render = false;
+    }
+    if (args[i] === "--render-budget" && args[i + 1]) {
+      renderBudget = parseInt(args[i + 1], 10) || 40;
+    }
   }
 
-  return { limit, maxAgeDays, dryRun };
+  return { limit, maxAgeDays, dryRun, render, renderBudget };
 }
 
 async function main(): Promise<void> {
-  const { limit, maxAgeDays, dryRun } = parseArgs();
+  const { limit, maxAgeDays, dryRun, render, renderBudget } = parseArgs();
   const db = createD1Client();
 
+  const renderEnabled = render && isBrowserRenderAvailable();
+  let rendersUsed = 0;
+  let renderQuotaExhausted = false;
+  let renderedOk = 0;
+
   if (dryRun) console.log("[DRY RUN] Ingen opdateringer gemmes.\n");
+  if (renderEnabled) {
+    console.log(`Browser Rendering-fallback aktiv (budget: ${renderBudget} sider/kørsel).`);
+  }
   console.log(`Datofilter: kun stories fundet inden for de seneste ${maxAgeDays} dage.\n`);
 
   // Tæl total (inden for datogrænsen)
@@ -78,7 +105,7 @@ async function main(): Promise<void> {
        AND s.content_raw IS NULL
        AND s.source_url IS NOT NULL
        AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
-     ORDER BY s.discovered_at DESC
+     ORDER BY s.relevance_score DESC, s.discovered_at DESC
      LIMIT ?`,
     [maxAgeDays, limit],
   );
@@ -102,7 +129,28 @@ async function main(): Promise<void> {
     }
 
     try {
-      const content = await fetchStoryContent(story.source_url);
+      let content = await fetchStoryContent(story.source_url);
+
+      // Fallback: render JS-tunge sider via CF Browser Rendering (budget-begrænset).
+      if (!content && renderEnabled && !renderQuotaExhausted && rendersUsed < renderBudget) {
+        rendersUsed++;
+        try {
+          const rendered = await renderPage(story.source_url);
+          if (rendered) {
+            content = extractMainText(rendered);
+            if (content) renderedOk++;
+          }
+        } catch (err) {
+          if (err instanceof BrowserRenderError && err.quotaExhausted) {
+            renderQuotaExhausted = true;
+            console.warn(`  ⚠ Browser Rendering stoppet for resten af kørslen (${err.message})`);
+          } else {
+            console.warn(
+              `  ⚠ Render fejlede [${story.id}]: ${err instanceof Error ? err.message : String(err)}`,
+            );
+          }
+        }
+      }
 
       if (!content) {
         console.log(`  SKIP  [${story.id}] ${story.headline?.slice(0, 60) ?? story.source_url}`);
@@ -128,7 +176,8 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    `\nFærdig. Hentet: ${fetched} | Ingen indhold: ${skipped} | Fejl: ${failed}`,
+    `\nFærdig. Hentet: ${fetched} | Ingen indhold: ${skipped} | Fejl: ${failed}` +
+      (renderEnabled ? ` | Render: ${renderedOk} ok af ${rendersUsed}/${renderBudget}` : ""),
   );
   if (fetched > 0) {
     console.log(`Klar til artikelgenerering: ${fetched} nye stories med content_raw`);

@@ -18,6 +18,7 @@ MIGRATIONS=(
   db/migration-009-preferred-name.sql
   db/migration-010-style-corrections.sql
   db/migration-011-analytics.sql
+  db/migration-012-factsheet.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do
