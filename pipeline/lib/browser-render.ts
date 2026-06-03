@@ -31,6 +31,10 @@ export interface RenderOptions {
   waitUntil?: "load" | "domcontentloaded" | "networkidle0" | "networkidle2";
   /** Navigationstimeout i ms (default 30000). */
   timeoutMs?: number;
+  /** Antal gentagne forsøg ved HTTP 429 (per-minut rate limit). Default 3. */
+  retries?: number;
+  /** Ventetid mellem 429-forsøg i ms. Default 20000. */
+  backoffMs?: number;
 }
 
 export function isBrowserRenderAvailable(): boolean {
@@ -39,8 +43,10 @@ export function isBrowserRenderAvailable(): boolean {
 
 /**
  * Renderer en side og returnerer fuld HTML, eller null ved netværks-/timeout-fejl.
- * Kaster BrowserRenderError ved 429 (daglig browser-tid opbrugt) så kaldere kan
- * stoppe med at bruge render resten af kørslen.
+ * Ved HTTP 429 (per-minut rate limit på gratis-tier — genoprettes på sekunder) venter
+ * den `backoffMs` og prøver igen op til `retries` gange. Kaster BrowserRenderError med
+ * quotaExhausted=true ved auth/permission (kode 10000 / 401 / 403) eller hvis 429 fortsætter
+ * efter alle forsøg — så kaldere kan stoppe render for resten af kørslen.
  */
 export async function renderPage(
   url: string,
@@ -50,6 +56,8 @@ export async function renderPage(
 
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/browser-rendering/content`;
   const timeoutMs = opts.timeoutMs ?? 30000;
+  const maxRetries = opts.retries ?? 3;
+  const backoffMs = opts.backoffMs ?? 20000;
 
   const body: Record<string, unknown> = {
     url,
@@ -59,25 +67,54 @@ export async function renderPage(
   };
   if (opts.waitForSelector) body.waitForSelector = opts.waitForSelector;
 
-  let res: Response;
-  try {
-    res = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_TOKEN}`,
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(timeoutMs + 15000),
-    });
-  } catch {
-    return null; // netværk/timeout — behandl som "kunne ikke rendere denne URL"
-  }
+  for (let attempt = 0; ; attempt++) {
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_TOKEN}`,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeoutMs + 15000),
+      });
+    } catch {
+      return null; // netværk/timeout — behandl som "kunne ikke rendere denne URL"
+    }
 
-  if (!res.ok) {
+    if (res.ok) {
+      // /content returnerer enten rå HTML eller en CF-API-konvolut {success,result,errors}.
+      const contentType = res.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        const json = (await res.json()) as {
+          success?: boolean;
+          result?: string;
+          errors?: Array<{ code?: number; message?: string }>;
+        };
+        if (json.success && typeof json.result === "string") return json.result;
+        // CF kan returnere 200 med {success:false, errors:[{code:10000,"Authentication error"}]}.
+        const errs = Array.isArray(json.errors) ? json.errors : [];
+        const code = errs[0]?.code;
+        const msg = errs.map((e) => e?.message).filter(Boolean).join("; ");
+        const authOrQuota =
+          code === 10000 || /authenticat|permission|quota|rate limit/i.test(msg);
+        throw new BrowserRenderError(
+          res.status,
+          msg || JSON.stringify(json.errors ?? json).slice(0, 300),
+          authOrQuota,
+        );
+      }
+      return await res.text();
+    }
+
+    // !res.ok — 429 = per-minut rate limit: vent og prøv igen.
     const text = await res.text().catch(() => "");
-    // 401/403/429 eller auth/quota i body = kørsels-globalt problem (token-permission,
-    // daglig browser-tid). Signalér "stop med at rende resten af kørslen".
+    if (res.status === 429 && attempt < maxRetries) {
+      await new Promise((r) => setTimeout(r, backoffMs));
+      continue;
+    }
+    // 401/403/auth = token-/permission-problem (genoprettes ikke); vedvarende 429 = opbrugt.
     const quotaExhausted =
       res.status === 401 ||
       res.status === 403 ||
@@ -85,28 +122,4 @@ export async function renderPage(
       /authenticat|permission|quota|rate limit|10000/i.test(text);
     throw new BrowserRenderError(res.status, text.slice(0, 300), quotaExhausted);
   }
-
-  // /content returnerer enten rå HTML eller en CF-API-konvolut {success,result,errors}.
-  const contentType = res.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    const json = (await res.json()) as {
-      success?: boolean;
-      result?: string;
-      errors?: Array<{ code?: number; message?: string }>;
-    };
-    if (json.success && typeof json.result === "string") return json.result;
-    // CF kan returnere 200 med {success:false, errors:[{code:10000,"Authentication error"}]}.
-    const errs = Array.isArray(json.errors) ? json.errors : [];
-    const code = errs[0]?.code;
-    const msg = errs.map((e) => e?.message).filter(Boolean).join("; ");
-    // code 10000 = auth/permission (token mangler Browser Rendering). Kørsels-global → stop.
-    const authOrQuota =
-      code === 10000 || /authenticat|permission|quota|rate limit/i.test(msg);
-    throw new BrowserRenderError(
-      res.status,
-      msg || JSON.stringify(json.errors ?? json).slice(0, 300),
-      authOrQuota,
-    );
-  }
-  return await res.text();
 }
