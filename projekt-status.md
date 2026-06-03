@@ -2,11 +2,17 @@
 
 **Sidst opdateret**: 2026-06-03 (to-fase generering + detektion-overhaul + roster parser-fix)
 
-## ⏳ In-flight (session-handoff 2026-06-03)
-- **Roster-scrape kører**: GitHub Actions run `26870990500` (weekly-scrape, D1/D2/D3 matrix) med parser-fixet + render. **Baseline før kørsel: 128 atleter · 66 success · 8308 error.** NÆSTE: når kørslen er færdig, mål delta (nye atleter, error↓, nye danskere) — `SELECT COUNT(*) FROM athletes` + roster_checks status. 2.288 fetch-ok 'error'-rækker blev nulstillet (`checked_at=NULL`) → genscrapes nu.
-- **CF token**: Browser Rendering-permission ER tilføjet (render virker). 429 = per-minut rate limit (gratis-tier) → `renderPage` retry/backoff.
-- **Mangler stadig**: sæt `ANTHROPIC_API_KEY` (GitHub-secret, $15-kredit) → aktiverer Claude-routing (features) + opgraderer verifikation.
-- **Eneste resterende build**: box scores v2 (plan `clever-popping-storm.md` trin 7) — detektér+render+udtræk box score som `source:"boxscore"` i fase 1; tal-kryds-tjek i fase 3.
+## 👉 Næste session — start her (handoff 2026-06-03)
+**Alt er committet + pushet til main. To-fase generering + detektion-overhaul + roster parser-fix er live.**
+
+1. **Parser-fix VIRKER i prod** ✅ — scrape-run `26870990500` færdig: **+5 nye danske atleter** (124→129 aktive), **113 'error'→parsed** (8308→8195). `parseRoster` faldt aldrig tilbage til generisk tabel-parser → fejlagtigt-'error' Sidearm-tabel-sider. Aktuelle tal: **133 atleter / 129 aktive · roster_checks: 71 success / 4646 empty / 8195 error / 108 js_required.**
+   - **Fortsætter automatisk**: ~2.288 fetch-ok 'error'-rækker blev nulstillet (`checked_at=NULL`); kun én batch (500/division) er kørt. Den ugentlige scrape (søndag 04:00 UTC) tygger resten — atlettal stiger uden indgriben. Render (rate-limited) tager JS-shell-resten. Vil man fremskynde: trigger `weekly-scrape.yml` igen.
+2. **DU mangler at gøre**: sæt `ANTHROPIC_API_KEY` som GitHub-secret ($15-kredit) → aktiverer Claude-routing (feature/season) + opgraderer fakta-verifikation. Indtil da kører alt på gratis-kæden (fungerer fint).
+3. **CF token**: Browser Rendering-permission tilføjet ✅ (render virker; 429 = per-minut rate limit → `renderPage` retry/backoff).
+4. **Eneste resterende build**: box scores v2 (plan `clever-popping-storm.md` trin 7) — detektér+render+udtræk box score (`source:"boxscore"`) i fase 1; tal-kryds-tjek i fase 3. Box scores = grundsandhed for TAL, aldrig erstatning for kvalitativ prosa (se [[feedback-article-prose-vs-stats]]).
+5. **Udskudt** (bevidst): 599 juco/NAIA missing-website skoler — lav dansk-densitet; NCAA er fuldt dækket.
+
+**Verificér to-fase pipeline manuelt**: `build-factsheet.ts` → `generate-articles.ts` → `verify-article.ts` (kører i `generate-manual.yml` i den rækkefølge). Off-season nu, så få nye historier.
 **Fase**: Pipeline fungerer / redaktionel gennemgang
 
 ## Oversigt
