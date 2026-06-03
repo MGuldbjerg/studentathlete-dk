@@ -96,6 +96,22 @@ export default async function AdminDashboard({
                   <span className="text-[11px] text-muted">
                     {ARTICLE_TYPE_LABELS[draft.article_type] ?? draft.article_type}
                   </span>
+                  {draft.fabrication_risk === "high" && (
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded text-white"
+                      style={{ backgroundColor: "#b91c1c" }}
+                    >
+                      ⚠ Mulig fejl
+                    </span>
+                  )}
+                  {draft.fabrication_risk === "medium" && (
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded"
+                      style={{ backgroundColor: "#fde68a", color: "#92400e" }}
+                    >
+                      ⚠ Tjek fakta
+                    </span>
+                  )}
                 </div>
                 <h3
                   className="text-lg font-bold text-ink leading-snug"
@@ -108,6 +124,23 @@ export default async function AdminDashboard({
                   {draft.athlete_name && <span>·</span>}
                   <span>{new Date(draft.created_at).toLocaleDateString("da-DK")}</span>
                 </div>
+                {draft.fabrication_risk && draft.fabrication_risk !== "low" && draft.fact_flags
+                  ? (() => {
+                      let flags: string[] = [];
+                      try {
+                        flags = JSON.parse(draft.fact_flags) as string[];
+                      } catch {
+                        /* ignorér */
+                      }
+                      return flags.length > 0 ? (
+                        <ul className="mt-2 text-xs list-disc list-inside" style={{ color: "#b91c1c" }}>
+                          {flags.map((f, i) => (
+                            <li key={i}>Uden kildebelæg: {f}</li>
+                          ))}
+                        </ul>
+                      ) : null;
+                    })()
+                  : null}
                 <div className="flex gap-3 mt-3">
                   <Link
                     href={`/admin/rediger/${draft.id}?token=${token}`}

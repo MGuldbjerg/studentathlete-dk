@@ -16,6 +16,9 @@ export interface Article {
   llm_provider: string | null;
   author: string | null;
   original_content: string | null;
+  // Fase 3-verifikation (valgfri — kun sat når kladden er verificeret)
+  fabrication_risk?: string | null;
+  fact_flags?: string | null;
   // Joined fra athletes
   athlete_name: string | null;
   athlete_slug: string | null;
