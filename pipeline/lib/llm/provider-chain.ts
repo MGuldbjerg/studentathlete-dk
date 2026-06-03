@@ -77,10 +77,20 @@ export class ProviderChain {
     system: string;
     prompt: string;
     max_tokens: number;
+    /** Forsøg denne provider først (fx "anthropic" til features), ellers normal rækkefølge. */
+    preferProvider?: string;
   }): Promise<LLMResponse> {
     const errors: string[] = [];
 
-    for (const provider of this.providers) {
+    // Sæt en foretrukken provider forrest (stabilt — resten beholder rækkefølgen).
+    const ordered = opts.preferProvider
+      ? [...this.providers].sort(
+          (a, b) =>
+            Number(b.name === opts.preferProvider) - Number(a.name === opts.preferProvider),
+        )
+      : this.providers;
+
+    for (const provider of ordered) {
       if (!provider.isAvailable()) continue;
 
       const limit = DAILY_LIMITS[provider.name] ?? 100;

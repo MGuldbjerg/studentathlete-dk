@@ -251,10 +251,17 @@ async function main(): Promise<void> {
     ]);
 
     try {
+      // Lange/risikofyldte formater skrives bedst af Claude når nøglen findes;
+      // korte nyheder bliver på den gratis kæde. Dormant indtil ANTHROPIC_API_KEY sættes.
+      const preferProvider =
+        articleType === "feature" || articleType === "season_update"
+          ? "anthropic"
+          : undefined;
       const response = await chain.generate({
         system: systemPrompt,
         prompt,
         max_tokens: 2000,
+        preferProvider,
       });
 
       const parsed = parseArticleOutput(response.text, articleType);
