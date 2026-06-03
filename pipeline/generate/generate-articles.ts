@@ -16,6 +16,7 @@ import { featurePrompt } from "./prompts/feature";
 import { seasonUpdatePrompt } from "./prompts/season-update";
 import { recruitingPrompt } from "./prompts/recruiting";
 import { parseArticleOutput } from "./parse-output";
+import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
 
@@ -29,6 +30,7 @@ interface StoryWithAthlete extends Story {
   division: string | null;
   class_year: string | null;
   expected_graduation: string | null;
+  fact_sheet: string | null;
 }
 
 function selectArticleType(story: StoryWithAthlete): string {
@@ -55,6 +57,15 @@ function buildPrompt(
   story: StoryWithAthlete,
   articleType: string,
 ): string {
+  // KILDEINDHOLD = faktaarket (fase 1). Det er det ENESTE skrivefasen må bruge.
+  let factsBlock = "";
+  if (story.fact_sheet) {
+    try {
+      factsBlock = renderFactSheet(JSON.parse(story.fact_sheet) as FactSheet);
+    } catch {
+      /* falder tilbage til rå indhold nedenfor */
+    }
+  }
   const context: ArticleContext = {
     athleteName: story.athlete_name,
     preferredName: story.preferred_name,
@@ -67,7 +78,7 @@ function buildPrompt(
     expectedGraduation: story.expected_graduation,
     sourceUrl: story.source_url,
     headline: story.headline ?? "",
-    content: story.content_raw?.slice(0, 4000) ?? story.summary?.slice(0, 2000) ?? "",
+    content: factsBlock || story.content_raw?.slice(0, 4000) || story.summary?.slice(0, 2000) || "",
   };
 
   switch (articleType) {
@@ -168,6 +179,19 @@ async function main(): Promise<void> {
   console.log(`  For gamle (ignoreres):       ${diag?.too_old ?? 0}`);
   console.log(`  Total inden for vindue:      ${diag?.total ?? 0}\n`);
 
+  // Faktaark-status (skrivefasen kræver fact_status='built' — kør build-factsheet.ts først)
+  const fsRes = await db.query<{ built: number; pending: number; no_substance: number }>(
+    `SELECT
+       COUNT(CASE WHEN fact_status = 'built' THEN 1 END) as built,
+       COUNT(CASE WHEN fact_status IS NULL THEN 1 END) as pending,
+       COUNT(CASE WHEN fact_status = 'no_substance' THEN 1 END) as no_substance
+     FROM stories
+     WHERE status = 'new' AND datetime(discovered_at, '+' || ? || ' days') >= datetime('now')`,
+    [maxAgeDays],
+  );
+  const fs = fsRes.results[0];
+  console.log(`Faktaark: ${fs?.built ?? 0} klar · ${fs?.pending ?? 0} mangler (kør build-factsheet) · ${fs?.no_substance ?? 0} uden substans\n`);
+
   // Hent nye historier der endnu ikke er konverteret.
   // content_raw er ikke påkrævet — summary fra RSS-feeds er nok til artikelgenerering.
   // Sortering: foretrækker rigt indhold (content_raw > summary > headline).
@@ -177,7 +201,7 @@ async function main(): Promise<void> {
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
-     AND (s.content_raw IS NOT NULL OR s.summary IS NOT NULL OR s.headline IS NOT NULL)
+     AND s.fact_status = 'built'
      AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
      ORDER BY
        CASE WHEN s.content_raw IS NOT NULL THEN 0 WHEN s.summary IS NOT NULL THEN 1 ELSE 2 END,

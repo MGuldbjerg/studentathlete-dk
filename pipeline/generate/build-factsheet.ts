@@ -114,6 +114,39 @@ export function normalizeFactSheet(raw: Record<string, unknown>): FactSheet {
   };
 }
 
+/**
+ * Render et faktaark som tekstblok til skrivefasen (FAKTAARK = den ENESTE kilde
+ * writeren må bruge). Kvalitative observationer fremhæves som materiale til at
+ * fortælle om præstationen — også når der ingen stats er.
+ */
+export function renderFactSheet(fs: FactSheet): string {
+  const blocks: string[] = [];
+  if (fs.event) {
+    const e = fs.event;
+    const parts = [e.type, e.opponent ? `mod ${e.opponent}` : null, e.competition, e.date].filter(Boolean);
+    if (parts.length) blocks.push(`Begivenhed: ${parts.join(", ")}`);
+  }
+  if (fs.result && (fs.result.final_score || fs.result.outcome || fs.result.placement)) {
+    const r = fs.result;
+    const parts = [r.outcome, r.final_score, r.placement].filter(Boolean);
+    blocks.push(`Resultat: ${parts.join(", ")}`);
+  }
+  if (fs.stats.length) blocks.push("Statistik:\n" + fs.stats.map((s) => `- ${s.text}`).join("\n"));
+  if (fs.qualitative.length)
+    blocks.push(
+      "Observationer (kvalitative — brug disse til at fortælle om præstationen):\n" +
+        fs.qualitative.map((q) => `- ${q.text}`).join("\n"),
+    );
+  if (fs.quotes.length)
+    blocks.push(
+      "Citater (kun disse må gengives ordret):\n" +
+        fs.quotes.map((q) => `- "${q.text}"${q.speaker ? ` — ${q.speaker}` : ""}`).join("\n"),
+    );
+  if (fs.other_facts.length)
+    blocks.push("Andre fakta:\n" + fs.other_facts.map((f) => `- ${f.text}`).join("\n"));
+  return blocks.join("\n\n");
+}
+
 /** Byg faktaark for én historie. Returnerer faktaark + status ('built'|'no_substance'|'failed'). */
 export async function buildFactSheet(
   story: Pick<StoryRow, "headline" | "summary" | "content_raw" | "athlete_name" | "sport" | "university">,
