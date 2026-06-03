@@ -9,16 +9,40 @@ export interface ArticleContext {
   sport: string;
   university: string;
   hometown: string | null;
+  position?: string | null;
+  division?: string | null;
+  classYear?: string | null;
+  expectedGraduation?: string | null;
   sourceUrl: string;
   headline: string;
   content: string;
 }
 
+/**
+ * Formaterer de verificerede atlet-fakta (fra databasen) som promptens ATLET-blok.
+ * Disse felter er kendte fakta — modellen må bruge dem (jf. system-regel 16).
+ * Delt mellem alle artikeltyper for konsistens.
+ */
+export function athleteFactsBlock(context: ArticleContext): string {
+  const sport = `${context.sport}${context.position ? ` (${context.position})` : ""}`;
+  const uni = `${context.university}${context.division ? `, ${context.division}` : ""}`;
+  const lines = [`ATLET: ${context.athleteName}, ${sport}, ${uni}`];
+  if (context.preferredName) {
+    lines.push(`FORETRUKKET NAVN (brug i overskrift og efter første omtale): ${context.preferredName}`);
+  }
+  lines.push(`HJEMBY: ${context.hometown ?? "Ukendt"}`);
+  if (context.classYear || context.expectedGraduation) {
+    lines.push(
+      `ÅRGANG: ${context.classYear ?? "ukendt"}${context.expectedGraduation ? ` — forventet afgang ${context.expectedGraduation}` : ""}`,
+    );
+  }
+  return lines.join("\n");
+}
+
 export function newsPrompt(context: ArticleContext): string {
   return `Skriv en kort nyhedsartikel (300-400 ord) baseret på følgende:
 
-ATLET: ${context.athleteName}, ${context.sport}, ${context.university}${context.preferredName ? `\nFORETRUKKET NAVN (brug i overskrift og efter første omtale): ${context.preferredName}` : ""}
-HJEMBY: ${context.hometown ?? "Ukendt"}
+${athleteFactsBlock(context)}
 KILDE: ${context.sourceUrl}
 OVERSKRIFT FRA KILDE: ${context.headline}
 KILDEINDHOLD (brug KUN fakta herfra — tilføj intet der ikke fremgår):

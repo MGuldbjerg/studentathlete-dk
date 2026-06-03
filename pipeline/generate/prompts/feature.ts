@@ -3,13 +3,12 @@
  * Bruges med Sonnet-modellen for bedre kvalitet.
  */
 
-import type { ArticleContext } from "./news";
+import { athleteFactsBlock, type ArticleContext } from "./news";
 
 export function featurePrompt(context: ArticleContext): string {
   return `Skriv en feature-artikel (800-1200 ord) baseret på følgende:
 
-ATLET: ${context.athleteName}, ${context.sport}, ${context.university}${context.preferredName ? `\nFORETRUKKET NAVN (brug i overskrift og efter første omtale): ${context.preferredName}` : ""}
-HJEMBY: ${context.hometown ?? "Ukendt"}
+${athleteFactsBlock(context)}
 KILDE: ${context.sourceUrl}
 OVERSKRIFT FRA KILDE: ${context.headline}
 KILDEINDHOLD (brug KUN fakta herfra — tilføj intet der ikke fremgår):

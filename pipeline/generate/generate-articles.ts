@@ -25,6 +25,10 @@ interface StoryWithAthlete extends Story {
   sport: string;
   university: string;
   hometown: string | null;
+  position: string | null;
+  division: string | null;
+  class_year: string | null;
+  expected_graduation: string | null;
 }
 
 function selectArticleType(story: StoryWithAthlete): string {
@@ -32,13 +36,18 @@ function selectArticleType(story: StoryWithAthlete): string {
   const content = (story.content_raw ?? "").toLowerCase();
   const text = `${headline} ${content}`;
 
+  // Lange formater (feature/season_update) kræver reelt indhold — ellers tvinges
+  // modellen til at fylde 400-1200 ord med opdigtet stof. Headline-only → news.
+  const hasRichContent =
+    !!story.content_raw || (story.summary?.length ?? 0) > 100;
+
   if (text.includes("commit") || text.includes("sign") || text.includes("recruit")) {
     return "recruiting";
   }
-  if (text.includes("season") || text.includes("recap") || text.includes("wrap")) {
+  if (hasRichContent && (text.includes("season") || text.includes("recap") || text.includes("wrap"))) {
     return "season_update";
   }
-  if (story.relevance_score > 70) return "feature";
+  if (hasRichContent && story.relevance_score > 70) return "feature";
   return "news";
 }
 
@@ -52,6 +61,10 @@ function buildPrompt(
     sport: story.sport,
     university: story.university,
     hometown: story.hometown,
+    position: story.position,
+    division: story.division,
+    classYear: story.class_year,
+    expectedGraduation: story.expected_graduation,
     sourceUrl: story.source_url,
     headline: story.headline ?? "",
     content: story.content_raw?.slice(0, 4000) ?? story.summary?.slice(0, 2000) ?? "",
@@ -159,7 +172,8 @@ async function main(): Promise<void> {
   // content_raw er ikke påkrævet — summary fra RSS-feeds er nok til artikelgenerering.
   // Sortering: foretrækker rigt indhold (content_raw > summary > headline).
   const result = await db.query<StoryWithAthlete>(
-    `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown
+    `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown,
+            a.position, a.division, a.class_year, a.expected_graduation
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'

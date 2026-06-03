@@ -2,13 +2,12 @@
  * Prompt-skabelon for sæsonopdateringer (400-600 ord).
  */
 
-import type { ArticleContext } from "./news";
+import { athleteFactsBlock, type ArticleContext } from "./news";
 
 export function seasonUpdatePrompt(context: ArticleContext): string {
   return `Skriv en sæsonopdatering (400-600 ord) baseret på følgende:
 
-ATLET: ${context.athleteName}, ${context.sport}, ${context.university}${context.preferredName ? `\nFORETRUKKET NAVN (brug i overskrift og efter første omtale): ${context.preferredName}` : ""}
-HJEMBY: ${context.hometown ?? "Ukendt"}
+${athleteFactsBlock(context)}
 KILDE: ${context.sourceUrl}
 OVERSKRIFT FRA KILDE: ${context.headline}
 KILDEINDHOLD (brug KUN fakta herfra — tilføj intet der ikke fremgår):

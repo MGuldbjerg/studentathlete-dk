@@ -20,7 +20,11 @@ Most stories reach the generator with only a `headline` + RSS `summary` (1–3 s
 2. Each prompt: when content is empty, instruct a short 150–200 word headline-only article (no stats/quotes/background).
 3. Remove the season-comparison line in `season-update.ts`; restrict the university-description line in `recruiting.ts`.
 
-**Step 2 — Content-tier-aware generation (low effort):**
+> **Empirical finding (June 2026):** A live test generating from a headline-only story ("Helle nets winner as Bonnies edge rivals") showed **Mistral Small still fabricates despite Step 1+2** — it invented a "1-0" scoreline, an "87th minute" assist (contradicting the headline, which said he scored), a fake "according to the university website" attribution, and a coach quote. The content-tier guard + DB grounding worked (short news, "Jr."→"tredje år"), but **prompt hardening alone does not constrain the free models.** Real accuracy now depends on Step 3 (catch/flag fabrication), Step 5 (route risky pieces to Claude), Step 4 (give it real content), and/or gating out headline-only generation entirely.
+
+**Step 2 — Content-tier-aware generation (low effort): ✅ DONE (June 2026)** — `selectArticleType` now requires rich content before `feature`/`season_update` (headline-only → `news`); trusted DB facts (position, division, class_year, expected_graduation) passed into a shared `athleteFactsBlock` used by all four prompts. Verified: guard routes headline-only to news; "Jr."→"tredje år".
+
+**Step 2 (original plan):**
 4. Add a `contentTier` (full / summary / headline_only) to `ArticleContext`; scale word-count floor per tier (headline_only → max 200).
 5. `selectArticleType`: require rich content before allowing `feature`/`season_update`.
 6. Pass already-trusted DB facts into prompts: `position`, `division`, `class_year`, `expected_graduation` (the JOIN already fetches the athlete).

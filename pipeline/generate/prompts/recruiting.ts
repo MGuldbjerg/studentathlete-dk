@@ -2,13 +2,12 @@
  * Prompt-skabelon for rekrutteringsnyheder (300-500 ord).
  */
 
-import type { ArticleContext } from "./news";
+import { athleteFactsBlock, type ArticleContext } from "./news";
 
 export function recruitingPrompt(context: ArticleContext): string {
   return `Skriv en rekrutteringsnyhed (300-500 ord) baseret på følgende:
 
-ATLET: ${context.athleteName}, ${context.sport}, ${context.university}${context.preferredName ? `\nFORETRUKKET NAVN (brug i overskrift og efter første omtale): ${context.preferredName}` : ""}
-HJEMBY: ${context.hometown ?? "Ukendt"}
+${athleteFactsBlock(context)}
 KILDE: ${context.sourceUrl}
 OVERSKRIFT FRA KILDE: ${context.headline}
 KILDEINDHOLD (brug KUN fakta herfra — tilføj intet der ikke fremgår):
