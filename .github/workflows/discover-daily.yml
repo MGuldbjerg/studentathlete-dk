@@ -22,35 +22,21 @@ jobs:
       - run: npm ci
 
       - name: Tjek kilder for nye historier
-        id: discover
-        run: |
-          npx tsx pipeline/discover/check-sources.ts --limit 200 2>&1 | tee /tmp/discover.txt
-          echo "found=$(grep -oP '(?<=Fundet )\d+' /tmp/discover.txt | tail -1 || echo 0)" >> "$GITHUB_OUTPUT"
+        run: npx tsx pipeline/discover/check-sources.ts --limit 200
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
 
-      # Notifikation: manuelle kørsler (Discord /discover, admin, GitHub UI) altid.
-      # Planlagte cron-kørsler (hver 6. time) KUN når der faktisk blev fundet nye
-      # historier — eller ved fejl. Ellers ville et tomt no-op spamme Discord 4x/dag.
-      - name: Discord-notifikation
-        if: always() && (github.event_name == 'workflow_dispatch' || job.status != 'success' || steps.discover.outputs.found != '0')
+      # Stories er IKKE dashboard-elementer (Mikkel: en story uden kladde har ingen
+      # værdi). Derfor INGEN "fandt N"-besked — kun ved FEJL, så et brudt discovery-job
+      # ikke går ubemærket. Dashboard-signalet er "/generate: N kladder klar".
+      - name: Discord-notifikation ved fejl
+        if: failure()
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          JOB_STATUS: ${{ job.status }}
-          FOUND: ${{ steps.discover.outputs.found }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ "$JOB_STATUS" = "success" ]; then
-            COLOR=3066993
-            TITLE="✅ Discovery færdig"
-            DESC="Fandt ${FOUND:-0} ny(e) historie(r). Tjek admin."
-          else
-            COLOR=15158332
-            TITLE="❌ Discovery fejlede"
-            DESC="Discovery fejlede. [Se loggen]($RUN_URL)."
-          fi
           curl -s -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"$TITLE\",\"description\":\"$DESC\",\"color\":$COLOR,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+            -d "{\"embeds\":[{\"title\":\"❌ Discovery fejlede\",\"description\":\"check-sources fejlede. [Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
