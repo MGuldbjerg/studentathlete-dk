@@ -85,8 +85,17 @@ export class D1Client {
     throw new Error("queryWithRetry: uventet tilstand");
   }
 
-  async execute(sql: string, params: unknown[] = []): Promise<void> {
-    await this.query(sql, params);
+  /**
+   * Kør en skrive-query. Returnerer resultatet inkl. `meta.changes` (antal rækker
+   * faktisk ændret) — vigtigt for `INSERT OR IGNORE`/`UPDATE`, der IKKE kaster ved
+   * no-op: changes === 0 betyder "ingen ny/ændret række". Returtypen er udvidet fra
+   * void → kaldere der ignorerer den er upåvirkede.
+   */
+  async execute<T = Record<string, unknown>>(
+    sql: string,
+    params: unknown[] = [],
+  ): Promise<D1QueryResult<T>> {
+    return this.query<T>(sql, params);
   }
 
   async batch(

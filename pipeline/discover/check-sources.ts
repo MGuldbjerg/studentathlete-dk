@@ -107,8 +107,12 @@ async function checkSchoolFeeds(
           await new Promise((r) => setTimeout(r, 500));
         }
 
+        // INSERT OR IGNORE kaster IKKE ved dublet-url_hash — den indsætter bare 0 rækker.
+        // Tæl derfor kun via meta.changes (faktisk indsatte rækker); ellers tælles de
+        // samme gen-matchede RSS-items som "nye" ved HVER kørsel (feedet beholder dem
+        // i dagevis), og Discord rapporterer "fandt N" uden at noget nyt er gemt.
         try {
-          await db.execute(
+          const res = await db.execute(
             `INSERT OR IGNORE INTO stories
              (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -123,10 +127,13 @@ async function checkSchoolFeeds(
               story.relevance_score,
             ],
           );
-          foundInSchool++;
-          totalFound++;
-        } catch {
-          // Duplikat URL (url_hash UNIQUE) — forventet
+          if (res.meta.changes > 0) {
+            foundInSchool++;
+            totalFound++;
+          }
+        } catch (err) {
+          // Ægte indsæt-fejl (dubletter ignorerer OR IGNORE stille). Log — ikke tavst.
+          console.error(`  Insert fejlede [${story.url}]: ${err instanceof Error ? err.message : String(err)}`);
         }
       }
 

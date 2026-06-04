@@ -54,6 +54,8 @@ Pipeline: discovery (skole-feeds) → generering → kladder i admin.
   - `weekly-digest.yml`: succes poster digesten selv; tilføjet `if: failure()`-besked så et brudt digest-job ikke fejler tavst (jf. SQLITE-fejlen 2026-06-02). Både planlagt + manuel.
   - YAML-valideret (3 filer parser, betingelser OK). Ikke live-trigget (ville køre rigtige jobs + poste i delt Discord → blokeret som uden for opgaven). Verificér ved at køre `/discover` fra Discord.
 
+- [x] **Discover-tæller fikset** (2026-06-04): `check-sources.ts` talte feed-matches, ikke faktiske inserts — `INSERT OR IGNORE` kaster IKKE ved dublet-url_hash, så gen-matchede RSS-items (bliver i feedet i dagevis) blev talt som "nye" ved HVER kørsel → Discord-phantom "fandt 2" uden nye DB-rækker. Verificeret mod live D1: **0 stories siden 06-02**; den ene admin-kladde er artikel 76 ("Madsen All-American", `published=0`), genereret 06-03 fra en 06-02-story — ægte, men urelateret til discovery. Fix: `D1Client.execute` returnerer nu resultatet (var `void`); tæl kun `meta.changes > 0`; ægte insert-fejl logges nu (ikke tavst). Generate-tælleren ("Genereret N artikeludkast" = dashboard-signalet) er OK: dedup på story_id + plain INSERT + tæl efter succes. Se [[laerdomme]] #30.
+
 ## Aktuel status
 
 Pipeline kører. **Off-season** (juni): skole-feeds er stille — discovery finder ~1 historie/uge. Få kladder genereres pt. (datagrundlag, ikke fejl).
