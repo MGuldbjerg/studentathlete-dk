@@ -12,6 +12,7 @@
  * ønskes som FAKTA-kilder, ikke som artikel-kilder.
  */
 
+import * as cheerio from "cheerio";
 import type { ChainLike, FactSheet } from "./build-factsheet";
 
 export interface BoxScoreExtract {
@@ -120,6 +121,33 @@ export function findBoxScoreUrl(html: string, baseUrl: string): string | null {
   return candidates[0].url;
 }
 
+/**
+ * Box-score-specifik tekstudtrækning. Modsat extractMainText (hele siden, ofte 400KB+
+ * navigation før stat-tabellen) målretter denne STAT-TABELLERNE, så atletens linje
+ * faktisk ender inden for LLM-vinduet. Prøver i rækkefølge: Sidearm-spiller-stat-tabeller
+ * → box-score-container → alle <table> → body. Returnerer null hvis intet brugbart.
+ */
+export function extractBoxScoreText(html: string): string | null {
+  if (!html) return null;
+  let $: cheerio.CheerioAPI;
+  try {
+    $ = cheerio.load(html);
+  } catch {
+    return null;
+  }
+  const candidates: Array<() => string> = [
+    () => $(".sidearm-table.overall-stats").map((_, t) => $(t).text()).get().join("\n"),
+    () => $('[class*="box-score"], [class*="boxscore"], [id*="boxscore"]').first().text(),
+    () => $("table").map((_, t) => $(t).text()).get().join("\n"),
+    () => $("body").text(),
+  ];
+  for (const get of candidates) {
+    const raw = (get() ?? "").replace(/\s+/g, " ").trim();
+    if (raw.length >= 40) return raw;
+  }
+  return null;
+}
+
 function asStringArray(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.trim().length > 0) : [];
 }
@@ -133,7 +161,9 @@ export async function extractBoxScoreStats(
   input: { athleteName: string; sport: string; text: string },
   chain: ChainLike,
 ): Promise<BoxScoreExtract | null> {
-  const text = input.text.slice(0, 6000);
+  // Box-score-tabel-tekst er kompakt; 16000 giver plads til begge holds statlines
+  // (extractBoxScoreText målretter tabellerne, så grænsen rammes sjældent).
+  const text = input.text.slice(0, 16000);
   if (!text.trim()) return null;
 
   const prompt = [

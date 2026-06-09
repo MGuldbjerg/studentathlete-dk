@@ -75,28 +75,31 @@ med snapshots fra en rigtig in-season-recap m. box-score-link:
 
 Snapshots + håndverificeret `expected` er den eneste del der kræver et menneske/creds; resten kører offline.
 
-## Live-fund (2026-06-09) — første rigtige in-season-kørsel
+## Live-fund (2026-06-09) — to rigtige in-season-kørsler
 
-Kørt mod en ægte UC Davis WBB-recap (triple-OT vs UC San Diego, Lena Svanholm) via
-`record-fixture.ts`. Resultater + fund:
+Kørt mod ægte Sidearm-recaps via `record-fixture.ts`: UC Davis (Svanholm) og Wyoming
+(Malene Lind Pedersen, career-high-kamp).
 
-- ✅ **Link-detektion virker live**: `findBoxScoreUrl` fandt korrekt `/boxscore.aspx?path=wbball&id=28395`
-  (legacy-href der 302-redirecter til SPA-stats-siden). Dette var aldrig før valideret live.
-- ✅ **Slutresultat udtrækkes**: scoreboardet renderer → "88-80" korrekt udtrukket.
-- ❌ **Box-score-STATLINE renderer IKKE**: selv med `networkidle2` + 50s timeout indeholder den
-  renderede HTML *kun* shell + scoreboard — spiller-stat-tabellen kommer aldrig i DOM'en
-  (Svanholm optræder 0 gange). Prod kalder `renderPage` med **default `networkidle0`/30s**, der
-  *timeouter helt* på disse tunge Sidearm-box-score-SPA'er → box-score-stat-berigelse fejler-open
-  (springes over) for den mest udbredte platform. **Dette er backtestens vigtigste fund.**
-- ⚠️ **Gratis-model-format**: skrivefasen (Mistral) lavede titlen som `**fed**` i stedet for `# overskrift`
-  → `parseArticleOutput` gav "Udkast uden titel" + tom brødtekst. (Bemærk: harness'ens `WRITE_SYSTEM`
-  er minimal; prod-skrive-prompten i `generate-articles.ts` er rigere — bekræft om prod rammer samme.)
-- ⚠️ **Gratis-verify-flakiness**: verify-modellen ekkoede prompt-tekst ind i `flags`.
+- ✅ **Link-detektion virker live**: `findBoxScoreUrl` fandt korrekt `/boxscore.aspx?path=wbball&id=…`
+  (legacy-href der 302-redirecter til SPA-stats-siden). Var aldrig før valideret live.
+- ✅ **Box-score-tabellen renderer fint** — min første konklusion ("renderer ikke") var FORKERT:
+  tabellen var der hele tiden (spillere + statkolonner). Svanholm stod bare ikke i den (bænkspiller,
+  ingen statline) → `found:false` var korrekt. De to ÆGTE fejl var:
+- 🛠️ **FIXET (1) — render-timeout**: prod-default `networkidle0`/30s *timeouter* på disse sider, fordi
+  tracking-/annonce-pixels (statcollector, id5-sync, rlcdn) holder forbindelser åbne → netværket
+  bliver aldrig helt roligt. Fix: `browser-render.ts` default → **`networkidle2` + 45s** (gælder også
+  roster-scraping, samme sider).
+- 🛠️ **FIXET (2) — extract-cap**: `extractMainText` gav ~404.000 tegn (mest navigation); spiller-
+  tabellen lå ved tegn ~19.000, men `extractBoxScoreStats` så kun de første 6.000 → *alle* Sidearm-
+  spillere gav `found:false`. Fix: ny `extractBoxScoreText()` målretter stat-tabellerne
+  (404KB → ~2KB) + cap hævet til 16.000. **Dette var den dominerende fejl.**
+- ✅ **Valideret end-to-end** (Wyoming/Pedersen, default prod-sti): statline udtrukket korrekt —
+  `38 MIN · 8-13 FG · 3-7 3PT · 10-10 FT · 3 REB · 29 PTS`, slutresultat 60-53, `fabrication_risk: low`.
+- ⚠️ **STADIG ÅBENT — gratis-model-format**: skrivefasen (Mistral) lavede titlen som `**fed**` i stedet
+  for `# overskrift` → `parseArticleOutput` gav "Udkast uden titel". Verify-modellen ekkoede også
+  prompt-tekst ind i `flags`. Hører til "betalt editor"-sporet, ikke box-score-gappet.
 
-**Anbefalede fixes** (separat arbejde, ikke gjort her): (1) render box scores med `waitForSelector`
-på stat-tabellen + længere timeout, eller skift box-score-kilde til en ikke-SPA-endpoint; (2) hæv
-6000-tegns-cap'et i `extractBoxScoreStats` og/eller målret tekstudtrækket mod stat-tabellen;
-(3) gør `parseArticleOutput` robust over for `**fed**`-titler; (4) genovervej fri-vs-betalt LLM
-for skrive-/verify-faserne (jf. format-compliance ovenfor).
+**Resterende anbefalinger**: (3) gør `parseArticleOutput` robust over for `**fed**`-titler;
+(4) betalt LLM + structured outputs for skrive-/verify-faserne (fjerner format-/flag-flakiness).
 
 Snapshots ligger i `snapshots/` (HTML gitignored — regenér med `record-fixture.ts`; `.fixture.json` beholdt).

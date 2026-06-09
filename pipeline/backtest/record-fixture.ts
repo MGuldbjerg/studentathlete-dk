@@ -22,7 +22,7 @@ import { ProviderChain } from "../lib/llm/provider-chain";
 import { extractMainText } from "../discover/extract-story";
 import { renderPage, isBrowserRenderAvailable } from "../lib/browser-render";
 import { buildFactSheet, renderFactSheet } from "../generate/build-factsheet";
-import { enrichFactSheetWithBoxScore, findBoxScoreUrl, renderBoxScoreBlock } from "../generate/box-score";
+import { enrichFactSheetWithBoxScore, findBoxScoreUrl, renderBoxScoreBlock, extractBoxScoreText } from "../generate/box-score";
 import { verifyArticle } from "../generate/verify-article";
 import { parseArticleOutput } from "../generate/parse-output";
 import { newsPrompt, type ArticleContext } from "../generate/prompts/news";
@@ -95,9 +95,8 @@ async function main(): Promise<void> {
   console.log(`  findBoxScoreUrl → ${boxUrl ?? "(intet link)"}`);
   if (!boxUrl) { console.error("Ingen box-score-link i recap'en — vælg en anden recap."); process.exit(1); }
 
-  // 3) Render box scoren (JS-tung stats-side). Sidearm-box-scores er tunge SPA'er:
-  // networkidle0 (prod-default) timeouter ofte → brug networkidle2 + længere timeout.
-  const boxHtml = await renderPage(boxUrl, { waitUntil: "networkidle2", timeoutMs: 50000 });
+  // 3) Render box scoren via PROD-stien (renderPage-defaults er nu networkidle2 + 45s).
+  const boxHtml = await renderPage(boxUrl);
   if (!boxHtml) { console.error("Render gav ingen HTML."); process.exit(1); }
   const boxFile = path.join(SNAP_DIR, `${id}.box.html`);
   fs.writeFileSync(boxFile, boxHtml);
@@ -108,7 +107,7 @@ async function main(): Promise<void> {
   const deps = {
     async fetchHtml(u: string) { return u === url ? recapHtml : null; },
     async renderPage() { return boxHtml; },
-    extractText: extractMainText,
+    extractText: extractBoxScoreText,
   };
 
   const recapText = extractMainText(recapHtml) ?? recapHtml;

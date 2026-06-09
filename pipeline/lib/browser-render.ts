@@ -27,9 +27,11 @@ export class BrowserRenderError extends Error {
 export interface RenderOptions {
   /** Vent til dette CSS-selektor findes (godt til SPA-rosters, fx ".sidearm-roster") */
   waitForSelector?: string;
-  /** networkidle0 = vent til netværket er roligt (default). */
+  /** networkidle2 = vent til ≤2 forbindelser (default). networkidle0 fungerer IKKE på
+   *  college-sport-SPA'er: tracking-/annonce-pixels (statcollector, id5-sync, rlcdn)
+   *  holder forbindelser åbne, så netværket bliver aldrig helt roligt → timeout. */
   waitUntil?: "load" | "domcontentloaded" | "networkidle0" | "networkidle2";
-  /** Navigationstimeout i ms (default 30000). */
+  /** Navigationstimeout i ms (default 45000). */
   timeoutMs?: number;
   /** Antal gentagne forsøg ved HTTP 429 (per-minut rate limit). Default 3. */
   retries?: number;
@@ -55,13 +57,15 @@ export async function renderPage(
   if (!isBrowserRenderAvailable()) return null;
 
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/browser-rendering/content`;
-  const timeoutMs = opts.timeoutMs ?? 30000;
+  const timeoutMs = opts.timeoutMs ?? 45000;
   const maxRetries = opts.retries ?? 3;
   const backoffMs = opts.backoffMs ?? 20000;
 
   const body: Record<string, unknown> = {
     url,
-    gotoOptions: { waitUntil: opts.waitUntil ?? "networkidle0", timeout: timeoutMs },
+    // networkidle2 (ikke networkidle0): tracking-/annonce-pixels på Sidearm-sider
+    // holder forbindelser åbne, så networkidle0 timeouter i stedet for at returnere.
+    gotoOptions: { waitUntil: opts.waitUntil ?? "networkidle2", timeout: timeoutMs },
     // Spar browser-tid: skip billeder/fonts/css/media — vi skal kun bruge DOM-teksten.
     rejectResourceTypes: ["image", "font", "media", "stylesheet"],
   };

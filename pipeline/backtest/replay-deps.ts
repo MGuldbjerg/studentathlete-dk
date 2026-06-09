@@ -2,8 +2,7 @@
  * Replay-deps: serverer cachet/inline HTML pr. URL og scriptede LLM-svar pr. fase,
  * så de RIGTIGE pipeline-funktioner kører deterministisk offline (intet netværk/LLM/CF).
  */
-import { extractMainText } from "../discover/extract-story";
-import type { BoxScoreDeps } from "../generate/box-score";
+import { extractBoxScoreText, type BoxScoreDeps } from "../generate/box-score";
 import type { Fixture } from "./types";
 
 /**
@@ -20,7 +19,7 @@ export function makeReplayDeps(fixture: Fixture): BoxScoreDeps {
       return fixture.boxScoreHtml || null;
     },
     extractText(html: string): string | null {
-      return extractMainText(html);
+      return extractBoxScoreText(html);
     },
   };
 }

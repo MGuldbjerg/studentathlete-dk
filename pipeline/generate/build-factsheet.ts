@@ -10,9 +10,9 @@
 
 import { createD1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
-import { fetchHtml, extractMainText } from "../discover/extract-story";
+import { fetchHtml } from "../discover/extract-story";
 import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
-import { enrichFactSheetWithBoxScore } from "./box-score";
+import { enrichFactSheetWithBoxScore, extractBoxScoreText } from "./box-score";
 
 interface StoryRow {
   id: number;
@@ -234,7 +234,7 @@ async function main(): Promise<void> {
           factSheet,
           { sourceUrl: story.source_url, athleteName: story.athlete_name, sport: story.sport },
           chain,
-          { fetchHtml, renderPage: (u) => renderPage(u), extractText: extractMainText },
+          { fetchHtml, renderPage: (u) => renderPage(u), extractText: extractBoxScoreText },
         );
         if (enriched.rendered) rendersUsed++;
         if (enriched.found) {

@@ -1,0 +1,36 @@
+{
+  "id": "pedersen-wyoming-0307",
+  "kind": "real",
+  "athleteName": "Malene Lind Pedersen",
+  "sport": "basketball",
+  "university": "University of Wyoming",
+  "hometown": "Denmark",
+  "sourceUrl": "https://gowyo.com/news/2026/3/7/womens-basketball-pedersen-scores-career-high-as-wyoming-loses-in-first-round.aspx",
+  "recapHtmlFile": "pedersen-wyoming-0307.recap.html",
+  "boxScoreHtmlFile": "pedersen-wyoming-0307.box.html",
+  "llm": {
+    "factsheet": "```json\n{\n  \"has_substance\": true,\n  \"event\": {\n    \"type\": \"basketball game\",\n    \"date\": \"Mar. 07, 2026\",\n    \"opponent\": \"Air Force\",\n    \"competition\": \"Credit Union 1 Mountain West Women's Basketball Championship\"\n  },\n  \"result\": {\n    \"final_score\": \"60-53\",\n    \"outcome\": \"loss\",\n    \"placement\": \"first round\"\n  },\n  \"stats\": [\n    {\"text\": \"29 points\", \"source\": \"prose\"},\n    {\"text\": \"8-of-13 shooting\", \"source\": \"prose\"},\n    {\"text\": \"10-for-10 free throws\", \"source\": \"prose\"},\n    {\"text\": \"3-of-3 three-pointers\", \"source\": \"prose\"},\n    {\"text\": \"1,713 career points\", \"source\": \"prose\"},\n    {\"text\": \"639 career field goals\", \"source\": \"prose\"},\n    {\"text\": \"10th in career three-pointers made\", \"source\": \"prose\"},\n    {\"text\": \"first in career free-throw percentage\", \"source\": \"prose\"},\n    {\"text\": \"130 career games played\", \"source\": \"prose\"}\n  ],\n  \"qualitative\": [\n    {\"text\": \"only Cowgirl to finish in double figures\", \"source\": \"prose\"},\n    {\"text\": \"saved her best for last\", \"source\": \"prose\"},\n    {\"text\": \"second 3-pointer of the game\", \"source\": \"prose\"},\n    {\"text\": \"did what she could for Wyoming to keep pace\", \"source\": \"prose\"},\n    {\"text\": \"Pedersen 3-pointer with three minutes to play cut it to 52-49\", \"source\": \"prose\"}\n  ],\n  \"quotes\": [],\n  \"other_facts\": [\n    {\"text\": \"Wyoming's season ends at 10-20 overall\", \"source\": \"prose\"},\n    {\"text\": \"Cowgirls shot 45.2-percent in the loss\", \"source\": \"prose\"},\n    {\"text\": \"Cowgirls went just 3-of-15 from 3-point range\", \"source\": \"prose\"},\n    {\"text\": \"Cowgirls made four more free throws Saturday\", \"source\": \"prose\"},\n    {\"text\": \"Cowgirls committed 19 turnovers while Air Force had just six\", \"source\": \"prose\"}\n  ],\n  \"box_score_url\": null\n}\n```",
+    "boxScore": "{\"found\": true, \"final_score\": \"Air Force 60, Wyoming 53\", \"stat_line\": [\"38 MIN\", \"8-13 FG\", \"3-7 3PT\", \"10-10 FT\", \"0-3 ORB-DRB\", \"3 REB\", \"2 AST\", \"2 PF\", \"2 TO\", \"1 STL\", \"2 BLK\", \"29 PTS\"]}",
+    "article": "**Dansker scorede karriererekord i nederlag**\n\n*Laramie, USA* – Danske Malene Lind Pedersen satte personlig rekord med 29 point, men det rakte ikke til sejr, da University of Wyoming tabte 60-53 til Air Force i første runde af Mountain West-slutspillet.\n\nDen danske basketsensation var den eneste spiller på Wyoming-holdet, der nåede dobbelt cifre, og hun afleverede en solid præstation med otte mål i skud og ti ud af ti i straffekast. Hendes andet trepointsskud i kampen, scoret med tre minutter tilbage, reducerede til 52-49, men det blev ikke nok til at vende nederlaget.\n\nWyomings sæson sluttede dermed med et samlet resultat på 10-20, og holdet havde en skudprocent på 45,2 i nederlaget. Cowgirls kæmpede med præcisionen fra trepointlinjen, hvor de kun ramte tre ud af 15 forsøg, og med 19 tabte bolde mod Air Forces seks.\n\nMalene Lind Pedersen sluttede karrieren med 1.713 point, 639 mål i spil og er nummer ti på listen over flest trepointsskud i Wyoming-historie. Hun er også nummer ét i holdets rekordliste over højeste straffekastprocent.\n\n\"Malene gjorde alt, hvad hun kunne for at holde Wyoming med i spillet,\" skriver universitetets hjemmeside, *gowyo.com*, og tilføjer, at hun \"sparede sit bedste til sidst\".\n\nFor Air Force var sejren en solid præstation, men det er dog tydeligt, at Wyoming havde store udfordringer med præcisionen og tabte bolde i en afgørende kamp.",
+    "verify": "{\"fabrication_risk\": \"low\", \"flags\": []}"
+  },
+  "expected": {
+    "linkDetected": "https://gowyo.com/boxscore.aspx?path=wbball&id=6920",
+    "finalScore": "60-53",
+    "statLine": [
+      "38 MIN",
+      "8-13 FG",
+      "3-7 3PT",
+      "10-10 FT",
+      "0-3 ORB-DRB",
+      "3 REB",
+      "2 AST",
+      "2 PF",
+      "2 TO",
+      "1 STL",
+      "2 BLK",
+      "29 PTS"
+    ],
+    "fabricationRisk": "low"
+  }
+}
