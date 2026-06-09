@@ -1,8 +1,22 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-03 (box scores v2 bygget — sidste plan-trin færdigt)
+**Sidst opdateret**: 2026-06-09 (datakvalitet + backtest-harness + UK-beslutning)
 
-## 👉 Næste session — start her (handoff 2026-06-03)
+## 👉 Næste session — start her (handoff 2026-06-09)
+**Fire opgaver leveret (91 tests grønne, ændringer i prod D1, IKKE committet endnu):**
+1. **Klassifikator-fix** — `isDanishHometown` (`pipeline/lib/danish-cities.ts`) fanger nu fulde US-statsnavne + "By, Stat / High School"-format + typo-tilfælde; "Elsinore"-alias fjernet. 6 false-positive "danskere" deaktiveret (active=0, reversibelt) via `cleanup-false-positives.ts` (nu dry-run-default). Live: **127 aktive / 9 inaktive.** Test: `pipeline/lib/_danish-cities-test.ts`.
+2. **Dedup + transfer** — ny `pipeline/lib/athlete-identity.ts` (identitet på tværs af navne-varianter; mellemnavns-konflikt-guard). Marqus Marion-dublet flettet (#33→#272). Scraperen opdaterer nu eksisterende række (inkl. university) ved transfer i stedet for ny slug. Sweep-script: `pipeline/report/dedup-athletes.ts`. Test: `_athlete-identity-test.ts`.
+3. **Officielt bio-link** — `migration-013-bio-url.sql` (kørt mod remote D1), parsere fanger href, scraper gemmer `bio_url`, vist på atletprofil. **Udfyldes ved næste ugentlige scrape.**
+4. **Backtest-harness** — `pipeline/backtest/` (offline, deterministisk, 4/4 fixtures). Kører den ægte box-score+to-fase-pipeline via injicerede replay-deps. Kør: `npx tsx pipeline/backtest/run-backtest.ts`. **Mangler:** rigtige in-season-fixtures (creds + håndverificering — se `pipeline/backtest/README.md` RECORD MODE).
+
+**Beslutning:** ekspansion → **UK** (engelsk = ingen oversættelse; ~8× DK's pool). Sekvens uændret: validér DK in-season → parametrisér "dansk" til country-profile → klон.
+**Sikkerhed:** admin = statisk `ADMIN_TOKEN` i URL'en (`?token=`), håndhævet på både sider + mutérende API'er. Svaghed = URL-læk/ingen rotation/ingen identitet. **Opgradér til Cloudflare Access før UK-launch** (gratis, edge, ingen token i URL).
+**TODO DIG:** sæt `ANTHROPIC_API_KEY` (Claude-routing) + CF Web Analytics-token (uændret fra før). Overvej `git commit` af ovenstående.
+
+---
+
+### Tidligere handoff (2026-06-03)
+## 👉 (handoff 2026-06-03)
 **Box scores v2 (plan-trin 7) er bygget + unit-testet (39 tests grønne) + typecheck ren, committet + pushet til main. Sidste plan-trin i to-fase-generering er færdigt. Mangler kun live in-season validering på en rigtig recap m. box-score-link (off-season nu → ingen at ride på; fail-open, så det aldrig blokerer en artikel).**
 
 1. **Parser-fix VIRKER i prod** ✅ — scrape-run `26870990500` færdig: **+5 nye danske atleter** (124→129 aktive), **113 'error'→parsed** (8308→8195). `parseRoster` faldt aldrig tilbage til generisk tabel-parser → fejlagtigt-'error' Sidearm-tabel-sider. Aktuelle tal: **133 atleter / 129 aktive · roster_checks: 71 success / 4646 empty / 8195 error / 108 js_required.**
