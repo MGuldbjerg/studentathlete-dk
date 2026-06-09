@@ -3,7 +3,9 @@
 **Sidst opdateret**: 2026-06-09 (datakvalitet + backtest-harness + UK-beslutning)
 
 ## 👉 Næste session — start her (handoff 2026-06-09)
-**Fire opgaver leveret (91 tests grønne, ændringer i prod D1, IKKE committet endnu):**
+**Committet på branch `feat/data-quality-dedup-backtest` (IKKE pushet/merget endnu). Fem leverancer, 91 tests grønne:**
+
+0. **Box-score-FIX (vigtigst)** — den live backtest afslørede at box-scores v2 **aldrig har virket på Sidearm** (den dominerende platform): (a) `renderPage`-default `networkidle0`/30s timeouter pga. tracking-pixels, (b) `extractMainText` gav 404K tegn navigation så spiller-tabellen (tegn ~19K) lå udenfor `extractBoxScoreStats`' 6000-tegns-vindue → alle spillere gav `found:false`. Fix: `browser-render.ts` default → `networkidle2`/45s; ny `extractBoxScoreText()` målretter stat-tabellerne. **Valideret live: Wyoming/Pedersen career-high 29 PTS, 8-13 FG, 10-10 FT korrekt udtrukket.** (commit 36ff346)
 1. **Klassifikator-fix** — `isDanishHometown` (`pipeline/lib/danish-cities.ts`) fanger nu fulde US-statsnavne + "By, Stat / High School"-format + typo-tilfælde; "Elsinore"-alias fjernet. 6 false-positive "danskere" deaktiveret (active=0, reversibelt) via `cleanup-false-positives.ts` (nu dry-run-default). Live: **127 aktive / 9 inaktive.** Test: `pipeline/lib/_danish-cities-test.ts`.
 2. **Dedup + transfer** — ny `pipeline/lib/athlete-identity.ts` (identitet på tværs af navne-varianter; mellemnavns-konflikt-guard). Marqus Marion-dublet flettet (#33→#272). Scraperen opdaterer nu eksisterende række (inkl. university) ved transfer i stedet for ny slug. Sweep-script: `pipeline/report/dedup-athletes.ts`. Test: `_athlete-identity-test.ts`.
 3. **Officielt bio-link** — `migration-013-bio-url.sql` (kørt mod remote D1), parsere fanger href, scraper gemmer `bio_url`, vist på atletprofil. **Udfyldes ved næste ugentlige scrape.**
