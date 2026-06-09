@@ -1,8 +1,14 @@
 /**
- * Tjek alle atleter i databasen mod den opdaterede isDanishHometown() og slet false positives.
+ * Tjek alle atleter i databasen mod den opdaterede isDanishHometown() og deaktivér
+ * false positives (sætter active=0 — reversibelt; de forsvinder fra sitet men slettes ikke).
  *
  * Atleter med NULL hometown springes over — de er sandsynligvis manuelt tilføjet
  * og er legitime danske atleter uden hometown-data.
+ *
+ * Kør:
+ *   npx tsx pipeline/report/cleanup-false-positives.ts            # dry-run (kun rapport)
+ *   npx tsx pipeline/report/cleanup-false-positives.ts --apply    # deaktivér (active=0)
+ *   npx tsx pipeline/report/cleanup-false-positives.ts --apply --hard-delete  # slet permanent (cascade)
  */
 import { createD1Client } from "../lib/d1-client";
 import { isDanishHometown } from "../lib/danish-cities";
@@ -13,13 +19,20 @@ interface AthleteRow {
   hometown: string | null;
   university: string;
   sport: string;
+  active: number;
 }
 
 async function main() {
-  const db = createD1Client();
-  const r = await db.query<AthleteRow>("SELECT id, name, hometown, university, sport FROM athletes");
+  const args = process.argv.slice(2);
+  const apply = args.includes("--apply");
+  const hardDelete = args.includes("--hard-delete");
 
-  console.log(`Tjekker ${r.results.length} atleter...\n`);
+  const db = createD1Client();
+  const r = await db.query<AthleteRow>(
+    "SELECT id, name, hometown, university, sport, active FROM athletes",
+  );
+
+  console.log(`Tjekker ${r.results.length} atleter${apply ? "" : " (DRY-RUN — ingen ændringer)"}...\n`);
 
   const falsePositives: AthleteRow[] = [];
   let nullCount = 0;
@@ -27,36 +40,45 @@ async function main() {
   for (const a of r.results) {
     if (!a.hometown) {
       nullCount++;
-      console.log(`  SKIP  | ${a.name} | (tom hometown) | ${a.university}`);
       continue;
     }
-    const passes = isDanishHometown(a.hometown);
-    const status = passes ? "OK   " : "FALSK";
-    console.log(`  ${status} | ${a.name} | ${a.hometown} | ${a.university}`);
-    if (!passes) falsePositives.push(a);
+    if (!isDanishHometown(a.hometown)) falsePositives.push(a);
   }
 
-  console.log(`\n${nullCount} atleter med tom hometown sprunget over.`);
+  console.log(`${nullCount} atleter med tom hometown sprunget over (antaget legitime).\n`);
 
   if (falsePositives.length === 0) {
     console.log("Ingen false positives fundet.");
     return;
   }
 
-  console.log(`\n${falsePositives.length} false positive(s) slettes:`);
+  console.log(`${falsePositives.length} false positive(s):`);
   for (const a of falsePositives) {
-    console.log(`  → ${a.name} | ${a.hometown} | ${a.university} | ${a.sport}`);
+    const flag = a.active ? "" : " (allerede inaktiv)";
+    console.log(`  #${a.id} | ${a.name} | ${a.hometown} | ${a.university} | ${a.sport}${flag}`);
+  }
+
+  if (!apply) {
+    console.log("\nDRY-RUN: kør med --apply for at deaktivere (active=0), eller --apply --hard-delete for permanent sletning.");
+    return;
   }
 
   const ids = falsePositives.map((a) => a.id);
   const idList = ids.join(",");
 
-  // Cascade-slet fra alle tabeller der refererer athletes(id)
-  await db.execute(`DELETE FROM articles WHERE athlete_id IN (${idList})`);
-  await db.execute(`DELETE FROM stories WHERE athlete_id IN (${idList})`);
-  await db.execute(`DELETE FROM sources WHERE athlete_id IN (${idList})`);
-  await db.execute(`DELETE FROM athletes WHERE id IN (${idList})`);
-  console.log("Slettet.");
+  if (hardDelete) {
+    // Cascade-slet fra alle tabeller der refererer athletes(id)
+    await db.execute(`DELETE FROM articles WHERE athlete_id IN (${idList})`);
+    await db.execute(`DELETE FROM stories WHERE athlete_id IN (${idList})`);
+    await db.execute(`DELETE FROM sources WHERE athlete_id IN (${idList})`);
+    await db.execute(`DELETE FROM athletes WHERE id IN (${idList})`);
+    console.log(`\nSlettet permanent: ${ids.length} atlet(er).`);
+  } else {
+    await db.execute(
+      `UPDATE athletes SET active = 0, updated_at = datetime('now') WHERE id IN (${idList})`,
+    );
+    console.log(`\nDeaktiveret (active=0): ${ids.length} atlet(er). Reversibelt via active=1.`);
+  }
 }
 
 main().catch(console.error);

@@ -47,7 +47,8 @@ export const DANISH_CITIES: string[] = [
   "Nykøbing Falster",
   "Nykøbing Mors",
   "Helsingør",
-  "Elsinore",
+  // "Elsinore" (engelsk navn for Helsingør) fjernet — det matcher Lake Elsinore, CA
+  // og Elsinore, UT som falske positiver. "Helsingør" er det reelle danske signal.
   "Birkerød",
   "Farum",
   "Frederiksberg",
@@ -125,7 +126,11 @@ const FALSE_POSITIVE_PATTERNS = [
   /\b(ga|sc|wi|me)\b.*denmark/i,  // US-stat før Denmark
 ];
 
-/** US-stat-identifikatorer — bruges til at afvise US-adresser (modulniveau, genbruges). */
+/**
+ * US-stat-identifikatorer — bruges til at afvise US-adresser (modulniveau, genbruges).
+ * Hver streng er mellemrums-/tegnfri (samme normalisering som segmenterne i
+ * isDanishHometown), så fulde navne med mellemrum ("New York" → "newyork") matcher.
+ */
 const US_STATE_IDENTIFIERS = new Set([
   // 2-bogstavs forkortelser
   "al","ak","az","ar","ca","co","ct","de","fl","ga","hi","id","il","in","ia",
@@ -135,7 +140,19 @@ const US_STATE_IDENTIFIERS = new Set([
   // Uformelle forkortelser (roster-data bruger ofte disse)
   "ala","ariz","ark","calif","colo","conn","del","fla","ill","ind","kan",
   "ky","mich","minn","miss","mont","neb","nev","mex","dak","okla","ore",
-  "penn","tenn","tex","vir","wash","wis","wyo",
+  "penn","tenn","tex","vir","wash","wis","wisc","wyo",
+  // Fulde statsnavne (mellemrum fjernet) — fanger rosters der staver staten ud,
+  // fx "Lake Elsinore, California" eller "Denmark, Wisconsin".
+  "alabama","alaska","arizona","arkansas","california","colorado","connecticut",
+  "delaware","florida","georgia","hawaii","idaho","illinois","indiana","iowa",
+  "kansas","kentucky","louisiana","maine","maryland","massachusetts","michigan",
+  "minnesota","mississippi","missouri","montana","nebraska","nevada",
+  "newhampshire","newjersey","newmexico","newyork","northcarolina","northdakota",
+  "ohio","oklahoma","oregon","pennsylvania","rhodeisland","southcarolina",
+  "southdakota","tennessee","texas","utah","vermont","virginia","washington",
+  "westvirginia","wisconsin","wyoming",
+  // Lande-/USA-markører
+  "usa","unitedstates","us",
 ]);
 
 /** Hele-ord-match (Unicode-bevidst, så ø/å/æ brydes korrekt). */
@@ -159,17 +176,22 @@ export function isDanishHometown(hometown: string | null): boolean {
   // Filtrér kendte false positives (Denmark, SC; Denmark HS osv.)
   if (FALSE_POSITIVE_PATTERNS.some((pattern) => pattern.test(lower))) return false;
 
-  // US-adresse? hometown med US-stat-forkortelse efter komma (fx "Viborg, SD",
-  // "Copenhagen, NY", "Denmark, Wis.") → afvis uanset by-/landmatch.
-  const parts = lower.split(",").map((p) => p.trim());
-  if (parts.length >= 2) {
-    const lastPart = parts[parts.length - 1].replace(/[^a-z]/g, "");
-    if (US_STATE_IDENTIFIERS.has(lastPart)) return false;
+  // US-adresse? Rosters skriver hometown som "By, Stat" ELLER "By, Stat / High School".
+  // Split på BÅDE komma og skråstreg og afvis hvis NOGEN del er en US-stat (forkortelse,
+  // uformel form, eller fuldt navn). Fanger fx:
+  //   "Lake Elsinore, California"            → segment "california"
+  //   "Lake Elsinore, CA / Centennial HS"    → segment "ca"   (staten er ikke sidste del)
+  //   "Denmark, Wis. / Denmark"              → segment "wis"
+  //   "Viborg, SD" / "Copenhagen, NY"        → segment "sd"/"ny"
+  const segments = lower.split(/[,/]/).map((p) => p.replace(/[^a-z]/g, ""));
+  if (segments.some((seg) => seg.length > 0 && US_STATE_IDENTIFIERS.has(seg))) {
+    return false;
   }
 
-  // Signal 1: eksplicit dansk land-marker
-  const hasDanishMarker = DANISH_COUNTRY_MARKERS.some(
-    (marker) => lower.includes(marker.toLowerCase()),
+  // Signal 1: eksplicit dansk land-marker som HELT ord (ikke delstreng — undgår
+  // at "Denmark High School" e.l. slipper igennem; skole-mønstre fanges desuden ovenfor).
+  const hasDanishMarker = DANISH_COUNTRY_MARKERS.some((marker) =>
+    new RegExp(`\\b${marker.toLowerCase()}\\b`).test(lower),
   );
   if (hasDanishMarker) return true;
 
