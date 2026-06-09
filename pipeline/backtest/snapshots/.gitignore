@@ -1,0 +1,3 @@
+# Store rå HTML-snapshots ignoreres (kan regenereres med record-fixture.ts).
+# .fixture.json beholdes som let, reproducerbart artefakt.
+*.html

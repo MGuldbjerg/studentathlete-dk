@@ -74,3 +74,29 @@ med snapshots fra en rigtig in-season-recap m. box-score-link:
    (Alternativt: peg `run-backtest.ts` på en rigtig `ProviderChain` bag et flag for et live-tjek.)
 
 Snapshots + håndverificeret `expected` er den eneste del der kræver et menneske/creds; resten kører offline.
+
+## Live-fund (2026-06-09) — første rigtige in-season-kørsel
+
+Kørt mod en ægte UC Davis WBB-recap (triple-OT vs UC San Diego, Lena Svanholm) via
+`record-fixture.ts`. Resultater + fund:
+
+- ✅ **Link-detektion virker live**: `findBoxScoreUrl` fandt korrekt `/boxscore.aspx?path=wbball&id=28395`
+  (legacy-href der 302-redirecter til SPA-stats-siden). Dette var aldrig før valideret live.
+- ✅ **Slutresultat udtrækkes**: scoreboardet renderer → "88-80" korrekt udtrukket.
+- ❌ **Box-score-STATLINE renderer IKKE**: selv med `networkidle2` + 50s timeout indeholder den
+  renderede HTML *kun* shell + scoreboard — spiller-stat-tabellen kommer aldrig i DOM'en
+  (Svanholm optræder 0 gange). Prod kalder `renderPage` med **default `networkidle0`/30s**, der
+  *timeouter helt* på disse tunge Sidearm-box-score-SPA'er → box-score-stat-berigelse fejler-open
+  (springes over) for den mest udbredte platform. **Dette er backtestens vigtigste fund.**
+- ⚠️ **Gratis-model-format**: skrivefasen (Mistral) lavede titlen som `**fed**` i stedet for `# overskrift`
+  → `parseArticleOutput` gav "Udkast uden titel" + tom brødtekst. (Bemærk: harness'ens `WRITE_SYSTEM`
+  er minimal; prod-skrive-prompten i `generate-articles.ts` er rigere — bekræft om prod rammer samme.)
+- ⚠️ **Gratis-verify-flakiness**: verify-modellen ekkoede prompt-tekst ind i `flags`.
+
+**Anbefalede fixes** (separat arbejde, ikke gjort her): (1) render box scores med `waitForSelector`
+på stat-tabellen + længere timeout, eller skift box-score-kilde til en ikke-SPA-endpoint; (2) hæv
+6000-tegns-cap'et i `extractBoxScoreStats` og/eller målret tekstudtrækket mod stat-tabellen;
+(3) gør `parseArticleOutput` robust over for `**fed**`-titler; (4) genovervej fri-vs-betalt LLM
+for skrive-/verify-faserne (jf. format-compliance ovenfor).
+
+Snapshots ligger i `snapshots/` (HTML gitignored — regenér med `record-fixture.ts`; `.fixture.json` beholdt).
