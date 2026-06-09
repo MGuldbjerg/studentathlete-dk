@@ -64,8 +64,14 @@ export function parseSidearm(html: string): RosterEntry[] {
       firstTextNode($, $(el).find('[class*="year"]').first()) ||
       null;
 
+    // Officielt bio-link: anker på spillerens navn.
+    const bioUrl =
+      $(el).find(".sidearm-roster-player-name a").first().attr("href")?.trim() ||
+      $(el).find('[class*="name"] a').first().attr("href")?.trim() ||
+      null;
+
     if (name) {
-      players.push({ name, position, hometown, year });
+      players.push({ name, position, hometown, year, bioUrl });
     }
   });
 
@@ -81,9 +87,10 @@ export function parseSidearm(html: string): RosterEntry[] {
         const position = cells.length > 2 ? cells.eq(2).text().trim() : null;
         const year = cells.length > 3 ? cells.eq(3).text().trim() : null;
         const hometown = cells.length > 4 ? cells.eq(4).text().trim() : null;
+        const bioUrl = cells.eq(1).find("a").first().attr("href")?.trim() || null;
 
         if (name && name !== "Name") {
-          players.push({ name, position, hometown, year });
+          players.push({ name, position, hometown, year, bioUrl });
         }
       },
     );

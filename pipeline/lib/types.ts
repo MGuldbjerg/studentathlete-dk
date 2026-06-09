@@ -56,6 +56,9 @@ export interface RosterEntry {
   position: string | null;
   hometown: string | null;
   year: string | null;
+  /** Link til atletens officielle bio på skolens roster-side (rå href — opløses
+   *  til absolut URL i scraperen mod skolens website). null hvis ingen anker. */
+  bioUrl: string | null;
 }
 
 export interface RosterCheck {

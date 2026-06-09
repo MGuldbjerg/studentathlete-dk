@@ -41,6 +41,7 @@ export interface Athlete {
   photo_credit: string | null;
   preferred_name: string | null;
   profile_summary: string | null;
+  bio_url?: string | null;
   class_year: string | null;
   expected_graduation: number | null;
   created_at: string;

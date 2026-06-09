@@ -114,6 +114,15 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
                 </div>
               ))}
             </dl>
+
+            {athlete.bio_url && (
+              <a href={athlete.bio_url} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 mt-5 text-xs font-bold tracking-[0.1em]
+                           uppercase hover:underline"
+                style={{ color: "#BF0A30" }}>
+                Officiel profil hos {athlete.university} ↗
+              </a>
+            )}
           </aside>
 
           {/* ── Hoved ────────────────────────────────────────────── */}

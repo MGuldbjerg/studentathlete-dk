@@ -15,6 +15,7 @@ import {
 } from "../lib/browser-render";
 import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
+import { samePerson } from "../lib/athlete-identity";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import type { School } from "../lib/types";
 
@@ -180,6 +181,39 @@ async function fetchWithProbeLog(
   }
 
   return html;
+}
+
+/** Opløs et rå href (relativt eller absolut) til absolut URL mod skolens website. */
+function toAbsoluteUrl(href: string | null, base: string): string | null {
+  if (!href) return null;
+  try {
+    return new URL(href, base).toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Find en eksisterende atlet der er SAMME person (samme identitet+sport, jf.
+ * athlete-identity.samePerson) — også når navnet staves anderledes (mellemnavn
+ * med/uden) eller atleten er skiftet skole. Returnerer null hvis personen ikke
+ * findes endnu. Sport-puljen er lille, så et fuldt sport-scan er billigt.
+ */
+async function findExistingAthleteByIdentity(
+  db: D1Client,
+  name: string,
+  sport: string,
+  hometown: string | null,
+): Promise<{ id: number; name: string; university: string } | null> {
+  const r = await db.query<{
+    id: number;
+    name: string;
+    sport: string;
+    hometown: string | null;
+    university: string;
+  }>("SELECT id, name, sport, hometown, university FROM athletes WHERE sport = ?", [sport]);
+  const found = r.results.find((row) => samePerson({ name, sport, hometown }, row));
+  return found ? { id: found.id, name: found.name, university: found.university } : null;
 }
 
 async function main(): Promise<void> {
@@ -377,13 +411,50 @@ async function main(): Promise<void> {
         const sportLabel = SPORT_MAP[check.sport] ?? check.sport;
         const { classYear, expectedGraduation, yearEnrolled } =
           resolveClassYear(athlete.year, academicYear);
+        const bioUrl = toAbsoluteUrl(athlete.bioUrl, check.website);
 
         try {
+          // Dedup/transfer: matcher denne atlet en eksisterende person (samme
+          // identitet+sport)? Hvis ja — også ved navne-variant eller skoleskift —
+          // opdatér DEN række (inkl. university) i stedet for at indsætte en ny slug.
+          const existing = await findExistingAthleteByIdentity(
+            db, athlete.name, sportLabel, athlete.hometown,
+          );
+
+          if (existing) {
+            const transferred = existing.university !== check.name;
+            // hometown overskrives ALDRIG hvis allerede sat (bevarer det verificerede
+            // danske signal); fyldes kun ud hvis det manglede.
+            await db.execute(
+              `UPDATE athletes
+               SET university = ?, university_state = ?, division = ?,
+                   class_year = ?, expected_graduation = ?,
+                   year_enrolled = COALESCE(year_enrolled, ?),
+                   hometown = COALESCE(hometown, ?),
+                   bio_url = COALESCE(?, bio_url),
+                   active = 1, updated_at = datetime('now')
+               WHERE id = ?`,
+              [
+                check.name, check.state, check.division,
+                classYear, expectedGraduation, yearEnrolled,
+                athlete.hometown, bioUrl, existing.id,
+              ],
+            );
+            if (transferred) {
+              console.log(
+                `  ⇄ ${existing.name}: ${existing.university} → ${check.name} (transfer/navne-variant)`,
+              );
+            }
+            athletesInCheck++;
+            totalFound++;
+            continue;
+          }
+
           await db.execute(
             `INSERT OR IGNORE INTO athletes
              (name, slug, sport, position, hometown, university, university_state, division,
-              class_year, expected_graduation, year_enrolled)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              class_year, expected_graduation, year_enrolled, bio_url)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               athlete.name,
               slug,
@@ -396,6 +467,7 @@ async function main(): Promise<void> {
               classYear,
               expectedGraduation,
               yearEnrolled,
+              bioUrl,
             ],
           );
 

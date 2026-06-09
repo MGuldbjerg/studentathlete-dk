@@ -59,6 +59,7 @@ export function parseGeneric(html: string): RosterEntry[] {
               : null,
           year:
             yearIdx >= 0 ? cells.eq(yearIdx).text().trim() || null : null,
+          bioUrl: cells.eq(nameIdx).find("a").first().attr("href")?.trim() || null,
         });
       });
   });
