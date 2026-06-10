@@ -90,6 +90,19 @@ export function ArticleBody({ content }: { content: string }) {
         </h3>
       );
     }
+    // # Heading (enkelt #) — demotér til <h2>: siden har allerede ÉN <h1> (titlen),
+    // og uden denne branch ville "# ..." lække som literal tekst i et <p>.
+    else if (trimmed.startsWith("# ")) {
+      element = (
+        <h2
+          key={i}
+          style={{ fontFamily: "var(--font-serif)" }}
+          className="text-2xl font-bold text-ink mt-10 mb-4"
+        >
+          {parseInline(trimmed.slice(2))}
+        </h2>
+      );
+    }
     // > Blockquote
     else if (trimmed.startsWith("> ")) {
       element = (
@@ -102,10 +115,21 @@ export function ArticleBody({ content }: { content: string }) {
         </blockquote>
       );
     }
-    // Bullet list
+    // Lister (ordnet/punkt) eller afsnit
     else {
       const lines = trimmed.split("\n");
-      if (lines.every((l) => l.trimStart().startsWith("- "))) {
+      if (lines.every((l) => /^\d+\.\s/.test(l.trimStart()))) {
+        // Nummereret liste → <ol> (semantisk rækkefølge)
+        element = (
+          <ol key={i} className="list-decimal pl-6 mb-5 space-y-1">
+            {lines.map((line, j) => (
+              <li key={j} className="text-base text-ink leading-relaxed">
+                {parseInline(line.trimStart().replace(/^\d+\.\s+/, ""))}
+              </li>
+            ))}
+          </ol>
+        );
+      } else if (lines.every((l) => l.trimStart().startsWith("- "))) {
         element = (
           <ul key={i} className="list-disc pl-6 mb-5 space-y-1">
             {lines.map((line, j) => (
