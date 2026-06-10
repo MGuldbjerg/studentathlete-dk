@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Footer() {
   return (
     <footer style={{ backgroundColor: "#00205B" }} className="mt-16">
@@ -39,13 +41,13 @@ export function Footer() {
               { label: "Ishockey", slug: "ishockey" },
               { label: "Volleyball", slug: "volleyball" },
             ].map((sport) => (
-              <a
+              <Link
                 key={sport.slug}
                 href={`/${sport.slug}`}
                 className="text-white/60 text-sm hover:text-white transition-colors"
               >
                 {sport.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -57,19 +59,24 @@ export function Footer() {
           </h5>
           <ul className="space-y-1.5">
             <li>
-              <a href="/atleter" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href="/atleter" className="text-white/60 text-sm hover:text-white transition-colors">
                 Alle atleter
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/om" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href="/om" className="text-white/60 text-sm hover:text-white transition-colors">
                 Om StudentAthlete.dk
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/kontakt" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href="/kontakt" className="text-white/60 text-sm hover:text-white transition-colors">
                 Kontakt
-              </a>
+              </Link>
+            </li>
+            <li>
+              <Link href="/ai-brug" className="text-white/60 text-sm hover:text-white transition-colors">
+                Sådan bruger vi AI
+              </Link>
             </li>
           </ul>
         </div>

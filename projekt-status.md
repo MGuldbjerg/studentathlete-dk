@@ -1,8 +1,26 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-09 (datakvalitet + backtest-harness + UK-beslutning)
+**Sidst opdateret**: 2026-06-10 (SWOT → plan + fase 0-leverancer)
 
-## 👉 Næste session — start her (handoff 2026-06-09)
+## 👉 Næste session — start her (handoff 2026-06-10)
+**SWOT-analyse → `PLAN-autonomi-uk.md` (mål: autonom til publicering → auto-publish af korte artikler → UK). Fase 0 påbegyndt — alt UNCOMMITTET i working tree:**
+
+1. **Plan**: `PLAN-autonomi-uk.md` — 4 faser med acceptkriterier. Kernen: review-tid er eneste ikke-skalerende led; auto-publish-gate defineres EMPIRISK af én sæsons review-data (log godkendt/redigeret/afvist — fase 1.3, ikke bygget endnu); UK-launch gated på bevist auto-publish.
+2. **Kø-fuld-ping** (`generate-manual.yml`): `SKIP_REASON=max_pending_drafts` surfaces nu som egen Discord-besked ("⚠️ Kladde-kø fuld — generering pauset", orange) i stedet for misvisende "Ingen nye historier". YAML valideret.
+3. **Review-ergonomi**: (a) kladde-kø sorteret efter risiko — lav→uverificeret→medium→høj, ældste først (hurtige godkendelser først = køen tømmes = MAX_PENDING_DRAFTS frigøres); (b) grønt "✓ Lav risiko"-badge på dashboardet; (c) **faktaark-panel** på rediger-siden (`FactSheetPanel.tsx`, ny `getFactSheetForArticle()` i admin.ts, `a.story_id` tilføjet ARTICLE_SELECT) — viser fase 1-faktaarket + kilde/box-score-links ved siden af kladden, så review ikke kræver at åbne kilden. Typecheck ren (src + pipeline; weekly-digest TS5097-fejlen er præ-eksisterende, tsx kører den fint).
+4. **Statiske sider**: udkast i `content/pages/` (om.md, kontakt.md, ai-brug.md) med `[REDIGER:]`-pladsholdere. **Mikkel: redigér + indsæt e-mail**, så `npx tsx pipeline/seed/seed-pages.ts` (nægter at indlæse filer med pladsholdere; `--dry-run` virker). Footer har nu også "Sådan bruger vi AI"-link (/ai-brug). Siderne serveres via `[...segments]` + pages-tabellen.
+5. **CF Access**: `SETUP-cloudflare-access.md` — trinvis guide (~15 min, dashboard-arbejde, ingen kode). Verificeret: intet kalder `/api/admin` server-til-server → simpel e-mail-policy rækker.
+
+**TODO MIKKEL:**
+- [ ] **15.–16. juni: sæt `ANTHROPIC_API_KEY`** som GitHub-secret når kreditterne åbner (plan-punkt 0.1) → derefter structured outputs på skriv/verificér (0.2)
+- [ ] Redigér `content/pages/*.md` (udfyld `[REDIGER:]`) → kør seed-pages
+- [ ] Følg `SETUP-cloudflare-access.md` (15 min)
+- [ ] Commit af ovenstående (uncommittet på main)
+
+---
+
+### Tidligere handoff (2026-06-09)
+## 👉 (handoff 2026-06-09)
 **Committet på branch `feat/data-quality-dedup-backtest` (IKKE pushet/merget endnu). Fem leverancer, 91 tests grønne:**
 
 0. **Box-score-FIX (vigtigst)** — den live backtest afslørede at box-scores v2 **aldrig har virket på Sidearm** (den dominerende platform): (a) `renderPage`-default `networkidle0`/30s timeouter pga. tracking-pixels, (b) `extractMainText` gav 404K tegn navigation så spiller-tabellen (tegn ~19K) lå udenfor `extractBoxScoreStats`' 6000-tegns-vindue → alle spillere gav `found:false`. Fix: `browser-render.ts` default → `networkidle2`/45s; ny `extractBoxScoreText()` målretter stat-tabellerne. **Valideret live: Wyoming/Pedersen career-high 29 PTS, 8-13 FG, 10-10 FT korrekt udtrukket.** (commit 36ff346)

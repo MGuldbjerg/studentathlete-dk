@@ -28,7 +28,12 @@ export async function getDraftArticles(): Promise<Article[]> {
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          WHERE a.published = 0
-         ORDER BY a.created_at DESC`
+         ORDER BY CASE a.fabrication_risk
+           WHEN 'low' THEN 0
+           WHEN 'medium' THEN 2
+           WHEN 'high' THEN 3
+           ELSE 1
+         END ASC, a.created_at ASC`
       )
       .all();
     return (r.results ?? []) as Article[];
@@ -51,6 +56,39 @@ export async function getDraftArticleById(id: number): Promise<Article | null> {
       .bind(id)
       .first();
     return (r as Article) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Faktaark for artiklens story (fase 1-output) — vises ved siden af kladden i
+ * rediger-visningen, så et review ikke kræver at kilden åbnes.
+ */
+export async function getFactSheetForArticle(articleId: number): Promise<{
+  fact_sheet: string | null;
+  fact_status: string | null;
+  source_url: string | null;
+  headline: string | null;
+} | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const r = await db
+      .prepare(
+        `SELECT s.fact_sheet, s.fact_status, s.source_url, s.headline
+         FROM articles a
+         JOIN stories s ON a.story_id = s.id
+         WHERE a.id = ?`
+      )
+      .bind(articleId)
+      .first();
+    return (r as {
+      fact_sheet: string | null;
+      fact_status: string | null;
+      source_url: string | null;
+      headline: string | null;
+    }) ?? null;
   } catch {
     return null;
   }

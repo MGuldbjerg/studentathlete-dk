@@ -96,6 +96,14 @@ export default async function AdminDashboard({
                   <span className="text-[11px] text-muted">
                     {ARTICLE_TYPE_LABELS[draft.article_type] ?? draft.article_type}
                   </span>
+                  {draft.fabrication_risk === "low" && (
+                    <span
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded"
+                      style={{ backgroundColor: "#d1fae5", color: "#065f46" }}
+                    >
+                      ✓ Lav risiko
+                    </span>
+                  )}
                   {draft.fabrication_risk === "high" && (
                     <span
                       className="text-[11px] font-semibold px-2 py-0.5 rounded text-white"

@@ -29,7 +29,7 @@ export const ARTICLE_SELECT = `
   a.author, a.cover_image_url, a.published, a.published_at,
   a.created_at, a.updated_at, a.athlete_id, a.source_url,
   a.model_used, a.llm_provider, a.original_content,
-  a.fabrication_risk, a.fact_flags,
+  a.fabrication_risk, a.fact_flags, a.story_id,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;
 

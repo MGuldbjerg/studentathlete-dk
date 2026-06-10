@@ -19,6 +19,7 @@ export interface Article {
   // Fase 3-verifikation (valgfri — kun sat når kladden er verificeret)
   fabrication_risk?: string | null;
   fact_flags?: string | null;
+  story_id?: number | null;
   // Joined fra athletes
   athlete_name: string | null;
   athlete_slug: string | null;
