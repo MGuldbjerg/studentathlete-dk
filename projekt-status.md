@@ -1,8 +1,26 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-10 (SWOT → plan + fase 0-leverancer)
+**Sidst opdateret**: 2026-06-10 (billeder niveau 1+2 + sider i admin — committet, pushet, DEPLOYET)
 
-## 👉 Næste session — start her (handoff 2026-06-10)
+## 👉 Næste session — start her (handoff 2026-06-10 eftermiddag)
+**Billedmodulet (IDEA-billeder.md niveau 1+2) er bygget, deployet til studentathlete.dk og verificeret live (commit 38bd59e). Migrations 014–016 kørt mod remote D1.**
+
+1. **Kampkort (niveau 1) LIVE**: artikler uden foto viser nu genereret kampkort (skolefarve + twemoji-piktogram + navn/skole + modstander/score fra faktaark + dato). `getArticleCoverUrl()` i seo.ts (bump `CARD_VERSION` ved designændring — edge-cache 7 dage). Verificeret: artikel 79 → Cleveland State-grønt kort, korrekt uden score (transfer-historie).
+2. **VIGTIG opdagelse**: `/api/og` har renderet BLANKT i prod siden start (kun brugt til meta-tags, så ingen så det). Tre satori-på-Workers-gotchas fixet: (a) ingen default-font → Playfair 700 + Noto Sans 400/700 TTF i `public/fonts/`, hentes via ASSETS-binding (HTTP-fallback i dev, husk try/catch — dev-shim tager ikke Request-objekter); (b) `inset: 0` understøttes ikke → eksplicitte top/left/right/bottom; (c) alpha-hex i gradients (`#rrggbb88`) fejler → solid farve + rgba()-overlay. Logo inlines som data-URI (Worker kan ikke fetche egen zone).
+3. **Skolefarver**: migration-015 + `pipeline/scrape/school-colors.ts` (theme-color/CSS-var-heuristik). Kørt live: **73/101 skoler fik farve automatisk; 28 mangler** → sæt manuelt i **admin → Skoler** (ny side med farvevælger).
+4. **Foto-forslag (niveau 2)**: migration-016 + `pipeline/scrape/suggest-photos.ts` (headshot fra bio_url-siden, kredit forudfyldt "Foto: X Athletics") + **admin → Fotos** godkend/afvis-kø (badge-tal på dashboardet). Kørte med 0 forslag — bio_url udfyldes først af søndagens scrape (14. juni); `photos`-job i weekly-scrape.yml fylder køen automatisk derefter.
+5. **Statiske sider i admin**: migration-014 `pages.published` (kladde-gate) + publicér-checkbox i admin → Sider + offentlig route viser kun published=1. De 3 udkast (om/kontakt/ai-brug) er seedet som kladder — **Mikkel: udfyld [REDIGER:-felterne i admin → Sider og sæt flueben i "Synlig på sitet"**. Seed klobrer ALDRIG admin-redigeringer (INSERT OR IGNORE).
+
+**TODO MIKKEL (uændret + nyt):**
+- [ ] **15.–16. juni: `ANTHROPIC_API_KEY`** som GitHub-secret (kredit åbner)
+- [ ] Redigér de 3 sider i **admin → Sider** (ikke længere md-filerne) + publicér
+- [ ] Udfyld de 28 manglende skolefarver i **admin → Skoler** (liste i school-colors-output; kør evt. `npx tsx pipeline/scrape/school-colors.ts --dry-run` igen)
+- [ ] CF Access (`SETUP-cloudflare-access.md`, 15 min)
+
+---
+
+### Tidligere handoff (2026-06-10 formiddag)
+## 👉 (handoff 2026-06-10)
 **SWOT-analyse → `PLAN-autonomi-uk.md` (mål: autonom til publicering → auto-publish af korte artikler → UK). Fase 0 påbegyndt — alt UNCOMMITTET i working tree:**
 
 1. **Plan**: `PLAN-autonomi-uk.md` — 4 faser med acceptkriterier. Kernen: review-tid er eneste ikke-skalerende led; auto-publish-gate defineres EMPIRISK af én sæsons review-data (log godkendt/redigeret/afvist — fase 1.3, ikke bygget endnu); UK-launch gated på bevist auto-publish.
@@ -150,6 +168,8 @@ Pipeline er nu: **backfill (fase 0) → faktaark/fact-finding (fase 1) → skriv
 | Ralph-pipeline (JSON til output/) er ikke koblet til D1 | Ikke prioriteret — D1-pipeline bruges i stedet |
 
 ## Learnings
+
+- **satori/ImageResponse på Cloudflare Workers (2026-06-10)**: ingen default-font (tekst forsvinder tavst — routen var blank i prod i månedsvis), `inset`-shorthand ignoreres (div'er kollapser til 0×0), alpha-hex i gradients (`#rrggbb88`) fejler tavst. Fonte skal leveres eksplicit (TTF via ASSETS-binding; statiske weights, IKKE variable fonts); brug eksplicitte top/left/right/bottom; rgba() i gradients. Egen zone kan ikke fetches fra Workeren → inline assets som data-URI.
 
 - `fetchStoryContent` bruger plain HTTP og fejler for JS-renderede college-sider ved discovery OG backfill (samme funktion) — backfill-steget giver nul merværdi for disse URL'er
 - GitHub Actions clockskew: `run.created_at` stempletes ~200ms inden `triggeredAt` returneres til klienten — `>=`-sammenligning skal have buffer
