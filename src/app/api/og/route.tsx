@@ -70,6 +70,33 @@ function getSportColorSafe(sport: string | null): string {
   return SPORT_COLORS[sport.toLowerCase()] ?? FALLBACK_COLOR;
 }
 
+// ─── Eksplicit edge-cache ────────────────────────────────────────────────────
+// Worker-svar caches IKKE automatisk på edge (Cache-Control alene gør intet
+// dér) — uden cache.put renderes hvert billede ved HVERT sidevisning, og satori
+// er for CPU-tung til free-plan (fejl 1102). Med put renderes hvert kort én
+// gang pr. PoP pr. uge.
+
+function getEdgeCache(): Cache | null {
+  try {
+    if (typeof caches === "undefined") return null;
+    return (caches as unknown as { default?: Cache }).default ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function withEdgeCache(url: string, res: Response): Promise<Response> {
+  const cache = getEdgeCache();
+  if (cache) {
+    try {
+      await cache.put(url, res.clone());
+    } catch {
+      /* cache-fejl må aldrig vælte selve svaret */
+    }
+  }
+  return res;
+}
+
 // Twemoji-piktogrammer (CC-BY 4.0 — krediteret på /ai-brug) pr. sport-nøgle
 const SPORT_EMOJI: Record<string, string> = {
   football: "🏈",
@@ -166,6 +193,10 @@ const HEX_RE = /^#[0-9a-fA-F]{6}$/;
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
+
+  const cached = await getEdgeCache()?.match(req.url);
+  if (cached) return cached;
+
   const type = searchParams.get("type") || "article";
   const assets = await loadOgAssets(req.nextUrl.origin);
 
@@ -173,7 +204,7 @@ export async function GET(req: NextRequest) {
   if (type === "card") {
     const articleId = parseInt(searchParams.get("article") ?? "", 10);
     const data = Number.isFinite(articleId) ? await getCardData(articleId) : null;
-    if (data) return matchCard(data, assets);
+    if (data) return withEdgeCache(req.url, matchCard(data, assets));
     // Fald igennem til generisk design med de params der måtte være sat
   }
 
@@ -199,12 +230,14 @@ export async function GET(req: NextRequest) {
 
   const titleSize = type === "sport" ? 56 : title.length > 40 ? 38 : 48;
 
-  return new ImageResponse(
+  return withEdgeCache(req.url, new ImageResponse(
     (
       <div
         style={{
-          width: "100%",
-          height: "100%",
+          width: "1200px",
+          height: "630px",
+          transform: "scale(0.5)",
+          transformOrigin: "top left",
           display: "flex",
           position: "relative",
           fontFamily: "'Playfair Display', serif",
@@ -371,14 +404,14 @@ export async function GET(req: NextRequest) {
       </div>
     ),
     {
-      width: 1200,
-      height: 630,
+      width: 600,
+      height: 315,
       fonts: ogFonts(assets),
       headers: {
         "Cache-Control": "public, max-age=86400, s-maxage=604800",
       },
     },
-  );
+  ));
 }
 
 /** Kampkort-cover: skolefarve + sport-piktogram + modstander/score fra faktaarket. */
@@ -406,8 +439,10 @@ function matchCard(data: CardData, assets: OgAssets) {
     (
       <div
         style={{
-          width: "100%",
-          height: "100%",
+          width: "1200px",
+          height: "630px",
+          transform: "scale(0.5)",
+          transformOrigin: "top left",
           display: "flex",
           position: "relative",
           fontFamily: "'Playfair Display', serif",
@@ -584,8 +619,8 @@ function matchCard(data: CardData, assets: OgAssets) {
       </div>
     ),
     {
-      width: 1200,
-      height: 630,
+      width: 600,
+      height: 315,
       emoji: "twemoji",
       fonts: ogFonts(assets),
       headers: {

@@ -90,6 +90,7 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
         <img
           src={getArticleCoverUrl(article)}
           alt={article.title}
+          loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {/* Sport-farvet top-streg */}

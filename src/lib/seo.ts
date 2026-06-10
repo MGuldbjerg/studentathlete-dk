@@ -50,7 +50,7 @@ export function formatRelativeTime(dateStr: string | null): string {
  * i cover_image_url ignoreres (de er ikke kampkort).
  */
 // Bump ved design-ændringer i kampkortet — buster edge-cachen (s-maxage 7 dage)
-const CARD_VERSION = 2;
+const CARD_VERSION = 5;
 
 export function getArticleCoverUrl(article: Pick<Article, "id" | "cover_image_url">): string {
   const cover = article.cover_image_url;
