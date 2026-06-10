@@ -4,6 +4,7 @@ import { getAllAthletes, getAlumniAthletes } from "@/lib/db";
 import type { Athlete } from "@/lib/types";
 import { getSportColor } from "@/lib/types";
 import { getAthleteUrl } from "@/lib/seo";
+import { graduationBadgeYear } from "@/lib/graduation";
 import { AlumniToggle } from "./AlumniToggle";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +69,14 @@ function AthleteGrid({ athletes, faded = false }: { athletes: Athlete[]; faded?:
                     style={{ fontFamily: "var(--font-serif)" }}
                   >
                     {athlete.name}
+                    {graduationBadgeYear(athlete.expected_graduation) && (
+                      <span
+                        className="ml-1.5"
+                        title={`Færdiguddannet ${graduationBadgeYear(athlete.expected_graduation)}`}
+                      >
+                        🎓
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-muted truncate">
                     {athlete.university}

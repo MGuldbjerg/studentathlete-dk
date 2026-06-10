@@ -1,6 +1,7 @@
 import type { Athlete, Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { formatDateShort, athleteStructuredData, getArticleUrl } from "@/lib/seo";
+import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 interface Props { athlete: Athlete; articles: Article[] }
@@ -15,7 +16,14 @@ const STAT_ROWS = (a: Athlete) => [
   { label: "Årgang",   value: a.class_year },
   { label: "Forventet dimission", value: a.expected_graduation?.toString() },
   { label: "Optaget",  value: a.year_enrolled?.toString() },
-  { label: "Status",   value: a.active ? "Aktiv" : "Tidligere atlet" },
+  {
+    label: "Status",
+    value: graduationBadgeYear(a.expected_graduation)
+      ? `🎓 Færdiguddannet ${graduationBadgeYear(a.expected_graduation)}`
+      : a.active
+        ? "Aktiv"
+        : "Tidligere atlet",
+  },
 ].filter((r) => r.value);
 
 export function AthleteProfilePage({ athlete, articles }: Props) {
@@ -68,11 +76,18 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
                 style={{ backgroundColor: "#BF0A30" }}>
                 {athlete.sport}
               </span>
-              {!athlete.active && (
+              {graduationBadgeYear(athlete.expected_graduation) ? (
+                <span
+                  className="text-[10px] font-black tracking-[0.15em] uppercase px-2.5 py-1.5"
+                  style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "#f5d061" }}
+                >
+                  🎓 Færdiguddannet {graduationBadgeYear(athlete.expected_graduation)}
+                </span>
+              ) : !athlete.active ? (
                 <span className="text-[10px] tracking-[0.15em] uppercase text-white/40">
                   Tidligere atlet
                 </span>
-              )}
+              ) : null}
             </div>
 
             <h1 style={{ fontFamily: "var(--font-serif)" }}
