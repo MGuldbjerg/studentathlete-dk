@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getDraftArticles, getAllArticles } from "@/lib/admin";
+import { validateAdminToken, getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 
 export default async function AdminDashboard({
@@ -12,9 +12,10 @@ export default async function AdminDashboard({
   const valid = await validateAdminToken(token ?? null);
   if (!valid) notFound();
 
-  const [drafts, allArticles] = await Promise.all([
+  const [drafts, allArticles, pendingPhotos] = await Promise.all([
     getDraftArticles(),
     getAllArticles(),
+    getPendingPhotoSuggestionCount(),
   ]);
   const published = allArticles.filter((a) => a.published === 1);
 
@@ -48,6 +49,18 @@ export default async function AdminDashboard({
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Sider
+          </Link>
+          <Link
+            href={`/admin/skoler?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Skoler
+          </Link>
+          <Link
+            href={`/admin/fotos?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Fotos{pendingPhotos > 0 ? ` (${pendingPhotos})` : ""}
           </Link>
           <Link
             href={`/admin/pipeline?token=${token}`}

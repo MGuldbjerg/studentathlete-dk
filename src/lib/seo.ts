@@ -44,6 +44,20 @@ export function formatRelativeTime(dateStr: string | null): string {
 
 // ─── URL-hjælpere ────────────────────────────────────────────────────────────
 
+/**
+ * Synligt cover for en artikel: rigtigt foto hvis sat, ellers genereret
+ * kampkort (skolefarve + piktogram + score fra faktaarket). Gamle meta-OG-URLs
+ * i cover_image_url ignoreres (de er ikke kampkort).
+ */
+// Bump ved design-ændringer i kampkortet — buster edge-cachen (s-maxage 7 dage)
+const CARD_VERSION = 2;
+
+export function getArticleCoverUrl(article: Pick<Article, "id" | "cover_image_url">): string {
+  const cover = article.cover_image_url;
+  if (cover && !cover.includes("/api/og")) return cover;
+  return `/api/og?type=card&article=${article.id}&v=${CARD_VERSION}`;
+}
+
 export function getArticleUrl(article: Pick<Article, "slug" | "sport">): string {
   const sport = dbSportToUrlSlug(article.sport ?? "sport");
   return `/${sport}/${article.slug}`;

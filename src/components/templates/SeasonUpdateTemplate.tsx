@@ -1,11 +1,10 @@
 import type { Article, Athlete } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
+import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
-import { PlaceholderCover } from "@/components/PlaceholderCover";
 
 interface Props {
   article: Article;
@@ -87,20 +86,9 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
 
         {/* Hero-billede */}
         <figure className="mb-8 -mx-5 md:mx-0">
-          {article.cover_image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={article.cover_image_url} alt={article.title}
-              className="w-full object-cover max-h-80" />
-          ) : (
-            <div className="w-full overflow-hidden" style={{ height: "16rem" }}>
-              <PlaceholderCover
-                sport={athlete?.sport}
-                athleteName={athlete?.name}
-                university={athlete?.university}
-                size="lg"
-              />
-            </div>
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={getArticleCoverUrl(article)} alt={article.title}
+            className="w-full object-cover max-h-80" />
         </figure>
 
         <ArticleBody content={article.content} />

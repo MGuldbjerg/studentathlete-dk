@@ -1,13 +1,13 @@
 /**
- * Indlæs statiske sider fra content/pages/*.md i D1 (pages-tabellen).
+ * Indlæs statiske sider fra content/pages/*.md i D1 (pages-tabellen) som
+ * UPUBLICEREDE kladder (published=0, migration-014) — redigér + publicér i
+ * admin → Sider. INSERT OR IGNORE: en eksisterende side med samme slug røres
+ * ALDRIG (admin-redigeringer vinder altid over seed-filerne).
  *
  * Filformat: frontmatter (slug, title, meta_description) + markdown-brødtekst.
- * Siderne serveres på /<slug> via [...segments] og kan redigeres videre i
- * admin → Sider (denne seed OVERSKRIVER en eksisterende side med samme slug).
  *
- * Kør:  npx tsx pipeline/seed/seed-pages.ts            (springer filer med [REDIGER over)
+ * Kør:  npx tsx pipeline/seed/seed-pages.ts
  *       npx tsx pipeline/seed/seed-pages.ts --dry-run
- *       npx tsx pipeline/seed/seed-pages.ts --allow-placeholders
  */
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
@@ -43,7 +43,6 @@ function parsePageFile(path: string): PageFile | null {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const dryRun = args.includes("--dry-run");
-  const allowPlaceholders = args.includes("--allow-placeholders");
 
   const files = readdirSync(PAGES_DIR).filter((f) => f.endsWith(".md"));
   if (files.length === 0) {
@@ -59,20 +58,27 @@ async function main(): Promise<void> {
       console.log(`⚠ ${file}: mangler frontmatter (slug/title) — sprunget over`);
       continue;
     }
-    if (!allowPlaceholders && /\[REDIGER/.test(page.content)) {
-      console.log(`⏭ ${file}: indeholder [REDIGER-pladsholdere — redigér først (eller --allow-placeholders)`);
-      continue;
-    }
+    const hasPlaceholders = /\[REDIGER/.test(page.content);
     if (dryRun) {
-      console.log(`(dry-run) ville indlæse /${page.slug} — "${page.title}" (${page.content.length} tegn)`);
+      console.log(
+        `(dry-run) ville indlæse /${page.slug} — "${page.title}" (${page.content.length} tegn)` +
+          (hasPlaceholders ? " [indeholder REDIGER-pladsholdere]" : ""),
+      );
       continue;
     }
-    await db!.execute(
-      `INSERT OR REPLACE INTO pages (slug, title, content, meta_description, updated_at)
-       VALUES (?, ?, ?, ?, datetime('now'))`,
+    const result = await db!.execute(
+      `INSERT OR IGNORE INTO pages (slug, title, content, meta_description, published, updated_at)
+       VALUES (?, ?, ?, ?, 0, datetime('now'))`,
       [page.slug, page.title, page.content, page.meta_description],
     );
-    console.log(`✓ /${page.slug} — "${page.title}" indlæst`);
+    if ((result.meta?.changes ?? 0) > 0) {
+      console.log(
+        `✓ /${page.slug} — "${page.title}" indlæst som kladde` +
+          (hasPlaceholders ? " (husk at udfylde [REDIGER:-felterne før publicering)" : ""),
+      );
+    } else {
+      console.log(`⏭ /${page.slug} findes allerede — ikke rørt`);
+    }
   }
 }
 

@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Article } from "@/lib/types";
 import { getSportColor, ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { getArticleUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
-import { PlaceholderCover } from "./PlaceholderCover";
+import { getArticleUrl, getArticleCoverUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
 
 function SportTag({ sport, type }: { sport?: string | null; type?: string }) {
   const label = sport ?? (type ? ARTICLE_TYPE_LABELS[type] : null);
@@ -82,24 +81,14 @@ export function Carousel({ articles }: CarouselProps) {
       onMouseLeave={() => setPaused(false)}
     >
       {/* Baggrundsbillede eller gradient */}
-      {slide.cover_image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={slide.cover_image_url}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          fetchPriority={current === 0 ? "high" : "auto"}
-          loading={current === 0 ? "eager" : "lazy"}
-        />
-      ) : (
-        <div className="absolute inset-0">
-          <PlaceholderCover
-            sport={slide.sport}
-            athleteName={slide.athlete_name}
-            size="lg"
-          />
-        </div>
-      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={getArticleCoverUrl(slide)}
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+        fetchPriority={current === 0 ? "high" : "auto"}
+        loading={current === 0 ? "eager" : "lazy"}
+      />
 
       {/* Mørkt overlay */}
       <div

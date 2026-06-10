@@ -26,6 +26,8 @@ StudentAthlete.dk bruger kunstig intelligens som værktøj i research- og skrive
 
 Trods kildekrav, krydstjek og menneskelig godkendelse kan der opstå fejl. Finder du en, så [skriv til os](/kontakt) — vi retter hurtigst muligt og er taknemmelige for hvert tip.
 
-## Fotos
+## Fotos og grafik
 
 Atletfotos stammer fra universiteternes officielle sider og krediteres. Vi bruger ikke AI-genererede billeder af virkelige personer.
+
+Artikler uden foto får et automatisk genereret kampkort (Grafik: StudentAthlete.dk). Sport-piktogrammerne på kortene er [Twemoji](https://github.com/twitter/twemoji) (Copyright Twitter, Inc., [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)).

@@ -11,7 +11,7 @@ import {
   getArticlesBySport,
   countAthletesBySport,
 } from "@/lib/db";
-import { getPageBySlug } from "@/lib/admin";
+import { getPublishedPageBySlug } from "@/lib/admin";
 import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl } from "@/lib/seo";
 import { getSportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     }
 
     // Statisk side fra pages-tabellen
-    const page = await getPageBySlug(slug);
+    const page = await getPublishedPageBySlug(slug);
     if (page) {
       return {
         title: `${page.title} | StudentAthlete.dk`,
@@ -215,7 +215,7 @@ export default async function DynamicPage({ params }: { params: Params }) {
     }
 
     // Statisk side fra pages-tabellen
-    const page = await getPageBySlug(slug);
+    const page = await getPublishedPageBySlug(slug);
     if (page) {
       return (
         <main className="min-h-screen bg-surface">

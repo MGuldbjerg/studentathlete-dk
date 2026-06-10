@@ -17,6 +17,7 @@ export default async function AdminPagesPage({
   const KNOWN_PAGES = [
     { slug: "om", title: "Om StudentAthlete.dk" },
     { slug: "kontakt", title: "Kontakt" },
+    { slug: "ai-brug", title: "Sådan bruger vi AI" },
   ];
   const dbSlugs = new Set(dbPages.map((p) => p.slug));
   const pages = [
@@ -24,6 +25,7 @@ export default async function AdminPagesPage({
     ...KNOWN_PAGES.filter((d) => !dbSlugs.has(d.slug)).map((d) => ({
       ...d,
       meta_description: null,
+      published: null as number | null,
       updated_at: null,
     })),
   ];
@@ -48,12 +50,30 @@ export default async function AdminPagesPage({
               href={`/admin/sider/${page.slug}?token=${token}`}
               className="block bg-paper rounded-lg border border-border p-4 active:scale-[0.98] transition-transform"
             >
-              <h2
-                className="text-lg font-bold text-ink"
-                style={{ fontFamily: "var(--font-serif)" }}
-              >
-                {page.title}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2
+                  className="text-lg font-bold text-ink"
+                  style={{ fontFamily: "var(--font-serif)" }}
+                >
+                  {page.title}
+                </h2>
+                {page.published === 1 ? (
+                  <span
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded"
+                    style={{ backgroundColor: "#d1fae5", color: "#065f46" }}
+                  >
+                    Publiceret
+                  </span>
+                ) : page.published === 0 ? (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-500">
+                    Kladde
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-400">
+                    Ikke oprettet
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-muted mt-1">/{page.slug}</p>
             </Link>
           ))}

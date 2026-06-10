@@ -8,17 +8,20 @@ export function EditPageForm({
   initialTitle,
   initialContent,
   initialMetaDescription,
+  initialPublished,
   token,
 }: {
   slug: string;
   initialTitle: string;
   initialContent: string;
   initialMetaDescription: string;
+  initialPublished: boolean;
   token: string;
 }) {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [metaDescription, setMetaDescription] = useState(initialMetaDescription);
+  const [published, setPublished] = useState(initialPublished);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -41,6 +44,7 @@ export function EditPageForm({
           title: title.trim(),
           content: content.trim(),
           meta_description: metaDescription.trim() || null,
+          published: published ? 1 : 0,
         }),
       });
 
@@ -98,6 +102,19 @@ export function EditPageForm({
           className={`${inputClass} font-mono text-[13px] leading-relaxed resize-y`}
         />
       </div>
+
+      <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
+        <input
+          type="checkbox"
+          checked={published}
+          onChange={(e) => setPublished(e.target.checked)}
+          className="w-4 h-4"
+        />
+        Synlig på sitet (publiceret)
+        {!published && (
+          <span className="text-xs text-muted">— kladde: kun synlig her i admin</span>
+        )}
+      </label>
 
       {message && (
         <p className={`text-sm ${message.type === "ok" ? "text-green-700" : "text-flag-red"}`}>

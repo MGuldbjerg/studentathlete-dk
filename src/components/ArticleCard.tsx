@@ -1,7 +1,6 @@
 import type { Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
-import { getArticleUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
-import { PlaceholderCover } from "./PlaceholderCover";
+import { getArticleUrl, getArticleCoverUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
 
 interface ArticleCardProps {
   article: Article;
@@ -22,21 +21,12 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
       >
         {/* Billede — stor */}
         <div className="relative overflow-hidden md:w-3/5 aspect-[16/9] md:aspect-auto bg-surface">
-          {article.cover_image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={article.cover_image_url}
-              alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            <PlaceholderCover
-              sport={article.sport}
-              athleteName={article.athlete_name}
-              university={article.athlete_name ? undefined : undefined}
-              size="lg"
-            />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={getArticleCoverUrl(article)}
+            alt={article.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
           {/* Sport-farvet accent */}
           <div
             className="absolute top-0 left-0 w-1 h-full"
@@ -96,19 +86,12 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
     >
       {/* Billede */}
       <div className="relative overflow-hidden aspect-[16/9] bg-surface">
-        {article.cover_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={article.cover_image_url}
-            alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <PlaceholderCover
-            sport={article.sport}
-            athleteName={article.athlete_name}
-          />
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={getArticleCoverUrl(article)}
+          alt={article.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
         {/* Sport-farvet top-streg */}
         <div
           className="absolute top-0 left-0 right-0 h-0.5"

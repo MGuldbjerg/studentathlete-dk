@@ -1,5 +1,5 @@
 import type { Article, Athlete } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
+import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
@@ -26,14 +26,9 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
         <header className="relative w-full overflow-hidden"
           style={{ minHeight: "85vh" }}>
 
-          {article.cover_image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={article.cover_image_url} alt=""
-              className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0"
-              style={{ background: "linear-gradient(160deg, #00205B 0%, #020c1e 100%)" }} />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={getArticleCoverUrl(article)} alt=""
+            className="absolute inset-0 w-full h-full object-cover" />
 
           {/* Gradient-overlay — tung i bunden */}
           <div className="absolute inset-0"

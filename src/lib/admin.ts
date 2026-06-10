@@ -305,31 +305,45 @@ export async function deleteStyleCorrection(id: number): Promise<void> {
 
 // ─── Side-queries til admin ─────────────────────────────────────────────────
 
-export async function getAllPages(): Promise<Array<{ slug: string; title: string; meta_description: string | null; updated_at: string | null }>> {
+export interface PageRow {
+  slug: string;
+  title: string;
+  content: string;
+  meta_description: string | null;
+  published: number;
+}
+
+export async function getAllPages(): Promise<Array<Omit<PageRow, "content"> & { updated_at: string | null }>> {
   const db = await getDB();
   if (!db) return [];
   try {
     const r = await db
-      .prepare("SELECT slug, title, meta_description, updated_at FROM pages ORDER BY title ASC")
+      .prepare("SELECT slug, title, meta_description, published, updated_at FROM pages ORDER BY title ASC")
       .all();
-    return (r.results ?? []) as Array<{ slug: string; title: string; meta_description: string | null; updated_at: string | null }>;
+    return (r.results ?? []) as Array<Omit<PageRow, "content"> & { updated_at: string | null }>;
   } catch {
     return [];
   }
 }
 
-export async function getPageBySlug(slug: string): Promise<{ slug: string; title: string; content: string; meta_description: string | null } | null> {
+export async function getPageBySlug(slug: string): Promise<PageRow | null> {
   const db = await getDB();
   if (!db) return null;
   try {
     const r = await db
-      .prepare("SELECT slug, title, content, meta_description FROM pages WHERE slug = ?")
+      .prepare("SELECT slug, title, content, meta_description, published FROM pages WHERE slug = ?")
       .bind(slug)
       .first();
-    return (r as { slug: string; title: string; content: string; meta_description: string | null }) ?? null;
+    return (r as PageRow) ?? null;
   } catch {
     return null;
   }
+}
+
+/** Offentlig variant — kladder (published=0) findes ikke udenfor admin. */
+export async function getPublishedPageBySlug(slug: string): Promise<PageRow | null> {
+  const page = await getPageBySlug(slug);
+  return page && page.published === 1 ? page : null;
 }
 
 export async function upsertPage(
@@ -337,16 +351,151 @@ export async function upsertPage(
   title: string,
   content: string,
   metaDescription: string | null,
+  published?: number,
+): Promise<void> {
+  const db = await getDB();
+  if (!db) return;
+  // published udeladt → bevar eksisterende værdi (0 for nye rækker)
+  const pub = published ?? null;
+  await db
+    .prepare(
+      `INSERT INTO pages (slug, title, content, meta_description, published, updated_at)
+       VALUES (?, ?, ?, ?, COALESCE(?, 0), datetime('now'))
+       ON CONFLICT(slug) DO UPDATE SET
+         title = excluded.title,
+         content = excluded.content,
+         meta_description = excluded.meta_description,
+         published = COALESCE(?, pages.published),
+         updated_at = datetime('now')`
+    )
+    .bind(slug, title, content, metaDescription, pub, pub)
+    .run();
+}
+
+// ─── Skole-queries til admin (kampkort-farver) ──────────────────────────────
+
+export interface AdminSchool {
+  id: number;
+  name: string;
+  division: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  athlete_count: number;
+}
+
+/** Skoler med aktive danske atleter — dem hvis farver betyder noget for kampkort. */
+export async function getSchoolsWithAthletes(): Promise<AdminSchool[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT s.id, s.name, s.division, s.primary_color, s.secondary_color,
+                COUNT(a.id) as athlete_count
+         FROM schools s
+         JOIN athletes a ON a.university = s.name AND a.active = 1
+         GROUP BY s.id
+         ORDER BY s.name ASC`
+      )
+      .all();
+    return (r.results ?? []) as AdminSchool[];
+  } catch {
+    return [];
+  }
+}
+
+export async function updateSchoolColors(
+  id: number,
+  primaryColor: string | null,
+  secondaryColor: string | null,
 ): Promise<void> {
   const db = await getDB();
   if (!db) return;
   await db
-    .prepare(
-      `INSERT OR REPLACE INTO pages (slug, title, content, meta_description, updated_at)
-       VALUES (?, ?, ?, ?, datetime('now'))`
-    )
-    .bind(slug, title, content, metaDescription)
+    .prepare("UPDATE schools SET primary_color = ?, secondary_color = ? WHERE id = ?")
+    .bind(primaryColor, secondaryColor, id)
     .run();
+}
+
+// ─── Foto-forslag (photo_suggestions, migration-016) ─────────────────────────
+
+export interface PhotoSuggestion {
+  id: number;
+  athlete_id: number;
+  image_url: string;
+  credit: string;
+  source_url: string;
+  status: string;
+  created_at: string;
+  athlete_name: string;
+  university: string;
+  sport: string;
+}
+
+export async function getPendingPhotoSuggestions(): Promise<PhotoSuggestion[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT ps.id, ps.athlete_id, ps.image_url, ps.credit, ps.source_url,
+                ps.status, ps.created_at,
+                a.name as athlete_name, a.university, a.sport
+         FROM photo_suggestions ps
+         JOIN athletes a ON ps.athlete_id = a.id
+         WHERE ps.status = 'pending'
+         ORDER BY ps.created_at ASC`
+      )
+      .all();
+    return (r.results ?? []) as PhotoSuggestion[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getPendingPhotoSuggestionCount(): Promise<number> {
+  const db = await getDB();
+  if (!db) return 0;
+  try {
+    const r = await db
+      .prepare("SELECT COUNT(*) as cnt FROM photo_suggestions WHERE status = 'pending'")
+      .first();
+    return (r as { cnt: number })?.cnt ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Godkend (→ athletes.photo_url/photo_credit) eller afvis et foto-forslag. */
+export async function decidePhotoSuggestion(
+  id: number,
+  action: "approve" | "reject",
+  credit?: string,
+): Promise<boolean> {
+  const db = await getDB();
+  if (!db) return false;
+
+  const suggestion = await db
+    .prepare("SELECT athlete_id, image_url, credit FROM photo_suggestions WHERE id = ? AND status = 'pending'")
+    .bind(id)
+    .first() as { athlete_id: number; image_url: string; credit: string } | null;
+  if (!suggestion) return false;
+
+  if (action === "approve") {
+    await db
+      .prepare(
+        "UPDATE athletes SET photo_url = ?, photo_credit = ?, updated_at = datetime('now') WHERE id = ?"
+      )
+      .bind(suggestion.image_url, credit?.trim() || suggestion.credit, suggestion.athlete_id)
+      .run();
+  }
+  await db
+    .prepare(
+      "UPDATE photo_suggestions SET status = ?, decided_at = datetime('now') WHERE id = ?"
+    )
+    .bind(action === "approve" ? "approved" : "rejected", id)
+    .run();
+  return true;
 }
 
 // ─── Atlet-queries til admin ─────────────────────────────────────────────────

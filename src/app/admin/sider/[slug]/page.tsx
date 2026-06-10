@@ -36,6 +36,7 @@ export default async function EditPagePage({
           initialTitle={page.title}
           initialContent={page.content}
           initialMetaDescription={page.meta_description ?? ""}
+          initialPublished={page.published === 1}
           token={token!}
         />
       </div>

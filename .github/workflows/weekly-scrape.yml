@@ -33,6 +33,46 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
 
+  # Efter scrape: foto-forslag fra nye bio-sider + farver for nye skoler.
+  # Output er dashboard-elementer (admin → Fotos-køen); Discord kun ved fejl.
+  photos:
+    needs: scrape
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Foreslå atletfotos fra bio-sider
+        run: npx tsx pipeline/scrape/suggest-photos.ts --limit 50
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      - name: Backfill skolefarver (nye skoler)
+        run: npx tsx pipeline/scrape/school-colors.ts --limit 100
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      - name: Discord ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Foto/farve-job fejlede\",\"description\":\"[Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+
   # Én samlet Discord-besked efter alle matrix-divisioner (ikke 3 separate).
   # Både manuelle (Discord /scrape) OG den planlagte søndags-cron — ugentlig, så lav støj.
   notify:

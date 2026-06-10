@@ -29,11 +29,12 @@ export async function PUT(
   try {
     const { slug } = await params;
     const body = await req.json();
-    const { token, title, content, meta_description } = body as {
+    const { token, title, content, meta_description, published } = body as {
       token: string;
       title: string;
       content: string;
       meta_description?: string | null;
+      published?: number;
     };
 
     const valid = await validateAdminToken(token ?? null);
@@ -45,7 +46,13 @@ export async function PUT(
       return NextResponse.json({ error: "Titel og indhold er påkrævet" }, { status: 400 });
     }
 
-    await upsertPage(slug, title.trim(), content.trim(), meta_description?.trim() || null);
+    await upsertPage(
+      slug,
+      title.trim(),
+      content.trim(),
+      meta_description?.trim() || null,
+      published === 1 ? 1 : published === 0 ? 0 : undefined,
+    );
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Serverfejl";

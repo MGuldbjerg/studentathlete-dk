@@ -1,12 +1,11 @@
 import type { Article, Athlete } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
+import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
-import { PlaceholderCover } from "@/components/PlaceholderCover";
 
 interface Props {
   article: Article;
@@ -101,20 +100,9 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
 
         {/* ── Hero-billede ───────────────────────────────────────── */}
         <div className="px-5 md:px-0 mt-8">
-          {article.cover_image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={article.cover_image_url} alt={article.title}
-              className="w-full object-cover max-h-[28rem]" />
-          ) : (
-            <div className="w-full overflow-hidden" style={{ height: "18rem" }}>
-              <PlaceholderCover
-                sport={athlete?.sport}
-                athleteName={athlete?.name}
-                university={athlete?.university}
-                size="lg"
-              />
-            </div>
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={getArticleCoverUrl(article)} alt={article.title}
+            className="w-full object-cover max-h-[28rem]" />
         </div>
 
         {/* ── Brødtekst ──────────────────────────────────────────── */}
