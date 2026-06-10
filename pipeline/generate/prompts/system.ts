@@ -7,6 +7,8 @@ export interface StyleCorrectionEntry {
   wrong_phrase: string;
   correct_phrase: string;
   note: string | null;
+  /** 'phrase' (default) = forkert→korrekt-par; 'house_rule' = prosaregel i correct_phrase */
+  rule_type?: string;
 }
 
 const BASE_PROMPT = `Du er journalist på StudentAthlete.dk, et dansk medie der dækker danske student athletes i USA.
@@ -44,11 +46,25 @@ Formatering (bliver til semantisk HTML — brug markdown, ALDRIG rå HTML-tags):
 export function buildSystemPrompt(corrections: StyleCorrectionEntry[] = []): string {
   if (corrections.length === 0) return BASE_PROMPT;
 
-  let guide = "\n\nStilguide — lær af redaktionelle rettelser:\n";
-  for (const c of corrections) {
-    guide += `- Skriv "${c.correct_phrase}", ikke "${c.wrong_phrase}"`;
-    if (c.note) guide += ` (${c.note})`;
-    guide += "\n";
+  const phrases = corrections.filter((c) => (c.rule_type ?? "phrase") === "phrase");
+  const houseRules = corrections.filter((c) => c.rule_type === "house_rule");
+
+  let guide = "";
+  if (phrases.length > 0) {
+    guide += "\n\nStilguide — lær af redaktionelle rettelser:\n";
+    for (const c of phrases) {
+      guide += `- Skriv "${c.correct_phrase}", ikke "${c.wrong_phrase}"`;
+      if (c.note) guide += ` (${c.note})`;
+      guide += "\n";
+    }
+  }
+  if (houseRules.length > 0) {
+    guide += "\nHusregler — lært af redaktørens rettelser i tidligere artikler:\n";
+    for (const c of houseRules) {
+      guide += `- ${c.correct_phrase}`;
+      if (c.note) guide += ` (${c.note})`;
+      guide += "\n";
+    }
   }
   return BASE_PROMPT + guide;
 }

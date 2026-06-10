@@ -6,7 +6,7 @@ if (!WEBHOOK) throw new Error("Mangler DISCORD_WEBHOOK_URL");
 
 const db = createD1Client();
 
-const [articles, athletes, stories, totals] = await Promise.all([
+const [articles, athletes, stories, totals, learning] = await Promise.all([
   db.query<{ article_type: string; cnt: number }>(`
     SELECT article_type, COUNT(*) as cnt
     FROM articles
@@ -32,6 +32,16 @@ const [articles, athletes, stories, totals] = await Promise.all([
       (SELECT COUNT(*) FROM articles) as total_articles,
       (SELECT COUNT(*) FROM athletes WHERE active = 1) as total_athletes,
       (SELECT COUNT(*) FROM articles WHERE published = 1) as published
+  `),
+  // Læringsloop: redigeringsgrad (KPI for auto-publish-gaten) + ventende forslag
+  db.query<{ pub_week: number; unedited_week: number; pending_suggestions: number }>(`
+    SELECT
+      (SELECT COUNT(*) FROM articles WHERE published = 1
+         AND datetime(published_at) >= datetime('now', '-7 days')) as pub_week,
+      (SELECT COUNT(*) FROM articles WHERE published = 1
+         AND datetime(published_at) >= datetime('now', '-7 days')
+         AND (original_content IS NULL OR content = original_content)) as unedited_week,
+      (SELECT COUNT(*) FROM style_corrections WHERE status = 'suggested') as pending_suggestions
   `),
 ]);
 
@@ -60,6 +70,18 @@ const newAthletesLine =
 const conversionRate =
   storiesFound > 0 ? Math.round((storiesGenerated / storiesFound) * 100) : 0;
 
+const { pub_week, unedited_week, pending_suggestions } = learning.results[0] ?? {
+  pub_week: 0,
+  unedited_week: 0,
+  pending_suggestions: 0,
+};
+const uneditedRate = pub_week > 0 ? Math.round((unedited_week / pub_week) * 100) : null;
+const learningLine =
+  (uneditedRate !== null
+    ? `**${uneditedRate}%** publiceret uredigeret (${unedited_week}/${pub_week})`
+    : "Ingen publiceringer i ugen") +
+  (pending_suggestions > 0 ? `\n✏️ ${pending_suggestions} stilforslag venter i admin → Stilguide` : "");
+
 const embed = {
   title: "📊 Ugentlig StatusOpdatering — StudentAthlete.dk",
   color: 5793266,
@@ -77,6 +99,11 @@ const embed = {
     {
       name: "Nye atleter",
       value: newAthletesLine,
+      inline: false,
+    },
+    {
+      name: "Redigeringsgrad (auto-publish-KPI)",
+      value: learningLine,
       inline: false,
     },
     {

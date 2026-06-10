@@ -128,7 +128,7 @@ async function main(): Promise<void> {
 
   // Hent stilguide-rettelser
   const corrResult = await db.query<StyleCorrectionEntry>(
-    "SELECT wrong_phrase, correct_phrase, note FROM style_corrections WHERE active = 1 LIMIT 50",
+    "SELECT wrong_phrase, correct_phrase, note, rule_type FROM style_corrections WHERE active = 1 LIMIT 50",
   );
   const corrections = corrResult.results;
   const systemPrompt = buildSystemPrompt(corrections);

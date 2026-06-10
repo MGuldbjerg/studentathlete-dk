@@ -256,6 +256,10 @@ export interface StyleCorrection {
   note: string | null;
   active: number;
   created_at: string;
+  // Læringsloop (migration-017)
+  status?: string;
+  rule_type?: string;
+  evidence_count?: number;
 }
 
 export async function getStyleCorrections(): Promise<StyleCorrection[]> {
@@ -271,6 +275,52 @@ export async function getStyleCorrections(): Promise<StyleCorrection[]> {
   } catch {
     return [];
   }
+}
+
+/**
+ * Pipeline-minede forslag der afventer redaktøren (mine-edits.ts).
+ * Støjværn: enkeltords-swaps er for kontekstafhængige til at vise ved første
+ * sigtning — de surfaces først ved evidence_count >= 3 (data bevares og tæller
+ * videre i baggrunden). Flerords-fraser og husregler vises straks. Top 25.
+ */
+export async function getStyleSuggestions(): Promise<StyleCorrection[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT * FROM style_corrections
+         WHERE status = 'suggested'
+           AND (rule_type = 'house_rule'
+                OR wrong_phrase LIKE '% %'
+                OR correct_phrase LIKE '% %'
+                OR evidence_count >= 3)
+         ORDER BY evidence_count DESC, created_at ASC
+         LIMIT 25`
+      )
+      .all();
+    return (r.results ?? []) as StyleCorrection[];
+  } catch {
+    return [];
+  }
+}
+
+/** Godkend (→ aktiv i prompten) eller afvis (genforeslås aldrig) et stilforslag. */
+export async function decideStyleSuggestion(
+  id: number,
+  action: "approve" | "reject",
+): Promise<boolean> {
+  const db = await getDB();
+  if (!db) return false;
+  const r = await db
+    .prepare(
+      `UPDATE style_corrections
+       SET status = ?, active = ?
+       WHERE id = ? AND status = 'suggested'`
+    )
+    .bind(action === "approve" ? "active" : "rejected", action === "approve" ? 1 : 0, id)
+    .run();
+  return ((r as { meta?: { changes?: number } })?.meta?.changes ?? 0) > 0;
 }
 
 export async function createStyleCorrection(fields: {
@@ -297,8 +347,9 @@ export async function createStyleCorrection(fields: {
 export async function deleteStyleCorrection(id: number): Promise<void> {
   const db = await getDB();
   if (!db) return;
+  // status='rejected' så mine-edits aldrig genforeslår en slettet rettelse
   await db
-    .prepare("UPDATE style_corrections SET active = 0 WHERE id = ?")
+    .prepare("UPDATE style_corrections SET active = 0, status = 'rejected' WHERE id = ?")
     .bind(id)
     .run();
 }

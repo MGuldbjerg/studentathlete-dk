@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getStyleCorrections } from "@/lib/admin";
+import { validateAdminToken, getStyleCorrections, getStyleSuggestions } from "@/lib/admin";
 import { StilguideClient } from "./StilguideClient";
 
 export default async function StilguidePage({
@@ -12,7 +12,10 @@ export default async function StilguidePage({
   const valid = await validateAdminToken(token ?? null);
   if (!valid) notFound();
 
-  const corrections = await getStyleCorrections();
+  const [corrections, suggestions] = await Promise.all([
+    getStyleCorrections(),
+    getStyleSuggestions(),
+  ]);
 
   return (
     <main className="min-h-screen bg-surface">
@@ -32,7 +35,11 @@ export default async function StilguidePage({
           Systemet lærer af dine rettelser, så de samme fejl ikke gentages.
         </p>
 
-        <StilguideClient initialCorrections={corrections} token={token!} />
+        <StilguideClient
+          initialCorrections={corrections}
+          initialSuggestions={suggestions}
+          token={token!}
+        />
       </div>
     </main>
   );

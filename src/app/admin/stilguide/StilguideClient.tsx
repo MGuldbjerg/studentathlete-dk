@@ -17,14 +17,95 @@ const CATEGORY_LABELS: Record<string, string> = {
   stil: "Stil",
 };
 
+function SuggestionRow({
+  suggestion,
+  token,
+  onDecided,
+}: {
+  suggestion: StyleCorrection;
+  token: string;
+  onDecided: (id: number, approved: boolean) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+
+  async function decide(action: "approve" | "reject") {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/stilguide/${suggestion.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, action }),
+      });
+      if (res.ok) onDecided(suggestion.id, action === "approve");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const isHouseRule = suggestion.rule_type === "house_rule";
+
+  return (
+    <div className="flex items-center justify-between bg-paper rounded-lg border px-4 py-2.5"
+      style={{ borderColor: "#fde68a", backgroundColor: "#fffbeb" }}>
+      <div className="min-w-0">
+        {isHouseRule ? (
+          <p className="text-sm text-ink">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted mr-2">Husregel</span>
+            {suggestion.correct_phrase}
+          </p>
+        ) : (
+          <p className="text-sm text-ink">
+            Skriv{" "}
+            <span className="font-semibold text-green-700">&ldquo;{suggestion.correct_phrase}&rdquo;</span>
+            , ikke{" "}
+            <span className="line-through text-flag-red">&ldquo;{suggestion.wrong_phrase}&rdquo;</span>
+          </p>
+        )}
+        <p className="text-xs text-muted mt-0.5">
+          {(suggestion.evidence_count ?? 1) > 1 ? `Set ${suggestion.evidence_count}× · ` : ""}
+          {suggestion.note ?? ""}
+        </p>
+      </div>
+      <div className="flex gap-2 flex-shrink-0 ml-3">
+        <button
+          onClick={() => decide("approve")}
+          disabled={busy}
+          className="text-xs font-semibold px-3 py-1.5 rounded text-white disabled:opacity-40"
+          style={{ backgroundColor: "#065f46" }}
+        >
+          Godkend
+        </button>
+        <button
+          onClick={() => decide("reject")}
+          disabled={busy}
+          className="text-xs font-semibold px-3 py-1.5 rounded border border-border bg-paper text-muted disabled:opacity-40"
+        >
+          Afvis
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function StilguideClient({
   initialCorrections,
+  initialSuggestions,
   token,
 }: {
   initialCorrections: StyleCorrection[];
+  initialSuggestions: StyleCorrection[];
   token: string;
 }) {
   const [corrections, setCorrections] = useState(initialCorrections);
+  const [suggestions, setSuggestions] = useState(initialSuggestions);
+
+  function handleDecided(id: number, approved: boolean) {
+    const s = suggestions.find((x) => x.id === id);
+    setSuggestions((prev) => prev.filter((x) => x.id !== id));
+    if (approved && s) {
+      setCorrections((prev) => [{ ...s, active: 1, status: "active" }, ...prev]);
+    }
+  }
   const [wrongPhrase, setWrongPhrase] = useState("");
   const [correctPhrase, setCorrectPhrase] = useState("");
   const [category, setCategory] = useState("oversaettelse");
@@ -113,6 +194,24 @@ export function StilguideClient({
 
   return (
     <div>
+      {/* Forslag fra pipelinen (mine-edits) */}
+      {suggestions.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-ink mb-1">
+            Forslag fra pipelinen ({suggestions.length})
+          </h2>
+          <p className="text-xs text-muted mb-3">
+            Lært af dine rettelser i publicerede artikler. Godkendte ryger direkte i
+            system-prompten; afviste genforeslås aldrig.
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {suggestions.map((s) => (
+              <SuggestionRow key={s.id} suggestion={s} token={token} onDecided={handleDecided} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tilføj-formular */}
       <div className="bg-paper rounded-lg border border-border p-4 mb-6">
         <h2 className="text-sm font-semibold text-ink mb-3">Tilføj rettelse</h2>
@@ -239,16 +338,25 @@ export function StilguideClient({
                     className="flex items-center justify-between bg-paper rounded-lg border border-border px-4 py-2.5"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm text-ink">
-                        Skriv{" "}
-                        <span className="font-semibold text-green-700">
-                          &ldquo;{c.correct_phrase}&rdquo;
-                        </span>
-                        , ikke{" "}
-                        <span className="line-through text-flag-red">
-                          &ldquo;{c.wrong_phrase}&rdquo;
-                        </span>
-                      </p>
+                      {c.rule_type === "house_rule" ? (
+                        <p className="text-sm text-ink">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted mr-2">
+                            Husregel
+                          </span>
+                          {c.correct_phrase}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-ink">
+                          Skriv{" "}
+                          <span className="font-semibold text-green-700">
+                            &ldquo;{c.correct_phrase}&rdquo;
+                          </span>
+                          , ikke{" "}
+                          <span className="line-through text-flag-red">
+                            &ldquo;{c.wrong_phrase}&rdquo;
+                          </span>
+                        </p>
+                      )}
                       {c.note && <p className="text-xs text-muted mt-0.5">{c.note}</p>}
                     </div>
                     <button
