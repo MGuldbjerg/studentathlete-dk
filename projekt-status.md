@@ -1,8 +1,27 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-10 (billeder niveau 1+2 + sider i admin — committet, pushet, DEPLOYET)
+**Sidst opdateret**: 2026-06-11 (social media-automation modul 7 — BYGGET, UNCOMMITTET)
 
-## 👉 Næste session — start her (handoff 2026-06-10 eftermiddag)
+## 👉 Næste session — start her (handoff 2026-06-11: social-kø)
+**Modul 7 (social media-automation) er bygget og testet lokalt — migration 018 KØRT mod remote D1, men koden er UNCOMMITTET og workflowen kører først når den er pushet + secrets er sat.**
+
+1. **Arkitektur**: `social_posts`-kø i D1 (én række pr. artikel × kanal, UNIQUE-dedup). Publicerede artikler enqueues automatisk (kun published_at < 48t — de 18 gamle artikler backfilles bevidst IKKE, verificeret mod prod). Timevis GitHub Actions-cron (`social-post.yml`, :15) dræner med **adaptiv pacing**: gap = 24t/kø-dybde, clamped 60–180 min. Lille kø → 3t mellem opslag; dyb kø → speeder op til hård grænse 1/time/kanal (Mikkels krav 2026-06-11: adaptiv + hård grænse + friskhed). Kø-rækker ældre end 48t → 'expired' (postes aldrig — friskhedsgarantien).
+2. **Kanaler** (`pipeline/social/channels/`): Bluesky (AT Protocol, uploader kampkort som embed-thumb), X (API v2, OAuth 1.0a HMAC-signering i ren node:crypto, gratis tier ~500/md), Facebook Page (Graph API, link-preview automatisk). Ukonfigurerede kanaler (manglende secrets) springes helt over og får ingen kø-rækker → kanaler kan tilføjes gradvist.
+3. **Opslagstekst er regelbaseret** (`copy.ts`, ingen LLM): Bluesky = titel (link i embed-kort), X = titel + URL, FB = titel + ingress (link separat). Kampkortet (OG-billedet) er det visuelle. 27 tests i `_social-test.ts` (pacing + copy), typecheck ren.
+4. **Fejlhåndtering**: 3 forsøg → status 'failed'; enhver kanal-fejl → exit 1 → Discord-besked (KUN ved fejl, samme princip som discover-daily). `workflow_dispatch` har dry_run-input; lokalt: `npx tsx pipeline/social/post-social.ts --dry-run` (kræver CF-env-vars fra ~/.bashrc).
+5. **Verificeret**: migration 018 kørt remote (14 tabeller), dry-run mod prod D1 OK (kø 0 = korrekt, seneste publish 5. juni er uden for vinduet), enqueue-SQL kørt uden fejl.
+
+**TODO MIKKEL (nyt — social):**
+- [ ] **Commit + push** (workflowen aktiveres først da)
+- [ ] **Bluesky**: opret konto til StudentAthlete.dk → Settings → App Passwords → GitHub-secrets `BLUESKY_HANDLE` + `BLUESKY_APP_PASSWORD` (5 min — kør først med kun denne kanal)
+- [ ] **X**: developer.x.com → opret app (free tier) → secrets `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` (appens permissions skal være "Read and write" FØR access token genereres)
+- [ ] **Facebook**: developers.facebook.com-app + page access token (long-lived via /me/accounts) → secrets `FB_PAGE_ID` + `FB_PAGE_ACCESS_TOKEN` (mest bøvl — kan vente)
+- [ ] Test: Actions → "Social media-kø" → Run workflow med dry_run=true
+
+---
+
+### Tidligere handoff (2026-06-10 eftermiddag)
+## 👉 (handoff 2026-06-10 eftermiddag)
 **Billedmodulet (IDEA-billeder.md niveau 1+2) er bygget, deployet til studentathlete.dk og verificeret live (commit 38bd59e). Migrations 014–016 kørt mod remote D1.**
 
 1. **Kampkort (niveau 1) LIVE**: artikler uden foto viser nu genereret kampkort (skolefarve + twemoji-piktogram + navn/skole + modstander/score fra faktaark + dato). `getArticleCoverUrl()` i seo.ts (bump `CARD_VERSION` ved designændring — edge-cache 7 dage). Verificeret: artikel 79 → Cleveland State-grønt kort, korrekt uden score (transfer-historie).
