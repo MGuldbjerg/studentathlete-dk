@@ -23,10 +23,13 @@ import { DEFAULT_PACING, computeGapMinutes, shouldPostNow } from "./pacing";
 import { buildPostText } from "./copy";
 import type { PostContent, SocialChannel } from "./types";
 import { bluesky } from "./channels/bluesky";
-import { x } from "./channels/x";
+// X droppet 2026-06-15: X fjernede sit gratis API-tier (nu pay-per-use, ~$0,01/opslag).
+// Adapter + secrets bevares — for at gen-aktivere: gendan importen og føj `x` til
+// ALL_CHANNELS igen (kræver pay-per-use-kredit på X-kontoen).
+// import { x } from "./channels/x";
 import { facebook } from "./channels/facebook";
 
-const ALL_CHANNELS: SocialChannel[] = [bluesky, x, facebook];
+const ALL_CHANNELS: SocialChannel[] = [bluesky, facebook];
 const MAX_ATTEMPTS = 3;
 
 interface QueuedRow {
