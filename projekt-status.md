@@ -1,6 +1,19 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-16 (first-party analytics — DEPLOYET + committet/pushet til main)
+**Sidst opdateret**: 2026-06-16 (profilbilleder: iterativ bio_url-backfill — pushet til main)
+
+## 👉 Seneste arbejde (2026-06-16, #2) — profilbilleder iterativt (commit 214b5ec, pushet)
+**0/128 atleter havde foto. Pipeline = bio_url → suggest-photos → admin-godkendelse. Bottleneck: kun 11 havde bio_url (roster-scraper plain-HTTP fejler på JS-Sidearm-sider). Gjorde den daglige JS-scraper til en iterativ, kvote-bunden billed-udfylder. Se [[project-studentathlete-photos]].**
+
+- **Bugfix**: `parseInt(x) || default` gjorde `--max-age-days 0` → 30 (0 er falsy). Rettet i `scrape-rosters.ts` + `scrape-js-rosters.ts` + `suggest-photos.ts`.
+- **`scrape-js-rosters.ts`**: fanger nu `bio_url` (INSERT + dedikeret `COALESCE`-backfill-UPDATE på slug, uafhængig af class_year — den GJORDE det ikke før!) + selektionen medtager/prioriterer nu rosters på skoler med aktive danskere uden bio_url (ikke kun `js_required`). `checked_at ASC` roterer gennem de ~95 målskoler over flere daglige kørsler → udfylder bio_url i bidder inden for den gratis browser-kvote (~10 min/dag).
+- **`daily-js-scrape.yml`**: kører nu `suggest-photos` lige efter scrapen (plain fetch, ingen kvote) → nye bio_urls bliver til køede headshots samme dag.
+- **Manuelt udført forinden**: 10 foto-forslag venter på godkendelse i admin → Fotos (9 auto + Marie Eline Madsen #1, 8 artikler, verificeret). +6 bio_urls sat manuelt på artikel-atleter (nu 17 m. bio).
+- **Caveat**: foto kun køet når bio-siden har et navne-matchet og:image (JS-lazy-load-templates giver intet). og:image er IKKE identitetssikkert (UNCG gav holdkammerats foto) → navne-match-gate. Godkendelse er stadig Mikkels gate. Konvergerer gradvist.
+- **TODO Mikkel**: godkend de 10 i admin → Fotos. Daglig cron (03:00 UTC) starter backfill; kan trigges nu med `gh workflow run daily-js-scrape.yml`.
+
+---
+
 
 ## 👉 Seneste arbejde (2026-06-16) — first-party analytics (besøg + pageviews + klik)
 **Erstattede den bot-tællende edge-logning med en first-party JS-beacon. DEPLOYET til studentathlete.dk + migration 019 kørt mod remote D1 + `ANALYTICS_SALT`-secret sat. Build/typecheck/tests grønne. Committet + pushet til `main` (commits 124f3b3 content + 4f6c5bf analytics; main = prod-tilstand).**
