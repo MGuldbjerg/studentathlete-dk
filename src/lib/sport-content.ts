@@ -23,15 +23,19 @@ export const SPORT_CONTENT: Record<string, SportContent> = {
       "Danske football-atleter i NCAA – nyheder, profiler og resultater fra college football i USA.",
     pillar: `## Dansk football i NCAA
 
-Amerikansk football er den sportsgren, der har åbnet flest døre for danske atleter i USA. Særligt kicker- og punter-positionen er blevet en dansk specialitet — det kræver præcision og is i maven, og den danske fodboldtradition giver et solidt fundament for sparketeknik.
+Amerikansk football er den sportsgren, der har åbnet flest døre for danske atleter i USA. Særligt kicker- og punter-positionen er blevet en dansk specialitet — det kræver præcision og is i maven, og den danske fodboldtradition giver et solidt fundament for sparketeknik. En dansk fodboldopvækst lærer benet at ramme bolden rent, og det er præcis den evne, college-trænere mangler.
 
 ### Sæsonens gang
 
-College football-sæsonen løber fra september til december, med bowl games og playoffs i januar. Forårssemestret bruges til styrketræning og spring practice. Holdene spiller typisk 12 kampe i den regulære sæson plus eventuelle postseason-kampe.
+College football-sæsonen er kort og intens. Den regulære sæson løber fra slutningen af august til slutningen af november med typisk 12 kampe — næsten altid spillet om lørdagen, hvor college football ejer dagen (NFL spiller om søndagen). Først i december afgøres conference-mesterskaberne, og derefter følger bowl-kampe og College Football Playoff, der siden 2024 har 12 hold og slutter med et nationalt mesterskab i januar. Foråret bruges til styrketræning og "spring practice", hvor holdet bygges op til næste sæson.
 
-### Kendte danske football-atleter
+### Sådan fungerer college-systemet
 
-Danmark har en stolt tradition for at sende spillere til topniveauet. Morten Andersen — "The Great Dane" — er den mest berømte, men nye generationer følger i hans fodspor på universiteter i Power Five-conferences og beyond.`,
+Frem til 2025 måtte et Division I-hold (FBS) give 85 fulde football-stipendier, men efter det store "House"-forlig i 2025 er der i stedet indført et samlet trupsloft på 105 spillere, hvor alle i princippet kan modtage stipendium. Spillere har typisk fem år til at gennemføre fire sæsoner, og en "redshirt"-sæson lader en spiller træne med uden at bruge af spilleberettigelsen — ofte det første år, mens man vænner sig til niveauet og sproget. Den klassiske "walk-on" uden stipendium er på vej ud med de nye regler.
+
+### Tidbits
+
+Morten Andersen — "The Great Dane" — er den mest berømte dansker i amerikansk football og sidder i Pro Football Hall of Fame som NFL's mest scorende spiller gennem tiderne; han kom selv gennem college som All-American kicker på Michigan State. En nyere profil er Hjalte Froholdt, der gik fra Danmark via University of Arkansas til NFL som offensive lineman. Stemningen er enorm: Michigans stadion "The Big House" rummer over 107.000 tilskuere, flere end nogen by mellem København og Aarhus. Den store rekrutteringsdag, "National Signing Day" i februar, følges som en helligdag af amerikanske fans.`,
   },
 
   basketball: {
@@ -46,11 +50,15 @@ Basketball har i de seneste år set en stigende interesse fra danske atleter, de
 
 ### Sæsonens gang
 
-NCAA basketball-sæsonen begynder i november og kulminerer med March Madness — det legendariske slutspil i marts og april. Holdene spiller 25-35 kampe, og conference-turneringer afgør de sidste pladser i NCAA-turneringen.
+NCAA basketball-sæsonen begynder i november og kulminerer med March Madness — det legendariske slutspil i marts og april. Holdene spiller typisk 30-35 kampe i den regulære sæson, fordelt på ikke-conference-kampe i efteråret og et tæt conference-program hen over vinteren. Conference-turneringerne i starten af marts afgør de sidste billetter til det store slutspil.
 
-### Danske spilleres styrke
+### Sådan fungerer March Madness
 
-Danske spillere har typisk fordel af deres alsidighed og holdspilsmentalitet. Flere har opnået startpladser på Division I-hold, og det tekniske niveau og den taktiske forståelse fra dansk basketball vurderes positivt af amerikanske trænere.`,
+Slutspillet er en knockout-turnering med 68 hold, der spilles i én lang weekend-rytme over tre uger: taber man én kamp, er man ude. Holdene seedes 1 til 16 i fire regioner, og hvert år overrasker en lavtseedet "Cinderella"-skole ved at slå favoritterne. Faserne hedder Sweet Sixteen, Elite Eight og Final Four, og det hele afsluttes med en finale, der ses af titusinder af danskere på trods af tidsforskellen.
+
+### Tidbits
+
+College basketball har en helt anden stemning end de professionelle ligaer: studenter-sektioner, der står op hele kampen, marchorkestre og rivaliseringer, der går generationer tilbage. Turneringen er så uforudsigelig, at den årlige "bracket"-konkurrence — hvor man forsøger at gætte alle resultater — aldrig i historien er blevet ramt perfekt. Danske spillere roses ofte for deres alsidighed, holdspilsmentalitet og taktiske forståelse, som amerikanske trænere vurderer højt. To danske college-pionerer rager op: Christian Drejer spillede for Florida Gators og blev i 2004 den første dansker nogensinde, der blev draftet til NBA, mens Inge Nissen vandt to nationale mesterskaber med Old Dominion omkring 1980 og siden er optaget i Women's Basketball Hall of Fame.`,
   },
 
   baseball: {
@@ -65,11 +73,15 @@ Baseball er en nichesport i Danmark, men det lille danske baseballmiljø har all
 
 ### Sæsonens gang
 
-College baseball-sæsonen løber fra februar til juni, med College World Series i Omaha som sæsonens absolutte højdepunkt. Holdene spiller op til 56 kampe i den regulære sæson — et af de mest intense programmer i NCAA.
+College baseball-sæsonen løber fra midten af februar til juni — et af de mest intense programmer i NCAA med op til 56 kampe i den regulære sæson. Holdene spiller ofte tre kampe på en weekend mod samme modstander (en "series"), så pitching-staben skal være dyb. Sæsonen kulminerer med et regionalt slutspil og til sidst College World Series i Omaha, Nebraska, hvor de otte bedste hold mødes foran fyldte tribuner.
 
-### Dansk baseball på vej frem
+### Sådan adskiller det sig fra profferne
 
-Softball og baseball er voksende sportsgrene i Danmark, og med flere og flere unge, der tager sporten op, kan vi forvente at se flere danskere på amerikanske college-hold i de kommende år.`,
+College baseball spilles med aluminiums- og kompositbat (BBCOR-godkendte) i stedet for de træbat, der bruges i professionel baseball. Det giver sportens helt egen lyd — et skarpt "ping" i stedet for et "knæk" — og lidt mere kraft, hvilket gør college-kampene højtscorende og hurtige.
+
+### Tidbits
+
+Baseball er en såkaldt "equivalency sport": et hold deler et begrænset antal stipendier ud over en stor trup, så fuldt stipendium er sjældent. Mange spillere bliver draftet til den professionelle MLB direkte fra college. Softball og baseball er voksende sportsgrene i Danmark, og med flere unge, der tager sporten op, kan vi forvente at se flere danskere på amerikanske college-hold i de kommende år.`,
   },
 
   fodbold: {
@@ -84,11 +96,15 @@ Fodbold — eller soccer, som det hedder i USA — er en af de mest populære ve
 
 ### Sæsonens gang
 
-NCAA soccer-sæsonen er kort og intens: august til december, med ca. 20 kampe. Forårssemestret bruges til individuel udvikling og forårsturneringer. College Cup — NCAAʼs slutspil — afgøres i december.
+NCAA soccer-sæsonen er kort og intens: kvinder og herrer spiller begge i efteråret, fra august til november, med omkring 18-20 kampe presset sammen på få måneder. Det betyder ofte to kampe om ugen og stor belastning på kroppen. College Cup — NCAA's slutspil med 48 hold — afgøres i begyndelsen af december. Foråret bruges til individuel udvikling, styrketræning og uofficielle forårsturneringer.
 
-### Danske spilleres styrke
+### Sådan adskiller reglerne sig
 
-Den danske fodboldtradition med fokus på boldbehandling, positionsspil og taktisk disciplin passer godt til college soccer. Mange danske spillere opnår startpladser fra dag ét og bidrager til deres holds succes på højeste niveau.`,
+College soccer har sine egne særregler, der overrasker europæere. På de fleste niveauer — kvindefodbold og de lavere divisioner — må en spiller, der er skiftet ud, komme ind igen senere i kampen, og der skiftes generelt langt mere end i europæisk fodbold, hvilket gør spillet hurtigere og mere fysisk (herrernes Division I afskaffede dog gen-indskiftning i 2024 for at ligne FIFA-reglerne mere). Uafgjorte kampe i den regulære sæson kan ende med kort forlænget spilletid, og i slutspillet afgøres det hele til sidst på straffespark.
+
+### Tidbits
+
+Kvindefodbold er enormt i USA og i mange år bygget op netop omkring college-systemet — flere stjerner fra det amerikanske VM-vindende landshold er gået vejen gennem NCAA. Den danske fodboldtradition med fokus på boldbehandling, positionsspil og taktisk disciplin passer godt til college soccer, og mange danske spillere opnår startpladser fra dag ét. Fodbold er faktisk den sportsgren, der sender flest danskere til NCAA — på tværs af herre- og kvindehold ligger danske spillere på rosters fra Division I til Division III over hele USA, selvom de største danske fodboldtalenter typisk går den professionelle vej herhjemme i stedet for over Atlanten.`,
   },
 
   svoemning: {
@@ -103,11 +119,15 @@ Danmark har en stærk svømmetradition, og NCAA tilbyder en unik mulighed for da
 
 ### Sæsonens gang
 
-College-svømning løber fra oktober til marts, med NCAA Championships som sæsonens højdepunkt. Træningen er intensiv — op til 20 timer om ugen i vandet plus styrketræning. Forårssemestret bruges til træning og off-season-stævner.
+College-svømning løber fra oktober til marts, med conference-mesterskaberne i februar og NCAA Championships i marts som sæsonens højdepunkt. Træningen er intensiv — op til 20 timer om ugen i vandet plus styrketræning. Den lange opbygning er tilrettelagt med "tapering", så svømmerne topper præcis til mesterskaberne.
 
-### Dansk svømnings styrke
+### Sådan afgøres en holdkamp
 
-Den danske svømmeskole, med fokus på teknik og udholdenhed, forbereder atleterne godt til det amerikanske college-system. Flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships.`,
+I et "dual meet" møder to skoler hinanden, og selvom hver svømmer kæmper individuelt, er det holdets samlede pointsum, der afgør sejren. I hver disciplin tildeles point efter placering — for eksempel 9 point for førstepladsen, derefter 4, 3, 2 og 1 til de næste — og stafetterne giver dobbelt op. Et hold kan altså vinde stævnet uden at have den hurtigste enkeltsvømmer, hvis bredden er stor nok. Udspring tæller med i den samlede score på lige fod med svømningen. Til de store mesterskaber stiller mange hold op samtidig, og pointene lægges sammen på tværs af alle discipliner.
+
+### Tidbits
+
+En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-yards-bassin ("short course yards"), ikke de 50 meter, man kender hjemmefra — så tiderne kan ikke sammenlignes direkte. De fleste stævner afvikles med indledende heat om morgenen og finaler om aftenen. Den danske svømmeskoles fokus på teknik og udholdenhed forbereder atleterne godt, og flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships. North Carolina State har været et samlingspunkt for danske svømmere: distancesvømmeren Anton Ipsen markerede sig blandt USA's bedste, og Søren Dahl vandt to NCAA-titler med skolens stafetter i 2016 og 2017.`,
   },
 
   atletik: {
@@ -122,11 +142,15 @@ Atletik er en af de største sportsgrene i NCAA, og danske atleter har gode muli
 
 ### Sæsonens gang
 
-College atletik har to sæsoner: indendørs (januar-marts) og udendørs (marts-juni). NCAA Indoor og Outdoor Championships er sæsonens højdepunkter. Kryds- og tværtræning med cross country (efterår) er almindeligt.
+College atletik strækker sig over næsten hele studieåret i tre faser: cross country om efteråret (september-november), indendørs atletik om vinteren (januar-marts) og udendørs atletik om foråret (marts-juni). NCAA Indoor og Outdoor Championships er sæsonens to store højdepunkter, og mange atleter konkurrerer i alle tre sæsoner som en del af samme program.
 
-### Danske atleter i topklassen
+### Sådan afgøres en holdkamp
 
-Flere danske atletikudøvere har sat sig spor i NCAA med All-American-udnævnelser og conference-mesterskaber. Den danske atletiktradition, særligt inden for mellemdistance og spring, passer godt til det amerikanske college-system.`,
+Selvom hver enkelt øvelse er en individuel præstation, samles det hele til en holdkamp gennem point. Ved et stævne — det være sig et "dual meet" mellem to skoler eller et stort invitational med mange hold — tildeles der point efter placering i hver disciplin, og skolens samlede sum afgør den endelige rangering. Et bredt hold, der scorer point i mange forskellige øvelser, slår derfor et hold med få store stjerner. Cross country har sin helt egen logik: her vinder holdet med den LAVESTE score, fordi man lægger placeringerne for de fem bedste løbere sammen — så en førsteplads er bedre end en tiendeplads.
+
+### Tidbits
+
+Stafetterne er blandt de mest populære øvelser, og holdfølelsen omkring dem er stor selv i en ellers individuel sport. NCAA-systemet har fostret mange olympiske medaljevindere, og flere danske atletikudøvere har sat sig spor med All-American-udnævnelser og conference-mesterskaber. Den danske atletiktradition, særligt inden for mellemdistance og spring, passer godt til det amerikanske college-system. Et godt eksempel er forhindringsløberen Ole Hesselbjerg, der blev tredobbelt All-American på Eastern Kentucky og senere repræsenterede Danmark i 3.000 m steeplechase ved OL i Rio 2016.`,
   },
 
   golf: {
@@ -141,11 +165,15 @@ Golf er en af de sportsgrene, hvor danske atleter har markeret sig allermest i N
 
 ### Sæsonens gang
 
-College golf har to sæsoner: efterår (september-november) og forår (februar-maj). NCAA Championships spilles i maj og er en af golfsportens mest prestigefyldte college-begivenheder.
+College golf deler sit program over to dele af studieåret: en efterårssæson (september-november) og en forårssæson (februar-maj), der bygger op til mesterskaberne. NCAA Championships spilles i slutningen af maj og er en af golfsportens mest prestigefyldte college-begivenheder.
 
-### Dansk succes på green
+### Sådan afgøres en holdkamp
 
-Flere danskere har vundet individuelle NCAA-turneringer og bidraget til holdets succes i conference-mesterskaber. Vejen fra dansk ungdomsgolf til NCAA er veletableret, og mange bruger college golf som springbræt til professionel golf.`,
+Det meste af sæsonen spilles som "stroke play" over 54 huller (tre runder): hvert hold stiller op med fem spillere, men kun de fire bedste runder tæller med hver dag, så den dårligste score smides væk. Holdet med færrest slag i alt vinder. Det betyder, at en enkelt katastroferunde kan reddes af holdkammeraterne — golf bliver pludselig en holdsport. Til selve NCAA-finalen ændres formatet undervejs: efter den indledende stroke play går de otte bedste hold videre til "match play", hvor skolerne sættes mod hinanden mand-mod-mand, og det hold, der vinder flest af de individuelle dueller, går videre. Den dramatiske afslutning blev indført i 2009 og har givet golfen et knockout-format, der minder om March Madness.
+
+### Tidbits
+
+Vejen fra dansk ungdomsgolf til NCAA er veletableret, og flere danskere har vundet individuelle NCAA-turneringer og bidraget til holdets succes i conference-mesterskaber. For mange er college golf et springbræt direkte til professionel golf på PGA- og LPGA-touren. Rasmus Neergaard-Petersen er et nutidigt eksempel: han blev All-American på Oklahoma State — samme stærke program som Viktor Hovland — og er siden rykket op på de professionelle touren.`,
   },
 
   tennis: {
@@ -160,11 +188,15 @@ Tennis er en af de mest populære sportsgrene for internationale atleter i NCAA,
 
 ### Sæsonens gang
 
-College tennis-sæsonen løber fra januar til maj, med NCAA Championships i maj. Holdene spiller dual matches (hold mod hold), og individuel ranking spiller en central rolle. Efteråret bruges til individuelle turneringer og træning.
+Holdsæsonen løber fra januar til maj og kulminerer med NCAA Championships i maj. Efteråret er derimod individuelt: her spiller spillerne turneringer for sig selv for at opbygge ranking, før de om foråret samles til holdkampene.
 
-### Dansk tennis i USA
+### Sådan afgøres en holdkamp
 
-Danske tennisspillere har tradition for at klare sig godt i det amerikanske college-system. Den tekniske træning og kamperfaring fra dansk og europæisk tennis giver et solidt fundament for NCAA-konkurrence.`,
+En "dual match" mellem to skoler afgøres på syv mulige point. Først spilles tre doubler samtidig, og det hold, der vinder to af dem, får ét samlet doublepoint. Derefter spilles seks singler, hvor hver kamp er ét point. Det hold, der først når fire point i alt, har vundet — og kampen stoppes i det øjeblik, afgørelsen er sikker, så de sidste singler ikke altid spilles færdige. Det gør college tennis langt mere holdorienteret end den professionelle sport: udfaldet afhænger af hele truppen, ikke kun af stjernen på førstepladsen.
+
+### Tidbits
+
+College tennis bryder med den professionelle sports stilhed: holdkammerater og studenter hepper højlydt mellem boldskifterne, og stemningen minder mere om en holdsport end om en Grand Slam. Mange kampe spilles desuden med "no-ad"-scoring, hvor et point ved 40-40 afgør hele partiet — det gør spillet hurtigere og mere nervepirrende. Den tekniske træning og kamperfaring fra dansk og europæisk tennis giver et solidt fundament for NCAA-konkurrence. Danskerne har sat markante aftryk: Mikael Torpegaard blev femdobbelt All-American på Ohio State, og August Holmgren spillede sig hele vejen til finalen i NCAA's individuelle mesterskab i 2022 for San Diego.`,
   },
 
   roning: {
@@ -179,11 +211,15 @@ Roning har en særlig plads i NCAA, især for kvinder, og Danmarks stærke roklu
 
 ### Sæsonens gang
 
-College-roning har to sæsoner: efterår (head races) og forår (sprint racing). NCAA Championships afholdes i maj/juni. Træningen er intensiv med morgen- og eftermiddagssessioner.
+College-roning har to vidt forskellige sæsoner. Om efteråret ros der "head races": lange løb på 4-6 km, hvor bådene sendes af sted med tidsmellemrum og kæmper mod uret frem for side om side. Om foråret skifter sporten til "sprint racing" — korte, eksplosive løb på typisk 2.000 meter, hvor flere både ligger på stribe og ror direkte mod hinanden mod målstregen. Sæsonen kulminerer med NCAA Championships i slutningen af maj eller starten af juni. Træningen er berygtet intensiv med både morgen- og eftermiddagssessioner.
 
-### Dansk roning internationalt
+### Sådan afgøres en holdkamp
 
-Den danske roningstradition er stærk, og flere danskere har brugt NCAA som springbræt til international konkurrence. College-roning tilbyder en unik kombination af holdsport og individuel udvikling.`,
+Når to eller flere skoler mødes til en regatta, stiller hver skole op med flere både i forskellige klasser — typisk otter (med styrmand) og firere. Hvert løb giver point, og skolens samlede resultat på tværs af alle bådene afgør den endelige placering. Det er altså ikke nok at have én hurtig båd; dybden i hele programmet tæller. Styrmanden ("coxswainen") ror ikke selv, men styrer båden og dirigerer roernes rytme — ofte holdets mindste person ombord.
+
+### Tidbits
+
+Et kuriosum værd at kende: kvinderoning er en officiel NCAA-mesterskabssport, mens herreroningen historisk styres af en separat organisation (IRA) uden for NCAA — så stipendiemulighederne er klart størst for kvinder. Den danske roningstradition er stærk, og flere danskere har brugt college-roning som springbræt til international konkurrence og OL. Joachim Sutton var en af de første danske roere på et amerikansk universitetshold, da han ankom til University of California, Berkeley.`,
   },
 
   gymnastik: {
@@ -198,11 +234,15 @@ Gymnastik er en af NCAAʼs mest populære sportsgrene med stor publikumsinteress
 
 ### Sæsonens gang
 
-College-gymnastik løber fra januar til april, med NCAA Championships i april. Holdene konkurrerer i fire apparater (kvinder) eller seks apparater (herrer), og holdscoren afgør placeringen.
+College-gymnastik løber fra januar til april, med conference-mesterskaber og NCAA Championships som klimaks i april. Sæsonen er kort og tæt, og fordi hver eneste øvelse tæller, er konsistens vigtigere end enkeltstående spektakulære præstationer.
 
-### Dansk gymnastiktradition
+### Sådan afgøres en holdkamp
 
-Danmarks gymnastiktradition er bred — fra folkelig gymnastik til konkurrencegymnastik. De atleter, der tager springet til NCAA, kommer typisk fra konkurrencemiljøet og bringer en stærk teknisk baggrund med sig.`,
+Når to eller flere skoler mødes, konkurrerer gymnasterne i de enkelte apparater — fire for kvinder (spring, barre, bom og gulv) og seks for herrer. Hver gymnasts øvelse bedømmes med en score, og holdets samlede sum af de tællende scorer i hvert apparat afgør sejren. Et hold stiller typisk med flere gymnaster pr. apparat, men kun de bedste scorer tæller, så bredde og pålidelighed er afgørende. Det er kombinationen af holdets samlede præstation på tværs af alle apparater, der kårer vinderen — ikke en enkelt stjernes glansnummer.
+
+### Tidbits
+
+En charmerende særhed ved kvindernes college-gymnastik: den holder fast i den klassiske 10-skala, hvor det "perfekte 10-tal" stadig findes — i modsætning til både elitegymnastikkens internationale system og herrernes college-gymnastik, der begge bruger en åben skala uden loft. Et perfekt 10-tal i en fyldt amerikansk hal udløser euforisk jubel. Danmarks gymnastiktradition er bred, og de atleter, der tager springet til NCAA, kommer typisk fra konkurrencemiljøet med en stærk teknisk baggrund.`,
   },
 
   ishockey: {
@@ -217,11 +257,11 @@ Ishockey er en stor sport i det amerikanske college-system, med intense rivalise
 
 ### Sæsonens gang
 
-College hockey-sæsonen løber fra oktober til april, med Frozen Four som det store klimaks. Holdene spiller ca. 34 kampe i den regulære sæson, efterfulgt af conference-turneringer og NCAA-turneringen.
+College hockey-sæsonen løber fra oktober til april. Holdene spiller omkring 34 kampe i den regulære sæson, ofte i serier med to kampe på samme weekend mod den samme modstander. Conference-turneringerne i marts fører frem til NCAA-turneringen, der kulminerer med "Frozen Four" — de fire bedste hold, der mødes om det nationale mesterskab.
 
-### Dansk ishockey i vækst
+### Tidbits
 
-Med den danske ishockeys stigende niveau og flere danske spillere i professionelle ligaer verden over, er NCAA-vejen en attraktiv mulighed for unge danske spillere, der vil kombinere sport og uddannelse.`,
+College hockey er en af de vigtigste leverandører af spillere til NHL: mange spillere udvikler sig her i stedet for i de canadiske juniorligaer, fordi de samtidig kan tage en uddannelse. En særhed ved amatørstatussen er, at en draftet NHL-spiller godt kan fortsætte i college, så længe han ikke har skrevet professionel kontrakt. Med den danske ishockeys stigende niveau og flere danske spillere i professionelle ligaer verden over er NCAA-vejen blevet en attraktiv mulighed for unge danske spillere, der vil kombinere sport og uddannelse. Forsvarsspilleren Oliver Lauridsen gik fx vejen gennem St. Cloud State, før han blev draftet og spillede i NHL.`,
   },
 
   volleyball: {
@@ -236,11 +276,11 @@ Volleyball er en af NCAAʼs største sportsgrene, især for kvinder, med tusindv
 
 ### Sæsonens gang
 
-Kvindevolleyball spilles i efteråret (august-december), mens herrevolleyball er en forårssport (januar-maj). NCAA Volleyball Championship er en af efterårets store begivenheder med stor mediedækning.
+De to køn spiller i hver sin halvdel af året: kvindevolleyball er en efterårssport (august-december), mens herrevolleyball spilles om foråret (januar-maj). Kvindernes NCAA Volleyball Championship i december er en af efterårets store tv-begivenheder og fylder arenaer med titusinder af tilskuere.
 
-### Danske spillere i NCAA
+### Tidbits
 
-Den danske volleyballtradition med fokus på teknik og taktik passer godt til college-sporten. Flere danske spillere har opnået startpladser og gjort sig bemærket med All-Conference-udnævnelser.`,
+Ud over den klassiske indendørs 6-mod-6-volleyball er beachvolley vokset til en selvstændig NCAA-mesterskabssport, hvor par spiller mod par i sandet — en hurtigt voksende disciplin, hvor europæiske spillere klarer sig godt. En libero-spiller bærer afvigende trøjefarve og er specialist i forsvar, men må ikke angribe over nettet. Den danske volleyballtradition med fokus på teknik og taktik passer godt til college-sporten, og flere danske spillere har gjort sig bemærket med All-Conference-udnævnelser.`,
   },
 
   andet: {
@@ -251,11 +291,15 @@ Den danske volleyballtradition med fokus på teknik og taktik passer godt til co
       "Danske atleter i øvrige NCAA-sportsgrene – nyheder og profiler fra niche-sportsgrene i USA.",
     pillar: `## Andre sportsgrene i NCAA
 
-NCAA dækker over 20 sportsgrene, og danske atleter kan findes i mange af dem. Fra lacrosse til fægtning, fra vandsport til vintersport — mulighederne er bredere, end de fleste tror.
+NCAA dækker over 20 forskellige sportsgrene, og danske atleter kan findes i mange af dem. Fra lacrosse til fægtning, fra vandpolo og sejlsport til skisport og wrestling — mulighederne er bredere, end de fleste tror.
 
-### Nye veje til USA
+### Holdsport og individuelle stævner
 
-Efterhånden som kendskabet til NCAA-systemet vokser i Danmark, ser vi atleter fra stadig flere sportsgrene tage springet. Mange af NCAAʼs mindre sportsgrene har mindre konkurrence om pladserne, hvilket kan være en fordel for danske atleter med talent inden for nichesportsgrene.`,
+Sportsgrenene i denne kategori afgøres på vidt forskellige måder. Nogle, som lacrosse og vandpolo, er rene holdkampe mellem to skoler. Andre, som fægtning, wrestling og skisport, fungerer som "meets", hvor de enkelte dueller eller løb hver giver point, og skolernes samlede pointsum afgør holdsejren — på samme måde som i svømning og atletik. Det betyder, at en skole kan vinde et stævne på bredde og pålidelighed frem for på enkelte stjerner.
+
+### Tidbits
+
+Flere af NCAAʼs mindre sportsgrene har færre ansøgere til stipendierne, hvilket kan være en reel fordel for danske atleter med talent inden for en nichesport. Wrestling (amerikansk brydning) er fx en stor og traditionsrig college-sport, og lacrosse vokser hastigt. Efterhånden som kendskabet til NCAA-systemet breder sig i Danmark, ser vi atleter fra stadig flere sportsgrene tage springet over Atlanten.`,
   },
 };
 
