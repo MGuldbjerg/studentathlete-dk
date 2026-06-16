@@ -1,6 +1,19 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-16 (profilbilleder: iterativ bio_url-backfill — pushet til main)
+**Sidst opdateret**: 2026-06-16 (profilbilleder: iterativ pipeline FIXET + valideret lokalt — pushet)
+
+## 👉 VIGTIGT (2026-06-16, #3): foto-pipelinen virker nu, men cron mangler token-permission
+**Test-kørsel afslørede at JS-rendering ALDRIG har virket. Tre bugs fundet+fixet (commits 993be62 + fedf346, pushet). End-to-end valideret lokalt. Se [[project-studentathlete-photos]].**
+
+1. **GitHub-secret `CLOUDFLARE_API_TOKEN` mangler Browser Rendering-permission** → CF svarer **401** i Actions (mit lokale token virker). **DIN HANDLING: opdatér secret'en til et token med Browser Rendering-perm** (CF dashboard → API Tokens; derefter `gh secret set CLOUDFLARE_API_TOKEN`). Indtil da renderer den daglige cron intet.
+2. `scrape-js-rosters.ts` brugte forkert endpoint (`/scrape` + `formats:["html"]` + streng-`waitForSelector` → HTTP 400, renderede ALDRIG). Omskrevet til `renderPage` (`/content`, samme som scrape-rosters.ts) + kvote-stop. Valideret: renderede 4 Texas State-rosters på ~85s, fandt en dansker.
+3. `suggest-photos` havde ingen identitets-gate → køede UNCG's "Lars.png" som Hector Nissen (holdkammerat!). Tilføjet efternavns-match-gate på og:image; afviste det forkerte forslag.
+
+**Valideret end-to-end lokalt**: scrape → bio_url-backfill → gated suggester → kø. Fandt+køede Zoe Du Pasquier Jensen (Texas State tennis) frisk. **15 forslag venter nu på godkendelse i admin → Fotos** (inkl. Madsen + 3 manuelle + Zoe; Bang = uverificeret opaque-hash, tjek visuelt før godkendelse).
+**Når token #1 er fikset** kører cron'en (03:00 UTC) backfill iterativt i bidder af sig selv.
+
+---
+
 
 ## 👉 Seneste arbejde (2026-06-16, #2) — profilbilleder iterativt (commit 214b5ec, pushet)
 **0/128 atleter havde foto. Pipeline = bio_url → suggest-photos → admin-godkendelse. Bottleneck: kun 11 havde bio_url (roster-scraper plain-HTTP fejler på JS-Sidearm-sider). Gjorde den daglige JS-scraper til en iterativ, kvote-bunden billed-udfylder. Se [[project-studentathlete-photos]].**
