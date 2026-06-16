@@ -110,10 +110,12 @@ function parseArgs(): CliArgs {
       division = args[i + 1];
       i++;
     } else if (args[i] === "--limit" && args[i + 1]) {
-      limit = parseInt(args[i + 1], 10) || 500;
+      const n = parseInt(args[i + 1], 10);
+      if (!Number.isNaN(n)) limit = n;
       i++;
     } else if (args[i] === "--max-age-days" && args[i + 1]) {
-      maxAgeDays = parseInt(args[i + 1], 10) || 30;
+      const n = parseInt(args[i + 1], 10);
+      if (!Number.isNaN(n)) maxAgeDays = n; // 0 = tving gen-tjek (var tidligere en bug: 0 → 30)
       i++;
     } else if (args[i] === "--no-render") {
       render = false;

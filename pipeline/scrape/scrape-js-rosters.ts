@@ -98,11 +98,22 @@ function parseArgs(): { limit: number } {
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) {
-      limit = parseInt(args[i + 1], 10) || 50;
+      const n = parseInt(args[i + 1], 10);
+      if (!Number.isNaN(n)) limit = n;
     }
   }
 
   return { limit };
+}
+
+/** Gør et relativt bio-href absolut ift. roster-sidens URL. */
+function toAbsoluteUrl(href: string | null, base: string): string | null {
+  if (!href) return null;
+  try {
+    return new URL(href, base).toString();
+  } catch {
+    return null;
+  }
 }
 
 async function main(): Promise<void> {
@@ -118,15 +129,26 @@ async function main(): Promise<void> {
 
   console.log(`Henter JS-renderede roster-checks (limit: ${limit})...\n`);
 
+  // Medtag: (a) js_required-rosters, OG (b) rosters på skoler der har aktive danske
+  // atleter UDEN bio_url — så vi gen-renderer netop de sider, der kan udfylde
+  // profilbilleder. Prioritér (b) først; checked_at ASC roterer gennem dem over
+  // flere daglige kørsler, så vi spiser den gratis browser-kvote i bidder.
+  const missingBioAtSchool = `EXISTS (
+       SELECT 1 FROM athletes a
+       WHERE a.university = s.name AND a.active = 1
+         AND (a.bio_url IS NULL OR a.bio_url = '')
+     )`;
   const result = await db.query<JsRosterCheck>(
     `SELECT
        rc.id as check_id, rc.school_id, rc.sport, rc.roster_url,
        s.name as school_name, s.state as school_state, s.division
      FROM roster_checks rc
      JOIN schools s ON rc.school_id = s.id
-     WHERE rc.status = 'js_required'
-       AND rc.roster_url IS NOT NULL
-     ORDER BY rc.checked_at ASC NULLS FIRST
+     WHERE rc.roster_url IS NOT NULL
+       AND (rc.status = 'js_required' OR ${missingBioAtSchool})
+     ORDER BY
+       CASE WHEN ${missingBioAtSchool} THEN 0 ELSE 1 END,
+       rc.checked_at ASC NULLS FIRST
      LIMIT ?`,
     [limit],
   );
@@ -168,13 +190,14 @@ async function main(): Promise<void> {
       const sportLabel = SPORT_MAP[check.sport] ?? check.sport;
       const { classYear, expectedGraduation, yearEnrolled } =
         resolveClassYear(athlete.year, academicYear);
+      const bioUrl = toAbsoluteUrl(athlete.bioUrl, check.roster_url);
 
       try {
         await db.execute(
           `INSERT OR IGNORE INTO athletes
            (name, slug, sport, position, hometown, university, university_state, division,
-            class_year, expected_graduation, year_enrolled)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            class_year, expected_graduation, year_enrolled, bio_url)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             athlete.name,
             slug,
@@ -187,6 +210,7 @@ async function main(): Promise<void> {
             classYear,
             expectedGraduation,
             yearEnrolled,
+            bioUrl,
           ],
         );
 
@@ -199,6 +223,18 @@ async function main(): Promise<void> {
            WHERE slug = ? AND (class_year IS NULL OR class_year != ?)`,
           [classYear, expectedGraduation, yearEnrolled, slug, classYear],
         );
+
+        // Bagudfyld bio_url for eksisterende atleter (uafhængigt af class_year,
+        // så research-seedede atleter uden bio får det officielle profillink →
+        // suggest-photos kan derefter hente headshot). COALESCE: overskriv aldrig.
+        if (bioUrl) {
+          await db.execute(
+            `UPDATE athletes
+             SET bio_url = ?, updated_at = datetime('now')
+             WHERE slug = ? AND (bio_url IS NULL OR bio_url = '')`,
+            [bioUrl, slug],
+          );
+        }
 
         athletesInCheck++;
         totalFound++;

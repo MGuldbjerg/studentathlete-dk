@@ -24,7 +24,10 @@ function parseArgs(): { limit: number; dryRun: boolean } {
   const args = process.argv.slice(2);
   let limit = 25;
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--limit" && args[i + 1]) limit = parseInt(args[i + 1], 10) || 25;
+    if (args[i] === "--limit" && args[i + 1]) {
+      const n = parseInt(args[i + 1], 10);
+      if (!Number.isNaN(n)) limit = n;
+    }
   }
   return { limit, dryRun: args.includes("--dry-run") };
 }
