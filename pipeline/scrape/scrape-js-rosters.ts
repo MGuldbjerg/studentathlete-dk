@@ -13,6 +13,7 @@ import { parseRoster } from "./parsers";
 import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
+import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
 
 interface JsRosterCheck {
   check_id: number;
@@ -39,58 +40,11 @@ const SPORT_MAP: Record<string, string> = {
   volleyball: "volleyball",
 };
 
-interface ScrapeResponse {
-  success: boolean;
-  result: {
-    html?: string;
-    markdown?: string;
-    status_code?: number;
-  };
-  errors?: Array<{ message: string }>;
-}
-
-async function scrapeWithBrowser(
-  url: string,
-  accountId: string,
-  apiToken: string,
-): Promise<string | null> {
-  const endpoint = `https://api.cloudflare.com/client/v4/accounts/${accountId}/browser-rendering/scrape`;
-
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url,
-        formats: ["html"],
-        rejectResourceTypes: ["image", "font", "media"],
-        waitForSelector: "table, .roster, [class*=roster]",
-        timeout: 15000,
-      }),
-      signal: AbortSignal.timeout(30000),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error(`  CF Browser Rendering fejl (${response.status}): ${text.slice(0, 200)}`);
-      return null;
-    }
-
-    const data = (await response.json()) as ScrapeResponse;
-    if (!data.success) {
-      console.error(`  CF scrape fejl: ${data.errors?.map((e) => e.message).join(", ")}`);
-      return null;
-    }
-
-    return data.result.html ?? null;
-  } catch (err) {
-    console.error(`  CF Browser Rendering timeout/fejl: ${err}`);
-    return null;
-  }
-}
+// Renderingen sker via den fælles renderPage-helper (CF /content-endpointet), som
+// er den eneste der virker: det tidligere bespoke /scrape-kald med formats:["html"]
+// + waitForSelector-streng gav HTTP 400 (forkert endpoint-skema). renderPage
+// returnerer fuld HTML, håndterer 429-retry og kaster BrowserRenderError ved
+// auth/kvote, så main kan stoppe resten af kørslen.
 
 function parseArgs(): { limit: number } {
   const args = process.argv.slice(2);
@@ -117,9 +71,7 @@ function toAbsoluteUrl(href: string | null, base: string): string | null {
 }
 
 async function main(): Promise<void> {
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
-  if (!accountId || !apiToken) {
+  if (!isBrowserRenderAvailable()) {
     console.error("Mangler CLOUDFLARE_ACCOUNT_ID eller CLOUDFLARE_API_TOKEN");
     process.exit(1);
   }
@@ -167,7 +119,16 @@ async function main(): Promise<void> {
   for (const check of checks) {
     console.log(`  ${check.school_name} / ${check.sport}...`);
 
-    const html = await scrapeWithBrowser(check.roster_url, accountId, apiToken);
+    let html: string | null = null;
+    try {
+      html = await renderPage(check.roster_url, { waitUntil: "networkidle2" });
+    } catch (err) {
+      if (err instanceof BrowserRenderError && err.quotaExhausted) {
+        console.error("  Browser-kvote/permission opbrugt — stopper resten af kørslen.");
+        break; // gem resten til næste daglige kørsel
+      }
+      // anden fejl: behandl som ikke-renderet (falder igennem til !html nedenfor)
+    }
 
     if (!html) {
       await db.execute(
