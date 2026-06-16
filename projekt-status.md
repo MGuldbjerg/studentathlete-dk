@@ -1,9 +1,9 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-16 (first-party analytics — DEPLOYET til prod, UNCOMMITTET i git)
+**Sidst opdateret**: 2026-06-16 (first-party analytics — DEPLOYET + committet/pushet til main)
 
 ## 👉 Seneste arbejde (2026-06-16) — first-party analytics (besøg + pageviews + klik)
-**Erstattede den bot-tællende edge-logning med en first-party JS-beacon. DEPLOYET til studentathlete.dk + migration 019 kørt mod remote D1 + `ANALYTICS_SALT`-secret sat. Build/typecheck/tests grønne. KODEN ER UNCOMMITTET i git.**
+**Erstattede den bot-tællende edge-logning med en first-party JS-beacon. DEPLOYET til studentathlete.dk + migration 019 kørt mod remote D1 + `ANALYTICS_SALT`-secret sat. Build/typecheck/tests grønne. Committet + pushet til `main` (commits 124f3b3 content + 4f6c5bf analytics; main = prod-tilstand).**
 
 Hvorfor: Statistik-siden viste ubrugelige tal (middleware loggede ALT, inkl. bots; UA-filter alene fanger ikke spoofede scrapers) og kunne ikke spore klik. Beacon = kræver JS-eksekvering (filtrerer de fleste bots som hosted-værktøjer gør) + `isbot`-UA-tjek; data forbliver i egen D1; ingen samtykke-banner; gratis. Valg truffet vs Umami Cloud (se [[project-studentathlete-expansion]] — revurder ved UK-launch hvis funnels/UTM/realtid ønskes).
 
