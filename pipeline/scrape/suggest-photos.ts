@@ -36,19 +36,51 @@ function parseArgs(): { limit: number; dryRun: boolean } {
 export function isLikelyHeadshot(url: string): boolean {
   const lower = url.toLowerCase();
   if (lower.endsWith(".svg")) return false;
-  if (/(logo|placeholder|default|missing|silhouette|icon|favicon|og-default)/.test(lower)) return false;
+  if (/(logos?|placeholder|default|missing|silhouette|icon|favicon|og-default|site\.|_edu)/.test(lower))
+    return false;
   return true;
+}
+
+/** Normalisér navn/tekst til løs token-sammenligning (små bogstaver, fjern diakritik/tegn). */
+function normName(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * Identitets-vagt for og:image: et og:image kan vise en HOLDKAMMERAT eller et logo
+ * (set i praksis: UNCG's Hector Nissen-bio gav "Lars.png"/"Lars Frafjord"). Accepter
+ * kun hvis atletens efternavn optræder i billed-URL'en (afkodet) eller og:image:alt.
+ */
+function nameMatches(imageUrl: string, ogAlt: string, athleteName: string): boolean {
+  const tokens = normName(athleteName).split(" ").filter((t) => t.length >= 3);
+  if (tokens.length === 0) return true; // intet brugbart navn at matche på → lad være med at blokere
+  const lastName = tokens[tokens.length - 1];
+  let decoded = imageUrl;
+  try {
+    decoded = decodeURIComponent(imageUrl);
+  } catch {
+    /* behold rå */
+  }
+  const haystack = normName(`${decoded} ${ogAlt}`);
+  return haystack.includes(lastName);
 }
 
 /**
  * Find headshot-URL i bio-sidens HTML, prioriteret:
- *   1. Sidearm-spillerbillede (.sidearm-roster-player-image img m.fl.)
- *   2. og:image (de fleste Sidearm/CMS-bio-sider sætter den til spillerfotoet)
+ *   1. Sidearm-spillerbillede-selektorer (positionsbaseret på atletens egen side → stoles på)
+ *   2. og:image — KUN hvis navne-matchet (kan ellers være holdkammerat/logo)
  */
-export function extractHeadshotUrl(html: string, pageUrl: string): string | null {
+export function extractHeadshotUrl(html: string, pageUrl: string, athleteName = ""): string | null {
   const $ = cheerio.load(html);
-  const candidates: string[] = [];
 
+  // 1) Spillerbillede-selektorer (på en korrekt renderet bio-side er dette netop
+  //    sidens atlet). Plain fetch udfylder dem sjældent på JS-sider, men når de
+  //    findes, er de mere pålidelige end og:image.
   for (const sel of [
     ".sidearm-roster-player-image img",
     ".sidearm-roster-player-fields img",
@@ -57,18 +89,29 @@ export function extractHeadshotUrl(html: string, pageUrl: string): string | null
     ".player-headshot img",
   ]) {
     const src = $(sel).first().attr("data-src") ?? $(sel).first().attr("src");
-    if (src) candidates.push(src);
+    if (src) {
+      try {
+        const abs = new URL(src, pageUrl).toString();
+        if (isLikelyHeadshot(abs)) return abs;
+      } catch {
+        /* ugyldig URL */
+      }
+    }
   }
 
-  const og = $('meta[property="og:image"]').attr("content");
-  if (og) candidates.push(og);
-
-  for (const c of candidates) {
+  // 2) og:image-fallback — navne-gated mod forkert-person/logo
+  const og =
+    $('meta[property="og:image"]').attr("content") ?? $('meta[name="og:image"]').attr("content");
+  const ogAlt =
+    $('meta[property="og:image:alt"]').attr("content") ??
+    $('meta[name="og:image:alt"]').attr("content") ??
+    "";
+  if (og) {
     try {
-      const abs = new URL(c, pageUrl).toString();
-      if (isLikelyHeadshot(abs)) return abs;
+      const abs = new URL(og, pageUrl).toString();
+      if (isLikelyHeadshot(abs) && nameMatches(abs, ogAlt, athleteName)) return abs;
     } catch {
-      /* ugyldig URL — næste kandidat */
+      /* ugyldig URL */
     }
   }
   return null;
@@ -115,7 +158,7 @@ async function main(): Promise<void> {
 
   for (const athlete of athletes.results) {
     const html = await fetchPage(athlete.bio_url);
-    const imageUrl = html ? extractHeadshotUrl(html, athlete.bio_url) : null;
+    const imageUrl = html ? extractHeadshotUrl(html, athlete.bio_url, athlete.name) : null;
     if (!imageUrl) {
       console.log(`– ${athlete.name}: intet headshot fundet på bio-siden`);
       continue;
