@@ -118,6 +118,7 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
               <Link
                 key={athlete.id}
                 href={getAthleteUrl(athlete.slug)}
+                data-track="internal"
                 className="flex items-center gap-4 p-4 rounded-lg border border-border
                            bg-paper hover:bg-surface transition-colors group"
               >

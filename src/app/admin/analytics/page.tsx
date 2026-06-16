@@ -1,19 +1,10 @@
 import { notFound } from "next/navigation";
 import { validateAdminToken } from "@/lib/admin";
 import { getDB } from "@/lib/db";
+import { getAnalytics } from "@/lib/analytics";
 import { DateRangePicker } from "./DateRangePicker";
 
 type Row = Record<string, unknown>;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function q(db: any, sql: string, params: (string | number)[]): Promise<Row[]> {
-  try {
-    const r = await db.prepare(sql).bind(...params).all();
-    return (r.results ?? []) as Row[];
-  } catch {
-    return [];
-  }
-}
 
 const PAGE_TYPE_LABELS: Record<string, string> = {
   article: "Artikler",
@@ -22,6 +13,14 @@ const PAGE_TYPE_LABELS: Record<string, string> = {
   sport: "Sport-sider",
   home: "Forside",
   other: "Andet",
+};
+
+const CLICK_KIND_LABELS: Record<string, string> = {
+  bio_out: "Officielle bio-links",
+  internal: "Interne links",
+  search: "Søgninger",
+  ad: "Annoncer",
+  outbound: "Udgående links",
 };
 
 function StatCard({ value, label }: { value: string; label: string }) {
@@ -89,55 +88,19 @@ export default async function AnalyticsPage({
     );
   }
 
-  // Alle queries parallelt
-  const [totals, topPages, byType, bySport, byDevice, byCountry] = await Promise.all([
-    q(db,
-      `SELECT COUNT(*) as total, COUNT(DISTINCT DATE(created_at)) as days
-       FROM pageviews WHERE DATE(created_at) BETWEEN ? AND ?`,
-      [from, to]
-    ),
-    q(db,
-      `SELECT path, COUNT(*) as views
-       FROM pageviews WHERE DATE(created_at) BETWEEN ? AND ?
-       GROUP BY path ORDER BY views DESC LIMIT 10`,
-      [from, to]
-    ),
-    q(db,
-      `SELECT page_type, COUNT(*) as views
-       FROM pageviews WHERE DATE(created_at) BETWEEN ? AND ?
-       GROUP BY page_type ORDER BY views DESC`,
-      [from, to]
-    ),
-    q(db,
-      `SELECT sport, COUNT(*) as views
-       FROM pageviews
-       WHERE sport IS NOT NULL AND DATE(created_at) BETWEEN ? AND ?
-       GROUP BY sport ORDER BY views DESC`,
-      [from, to]
-    ),
-    q(db,
-      `SELECT device_type, COUNT(*) as views
-       FROM pageviews WHERE DATE(created_at) BETWEEN ? AND ?
-       GROUP BY device_type ORDER BY views DESC`,
-      [from, to]
-    ),
-    q(db,
-      `SELECT COALESCE(country, 'Ukendt') as country, COUNT(*) as views
-       FROM pageviews WHERE DATE(created_at) BETWEEN ? AND ?
-       GROUP BY country ORDER BY views DESC LIMIT 5`,
-      [from, to]
-    ),
-  ]);
+  const data = await getAnalytics(db, from, to);
+  const avgPerDay = Math.round(data.totalViews / data.activeDays);
+  const suffix = rawFrom ? "" : " (seneste 30 dage)";
 
-  const total = Number(totals[0]?.total ?? 0);
-  const activeDays = Math.max(Number(totals[0]?.days ?? 1), 1);
-  const avgPerDay = Math.round(total / activeDays);
-
-  // Omsæt page_type-labels
-  const byTypeLabelled = byType.map((r) => ({
+  const byTypeLabelled = data.byType.map((r) => ({
     ...r,
     page_type: PAGE_TYPE_LABELS[r.page_type as string] ?? String(r.page_type),
   }));
+  const clicksLabelled = data.clicksByKind.map((r) => ({
+    ...r,
+    click_kind: CLICK_KIND_LABELS[r.click_kind as string] ?? String(r.click_kind),
+  }));
+  const totalClicks = data.clicksByKind.reduce((s, r) => s + Number(r.clicks ?? 0), 0);
 
   return (
     <main className="min-h-screen bg-surface">
@@ -160,14 +123,18 @@ export default async function AnalyticsPage({
         </div>
 
         {/* Nøgletal */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <StatCard
-            value={total.toLocaleString("da-DK")}
-            label={`Sidevisninger${rawFrom ? "" : " (seneste 30 dage)"}`}
+            value={data.uniqueVisitors.toLocaleString("da-DK")}
+            label={`Unikke besøgende${suffix}`}
+          />
+          <StatCard
+            value={data.totalViews.toLocaleString("da-DK")}
+            label="Sidevisninger"
           />
           <StatCard
             value={avgPerDay.toLocaleString("da-DK")}
-            label="Gns. sidevisninger pr. dag"
+            label="Gns. pr. dag"
           />
         </div>
 
@@ -175,7 +142,7 @@ export default async function AnalyticsPage({
         <section className="mb-6">
           <h2 className="text-base font-bold text-ink mb-3">Top sider</h2>
           <div className="bg-paper rounded-lg border border-border divide-y divide-border">
-            <Table rows={topPages} keyCol="path" valCol="views" />
+            <Table rows={data.topPages} keyCol="path" valCol="views" />
           </div>
         </section>
 
@@ -190,26 +157,47 @@ export default async function AnalyticsPage({
           <section>
             <h2 className="text-base font-bold text-ink mb-3">Sport</h2>
             <div className="bg-paper rounded-lg border border-border divide-y divide-border">
-              <Table rows={bySport} keyCol="sport" valCol="views" />
+              <Table rows={data.bySport} keyCol="sport" valCol="views" />
             </div>
           </section>
         </div>
 
         {/* Enhed + lande */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <section>
             <h2 className="text-base font-bold text-ink mb-3">Enhed</h2>
             <div className="bg-paper rounded-lg border border-border divide-y divide-border">
-              <Table rows={byDevice} keyCol="device_type" valCol="views" />
+              <Table rows={data.byDevice} keyCol="device_type" valCol="views" />
             </div>
           </section>
           <section>
             <h2 className="text-base font-bold text-ink mb-3">Lande (top 5)</h2>
             <div className="bg-paper rounded-lg border border-border divide-y divide-border">
-              <Table rows={byCountry} keyCol="country" valCol="views" />
+              <Table rows={data.byCountry} keyCol="country" valCol="views" />
             </div>
           </section>
         </div>
+
+        {/* Klik */}
+        <section>
+          <h2 className="text-base font-bold text-ink mb-3">
+            Klik <span className="text-sm font-normal text-muted">({totalClicks.toLocaleString("da-DK")})</span>
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-sm font-semibold text-muted mb-2">Efter type</h3>
+              <div className="bg-paper rounded-lg border border-border divide-y divide-border">
+                <Table rows={clicksLabelled} keyCol="click_kind" valCol="clicks" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-muted mb-2">Mest klikkede mål</h3>
+              <div className="bg-paper rounded-lg border border-border divide-y divide-border">
+                <Table rows={data.topClickTargets} keyCol="click_target" valCol="clicks" />
+              </div>
+            </div>
+          </div>
+        </section>
 
       </div>
     </main>

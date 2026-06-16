@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { CategoryNav } from "@/components/CategoryNav";
 import { Footer } from "@/components/Footer";
 import { AdSlot } from "@/components/ui/AdSlot";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -67,6 +68,7 @@ export default function RootLayout({
         {children}
         <AdSlot slot="pre-footer" className="my-6" />
         <Footer />
+        <Analytics />
       </body>
     </html>
   );

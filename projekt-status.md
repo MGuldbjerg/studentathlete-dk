@@ -1,6 +1,40 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-11 (social media-automation modul 7 — BYGGET, UNCOMMITTET)
+**Sidst opdateret**: 2026-06-16 (first-party analytics — DEPLOYET til prod, UNCOMMITTET i git)
+
+## 👉 Seneste arbejde (2026-06-16) — first-party analytics (besøg + pageviews + klik)
+**Erstattede den bot-tællende edge-logning med en first-party JS-beacon. DEPLOYET til studentathlete.dk + migration 019 kørt mod remote D1 + `ANALYTICS_SALT`-secret sat. Build/typecheck/tests grønne. KODEN ER UNCOMMITTET i git.**
+
+Hvorfor: Statistik-siden viste ubrugelige tal (middleware loggede ALT, inkl. bots; UA-filter alene fanger ikke spoofede scrapers) og kunne ikke spore klik. Beacon = kræver JS-eksekvering (filtrerer de fleste bots som hosted-værktøjer gør) + `isbot`-UA-tjek; data forbliver i egen D1; ingen samtykke-banner; gratis. Valg truffet vs Umami Cloud (se [[project-studentathlete-expansion]] — revurder ved UK-launch hvis funnels/UTM/realtid ønskes).
+
+**Arkitektur:**
+- Ny `events`-tabel (migration-019, ÉN tabel for pageview+click). IP gemmes ALDRIG — kun daglig-saltet SHA-256(salt:dato:ip:ua) → unikke mennesker/dag.
+- `src/app/api/track/route.ts` (offentlig POST): isbot-filter → same-origin-værn (Origin-host = studentathlete.dk/localhost) → server UDLEDER selv page_type/sport via `classify()` → daglig visitor_hash → INSERT. Returnerer altid 204 (lækker aldrig).
+- `src/components/Analytics.tsx` (`"use client"`, i layout): pageview ved mount + `usePathname()`-skift; delegeret klik-lytter (`[data-track]` vinder, ellers eksterne links auto = 'outbound'). Transport: `sendBeacon` → fetch keepalive (`src/lib/track.ts`).
+- Klik annoteret: ArticleCard + Carousel + SportLandingPage atlet-links (`data-track="internal"`), AthleteProfilePage bio-link (`bio_out`), AdSlot (`ad`), SearchBar (fyrer `search` i handleSubmit).
+- Dashboard (`admin/analytics/page.tsx`) læser nu fra `events` via `getAnalytics()` i `src/lib/analytics.ts`; tilføjet **Unikke besøgende** (sum af daglige distinct hashes) + **Klik**-sektion (efter type + mest klikkede mål).
+- SLETTET `src/middleware.ts` (eneste opgave var bot-logningen; `classify()` flyttet til `lib/analytics.ts`). Gammel `pageviews`-tabel + data efterladt urørt (dashboard læser den ikke længere; valgfri oprydning senere).
+- Dep: `isbot@^5.1.43`. Test: `src/lib/_analytics-test.ts` (classify/device/click-kind/hash) → `npx tsx src/lib/_analytics-test.ts`.
+
+**Verificeret live (2026-06-16):** curl-tests mod prod → Googlebot-UA + cross-origin (evil.com) = INGEN række; Chrome-UA + Origin = pageview m. referrer-host/DK/desktop/visitor_hash; bio_out-klik m. samme hash. Synthetic verify-rækker slettet bagefter.
+
+**MANGLER (næste session):**
+- [ ] **Menneske-sti** (kan ikke køres uden browser): browse et par sider + klik bio-link/kort + søg på studentathlete.dk, åbn så `/admin/analytics?token=…` og bekræft Unikke besøgende + Klik-tal udfyldes. (Sti-tjek af SPA-pageviews + data-track-klik.)
+- [ ] **Commit + push** (koden er uncommitted; deployet direkte fra arbejdskopi via `wrangler deploy`).
+- [ ] Valgfrit: drop gamle `pageviews`-tabel når dashboardet er bekræftet.
+
+---
+
+## 👉 Tidligere arbejde (2026-06-15) — sport-landingssider, KUN content
+**Redigeret: `src/lib/sport-content.ts` (pillar-tekst for alle 13 sportsgrene). Ingen kode/skema ændret. Typecheck ren. Graphify opdateret. UNCOMMITTET.**
+
+- Hver sport fik rigere **"Sæsonens gang"** + **tidbits**. For de individuelle sportsgrene (svømning, atletik, golf, tennis, roning, gymnastik) tilføjet en **"Sådan afgøres en holdkamp"**-sektion, der forklarer skole-mod-skole-formatet (dual meet/match, pointscoring, golf-match-play, cross country lavest-vinder osv.).
+- **Webverificerede fakta** (juni 2026): CFP 12 hold (2024), soccer College Cup 48 hold, golf 8-hold match play (siden 2009), tennis først-til-4 + no-ad, baseball CWS 8 hold/BBCOR, svømning 25-yards, roning kvinder=NCAA/herrer=IRA. **Rettet 3 fejl**: football 85-stipendier → 105-trupsloft (House-forliget 2025); DI herre-soccer afskaffede gen-indskiftning 2024; perfekt 10-skala gælder kun KVINDERS NCAA-gymnastik (herrer + elite = åben skala).
+- **Tilføjet prolifike danske NCAA-navne** (webverificeret): football Morten Andersen (Michigan State) + Hjalte Froholdt (Arkansas); basketball Christian Drejer (Florida) + Inge Nissen (Old Dominion); svømning Anton Ipsen + Søren Dahl (NC State); atletik Ole Hesselbjerg (Eastern Kentucky); golf Rasmus Neergaard-Petersen (Oklahoma State); tennis Mikael Torpegaard (Ohio State) + August Holmgren (San Diego); roning Joachim Sutton (Cal); ishockey Oliver Lauridsen (St. Cloud State); fodbold = ærlig note (flest danskere, men ingen enkelt stjerne).
+- **MANGLER navn** (ingen verificeret prolifik NCAA-dansker fundet — bevidst IKKE opdigtet): baseball, gymnastik, volleyball. Spørg Mikkel hvis der findes navne.
+
+---
+
 
 ## 👉 Næste session — start her (handoff 2026-06-11: social-kø)
 **Modul 7 (social media-automation) er bygget og testet lokalt — migration 018 KØRT mod remote D1, men koden er UNCOMMITTET og workflowen kører først når den er pushet + secrets er sat.**
@@ -11,12 +45,13 @@
 4. **Fejlhåndtering**: 3 forsøg → status 'failed'; enhver kanal-fejl → exit 1 → Discord-besked (KUN ved fejl, samme princip som discover-daily). `workflow_dispatch` har dry_run-input; lokalt: `npx tsx pipeline/social/post-social.ts --dry-run` (kræver CF-env-vars fra ~/.bashrc).
 5. **Verificeret**: migration 018 kørt remote (14 tabeller), dry-run mod prod D1 OK (kø 0 = korrekt, seneste publish 5. juni er uden for vinduet), enqueue-SQL kørt uden fejl.
 
-**TODO MIKKEL (nyt — social):**
-- [ ] **Commit + push** (workflowen aktiveres først da)
-- [ ] **Bluesky**: opret konto til StudentAthlete.dk → Settings → App Passwords → GitHub-secrets `BLUESKY_HANDLE` + `BLUESKY_APP_PASSWORD` (5 min — kør først med kun denne kanal)
-- [ ] **X**: developer.x.com → opret app (free tier) → secrets `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` (appens permissions skal være "Read and write" FØR access token genereres)
+**STATUS 2026-06-11 (senere samme dag) — committet (1e87d35) + Bluesky LIVE:**
+- [x] Commit + push — workflowen kører timevis
+- [x] **E-mail**: Cloudflare Email Routing aktiv på studentathlete.dk — social@ + catch-all → m.guldbjerg@gmail.com (destination var allerede verificeret fra GFC-setuppet). Sat op via API (nyt token `CLOUDFLARE_EMAIL_TOKEN` i ~/.bashrc: Email Routing Addresses + Rules + DNS edit; enable-endpointet kræver en permission tokenet ikke har → MX/SPF swappet manuelt via DNS API, verificeret med SMTP-probe RCPT 250 OK). Gamle simply.com MX/SPF slettet.
+- [x] **Bluesky LIVE**: konto oprettet (API-signup blokeret af captcha → Mikkel oprettede i appen), handle opgraderet til **@studentathlete.dk** via `_atproto` TXT + updateHandle (app-password-session måtte gerne). DID: did:plc:cuxgz7lfn4735dtwz3pzpp7z. Secrets `BLUESKY_HANDLE` + `BLUESKY_APP_PASSWORD` sat. Dry-run mod prod OK — første rigtige opslag sker automatisk når næste artikel publiceres.
+- [x] **X LIVE**: @StudAthleteDK (dedikeret konto, IKKE Mikkels personlige) — alle 4 secrets sat, verificeret read-write via verify_credentials. NB free tier ~500 posts/md; pacing-cap 24/dag kan teoretisk ramme loftet i tunge uger → tilføj månedsbudget pr. kanal hvis det sker
 - [ ] **Facebook**: developers.facebook.com-app + page access token (long-lived via /me/accounts) → secrets `FB_PAGE_ID` + `FB_PAGE_ACCESS_TOKEN` (mest bøvl — kan vente)
-- [ ] Test: Actions → "Social media-kø" → Run workflow med dry_run=true
+- [ ] Bluesky-profil: udfyld avatar/bio/banner i appen (konto er nøgen)
 
 ---
 

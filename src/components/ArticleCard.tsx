@@ -17,6 +17,7 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
     return (
       <a
         href={getArticleUrl(article)}
+        data-track="internal"
         className="group relative flex flex-col md:flex-row bg-white border border-border hover:shadow-lg transition-shadow duration-300 overflow-hidden"
       >
         {/* Billede — stor */}
@@ -82,6 +83,7 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
   return (
     <a
       href={getArticleUrl(article)}
+      data-track="internal"
       className="group flex flex-col bg-white hover:shadow-md transition-shadow duration-300"
     >
       {/* Billede */}

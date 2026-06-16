@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { track } from "@/lib/track";
 
 export function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
   const router = useRouter();
@@ -13,6 +14,7 @@ export function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
     const params = new URLSearchParams(searchParams.toString());
     if (value.trim()) {
       params.set("q", value.trim());
+      track({ type: "click", path: location.pathname, clickKind: "search", clickTarget: value.trim() });
     } else {
       params.delete("q");
     }

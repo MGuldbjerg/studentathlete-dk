@@ -115,7 +115,7 @@ export function Carousel({ articles }: CarouselProps) {
             )}
           </div>
 
-          <a href={getArticleUrl(slide)}>
+          <a href={getArticleUrl(slide)} data-track="internal">
             <h2
               className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 leading-tight hover:underline decoration-2 underline-offset-4 cursor-pointer"
               style={{ fontFamily: "var(--font-serif)" }}

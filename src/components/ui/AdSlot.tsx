@@ -35,6 +35,8 @@ export function AdSlot({ slot, className = "" }: AdSlotProps) {
   return (
     <div
       data-ad-slot={slot}
+      data-track="ad"
+      data-track-target={slot}
       className={`flex items-center justify-center bg-surface/50 border border-dashed border-border text-muted text-xs mx-auto overflow-hidden ${className}`}
       style={{ maxWidth: size.width, height: size.height }}
       aria-hidden="true"

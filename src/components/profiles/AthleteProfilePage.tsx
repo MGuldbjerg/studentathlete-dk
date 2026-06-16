@@ -132,6 +132,7 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
 
             {athlete.bio_url && (
               <a href={athlete.bio_url} target="_blank" rel="noopener noreferrer"
+                data-track="bio_out" data-track-target={athlete.bio_url}
                 className="inline-flex items-center gap-1.5 mt-5 text-xs font-bold tracking-[0.1em]
                            uppercase hover:underline"
                 style={{ color: "#BF0A30" }}>
