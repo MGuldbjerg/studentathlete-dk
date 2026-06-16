@@ -124,7 +124,11 @@ async function main(): Promise<void> {
       html = await renderPage(check.roster_url, { waitUntil: "networkidle2" });
     } catch (err) {
       if (err instanceof BrowserRenderError && err.quotaExhausted) {
-        console.error("  Browser-kvote/permission opbrugt — stopper resten af kørslen.");
+        // Vis rå status/besked: "Authentication error" (401) = token mangler
+        // Browser Rendering-perm; "rate limit"/"quota" (429) = dagskvote opbrugt.
+        console.error(
+          `  Browser-render stoppet (HTTP ${err.status}): ${err.message} — stopper resten af kørslen.`,
+        );
         break; // gem resten til næste daglige kørsel
       }
       // anden fejl: behandl som ikke-renderet (falder igennem til !html nedenfor)
