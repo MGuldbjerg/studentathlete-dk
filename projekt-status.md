@@ -1,16 +1,16 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-16 (profilbilleder: iterativ pipeline FIXET + valideret lokalt — pushet)
+**Sidst opdateret**: 2026-06-16 (profilbilleder: iterativ pipeline LIVE — token fikset, verificeret i prod)
 
-## 👉 VIGTIGT (2026-06-16, #3): foto-pipelinen virker nu, men cron mangler token-permission
-**Test-kørsel afslørede at JS-rendering ALDRIG har virket. Tre bugs fundet+fixet (commits 993be62 + fedf346, pushet). End-to-end valideret lokalt. Se [[project-studentathlete-photos]].**
+## 👉 LØST (2026-06-16, #3): foto-pipelinen kører nu automatisk end-to-end
+**Test-kørsel afslørede at JS-rendering ALDRIG har virket. Tre kode-bugs + én token-fejl fundet og fikset (commits 993be62 + fedf346 + 9b18a44). Verificeret i PROD. Se [[project-studentathlete-photos]].**
 
-1. **GitHub-secret `CLOUDFLARE_API_TOKEN` mangler Browser Rendering-permission** → CF svarer **401** i Actions (mit lokale token virker). **DIN HANDLING: opdatér secret'en til et token med Browser Rendering-perm** (CF dashboard → API Tokens; derefter `gh secret set CLOUDFLARE_API_TOKEN`). Indtil da renderer den daglige cron intet.
-2. `scrape-js-rosters.ts` brugte forkert endpoint (`/scrape` + `formats:["html"]` + streng-`waitForSelector` → HTTP 400, renderede ALDRIG). Omskrevet til `renderPage` (`/content`, samme som scrape-rosters.ts) + kvote-stop. Valideret: renderede 4 Texas State-rosters på ~85s, fandt en dansker.
+1. ~~GitHub-secret manglede Browser Rendering-perm (401)~~ **LØST**: secret'en er sat til det fungerende token (`gh secret set CLOUDFLARE_API_TOKEN` med det lokale token, der har Browser Rendering + D1). Verificeret: workflow renderede **47 rosters**, fandt 2 danskere, stoppede pænt på HTTP 429 (dagskvote opbrugt — som designet).
+2. `scrape-js-rosters.ts` brugte forkert endpoint (`/scrape` + `formats:["html"]` + streng-`waitForSelector` → HTTP 400, renderede ALDRIG). Omskrevet til `renderPage` (`/content`) + kvote-stop med rå status-logning (401 auth vs 429 kvote).
 3. `suggest-photos` havde ingen identitets-gate → køede UNCG's "Lars.png" som Hector Nissen (holdkammerat!). Tilføjet efternavns-match-gate på og:image; afviste det forkerte forslag.
 
-**Valideret end-to-end lokalt**: scrape → bio_url-backfill → gated suggester → kø. Fandt+køede Zoe Du Pasquier Jensen (Texas State tennis) frisk. **15 forslag venter nu på godkendelse i admin → Fotos** (inkl. Madsen + 3 manuelle + Zoe; Bang = uverificeret opaque-hash, tjek visuelt før godkendelse).
-**Når token #1 er fikset** kører cron'en (03:00 UTC) backfill iterativt i bidder af sig selv.
+**Pipelinen er nu LIVE**: daglig cron (03:00 UTC) renderer ~47 rosters/dag → backfiller bio_url → gated suggester → kø i admin → Fotos. Roterer gennem skolerne i bidder inden for gratis-kvoten, konvergerer over dage.
+**~18 forslag venter på godkendelse** (Madsen + 3 manuelle + Zoe + Karoline Lauritsen + Casper Puggaard + Tobias Kristensen m.fl.). **Mikkels eneste opgave: godkend i admin → Fotos** (tjek Dikte Bang visuelt — uverificeret opaque-hash).
 
 ---
 
