@@ -6,6 +6,7 @@ import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
+import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 
 interface Props {
   article: Article;
@@ -113,6 +114,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
         {/* ── Kilde ──────────────────────────────────────────────── */}
         <div className="px-5 md:px-0">
           <SourceBox sourceUrl={article.source_url} />
+          <AiDisclaimer />
         </div>
 
         {/* ── Annonce efter artikel ────────────────────────────── */}
