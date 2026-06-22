@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Alle atleter | StudentAthlete.dk",
   description:
     "Oversigt over danske student athletes på amerikanske universiteter. Find din favorit og følg deres karriere.",
+  alternates: { canonical: "/atleter" },
 };
 
 function groupBySport(athletes: Athlete[]) {

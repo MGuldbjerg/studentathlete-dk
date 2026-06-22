@@ -116,14 +116,12 @@ export async function publishArticle(id: number): Promise<void> {
       sport: string | null;
     } | null;
 
-  // OG-billede-URLs er kun til meta-tags — bruges IKKE som synligt cover
+  // OG-billede-URLs er kun til meta-tags — bruges IKKE som synligt cover.
+  // Atletfotos (headshots) stamples bevidst IKKE som cover: lister/karrusel
+  // bruger altid det genererede 16:9 kampkort (se getArticleCoverUrl).
   const rawCover = article?.cover_image_url ?? null;
-  let coverUrl: string | null =
+  const coverUrl: string | null =
     rawCover && !rawCover.includes("/api/og") ? rawCover : null;
-
-  if (!coverUrl && article) {
-    coverUrl = article.photo_url ?? null;
-  }
 
   await db
     .prepare(

@@ -50,11 +50,16 @@ export function formatRelativeTime(dateStr: string | null): string {
  * i cover_image_url ignoreres (de er ikke kampkort).
  */
 // Bump ved design-ændringer i kampkortet — buster edge-cachen (s-maxage 7 dage)
-const CARD_VERSION = 5;
+const CARD_VERSION = 6;
 
-export function getArticleCoverUrl(article: Pick<Article, "id" | "cover_image_url">): string {
-  const cover = article.cover_image_url;
-  if (cover && !cover.includes("/api/og")) return cover;
+/**
+ * Cover til lister/karrusel/thumbnails er ALTID det genererede 16:9 kampkort:
+ * ensartede dimensioner + skarpt på store skærme. Rigtige profilfotos (typisk
+ * portræt-headshots i lav opløsning) vises KUN på atletprofilen og inde i
+ * artiklen — som listevisnings-cover ødelagde de kort-formatet, så
+ * cover_image_url bruges bevidst ikke her.
+ */
+export function getArticleCoverUrl(article: Pick<Article, "id">): string {
   return `/api/og?type=card&article=${article.id}&v=${CARD_VERSION}`;
 }
 

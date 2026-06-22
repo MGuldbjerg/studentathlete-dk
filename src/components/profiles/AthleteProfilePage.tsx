@@ -1,6 +1,6 @@
 import type { Athlete, Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { formatDateShort, athleteStructuredData, getArticleUrl } from "@/lib/seo";
+import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
@@ -165,11 +165,9 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
                       className="group flex gap-4 items-start py-5 hover:bg-surface -mx-3 px-3
                                  transition-colors"
                       style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>
-                      {a.cover_image_url && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={a.cover_image_url} alt=""
-                          className="w-20 h-14 object-cover flex-shrink-0" />
-                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={getArticleCoverUrl(a)} alt=""
+                        className="w-20 h-14 object-cover flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
                           style={{ color: "#BF0A30" }}>

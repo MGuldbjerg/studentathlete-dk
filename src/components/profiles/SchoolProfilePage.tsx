@@ -1,6 +1,6 @@
 import type { School, Athlete, Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
-import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl } from "@/lib/seo";
+import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 interface Props { school: School; athletes: Athlete[]; articles: Article[] }
@@ -140,11 +140,9 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
                   <a key={a.id} href={getArticleUrl(a)}
                     className="group flex gap-3 py-4 hover:bg-surface -mx-3 px-3 transition-colors"
                     style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>
-                    {a.cover_image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={a.cover_image_url} alt=""
-                        className="w-16 h-12 object-cover flex-shrink-0" />
-                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={getArticleCoverUrl(a)} alt=""
+                      className="w-16 h-12 object-cover flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="text-[10px] font-bold tracking-[0.12em] uppercase"
                         style={{ color: "#BF0A30" }}>

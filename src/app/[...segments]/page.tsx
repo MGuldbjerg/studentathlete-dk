@@ -12,7 +12,7 @@ import {
   countAthletesBySport,
 } from "@/lib/db";
 import { getPublishedPageBySlug } from "@/lib/admin";
-import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl } from "@/lib/seo";
+import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl } from "@/lib/seo";
 import { getSportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
@@ -147,15 +147,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport");
     if (article && normalizedSport === prefix) {
       const canonicalUrl = `${BASE_URL}${getArticleUrl(article)}`;
-      const ogImage = article.cover_image_url
-        ?? getOgImageUrl({
-             title: article.title,
-             subtitle: article.athlete_name
-               ? `${article.athlete_name} · ${article.sport ?? ""}`
-               : (article.sport ?? ""),
-             sport: article.sport,
-             type: "article",
-           });
+      // Brug det genererede 16:9 kampkort som og:image (skarpt + ensartet),
+      // ikke et evt. stamplet portræt-headshot fra cover_image_url.
+      const ogImage = `${BASE_URL}${getArticleCoverUrl(article)}`;
 
       return {
         title: `${article.title} | StudentAthlete.dk`,

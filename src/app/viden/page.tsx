@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Viden om NCAA og college sport | StudentAthlete.dk",
   description:
     "Alt du skal vide om NCAA, college sport og danske atleter i USA. Læs om sportsgrene, sæsoner og det amerikanske universitetssystem.",
+  alternates: { canonical: "/viden" },
 };
 
 const GUIDES = [

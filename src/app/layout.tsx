@@ -6,6 +6,7 @@ import { CategoryNav } from "@/components/CategoryNav";
 import { Footer } from "@/components/Footer";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { Analytics } from "@/components/Analytics";
+import { BASE_URL } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,9 +26,11 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: "StudentAthlete.dk – Dansk dækning af student athletes i USA",
   description:
     "Følg danske student athletes på amerikanske universiteter. Profiler, nyheder og sæsonopdateringer fra football, basketball, baseball og meget mere.",
+  alternates: { canonical: "/" },
 };
 
 export default function RootLayout({
