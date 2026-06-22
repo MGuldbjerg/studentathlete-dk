@@ -323,6 +323,29 @@ export async function getSchoolBySlug(slug: string): Promise<School | null> {
   } catch { return null; }
 }
 
+/** Skoler der har mindst én aktiv dansk atlet, med antal — til /skoler-hubben. */
+export async function getSchoolsWithAthletes(): Promise<
+  (School & { athlete_count: number })[]
+> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT s.*, COUNT(a.id) AS athlete_count
+         FROM schools s
+         JOIN athletes a ON a.university = s.name AND a.active = 1
+         GROUP BY s.id
+         HAVING athlete_count > 0
+         ORDER BY s.division ASC, athlete_count DESC, s.name ASC`,
+      )
+      .all();
+    return (r.results ?? []) as (School & { athlete_count: number })[];
+  } catch {
+    return [];
+  }
+}
+
 // ─── Sitemap / Feed hjælpere ────────────────────────────────────────────────
 
 export async function getAllArticleSlugs(): Promise<

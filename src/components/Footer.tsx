@@ -64,6 +64,16 @@ export function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/skoler" className="text-white/60 text-sm hover:text-white transition-colors">
+                Universiteter
+              </Link>
+            </li>
+            <li>
+              <Link href="/viden" className="text-white/60 text-sm hover:text-white transition-colors">
+                Viden om NCAA
+              </Link>
+            </li>
+            <li>
               <Link href="/om" className="text-white/60 text-sm hover:text-white transition-colors">
                 Om StudentAthlete.dk
               </Link>

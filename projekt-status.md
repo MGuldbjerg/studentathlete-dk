@@ -1,6 +1,18 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-16 (profilbilleder: iterativ pipeline LIVE — token fikset, verificeret i prod)
+**Sidst opdateret**: 2026-06-22 (SEO/canonical + cover-fixes deployet & verificeret; Ai-disclaimer; Fanatics-affiliate-plan)
+
+## 👉 Seneste arbejde (2026-06-22) — SEO-canonical, cover-fixes, Ai-disclaimer, Fanatics-mapping
+**Alt deployet til prod (Worker-version f0c16520, commits 426a657 + 9241d2d på main) og verificeret live.**
+
+1. **GSC duplikat-sider (http/www) LØST**: ny `src/middleware.ts` 301-redirecter `http→https` og enhver ikke-kanonisk vært → `https://studentathlete.dk` (skipper /api, _next, dotted-filer via matcher). `www` har i øvrigt INGEN DNS-record → var aldrig en reel duplikatkilde; http:// var det. Tilføjet `metadataBase` + self-canonical på forside/atleter/viden (catch-all havde dem i forvejen). **Mikkels GSC-opgaver**: submit `https://studentathlete.dk/sitemap.xml` (eksisterede allerede, 1935 URLs, auto-opdaterer fra D1) + klik "Validate Fix" på duplikat-rapporten.
+2. **Atletfoto ødelagde kort-dimensioner LØST**: `publishArticle()` stamplede tidligere atletens headshot i `cover_image_url` → lister viste råt portræt. Nu returnerer `getArticleCoverUrl()` ALTID det genererede 16:9 kampkort; stamp fjernet; og:image + profil-thumbnails bruger også kampkortet. Rigtige fotos vises kun på atletprofil + inde i artiklen. Verificeret på Marie Eline Madsen-artikel (og:image = `/api/og?type=card&article=80&v=6`).
+3. **Kornede kort på store skærme LØST**: OG-kort renderes nu i fuld **1200×630** (var 600×315 via `scale(0.5)`); `CARD_VERSION`→6 buster edge-cachen. NB: 4× pixels = højere render-CPU på free-plan (mitigeret af edge-cache 7d + retry-script; fald til ~900×472 hvis blanke kort under spidsbelastning).
+4. **Ai-disclaimer** (commit 426a657): `AiDisclaimer`-komponent i bunden af alle 4 artikelskabeloner, linker til `/ai-brug`.
+5. **Fanatics-affiliate (Layer 2) — plan + verificeret mapping** (docs i OneDrive `Mikkels eget/StudentAthlete.dk/`): `fanatics-affiliate-implementation.md` (spec + EU-29) + `fanatics-store-mapping.csv` (alle 104 roster-skoler web-verificeret: 7 EU→fanatics.de, 85 US→fanatics.com, 12 uden butik). Slug delt på tværs af .com/.de/.co.uk. Rutér danskere til .de (ikke .co.uk = post-Brexit told). IKKE bygget i koden endnu. Se [[project-studentathlete-commerce]].
+
+---
+
 
 ## 👉 LØST (2026-06-16, #3): foto-pipelinen kører nu automatisk end-to-end
 **Test-kørsel afslørede at JS-rendering ALDRIG har virket. Tre kode-bugs + én token-fejl fundet og fikset (commits 993be62 + fedf346 + 9b18a44). Verificeret i PROD. Se [[project-studentathlete-photos]].**

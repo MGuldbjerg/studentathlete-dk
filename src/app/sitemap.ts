@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs } from "@/lib/db";
 import { BASE_URL } from "@/lib/seo";
 import { getSportSlugs } from "@/lib/sport-content";
+import { getGuideSlugs } from "@/lib/viden-content";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, athletes, schools] = await Promise.all([
@@ -29,7 +30,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${BASE_URL}/skoler`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    ...["om", "kontakt", "ai-brug"].map((slug) => ({
+      url: `${BASE_URL}/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    })),
   ];
+
+  // Viden-guider (statisk indhold)
+  const guidePages: MetadataRoute.Sitemap = getGuideSlugs().map((slug) => ({
+    url: `${BASE_URL}/viden/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
 
   // Sport-landingssider (pillar pages)
   const sportPages: MetadataRoute.Sitemap = getSportSlugs().map((slug) => ({
@@ -62,5 +83,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticPages, ...sportPages, ...articlePages, ...athletePages, ...schoolPages];
+  return [...staticPages, ...guidePages, ...sportPages, ...articlePages, ...athletePages, ...schoolPages];
 }

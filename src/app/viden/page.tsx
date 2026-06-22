@@ -2,45 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSportColor } from "@/lib/types";
 import { SPORT_CONTENT } from "@/lib/sport-content";
+import { VIDEN_GUIDES, CATEGORY_LABELS, type GuideCategory } from "@/lib/viden-content";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "Viden om NCAA og college sport | StudentAthlete.dk",
   description:
-    "Alt du skal vide om NCAA, college sport og danske atleter i USA. Læs om sportsgrene, sæsoner og det amerikanske universitetssystem.",
+    "Alt du skal vide om NCAA, college sport og danske atleter i USA. Guider til divisioner, conferences, eligibility, transfer portal og meget mere.",
   alternates: { canonical: "/viden" },
 };
 
-const GUIDES = [
-  {
-    title: "Hvad er NCAA?",
-    slug: "hvad-er-ncaa",
-    summary:
-      "National Collegiate Athletic Association organiserer college sport i USA. Forstå divisioner, conferences og hvordan systemet fungerer.",
-    ready: false,
-  },
-  {
-    title: "Divisioner i NCAA",
-    slug: "ncaa-divisioner",
-    summary:
-      "Forskellen på Division I, II og III — og hvad det betyder for danske atleter på amerikanske universiteter.",
-    ready: false,
-  },
-  {
-    title: "Conferences forklaret",
-    slug: "conferences",
-    summary:
-      "Big Ten, SEC, ACC og de andre — hvad er en conference, og hvorfor betyder det noget?",
-    ready: false,
-  },
-  {
-    title: "Sæsonkalenderen",
-    slug: "saeson-kalender",
-    summary:
-      "Hvornår spilles der football, basketball, baseball og de andre sportsgrene? En oversigt over hele NCAA-året.",
-    ready: false,
-  },
-];
+const CATEGORY_ORDER: GuideCategory[] = ["system", "begreber", "saeson"];
 
 export default function VidenPage() {
   const sportEntries = Object.entries(SPORT_CONTENT).filter(
@@ -64,48 +36,83 @@ export default function VidenPage() {
       </h1>
       <p className="text-muted text-base mb-10 max-w-2xl">
         Forstå det amerikanske college sport-system og følg danske atleter i
-        NCAA. Her samler vi baggrundsviden og guider.
+        NCAA. Her samler vi baggrundsviden og guider — fra divisioner og
+        conferences til eligibility, transfer portal og de store mesterskaber.
       </p>
 
-      {/* ── Guides ──────────────────────────────────────────────────── */}
-      <section className="mb-14">
+      {/* ── Guides grupperet efter kategori ─────────────────────────── */}
+      {CATEGORY_ORDER.map((cat) => {
+        const guides = VIDEN_GUIDES.filter((g) => g.category === cat);
+        if (guides.length === 0) return null;
+        return (
+          <section key={cat} className="mb-12">
+            <h2
+              className="text-xl font-bold text-ink mb-5"
+              style={{ fontFamily: "var(--font-serif)" }}
+            >
+              {CATEGORY_LABELS[cat]}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {guides.map((guide) => (
+                <Link
+                  key={guide.slug}
+                  href={`/viden/${guide.slug}`}
+                  className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface
+                             transition-colors group"
+                >
+                  <h3
+                    className="text-base font-bold text-ink mb-1 group-hover:underline"
+                    style={{ fontFamily: "var(--font-serif)" }}
+                  >
+                    {guide.title}
+                  </h3>
+                  <p className="text-sm text-muted leading-relaxed">
+                    {guide.description}
+                  </p>
+                  <span
+                    className="inline-block mt-3 text-sm font-medium"
+                    style={{ color: "#BF0A30" }}
+                  >
+                    Læs mere →
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+
+      {/* ── Reference-hubs ──────────────────────────────────────────── */}
+      <section className="mb-12">
         <h2
           className="text-xl font-bold text-ink mb-5"
           style={{ fontFamily: "var(--font-serif)" }}
         >
-          Guider
+          Slå op
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {GUIDES.map((guide) => (
-            <div
-              key={guide.slug}
-              className="p-5 rounded-lg border border-border bg-paper"
-            >
-              <h3
-                className="text-base font-bold text-ink mb-1"
-                style={{ fontFamily: "var(--font-serif)" }}
-              >
-                {guide.title}
-              </h3>
-              <p className="text-sm text-muted leading-relaxed">
-                {guide.summary}
-              </p>
-              {guide.ready && (
-                <Link
-                  href={`/viden/${guide.slug}`}
-                  className="inline-block mt-3 text-sm font-medium hover:underline"
-                  style={{ color: "#BF0A30" }}
-                >
-                  Læs mere →
-                </Link>
-              )}
-              {!guide.ready && (
-                <span className="inline-block mt-3 text-xs text-muted italic">
-                  Kommer snart
-                </span>
-              )}
-            </div>
-          ))}
+          <Link
+            href="/skoler"
+            className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group"
+          >
+            <h3 className="text-base font-bold text-ink mb-1 group-hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
+              Universiteter med danske atleter
+            </h3>
+            <p className="text-sm text-muted leading-relaxed">
+              Overblik over de amerikanske universiteter, hvor danske student athletes går — sorteret efter division.
+            </p>
+          </Link>
+          <Link
+            href="/atleter"
+            className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group"
+          >
+            <h3 className="text-base font-bold text-ink mb-1 group-hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
+              Alle danske atleter
+            </h3>
+            <p className="text-sm text-muted leading-relaxed">
+              Find og følg de danske atleter, vi dækker — på tværs af sportsgrene.
+            </p>
+          </Link>
         </div>
       </section>
 
