@@ -1,4 +1,4 @@
-import { createD1Client } from "../lib/d1-client.ts";
+import { createD1Client } from "../lib/d1-client";
 
 async function main() {
 const WEBHOOK = process.env.DISCORD_WEBHOOK_URL;

@@ -29,9 +29,9 @@ Vurdering: `Mikkels eget/StudentAthlete.dk/PRESSEETIK-vurdering.md`. Beslutninge
 ### Parkeret (til når ads aktiveres)
 - **Cookie-scan + GDPR-samtykkeboks.** Nødvendig FØR ads går live. NB: nuværende analytics er bevidst **cookieløs** (daglig-saltet hash, IP gemmes aldrig) → ingen banner krævet i dag. Når tredjeparts ad-cookies (Fanatics/ad-net) tilføjes, kræves: forudgående granuleret samtykke (afvis lige så let som accepter), cookie-scan/-deklaration, og at ad-/tracking-scripts først loades efter samtykke. Byg automatisk samtykkeboks + scan af faktisk satte cookies.
 
-### Næste skridt (aftalt rækkefølge)
-1. **Prompt-ændringer #1 + #2** (pipeline/generate/prompts/* + build-factsheet/generate-articles). Ingen web-deploy.
-2. **Athlete-timeline-feature** (se [[project-studentathlete-generation]]): `athlete_events`-tabel m. significance-tier (routine/notable/honor → recall-vindue) + `season` + "consecutive honors"-derivation; harvest fra faktaark ved publish; fodres ind i generering; profil-højdepunkter + admin-redigerbar. 3 slices.
+### Næste skridt
+- **Prompt-ændringer #1 + #2 LØST** (commit 2efc484, pipeline — virker ved næste generering; system.ts regel 4/11/22 + renderFactSheet).
+- **Athlete-timeline-feature** (NÆSTE — se [[project-studentathlete-generation]]): `athlete_events`-tabel m. significance-tier (routine/notable/honor → recall-vindue) + `season` + "consecutive honors"-derivation; harvest fra faktaark ved publish; fodres ind i generering; profil-højdepunkter + admin-redigerbar. 3 slices.
 
 ---
 
