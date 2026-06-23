@@ -50,7 +50,10 @@ export function formatRelativeTime(dateStr: string | null): string {
  * i cover_image_url ignoreres (de er ikke kampkort).
  */
 // Bump ved design-ændringer i kampkortet — buster edge-cachen (s-maxage 7 dage)
-const CARD_VERSION = 6;
+// v7: tilbage til 600×315-render. 1200×630 (v6) sprængte free-plan CPU-budgettet
+// (10 ms) ved kolde renders → 503 "Worker exceeded resource limits". Skarphed
+// må vente på en billigere løsning (pre-render til R2 / betalt plan).
+const CARD_VERSION = 7;
 
 /**
  * Cover til lister/karrusel/thumbnails er ALTID det genererede 16:9 kampkort:

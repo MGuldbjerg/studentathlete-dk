@@ -236,6 +236,8 @@ export async function GET(req: NextRequest) {
         style={{
           width: "1200px",
           height: "630px",
+          transform: "scale(0.5)",
+          transformOrigin: "top left",
           display: "flex",
           position: "relative",
           fontFamily: "'Playfair Display', serif",
@@ -402,8 +404,8 @@ export async function GET(req: NextRequest) {
       </div>
     ),
     {
-      width: 1200,
-      height: 630,
+      width: 600,
+      height: 315,
       fonts: ogFonts(assets),
       headers: {
         "Cache-Control": "public, max-age=86400, s-maxage=604800",
@@ -439,6 +441,8 @@ function matchCard(data: CardData, assets: OgAssets) {
         style={{
           width: "1200px",
           height: "630px",
+          transform: "scale(0.5)",
+          transformOrigin: "top left",
           display: "flex",
           position: "relative",
           fontFamily: "'Playfair Display', serif",
@@ -615,8 +619,8 @@ function matchCard(data: CardData, assets: OgAssets) {
       </div>
     ),
     {
-      width: 1200,
-      height: 630,
+      width: 600,
+      height: 315,
       emoji: "twemoji",
       fonts: ogFonts(assets),
       headers: {
