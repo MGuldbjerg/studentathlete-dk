@@ -89,6 +89,11 @@ export async function Footer() {
                 Sådan bruger vi AI
               </Link>
             </li>
+            <li>
+              <Link href="/presseetik" className="text-white/60 text-sm hover:text-white transition-colors">
+                Presseetik &amp; henvendelser
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

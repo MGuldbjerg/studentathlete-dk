@@ -20,6 +20,7 @@ export function EditArticleForm({
   const [articleType, setArticleType] = useState(article.article_type);
   const [author, setAuthor] = useState(article.author ?? "");
   const [athleteId, setAthleteId] = useState<number | null>(article.athlete_id);
+  const [featured, setFeatured] = useState(article.featured === 1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -83,6 +84,7 @@ export function EditArticleForm({
           article_type: articleType,
           author: author.trim(),
           athlete_id: athleteId,
+          featured: featured ? 1 : 0,
         }),
       });
 
@@ -270,6 +272,17 @@ export function EditArticleForm({
           {message.text}
         </p>
       )}
+
+      {/* Fastgjort på forsiden */}
+      <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
+        <input
+          type="checkbox"
+          checked={featured}
+          onChange={(e) => setFeatured(e.target.checked)}
+          className="w-4 h-4"
+        />
+        Vis på forsiden (fastgjort i karrusellen)
+      </label>
 
       {/* Gem-knap */}
       <button

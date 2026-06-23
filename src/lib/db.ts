@@ -28,7 +28,7 @@ export const ARTICLE_SELECT = `
   a.id, a.title, a.slug, a.summary, a.content, a.article_type,
   a.author, a.cover_image_url, a.published, a.published_at,
   a.created_at, a.updated_at, a.athlete_id, a.source_url,
-  a.model_used, a.llm_provider, a.original_content,
+  a.model_used, a.llm_provider, a.original_content, a.featured,
   a.fabrication_risk, a.fact_flags, a.story_id,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;
@@ -56,6 +56,27 @@ export async function getLatestArticles(limit = 5): Promise<Article[]> {
       .all();
     return (r.results ?? []) as Article[];
   } catch { return []; }
+}
+
+/** Fastgjorte artikler til forsidens karrusel (nyeste først). */
+export async function getFeaturedArticles(limit = 5): Promise<Article[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT ${ARTICLE_SELECT}
+         FROM articles a
+         LEFT JOIN athletes at ON a.athlete_id = at.id
+         WHERE a.published = 1 AND a.featured = 1
+         ORDER BY a.published_at DESC LIMIT ?`,
+      )
+      .bind(limit)
+      .all();
+    return (r.results ?? []) as Article[];
+  } catch {
+    return [];
+  }
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {

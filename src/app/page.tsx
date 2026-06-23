@@ -4,7 +4,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { AdSlot } from "@/components/ui/AdSlot";
 
 import { SearchBar } from "@/components/SearchBar";
-import { getLatestArticles, getArticles } from "@/lib/db";
+import { getLatestArticles, getFeaturedArticles, getArticles } from "@/lib/db";
 
 interface SearchParams {
   q?: string;
@@ -20,10 +20,13 @@ export default async function HomePage({
   const q = params.q ?? "";
   const sport = params.sport ?? "";
 
-  const [carouselArticles, articles] = await Promise.all([
+  const [featured, latest, articles] = await Promise.all([
+    getFeaturedArticles(5),
     getLatestArticles(5),
     getArticles({ q, sport }),
   ]);
+  // Fastgjorte artikler vinder forsidens karrusel; ellers de nyeste.
+  const carouselArticles = featured.length > 0 ? featured : latest;
 
   const hasFilter = q || sport;
   const [featuredArticle, ...restArticles] = articles;

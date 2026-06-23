@@ -28,6 +28,7 @@ MIGRATIONS=(
   db/migration-019-events.sql
   db/migration-020-guides.sql
   db/migration-021-site-content.sql
+  db/migration-022-featured.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do

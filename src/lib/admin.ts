@@ -186,6 +186,7 @@ export async function updateArticle(
     article_type?: string;
     author?: string;
     athlete_id?: number | null;
+    featured?: number;
   },
 ): Promise<void> {
   const db = await getDB();

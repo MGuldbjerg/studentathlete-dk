@@ -21,6 +21,7 @@ export async function PUT(
       article_type?: string;
       author?: string;
       athlete_id?: number | null;
+      featured?: number;
     };
 
     const valid = await validateAdminToken(token ?? null);

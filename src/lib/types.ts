@@ -16,6 +16,7 @@ export interface Article {
   llm_provider: string | null;
   author: string | null;
   original_content: string | null;
+  featured?: number;
   // Fase 3-verifikation (valgfri — kun sat når kladden er verificeret)
   fabrication_risk?: string | null;
   fact_flags?: string | null;
