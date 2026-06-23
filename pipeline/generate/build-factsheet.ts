@@ -141,12 +141,12 @@ export function renderFactSheet(fs: FactSheet): string {
   if (fs.stats.length) blocks.push("Statistik:\n" + fs.stats.map((s) => `- ${s.text}`).join("\n"));
   if (fs.qualitative.length)
     blocks.push(
-      "Observationer (kvalitative — brug disse til at fortælle om præstationen):\n" +
+      "Observationer (kvalitativ kontekst — skriv i egne ord; parafraser ikke kildens formuleringer):\n" +
         fs.qualitative.map((q) => `- ${q.text}`).join("\n"),
     );
   if (fs.quotes.length)
     blocks.push(
-      "Citater (kun disse må gengives ordret):\n" +
+      "Citater (gengiv HØJST ét — kun hvis relevant — ordret og attribueret):\n" +
         fs.quotes.map((q) => `- "${q.text}"${q.speaker ? ` — ${q.speaker}` : ""}`).join("\n"),
     );
   if (fs.other_facts.length)

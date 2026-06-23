@@ -71,8 +71,7 @@ async function expireStale(db: D1Client): Promise<number> {
 
 function buildContent(row: QueuedRow, channel: SocialChannel["name"]): PostContent {
   const url = BASE_URL + getArticleUrl({ slug: row.slug, sport: row.sport });
-  const imageUrl =
-    BASE_URL + getArticleCoverUrl({ id: row.article_id, cover_image_url: row.cover_image_url });
+  const imageUrl = BASE_URL + getArticleCoverUrl({ id: row.article_id });
   return {
     text: buildPostText({ title: row.title, summary: row.summary, url }, channel),
     url,

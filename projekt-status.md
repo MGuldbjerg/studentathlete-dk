@@ -14,11 +14,24 @@ Princip: **kode-default + D1-override** — alt læses fra D1 med hardcoded fall
 - **Phase 1b LØST (commit 8e94f07):** 13 sport-pillar-tekster → redigerbare `kind='sport'`-pages; `resolveSportContent()` fletter D1 over kode (title/pillar/meta). `intro` stadig kode (Phase 2-rest). → **Hele Phase 1: al lang-form prosa (guides+sport+sider) redigerbar.**
 - **Phase 2 (core) LØST + deployet (commit c700542, version eb4ad124):** `site_content` KV (migration-021) + `src/lib/site-content.ts`-registry + admin → **Tekster** (`/admin/indstillinger` + `/api/admin/settings`). Redigerbart nu: `site.title`, `site.description`, `footer.blurb`, `disclaimer.ai`. Verificeret: D1-override går live + falder tilbage til kode-default; editor token-gated. Nyt felt = 1 linje i registry + 1 brug (ingen anden kode).
 
-### Næste skridt
-- **Phase 2-rest:** flere KV-felter (sport-intros, forside-sektion-titler, Fanatics-disclosure, ad-toggle).
-- **Phase 3:** lister/navigation (footer-links, header/category-nav, featured carousel).
-- **Phase 4:** edit-blyant pr. side (logget ind) + markdown-hjælp + gruppér admin → Sider efter kind.
-- **Crisp cards (separat track):** pre-render kort uden for Worker (R2/CI) i fuld opløsning — undgår free-plan CPU-grænsen (1200×630 = 503).
+### Redaktionel kontrol — afsluttet (2026-06-23, deployet e1675118 m.fl.)
+- **Phase 4 LØST (delvis):** admin → Sider grupperet efter kind (Sider/Guider/Sportssider).
+- **Featured/pinned carousel LØST:** `articles.featured` (migration-022); forsidens karrusel viser fastgjorte (fallback nyeste); pin-toggle i artikel-editoren. Verificeret.
+- **Shelved (bevidst):** editable nav (strukturel/risiko), edit-blyant (kræver login-session), ad-toggle (rører kerne-render, ads off), sport-intros (lav værdi). Crisp-cards pre-render = separat track (R2/CI), ikke gjort.
+
+### Presseetik — vurdering + beslutninger (2026-06-23)
+Vurdering: `Mikkels eget/StudentAthlete.dk/PRESSEETIK-vurdering.md`. Beslutninger truffet:
+- **#5 LØST:** ny `/presseetik`-side (rettelse/klage/afpublicering) + footer-link.
+- **#6 LØST:** "Menneskelig gennemlæsning"-afsnit tilføjet `/ai-brug`.
+- **#3 (forelæggelse) & #4 (mindreårige): ikke et problem** — dækningen er neutral/positiv; college-atleter er ~18+ og vant til dækning.
+- **#2 + #1: TODO i pipelinen (prompts) — IKKE gjort endnu.** #2: navngiv kildemediet øverst + max ét direkte citat. **#1 (vigtig):** skift generering så artikelteksten bygges fra STATS/egen komposition; kildeartiklen bruges KUN til ét citat (hvis den har et) + "vibe check" af tal — ikke som tekstgrundlag. Mindsker citatregel-konflikten.
+
+### Parkeret (til når ads aktiveres)
+- **Cookie-scan + GDPR-samtykkeboks.** Nødvendig FØR ads går live. NB: nuværende analytics er bevidst **cookieløs** (daglig-saltet hash, IP gemmes aldrig) → ingen banner krævet i dag. Når tredjeparts ad-cookies (Fanatics/ad-net) tilføjes, kræves: forudgående granuleret samtykke (afvis lige så let som accepter), cookie-scan/-deklaration, og at ad-/tracking-scripts først loades efter samtykke. Byg automatisk samtykkeboks + scan af faktisk satte cookies.
+
+### Næste skridt (aftalt rækkefølge)
+1. **Prompt-ændringer #1 + #2** (pipeline/generate/prompts/* + build-factsheet/generate-articles). Ingen web-deploy.
+2. **Athlete-timeline-feature** (se [[project-studentathlete-generation]]): `athlete_events`-tabel m. significance-tier (routine/notable/honor → recall-vindue) + `season` + "consecutive honors"-derivation; harvest fra faktaark ved publish; fodres ind i generering; profil-højdepunkter + admin-redigerbar. 3 slices.
 
 ---
 
