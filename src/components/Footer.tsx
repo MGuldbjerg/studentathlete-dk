@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { getSiteSettings } from "@/lib/admin";
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getSiteSettings();
   return (
     <footer style={{ backgroundColor: "#00205B" }} className="mt-16">
       {/* Rød streg øverst i footer */}
@@ -16,8 +18,7 @@ export function Footer() {
             className="h-8 w-auto mb-3 opacity-90"
           />
           <p className="text-white/60 text-sm leading-relaxed">
-            Danmarks dedikerede medie for danske student athletes i USA.
-            Vi dækker profiler, nyheder og sæsonopdateringer.
+            {settings["footer.blurb"]}
           </p>
         </div>
 

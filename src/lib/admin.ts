@@ -1,6 +1,7 @@
 import { getDB, getEnv, ARTICLE_SELECT } from "./db";
 import { generateSlug } from "./slug";
 import type { Article, Athlete } from "./types";
+import { siteDefaults, SETTING_KEYS } from "./site-content";
 
 // ─── Token-validering ───────────────────────────────────────────────────────
 
@@ -411,6 +412,36 @@ export async function getPublishedGuideBySlug(slug: string): Promise<PageRow | n
 export async function getPublishedSportBySlug(slug: string): Promise<PageRow | null> {
   const page = await getPageBySlug(slug);
   return page && page.published === 1 && page.kind === "sport" ? page : null;
+}
+
+/** Site-tekster/indstillinger: kode-defaults flettet med D1-overrides. */
+export async function getSiteSettings(): Promise<Record<string, string>> {
+  const resolved = siteDefaults();
+  const db = await getDB();
+  if (!db) return resolved;
+  try {
+    const r = await db.prepare("SELECT key, value FROM site_content").all();
+    for (const row of (r.results ?? []) as { key: string; value: string }[]) {
+      if (row.key in resolved) resolved[row.key] = row.value;
+    }
+  } catch {
+    /* fail-safe: behold defaults */
+  }
+  return resolved;
+}
+
+/** Gem én override (kun kendte nøgler). */
+export async function upsertSetting(key: string, value: string): Promise<void> {
+  if (!SETTING_KEYS.has(key)) return;
+  const db = await getDB();
+  if (!db) return;
+  await db
+    .prepare(
+      `INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+    )
+    .bind(key, value)
+    .run();
 }
 
 /** Publicerede guides til /viden-hubben + sitemap (uden content). */

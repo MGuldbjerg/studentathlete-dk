@@ -51,6 +51,12 @@ export default async function AdminDashboard({
             Sider
           </Link>
           <Link
+            href={`/admin/indstillinger?token=${token}`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Tekster
+          </Link>
+          <Link
             href={`/admin/skoler?token=${token}`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >

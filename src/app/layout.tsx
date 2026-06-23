@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { Analytics } from "@/components/Analytics";
 import { BASE_URL } from "@/lib/seo";
+import { getSiteSettings } from "@/lib/admin";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,13 +26,15 @@ const playfair = Playfair_Display({
   weight: ["400", "600", "700", "900"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
-  title: "StudentAthlete.dk – Dansk dækning af student athletes i USA",
-  description:
-    "Følg danske student athletes på amerikanske universiteter. Profiler, nyheder og sæsonopdateringer fra football, basketball, baseball og meget mere.",
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return {
+    metadataBase: new URL(BASE_URL),
+    title: settings["site.title"],
+    description: settings["site.description"],
+    alternates: { canonical: "/" },
+  };
+}
 
 export default function RootLayout({
   children,
