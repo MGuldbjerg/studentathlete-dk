@@ -1,6 +1,24 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-22 (SEO/canonical + cover-fixes deployet & verificeret; Ai-disclaimer; Fanatics-affiliate-plan)
+**Sidst opdateret**: 2026-06-23 (redaktionel kontrol Phase 1a: viden-guider redigerbare i admin; OG-hotfix; Fanatics-template; /viden+/skoler)
+
+## 👉 Seneste arbejde (2026-06-23) — redaktionel kontrol (Phase 1) + hotfix
+**Mål (Mikkels regel): Mikkel skal kunne redigere ALT selv i /admin, uafhængigt af AI-rate-limits. Plan: [EDITORIAL-PLAN.md](EDITORIAL-PLAN.md) i repo-roden.**
+
+Princip: **kode-default + D1-override** — alt læses fra D1 med hardcoded fallback, så intet kan gå i stykker, og indholdsændringer kræver hverken kode eller deploy.
+
+- **Phase 1a LØST + deployet (commit bd5f554, version 13c86b72):** de 13 viden-guider er nu **redigerbare i admin → Sider**. `migration-020` (pages += `kind`/`category`), `seed-guides.ts`→`db/seed-guides.sql` (guider som markdown-pages, kind='guide'), `/viden/[slug]` + hub + sitemap læser D1 med kode-fallback (`guideToMarkdown`). `getPublishedPageBySlug` serverer kun kind='page' (ingen rod-dubletter). Verificeret live: 13 guides 200, ingen dubletter, markdown renderes.
+- **OG-HOTFIX (commit e322621):** 1200×630-kortene (v6) sprængte free-plan CPU (10 ms) → 503 "Worker exceeded resource limits" ved kolde renders (+ kaskade-503 på sider). Rullet tilbage til **600×315** (v7). Skarpe kort venter på pre-render (R2/CI) — se nedenfor.
+- **Fanatics-template (commit 87b7754, inert):** `src/lib/fanatics.ts` + `src/components/ui/FanaticsAffiliateLink.tsx` — ikke wiret ind; aktiveringstrin i fanatics.ts-header. Mapping: docs `Mikkels eget/StudentAthlete.dk/fanatics-store-mapping.csv`.
+
+### Næste skridt (aftalt rækkefølge)
+- **Phase 1b (i gang):** sport-pillar-tekster (`sport-content.ts`) → redigerbare `kind='sport'`-pages.
+- **Phase 2:** `site_content` KV-tabel + admin-skærm (forside-tekst, footer, meta-defaults, disclaimer-tekster, ad-toggles).
+- **Phase 3:** lister/navigation (footer, header, featured carousel). **Phase 4:** edit-blyant pr. side + markdown-hjælp.
+- **Crisp cards (separat):** pre-render kort uden for Worker (R2 eller CI) i fuld opløsning — undgår CPU-grænsen.
+
+---
+
 
 ## 👉 Seneste arbejde (2026-06-22) — SEO-canonical, cover-fixes, Ai-disclaimer, Fanatics-mapping
 **Alt deployet til prod (Worker-version f0c16520, commits 426a657 + 9241d2d på main) og verificeret live.**

@@ -11,9 +11,9 @@ import {
   getArticlesBySport,
   countAthletesBySport,
 } from "@/lib/db";
-import { getPublishedPageBySlug } from "@/lib/admin";
+import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
 import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl } from "@/lib/seo";
-import { getSportContent } from "@/lib/sport-content";
+import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
@@ -26,6 +26,20 @@ import { ArticleBody } from "@/components/ui/ArticleBody";
 
 type Params = Promise<{ segments: string[] }>;
 
+// Sport-landingsindhold: D1-override (redigerbar i admin) over kode-default.
+async function resolveSportContent(slug: string): Promise<SportContent | null> {
+  const base = getSportContent(slug);
+  if (!base) return null;
+  const db = await getPublishedSportBySlug(slug);
+  if (!db) return base;
+  return {
+    ...base,
+    title: db.title || base.title,
+    metaDescription: db.meta_description ?? base.metaDescription,
+    pillar: db.content || base.pillar,
+  };
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { segments } = await params;
 
@@ -33,7 +47,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (segments.length === 1) {
     const slug = segments[0];
 
-    const sportContent = getSportContent(slug);
+    const sportContent = await resolveSportContent(slug);
     if (sportContent) {
       const canonicalUrl = `${BASE_URL}/${slug}`;
       const ogImage = getOgImageUrl({
@@ -189,7 +203,7 @@ export default async function DynamicPage({ params }: { params: Params }) {
     const slug = segments[0];
 
     // Sport-landingsside
-    const sportContent = getSportContent(slug);
+    const sportContent = await resolveSportContent(slug);
     if (sportContent) {
       const dbSport = urlSlugToDbSport(slug);
       const [articles, athletes, counts] = await Promise.all([

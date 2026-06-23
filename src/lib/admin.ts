@@ -407,6 +407,12 @@ export async function getPublishedGuideBySlug(slug: string): Promise<PageRow | n
   return page && page.published === 1 && page.kind === "guide" ? page : null;
 }
 
+/** Offentlig sport-pillar (/[sport]) — kun kind='sport', publiceret. */
+export async function getPublishedSportBySlug(slug: string): Promise<PageRow | null> {
+  const page = await getPageBySlug(slug);
+  return page && page.published === 1 && page.kind === "sport" ? page : null;
+}
+
 /** Publicerede guides til /viden-hubben + sitemap (uden content). */
 export async function getPublishedGuides(): Promise<
   { slug: string; title: string; meta_description: string | null; category: string | null }[]
