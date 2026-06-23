@@ -601,6 +601,28 @@ export const VIDEN_GUIDES: VidenGuide[] = [
   },
 ];
 
+/** Strukturen → markdown (ArticleBody-kompatibel). Delt af seed + route-fallback. */
+export function guideToMarkdown(g: VidenGuide): string {
+  const parts: string[] = [g.intro];
+  for (const s of g.sections) {
+    parts.push(`## ${s.heading}`);
+    for (const p of s.body ?? []) parts.push(p);
+    if (s.list?.length) parts.push(s.list.map((i) => `- ${i}`).join("\n"));
+  }
+  if (g.faqs?.length) {
+    parts.push("## Ofte stillede spørgsmål");
+    for (const f of g.faqs) {
+      parts.push(`### ${f.q}`);
+      parts.push(f.a);
+    }
+  }
+  if (g.related?.length) {
+    parts.push("## Læs også");
+    parts.push(g.related.map((r) => `- [${r.label}](${r.href})`).join("\n"));
+  }
+  return parts.join("\n\n");
+}
+
 export function getGuide(slug: string): VidenGuide | undefined {
   return VIDEN_GUIDES.find((g) => g.slug === slug);
 }

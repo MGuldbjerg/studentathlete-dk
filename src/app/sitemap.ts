@@ -3,6 +3,7 @@ import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs } from "@/lib
 import { BASE_URL } from "@/lib/seo";
 import { getSportSlugs } from "@/lib/sport-content";
 import { getGuideSlugs } from "@/lib/viden-content";
+import { getPublishedGuides } from "@/lib/admin";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, athletes, schools] = await Promise.all([
@@ -44,8 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  // Viden-guider (statisk indhold)
-  const guidePages: MetadataRoute.Sitemap = getGuideSlugs().map((slug) => ({
+  // Viden-guider — D1 (redigerbar) som primær, kode-slugs som fallback
+  const dbGuides = await getPublishedGuides();
+  const guideSlugs = dbGuides.length ? dbGuides.map((g) => g.slug) : getGuideSlugs();
+  const guidePages: MetadataRoute.Sitemap = guideSlugs.map((slug) => ({
     url: `${BASE_URL}/viden/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,

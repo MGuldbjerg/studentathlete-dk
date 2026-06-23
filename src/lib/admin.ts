@@ -360,6 +360,8 @@ export interface PageRow {
   content: string;
   meta_description: string | null;
   published: number;
+  kind?: string; // 'page' (default) | 'guide' | 'sport'
+  category?: string | null; // hub-gruppering for guides
 }
 
 export async function getAllPages(): Promise<Array<Omit<PageRow, "content"> & { updated_at: string | null }>> {
@@ -380,7 +382,7 @@ export async function getPageBySlug(slug: string): Promise<PageRow | null> {
   if (!db) return null;
   try {
     const r = await db
-      .prepare("SELECT slug, title, content, meta_description, published FROM pages WHERE slug = ?")
+      .prepare("SELECT slug, title, content, meta_description, published, kind, category FROM pages WHERE slug = ?")
       .bind(slug)
       .first();
     return (r as PageRow) ?? null;
@@ -389,10 +391,43 @@ export async function getPageBySlug(slug: string): Promise<PageRow | null> {
   }
 }
 
-/** Offentlig variant — kladder (published=0) findes ikke udenfor admin. */
+/**
+ * Offentlig statisk side (/[slug]) — KUN kind='page' (så guides/sport-tekster
+ * ikke også dukker op på roden). Kladder (published=0) findes ikke udenfor admin.
+ */
 export async function getPublishedPageBySlug(slug: string): Promise<PageRow | null> {
   const page = await getPageBySlug(slug);
-  return page && page.published === 1 ? page : null;
+  if (!page || page.published !== 1) return null;
+  return (page.kind ?? "page") === "page" ? page : null;
+}
+
+/** Offentlig viden-guide (/viden/[slug]) — kun kind='guide', publiceret. */
+export async function getPublishedGuideBySlug(slug: string): Promise<PageRow | null> {
+  const page = await getPageBySlug(slug);
+  return page && page.published === 1 && page.kind === "guide" ? page : null;
+}
+
+/** Publicerede guides til /viden-hubben + sitemap (uden content). */
+export async function getPublishedGuides(): Promise<
+  { slug: string; title: string; meta_description: string | null; category: string | null }[]
+> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        "SELECT slug, title, meta_description, category FROM pages WHERE kind = 'guide' AND published = 1 ORDER BY title ASC",
+      )
+      .all();
+    return (r.results ?? []) as {
+      slug: string;
+      title: string;
+      meta_description: string | null;
+      category: string | null;
+    }[];
+  } catch {
+    return [];
+  }
 }
 
 export async function upsertPage(

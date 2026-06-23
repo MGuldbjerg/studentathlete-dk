@@ -1,216 +1,132 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { ArticleBody } from "@/components/ui/ArticleBody";
 import { BASE_URL, getOgImageUrl, breadcrumbStructuredData, formatDate } from "@/lib/seo";
+import { getPublishedGuideBySlug } from "@/lib/admin";
 import {
   getGuide,
-  getGuideSlugs,
+  guideToMarkdown,
   CATEGORY_LABELS,
-  type VidenGuide,
+  type GuideCategory,
 } from "@/lib/viden-content";
+
+export const dynamic = "force-dynamic";
 
 type Params = Promise<{ slug: string }>;
 
-export const dynamicParams = false;
+interface ResolvedGuide {
+  title: string;
+  content: string; // markdown
+  description: string;
+  category: string | null;
+  updated: string;
+}
 
-export function generateStaticParams() {
-  return getGuideSlugs().map((slug) => ({ slug }));
+// D1 (redigerbar) som primær; kode-guide som fail-safe fallback (rate-limit-sikkert).
+async function resolveGuide(slug: string): Promise<ResolvedGuide | null> {
+  const db = await getPublishedGuideBySlug(slug);
+  if (db) {
+    return {
+      title: db.title,
+      content: db.content,
+      description: db.meta_description ?? "",
+      category: db.category ?? null,
+      updated: new Date().toISOString().slice(0, 10),
+    };
+  }
+  const code = getGuide(slug);
+  if (code) {
+    return {
+      title: code.title,
+      content: guideToMarkdown(code),
+      description: code.description,
+      category: code.category,
+      updated: code.updated,
+    };
+  }
+  return null;
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const guide = getGuide(slug);
-  if (!guide) return { title: "Side ikke fundet" };
-
-  const canonical = `${BASE_URL}/viden/${guide.slug}`;
-  const ogImage = getOgImageUrl({
-    title: guide.title,
-    subtitle: "StudentAthlete.dk · Viden",
-    type: "article",
-  });
+  const g = await resolveGuide(slug);
+  if (!g) return { title: "Side ikke fundet" };
+  const canonical = `${BASE_URL}/viden/${slug}`;
+  const ogImage = getOgImageUrl({ title: g.title, subtitle: "StudentAthlete.dk · Viden", type: "article" });
   return {
-    title: `${guide.metaTitle} | StudentAthlete.dk`,
-    description: guide.description,
+    title: `${g.title} | StudentAthlete.dk`,
+    description: g.description || undefined,
     alternates: { canonical },
     openGraph: {
-      title: guide.title,
-      description: guide.description,
-      images: [{ url: ogImage, width: 1200, height: 630, alt: guide.title }],
+      title: g.title,
+      description: g.description || undefined,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: g.title }],
       type: "article",
       siteName: "StudentAthlete.dk",
       url: canonical,
     },
-    twitter: {
-      card: "summary_large_image",
-      title: guide.title,
-      description: guide.description,
-      images: [ogImage],
-    },
+    twitter: { card: "summary_large_image", title: g.title, description: g.description || undefined, images: [ogImage] },
     robots: { index: true, follow: true },
   };
 }
 
-// [label](/sti) → <Link> (interne) eller <a> (eksterne). Bruges i prosa for
-// kontekstuel intern link-building.
-function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
-  const out: React.ReactNode[] = [];
-  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  let i = 0;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) out.push(text.slice(last, m.index));
-    const [, label, href] = m;
-    const linkClass = "underline decoration-1 underline-offset-2 hover:opacity-80";
-    out.push(
-      href.startsWith("/") ? (
-        <Link key={`${keyPrefix}-${i}`} href={href} className={linkClass} style={{ color: "#BF0A30" }}>
-          {label}
-        </Link>
-      ) : (
-        <a key={`${keyPrefix}-${i}`} href={href} rel="noopener noreferrer" className={linkClass} style={{ color: "#BF0A30" }}>
-          {label}
-        </a>
-      ),
-    );
-    last = re.lastIndex;
-    i++;
-  }
-  if (last < text.length) out.push(text.slice(last));
-  return out;
-}
-
-const stripInline = (text: string) => text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
-
-function guideJsonLd(guide: VidenGuide) {
-  const url = `${BASE_URL}/viden/${guide.slug}`;
-  const article = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: guide.title,
-    description: guide.description,
-    inLanguage: "da",
-    dateModified: guide.updated,
-    mainEntityOfPage: url,
-    url,
-    publisher: { "@type": "Organization", name: "StudentAthlete.dk", url: BASE_URL },
-    author: { "@type": "Organization", name: "StudentAthlete.dk" },
-  };
-  const faq = guide.faqs?.length
-    ? {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: guide.faqs.map((f) => ({
-          "@type": "Question",
-          name: f.q,
-          acceptedAnswer: { "@type": "Answer", text: stripInline(f.a) },
-        })),
-      }
-    : null;
-  const crumbs = breadcrumbStructuredData([
-    { name: "Forside", url: BASE_URL },
-    { name: "Viden", url: `${BASE_URL}/viden` },
-    { name: guide.title, url },
-  ]);
-  return [article, crumbs, ...(faq ? [faq] : [])];
-}
-
 export default async function GuidePage({ params }: { params: Params }) {
   const { slug } = await params;
-  const guide = getGuide(slug);
-  if (!guide) notFound();
+  const g = await resolveGuide(slug);
+  if (!g) notFound();
+
+  const url = `${BASE_URL}/viden/${slug}`;
+  const categoryLabel =
+    g.category && g.category in CATEGORY_LABELS
+      ? CATEGORY_LABELS[g.category as GuideCategory]
+      : null;
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: g.title,
+      description: g.description || undefined,
+      inLanguage: "da",
+      dateModified: g.updated,
+      mainEntityOfPage: url,
+      url,
+      publisher: { "@type": "Organization", name: "StudentAthlete.dk", url: BASE_URL },
+      author: { "@type": "Organization", name: "StudentAthlete.dk" },
+    },
+    breadcrumbStructuredData([
+      { name: "Forside", url: BASE_URL },
+      { name: "Viden", url: `${BASE_URL}/viden` },
+      { name: g.title, url },
+    ]),
+  ];
 
   return (
     <main className="max-w-3xl mx-auto px-4 md:px-8 py-10">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(guideJsonLd(guide)) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <Breadcrumb
         crumbs={[
           { label: "Forside", href: "/" },
           { label: "Viden", href: "/viden" },
-          { label: guide.title },
+          { label: g.title },
         ]}
       />
 
-      <p className="mt-6 text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "#BF0A30" }}>
-        {CATEGORY_LABELS[guide.category]}
-      </p>
+      {categoryLabel && (
+        <p className="mt-6 text-xs font-bold tracking-[0.15em] uppercase" style={{ color: "#BF0A30" }}>
+          {categoryLabel}
+        </p>
+      )}
       <h1
-        className="text-3xl md:text-4xl font-bold text-ink mt-2 mb-3 leading-tight"
+        className="text-3xl md:text-4xl font-bold text-ink mt-2 mb-6 leading-tight"
         style={{ fontFamily: "var(--font-serif)" }}
       >
-        {guide.title}
+        {g.title}
       </h1>
-      <p className="text-muted text-base md:text-lg leading-relaxed mb-2">{guide.intro}</p>
-      <p className="text-xs text-muted mb-10">Opdateret {formatDate(guide.updated)}</p>
 
-      {/* ── Sektioner ───────────────────────────────────────────────── */}
-      <article className="flex flex-col gap-8">
-        {guide.sections.map((section, si) => (
-          <section key={si}>
-            <h2
-              className="text-xl md:text-2xl font-bold text-ink mb-3"
-              style={{ fontFamily: "var(--font-serif)" }}
-            >
-              {section.heading}
-            </h2>
-            {section.body?.map((p, pi) => (
-              <p key={pi} className="text-ink/90 leading-relaxed mb-3">
-                {renderInline(p, `s${si}-p${pi}`)}
-              </p>
-            ))}
-            {section.list && (
-              <ul className="list-disc pl-5 flex flex-col gap-1.5">
-                {section.list.map((item, li) => (
-                  <li key={li} className="text-ink/90 leading-relaxed">
-                    {renderInline(item, `s${si}-l${li}`)}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ))}
-      </article>
-
-      {/* ── FAQ ─────────────────────────────────────────────────────── */}
-      {guide.faqs && guide.faqs.length > 0 && (
-        <section className="mt-12 pt-8 border-t border-border">
-          <h2 className="text-xl font-bold text-ink mb-5" style={{ fontFamily: "var(--font-serif)" }}>
-            Ofte stillede spørgsmål
-          </h2>
-          <div className="flex flex-col gap-5">
-            {guide.faqs.map((f, fi) => (
-              <div key={fi}>
-                <p className="font-bold text-ink mb-1">{f.q}</p>
-                <p className="text-ink/90 leading-relaxed">{renderInline(f.a, `faq${fi}`)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── Relateret (intern link-building) ────────────────────────── */}
-      <section className="mt-12 pt-8 border-t border-border">
-        <h2 className="text-sm font-bold tracking-[0.12em] uppercase text-muted mb-4">
-          Læs også
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {guide.related.map((r) => (
-            <Link
-              key={r.href}
-              href={r.href}
-              className="p-4 rounded-lg border border-border bg-paper hover:bg-surface transition-colors
-                         text-sm font-medium text-ink"
-            >
-              {r.label} →
-            </Link>
-          ))}
-        </div>
-      </section>
+      <ArticleBody content={g.content} />
     </main>
   );
 }
