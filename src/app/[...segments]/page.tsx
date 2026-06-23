@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import {
   getAthleteBySlug,
   getArticlesByAthleteId,
+  getAthleteEvents,
   getSchoolBySlug,
   getAthletesByUniversity,
   getArticlesByUniversity,
@@ -257,8 +258,11 @@ export default async function DynamicPage({ params }: { params: Params }) {
     if (prefix === "atleter") {
       const athlete = await getAthleteBySlug(slug);
       if (athlete) {
-        const articles = await getArticlesByAthleteId(athlete.id, 10);
-        return <AthleteProfilePage athlete={athlete} articles={articles} />;
+        const [articles, events] = await Promise.all([
+          getArticlesByAthleteId(athlete.id, 10),
+          getAthleteEvents(athlete.id),
+        ]);
+        return <AthleteProfilePage athlete={athlete} articles={articles} events={events} />;
       }
     }
 

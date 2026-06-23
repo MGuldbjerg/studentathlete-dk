@@ -3,8 +3,9 @@ import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import type { AthleteEventRow } from "@/lib/athlete-events";
 
-interface Props { athlete: Athlete; articles: Article[] }
+interface Props { athlete: Athlete; articles: Article[]; events?: AthleteEventRow[] }
 
 const STAT_ROWS = (a: Athlete) => [
   { label: "Sport",     value: a.sport },
@@ -26,7 +27,7 @@ const STAT_ROWS = (a: Athlete) => [
   },
 ].filter((r) => r.value);
 
-export function AthleteProfilePage({ athlete, articles }: Props) {
+export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -150,6 +151,27 @@ export function AthleteProfilePage({ athlete, articles }: Props) {
                   Om {athlete.name}
                 </p>
                 <p className="text-base text-ink leading-relaxed">{athlete.profile_summary}</p>
+              </section>
+            )}
+
+            {/* Karriere-højdepunkter */}
+            {events.length > 0 && (
+              <section className="mb-10">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-5">
+                  Karriere-højdepunkter
+                </p>
+                <ul className="flex flex-col gap-2">
+                  {events.map((e) => (
+                    <li key={e.id} className="flex items-baseline gap-2">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full flex-shrink-0 translate-y-1.5"
+                        style={{ backgroundColor: e.significance === "honor" ? "#BF0A30" : "#00205B" }}
+                      />
+                      <span className="text-sm font-medium text-ink">{e.award_name ?? e.summary}</span>
+                      {e.season && <span className="text-xs text-muted">{e.season}</span>}
+                    </li>
+                  ))}
+                </ul>
               </section>
             )}
 

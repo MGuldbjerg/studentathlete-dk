@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { validateAdminToken, getAthleteById } from "@/lib/admin";
+import { getAthleteEvents } from "@/lib/db";
 import { EditAthleteForm } from "./EditAthleteForm";
+import { AthleteEventsEditor } from "./AthleteEventsEditor";
 
 export default async function EditAthletePage({
   params,
@@ -17,7 +19,7 @@ export default async function EditAthletePage({
   const id = parseInt(idStr, 10);
   if (isNaN(id)) notFound();
 
-  const athlete = await getAthleteById(id);
+  const [athlete, events] = await Promise.all([getAthleteById(id), getAthleteEvents(id)]);
   if (!athlete) notFound();
 
   return (
@@ -39,6 +41,7 @@ export default async function EditAthletePage({
         </div>
 
         <EditAthleteForm athlete={athlete} token={token!} />
+        <AthleteEventsEditor athleteId={id} token={token!} events={events} />
       </div>
     </main>
   );

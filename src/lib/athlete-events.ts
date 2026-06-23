@@ -71,3 +71,15 @@ export function seasonFromDate(iso: string | null): string {
   const start = m >= 7 ? y : y - 1;
   return `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
 }
+
+/** Lagret begivenhed (visning + admin). */
+export interface AthleteEventRow {
+  id: number;
+  season: string | null;
+  kind: string;
+  award_name: string | null;
+  summary: string;
+  significance: Significance;
+  source_url: string | null;
+  occurred_on: string | null;
+}

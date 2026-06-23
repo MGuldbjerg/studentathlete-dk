@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Article, Athlete, School } from "./types";
+import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -362,6 +363,25 @@ export async function getSchoolsWithAthletes(): Promise<
       )
       .all();
     return (r.results ?? []) as (School & { athlete_count: number })[];
+  } catch {
+    return [];
+  }
+}
+
+/** Karriere-tidslinje for én atlet (æresbevisninger først, nyeste sæson først). */
+export async function getAthleteEvents(athleteId: number): Promise<AthleteEventRow[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT id, season, kind, award_name, summary, significance, source_url, occurred_on
+         FROM athlete_events WHERE athlete_id = ?
+         ORDER BY CASE significance WHEN 'honor' THEN 0 WHEN 'notable' THEN 1 ELSE 2 END, season DESC, id DESC`,
+      )
+      .bind(athleteId)
+      .all();
+    return (r.results ?? []) as AthleteEventRow[];
   } catch {
     return [];
   }

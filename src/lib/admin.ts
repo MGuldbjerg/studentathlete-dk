@@ -480,6 +480,43 @@ export async function upsertSetting(key: string, value: string): Promise<void> {
     .run();
 }
 
+/** Tilføj en manuel karriere-begivenhed (dedup på athlete_id+award_name+season). */
+export async function addAthleteEvent(e: {
+  athlete_id: number;
+  season: string | null;
+  kind: string;
+  award_name: string | null;
+  summary: string;
+  significance: string;
+  source_url?: string | null;
+}): Promise<void> {
+  const db = await getDB();
+  if (!db) return;
+  await db
+    .prepare(
+      `INSERT OR IGNORE INTO athlete_events
+         (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, article_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'))`,
+    )
+    .bind(
+      e.athlete_id,
+      new Date().toISOString().slice(0, 10),
+      e.season,
+      e.kind,
+      e.award_name,
+      e.summary,
+      e.significance,
+      e.source_url ?? null,
+    )
+    .run();
+}
+
+export async function deleteAthleteEvent(id: number): Promise<void> {
+  const db = await getDB();
+  if (!db) return;
+  await db.prepare("DELETE FROM athlete_events WHERE id = ?").bind(id).run();
+}
+
 /** Publicerede guides til /viden-hubben + sitemap (uden content). */
 export async function getPublishedGuides(): Promise<
   { slug: string; title: string; meta_description: string | null; category: string | null }[]
