@@ -370,7 +370,7 @@ export async function getAllPages(): Promise<Array<Omit<PageRow, "content"> & { 
   if (!db) return [];
   try {
     const r = await db
-      .prepare("SELECT slug, title, meta_description, published, updated_at FROM pages ORDER BY title ASC")
+      .prepare("SELECT slug, title, meta_description, published, kind, updated_at FROM pages ORDER BY kind ASC, title ASC")
       .all();
     return (r.results ?? []) as Array<Omit<PageRow, "content"> & { updated_at: string | null }>;
   } catch {

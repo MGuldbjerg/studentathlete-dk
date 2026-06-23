@@ -11,11 +11,14 @@ Princip: **kode-default + D1-override** — alt læses fra D1 med hardcoded fall
 - **OG-HOTFIX (commit e322621):** 1200×630-kortene (v6) sprængte free-plan CPU (10 ms) → 503 "Worker exceeded resource limits" ved kolde renders (+ kaskade-503 på sider). Rullet tilbage til **600×315** (v7). Skarpe kort venter på pre-render (R2/CI) — se nedenfor.
 - **Fanatics-template (commit 87b7754, inert):** `src/lib/fanatics.ts` + `src/components/ui/FanaticsAffiliateLink.tsx` — ikke wiret ind; aktiveringstrin i fanatics.ts-header. Mapping: docs `Mikkels eget/StudentAthlete.dk/fanatics-store-mapping.csv`.
 
-### Næste skridt (aftalt rækkefølge)
-- **Phase 1b (i gang):** sport-pillar-tekster (`sport-content.ts`) → redigerbare `kind='sport'`-pages.
-- **Phase 2:** `site_content` KV-tabel + admin-skærm (forside-tekst, footer, meta-defaults, disclaimer-tekster, ad-toggles).
-- **Phase 3:** lister/navigation (footer, header, featured carousel). **Phase 4:** edit-blyant pr. side + markdown-hjælp.
-- **Crisp cards (separat):** pre-render kort uden for Worker (R2 eller CI) i fuld opløsning — undgår CPU-grænsen.
+- **Phase 1b LØST (commit 8e94f07):** 13 sport-pillar-tekster → redigerbare `kind='sport'`-pages; `resolveSportContent()` fletter D1 over kode (title/pillar/meta). `intro` stadig kode (Phase 2-rest). → **Hele Phase 1: al lang-form prosa (guides+sport+sider) redigerbar.**
+- **Phase 2 (core) LØST + deployet (commit c700542, version eb4ad124):** `site_content` KV (migration-021) + `src/lib/site-content.ts`-registry + admin → **Tekster** (`/admin/indstillinger` + `/api/admin/settings`). Redigerbart nu: `site.title`, `site.description`, `footer.blurb`, `disclaimer.ai`. Verificeret: D1-override går live + falder tilbage til kode-default; editor token-gated. Nyt felt = 1 linje i registry + 1 brug (ingen anden kode).
+
+### Næste skridt
+- **Phase 2-rest:** flere KV-felter (sport-intros, forside-sektion-titler, Fanatics-disclosure, ad-toggle).
+- **Phase 3:** lister/navigation (footer-links, header/category-nav, featured carousel).
+- **Phase 4:** edit-blyant pr. side (logget ind) + markdown-hjælp + gruppér admin → Sider efter kind.
+- **Crisp cards (separat track):** pre-render kort uden for Worker (R2/CI) i fuld opløsning — undgår free-plan CPU-grænsen (1200×630 = 503).
 
 ---
 
