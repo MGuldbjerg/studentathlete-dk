@@ -2,6 +2,7 @@ import { getDB, getEnv, ARTICLE_SELECT } from "./db";
 import { generateSlug } from "./slug";
 import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS } from "./site-content";
+import { extractEvents, seasonFromDate } from "./athlete-events";
 
 // ─── Token-validering ───────────────────────────────────────────────────────
 
@@ -102,10 +103,12 @@ export async function publishArticle(id: number): Promise<void> {
   // Stamp cover_image_url at publish time so it's frozen forever
   const article = await db
     .prepare(
-      `SELECT a.cover_image_url, a.title, a.article_type,
+      `SELECT a.cover_image_url, a.title, a.article_type, a.summary, a.content,
+              a.athlete_id, a.source_url, s.fact_sheet,
               at.photo_url, at.sport
        FROM articles a
        LEFT JOIN athletes at ON a.athlete_id = at.id
+       LEFT JOIN stories s ON a.story_id = s.id
        WHERE a.id = ?`
     )
     .bind(id)
@@ -113,6 +116,11 @@ export async function publishArticle(id: number): Promise<void> {
       cover_image_url: string | null;
       title: string;
       article_type: string;
+      summary: string | null;
+      content: string | null;
+      athlete_id: number | null;
+      source_url: string | null;
+      fact_sheet: string | null;
       photo_url: string | null;
       sport: string | null;
     } | null;
@@ -132,6 +140,33 @@ export async function publishArticle(id: number): Promise<void> {
     )
     .bind(coverUrl, id)
     .run();
+
+  // Karriere-tidslinje: høst kildebelagte priser/begivenheder fra artiklen
+  // (dedup på athlete_id+award_name+season). Må aldrig blokere udgivelsen.
+  if (article?.athlete_id) {
+    try {
+      const text = [article.title, article.summary, article.content, article.fact_sheet]
+        .filter(Boolean)
+        .join("\n");
+      const events = extractEvents(text);
+      if (events.length) {
+        const season = seasonFromDate(null);
+        const occurred = new Date().toISOString().slice(0, 10);
+        for (const e of events) {
+          await db
+            .prepare(
+              `INSERT OR IGNORE INTO athlete_events
+                 (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, article_id, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+            )
+            .bind(article.athlete_id, occurred, season, e.kind, e.award_name, e.summary, e.significance, article.source_url ?? null, id)
+            .run();
+        }
+      }
+    } catch {
+      /* høst-fejl må aldrig vælte udgivelsen */
+    }
+  }
 }
 
 export async function deleteArticle(id: number): Promise<void> {

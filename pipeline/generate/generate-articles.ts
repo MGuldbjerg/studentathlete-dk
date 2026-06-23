@@ -19,6 +19,7 @@ import { parseArticleOutput } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
+import { timelineForGeneration, currentSeasonStart, type AthleteEvent } from "./timeline";
 
 interface StoryWithAthlete extends Story {
   athlete_name: string;
@@ -56,6 +57,7 @@ function selectArticleType(story: StoryWithAthlete): string {
 function buildPrompt(
   story: StoryWithAthlete,
   articleType: string,
+  timeline = "",
 ): string {
   // KILDEINDHOLD = faktaarket (fase 1). Det er det ENESTE skrivefasen må bruge.
   let factsBlock = "";
@@ -79,6 +81,7 @@ function buildPrompt(
     sourceUrl: story.source_url,
     headline: story.headline ?? "",
     content: factsBlock || story.content_raw?.slice(0, 4000) || story.summary?.slice(0, 2000) || "",
+    timeline,
   };
 
   switch (articleType) {
@@ -239,7 +242,18 @@ async function main(): Promise<void> {
     }
 
     const articleType = selectArticleType(story);
-    const prompt = buildPrompt(story, articleType);
+    let timeline = "";
+    try {
+      const evRes = await db.query<AthleteEvent>(
+        "SELECT season, award_name, significance, summary FROM athlete_events WHERE athlete_id = ?",
+        [story.athlete_id],
+      );
+      const lines = timelineForGeneration(evRes.results ?? [], currentSeasonStart());
+      if (lines.length) timeline = lines.join("\n");
+    } catch {
+      /* tidslinje må aldrig blokere generering */
+    }
+    const prompt = buildPrompt(story, articleType, timeline);
 
     const contentSource = story.content_raw ? "content_raw" : story.summary ? "summary" : "headline only";
     console.log(`  → Story ${story.id}: ${story.athlete_name} — kilde: ${contentSource}, type: ${articleType}`);

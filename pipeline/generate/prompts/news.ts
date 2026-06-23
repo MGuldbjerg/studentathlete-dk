@@ -16,6 +16,7 @@ export interface ArticleContext {
   sourceUrl: string;
   headline: string;
   content: string;
+  timeline?: string;
 }
 
 /**
@@ -34,6 +35,11 @@ export function athleteFactsBlock(context: ArticleContext): string {
   if (context.classYear || context.expectedGraduation) {
     lines.push(
       `ÅRGANG: ${context.classYear ?? "ukendt"}${context.expectedGraduation ? ` — forventet afgang ${context.expectedGraduation}` : ""}`,
+    );
+  }
+  if (context.timeline) {
+    lines.push(
+      `TIDLIGERE BEKRÆFTEDE BEGIVENHEDER (kildebelagt — brug KUN hvis relevant for kontinuitet; opfind intet):\n${context.timeline}`,
     );
   }
   return lines.join("\n");
