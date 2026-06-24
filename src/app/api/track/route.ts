@@ -57,6 +57,15 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get("cf-connecting-ip") ?? "0.0.0.0";
 
     const env = await getEnv();
+
+    // Intern trafik: ekskludér konfigurerede IP'er (fx ejerens eget netværk).
+    // Sat som Cloudflare-secret ANALYTICS_EXCLUDE_IPS (kommasepareret) — ikke i repoet.
+    const excludeRaw = (env.ANALYTICS_EXCLUDE_IPS as string | undefined) ?? "";
+    if (excludeRaw) {
+      const excluded = excludeRaw.split(",").map((s) => s.trim()).filter(Boolean);
+      if (excluded.includes(ip)) return ack();
+    }
+
     const salt = (env.ANALYTICS_SALT as string | undefined) ?? "studentathlete-dev-salt";
     const visitorHash = await hashVisitor(ip, ua, salt);
 
