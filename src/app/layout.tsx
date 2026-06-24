@@ -6,6 +6,7 @@ import { CategoryNav } from "@/components/CategoryNav";
 import { Footer } from "@/components/Footer";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { Analytics } from "@/components/Analytics";
+import { CookieConsent } from "@/components/CookieConsent";
 import { BASE_URL } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/admin";
 import "./globals.css";
@@ -36,11 +37,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSiteSettings();
   return (
     <html lang="da">
       <head>
@@ -75,6 +77,7 @@ export default function RootLayout({
         <AdSlot slot="pre-footer" className="my-6" />
         <Footer />
         <Analytics />
+        <CookieConsent enabled={settings["consent.enabled"] === "true"} />
       </body>
     </html>
   );

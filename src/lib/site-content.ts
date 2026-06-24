@@ -6,7 +6,7 @@
  * Tilføj et nyt redigerbart felt = tilføj en linje her + brug værdien i en
  * server-komponent via getSiteSettings(). Ingen anden kode/admin-ændring nødvendig.
  */
-export type SettingType = "text" | "textarea";
+export type SettingType = "text" | "textarea" | "bool";
 
 export interface SettingDef {
   key: string;
@@ -49,6 +49,14 @@ export const SITE_CONTENT: SettingDef[] = [
     help: 'Vises før linket "Sådan bruger vi Ai".',
     default:
       "Denne artikel er skrevet af kunstig intelligens og gennemlæst af et menneske før udgivelse.",
+  },
+  {
+    key: "consent.enabled",
+    group: "Cookies & samtykke",
+    label: "Vis cookie-samtykkeboks",
+    type: "bool",
+    help: "Slå TIL når annoncer/tracking-cookies aktiveres. Banneret vises kun når dette er slået til (sitet er ellers cookieløst).",
+    default: "false",
   },
 ];
 

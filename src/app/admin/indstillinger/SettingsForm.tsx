@@ -57,7 +57,17 @@ export function SettingsForm({
               .map((f) => (
                 <div key={f.key}>
                   <label className="block text-xs font-semibold text-muted mb-1">{f.label}</label>
-                  {f.type === "textarea" ? (
+                  {f.type === "bool" ? (
+                    <label className="flex items-center gap-2 text-sm text-ink cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={state[f.key] === "true"}
+                        onChange={(e) => setState((s) => ({ ...s, [f.key]: e.target.checked ? "true" : "false" }))}
+                        className="w-4 h-4"
+                      />
+                      Slået til
+                    </label>
+                  ) : f.type === "textarea" ? (
                     <textarea
                       value={state[f.key]}
                       onChange={(e) => setState((s) => ({ ...s, [f.key]: e.target.value }))}

@@ -94,6 +94,11 @@ export async function Footer() {
                 Presseetik &amp; henvendelser
               </Link>
             </li>
+            <li>
+              <Link href="/cookies" className="text-white/60 text-sm hover:text-white transition-colors">
+                Cookies
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
