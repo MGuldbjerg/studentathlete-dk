@@ -3,7 +3,7 @@ VALUES ('hvad-er-ncaa', 'Hvad er NCAA?', 'NCAA (National Collegiate Athletic Ass
 
 ## Hvad står NCAA for?
 
-NCAA er en non-profit-organisation, der fastsætter regler og afvikler mesterskaber for college sport i USA. Sammenslutningen tæller over 1.000 universiteter, omkring en halv million atleter og knap 24 sportsgrene for både kvinder og mænd.
+NCAA er en non-profit-organisation, der fastsætter regler og afvikler mesterskaber for college sport i USA. Sammenslutningen tæller over 1.100 universiteter og mere end en halv million atleter — i 2024-25 var deltagertallet rekordhøje 554.298. Der konkurreres i omkring 24 sportsgrene med knap 90 nationale mesterskaber for både kvinder og mænd.
 
 Universiteterne er inddelt i tre divisioner og samlet i [conferences](/viden/conferences), der konkurrerer mod hinanden gennem sæsonen.
 
@@ -23,6 +23,10 @@ Division I, II og III adskiller sig på niveau, økonomi og balancen mellem spor
 
 Ja. NAIA og NJCAA (junior colleges) er selvstændige forbund med egne regler og kan være oplagte veje for mange danskere. Se forskellene i [NCAA vs NAIA vs NJCAA](/viden/ncaa-naia-njcaa).
 
+## Et system i hastig forandring
+
+College sport gennemgår i disse år de største ændringer i organisationens historie. Med det såkaldte House-forlig fra 2025 må universiteter for første gang betale deres atleter direkte (revenue sharing) — det klassiske amatøridrætsprincip er reelt ophørt. Samtidig er reglerne for [transfer](/viden/transfer-portal) og [eligibility](/viden/redshirt-og-eligibility) blevet markant lempet. Tjek altid den aktuelle status, da meget stadig er under udvikling.
+
 ## Ofte stillede spørgsmål
 
 ### Hvad betyder NCAA?
@@ -33,12 +37,22 @@ National Collegiate Athletic Association — den organisation, der styrer størs
 
 Der er løbende hundredvis af danske student athletes på amerikanske universiteter. Vi samler dem på StudentAthlete.dk under [Alle atleter](/atleter).
 
+### Bliver college-atleter betalt nu?
+
+Ja, i stigende grad. Atleter har siden 2021 kunnet tjene på deres Name, Image and Likeness (NIL), og fra 1. juli 2025 må universiteter — efter House-forliget — også dele indtægter direkte med atleterne inden for et årligt loft.
+
 ## Læs også
 
 - [Divisioner i NCAA](/viden/ncaa-divisioner)
 - [Conferences forklaret](/viden/conferences)
 - [NCAA vs NAIA vs NJCAA](/viden/ncaa-naia-njcaa)
-- [Sæsonkalenderen](/viden/saeson-kalender)', 'NCAA organiserer college sport i USA — over 1.000 universiteter og en halv million atleter. Forstå systemet, og hvad det betyder for danske atleter.', 1, 'guide', 'system', datetime('now'))
+- [Sæsonkalenderen](/viden/saeson-kalender)
+
+## Kilder
+
+- [NCAA.org — Rekordmange student-athletes i 2024-25](https://www.ncaa.org/news/2025/9/15/media-center-a-record-number-of-ncaa-student-athletes-participated-in-2024-25.aspx)
+- [NCAA.org — Om NCAA og medlemskab](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)
+- [ESPN — Dommer godkender House-forliget (direkte betaling af atleter)](https://www.espn.com/college-sports/story/_/id/45467505/judge-grants-final-approval-house-v-ncaa-settlement)', 'NCAA organiserer college sport i USA — over 1.000 universiteter og en halv million atleter. Forstå systemet, og hvad det betyder for danske atleter.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -53,6 +67,8 @@ VALUES ('ncaa-divisioner', 'Divisioner i NCAA: Division I, II og III', 'NCAA er 
 ## Division I (D-I)
 
 Den største og mest synlige division med de højeste budgetter, tv-aftaler og fuldtidstrænerstabe. Mange D-I-programmer kan tilbyde idrætslegater (athletic scholarships), og kravene til både niveau og tidsforbrug er størst her.
+
+Efter House-forliget (2025) er D-I desuden trådt ind i en ny økonomi: skoler, der vælger det til, må nu dele indtægter direkte med atleterne inden for et årligt loft (cirka 20,5 mio. dollars i første år), og de tidligere stipendie-lofter er flere steder erstattet af trup-lofter (roster limits). De fleste D-I-skoler har valgt modellen til.
 
 ## Division II (D-II)
 
@@ -76,7 +92,12 @@ Nej. D-III tilbyder ikke idrætslegater, men kan give akademisk og behovsbaseret
 
 - [Hvad er NCAA?](/viden/hvad-er-ncaa)
 - [NCAA vs NAIA vs NJCAA](/viden/ncaa-naia-njcaa)
-- [Universiteter med danske atleter](/skoler)', 'Forskellen på NCAA Division I, II og III — niveau, idrætslegater og balancen mellem sport og studie. Hvad betyder det for danske atleter?', 1, 'guide', 'system', datetime('now'))
+- [Universiteter med danske atleter](/skoler)
+
+## Kilder
+
+- [NCAA.org — Our Three Divisions](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-our-three-divisions.aspx)
+- [Ropes & Gray — House-forliget: æra med direkte betaling begynder](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'Forskellen på NCAA Division I, II og III — niveau, idrætslegater og balancen mellem sport og studie. Hvad betyder det for danske atleter?', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -94,11 +115,15 @@ En conference samler typisk universiteter ud fra geografi og historie. Holdene m
 
 ## De store navne
 
-Blandt de mest kendte D-I-conferences er Big Ten, SEC, ACC og Big 12 — ofte omtalt som ''power''-conferences med de største tv-aftaler og budgetter. Derudover findes mange ''mid-major''-conferences, hvor en stor del af de danske atleter spiller.
+De fire største D-I-conferences er i dag Big Ten, SEC, ACC og Big 12 — tilsammen kaldet ''Power Four'' (tidligere ''Power Five'') med de største tv-aftaler og budgetter. Big Ten og SEC står for de allerstørste mediekontrakter og omtales nogle gange som en ''Power Two'' i en klasse for sig.
+
+Derudover findes en række mindre ''Group of Six''-conferences og mange ''mid-major''-conferences, hvor en stor del af de danske atleter spiller.
 
 ## Conference-realignment
 
-Conferences er ikke statiske. Universiteter skifter jævnligt conference (realignment), drevet af tv-penge og geografi. Det ændrer løbende landskabet, så et holds conference kan være anderledes fra år til år — tjek altid den aktuelle status.
+Conferences er ikke statiske. Universiteter skifter jævnligt conference (realignment), drevet af tv-penge og geografi. Den hidtil mest dramatiske bølge ramte i 2023-24, da Pac-12 — i over 100 år en af de mest prestigefyldte conferences — mistede 10 af sine 12 medlemmer til primært Big Ten, Big 12 og ACC og reelt kollapsede. Conferencen genopbygges fra 2026 med nye medlemmer.
+
+Landskabet ændrer sig altså løbende, og et holds conference kan være anderledes fra år til år — tjek altid den aktuelle status.
 
 ## Hvorfor betyder det noget?
 
@@ -108,7 +133,12 @@ Conference afgør modstandere, rejseafstande, eksponering og ofte niveau. På pr
 
 - [Divisioner i NCAA](/viden/ncaa-divisioner)
 - [Hvad er NCAA?](/viden/hvad-er-ncaa)
-- [Universiteter med danske atleter](/skoler)', 'Hvad er en conference i college sport? Big Ten, SEC, ACC og de mange andre — hvordan de fungerer, og hvorfor de betyder noget.', 1, 'guide', 'system', datetime('now'))
+- [Universiteter med danske atleter](/skoler)
+
+## Kilder
+
+- [Wikipedia — Power conferences (Power Four)](https://en.wikipedia.org/wiki/Power_conferences)
+- [Front Office Sports — Power 5-æraen er forbi](https://frontofficesports.com/conference-realignment-end-of-power-5-end/)', 'Hvad er en conference i college sport? Big Ten, SEC, ACC og de mange andre — hvordan de fungerer, og hvorfor de betyder noget.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -132,6 +162,8 @@ Et mindre forbund med et par hundrede universiteter. NAIA tillader idrætslegate
 
 Toårige community colleges. JUCO bruges ofte som springbræt: man udvikler sig sportsligt og akademisk i 1-2 år og kan derefter skifte (transfer) til et fireårigt NCAA- eller NAIA-universitet. Det er typisk billigere og har lavere optagelseskrav.
 
+Et vigtigt opmærksomhedspunkt: JUCO-år har historisk talt med i NCAA''s spilleberettigelse. Det har en retssag (Pavia mod NCAA, 2024-25) udfordret, og NCAA har givet midlertidige dispensationer. Samtidig indfører NCAA en ny aldersbaseret [eligibility-model](/viden/redshirt-og-eligibility), der på sigt afløser den gamle optælling af sæsoner. Reglerne er altså i bevægelse — afklar din konkrete situation tidligt.
+
 ## Hvad er rigtigt for dig?
 
 Det afhænger af niveau, karakterer, økonomi og mål. JUCO kan åbne døre, hvis karaktererne ikke rækker til NCAA endnu; NAIA kan give spilletid og legat; NCAA byder på de største rammer. Se [hvor danske atleter går](/skoler) for inspiration.
@@ -140,7 +172,13 @@ Det afhænger af niveau, karakterer, økonomi og mål. JUCO kan åbne døre, hvi
 
 - [Divisioner i NCAA](/viden/ncaa-divisioner)
 - [Akademiske krav & eligibility](/viden/akademiske-krav)
-- [Universiteter med danske atleter](/skoler)', 'NCAA er ikke det eneste forbund for college sport i USA. Forstå NAIA og NJCAA (junior colleges) — og hvornår de er den rigtige vej for danske atleter.', 1, 'guide', 'system', datetime('now'))
+- [Universiteter med danske atleter](/skoler)
+
+## Kilder
+
+- [NAIA — officiel hjemmeside](https://www.naia.org/)
+- [NJCAA — officiel hjemmeside](https://www.njcaa.org/)
+- [ESPN — NCAA giver dispensation til tidligere JUCO-spillere (Pavia)](https://www.espn.com/college-football/story/_/id/43131557/ncaa-division-board-grants-waiver-former-juco-players-appealing-diego-pavia-injunction)', 'NCAA er ikke det eneste forbund for college sport i USA. Forstå NAIA og NJCAA (junior colleges) — og hvornår de er den rigtige vej for danske atleter.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -164,6 +202,8 @@ De fleste universiteter kører på to semestre (efterår/forår), mens nogle bru
 
 En typisk dag rummer træning, holdmøder, studie og ofte obligatorisk ''study hall''. Til gengæld har atleter adgang til akademisk støtte, tutorer og vejledning, der hjælper med at få studie og sport til at hænge sammen.
 
+Hertil kommer en ny dimension: siden 2021 må atleter tjene penge på deres Name, Image and Likeness (NIL), og fra 2025 deler mange universiteter også indtægter direkte med atleterne. Det giver muligheder, men også flere aftaler og forpligtelser at forholde sig til ved siden af studie og sport.
+
 ## Akademiske krav
 
 Inden man overhovedet kan konkurrere, skal man opfylde optagelses- og spilleberettigelseskrav. Det dækker vi i [akademiske krav & eligibility](/viden/akademiske-krav).
@@ -172,7 +212,12 @@ Inden man overhovedet kan konkurrere, skal man opfylde optagelses- og spillebere
 
 - [Akademiske krav & eligibility](/viden/akademiske-krav)
 - [Sæsonkalenderen](/viden/saeson-kalender)
-- [Alle danske atleter](/atleter)', 'Major, credits, GPA og campus-liv: sådan fungerer amerikanske universiteter — og hvordan hverdagen ser ud som student athlete.', 1, 'guide', 'system', datetime('now'))
+- [Alle danske atleter](/atleter)
+
+## Kilder
+
+- [NCAA.org — Akademiske standarder og krav](https://www.ncaa.org/sports/2014/10/6/academic-standards.aspx)
+- [NCAA — Eligibility Center (academic requirements)](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)', 'Major, credits, GPA og campus-liv: sådan fungerer amerikanske universiteter — og hvordan hverdagen ser ud som student athlete.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -215,7 +260,11 @@ Uden for selve kampsæsonen (''non-traditional season'') trænes der videre, og 
 
 - [March Madness forklaret](/viden/march-madness-forklaret)
 - [College Football Playoff forklaret](/viden/college-football-playoff-forklaret)
-- [Alle sportsgrene](/viden)', 'Efterår, vinter eller forår? Overblik over hvornår de enkelte NCAA-sportsgrene har sæson — fra football til roning.', 1, 'guide', 'system', datetime('now'))
+- [Alle sportsgrene](/viden)
+
+## Kilder
+
+- [NCAA.com — Mesterskabskalender og datoer](https://www.ncaa.com/)', 'Efterår, vinter eller forår? Overblik over hvornår de enkelte NCAA-sportsgrene har sæson — fra football til roning.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -233,27 +282,41 @@ For Division I og II godkendes atleter af NCAA Eligibility Center, der gennemgå
 
 ## Karakterer og fag
 
-Der stilles krav til bestemte fag (''core courses'') og et minimums-GPA. Danske gymnasiekarakterer omregnes til den amerikanske skala. Et stærkt karaktergennemsnit udvider dine muligheder markant.
+Der stilles krav til 16 bestemte fag (''core courses'') og et minimums-GPA i dem. For Division I kræves som udgangspunkt mindst 2,3 i core-GPA, for Division II mindst 2,2 (på den amerikanske 4,0-skala). Danske gymnasiekarakterer omregnes til den amerikanske skala, og et stærkt karaktergennemsnit udvider dine muligheder markant.
 
 ## SAT/ACT og sprogtest
 
-Standardiserede prøver (SAT/ACT) har historisk indgået i spilleberettigelsen, men kravene er under forandring, og mange skoler er blevet test-optional ved optagelse. Som ikke-engelsktalende skal du ofte dokumentere engelskniveau (fx TOEFL/Duolingo). Tjek altid de nyeste krav hos den enkelte skole og hos NCAA.
+Standardiserede prøver (SAT/ACT) indgik tidligere i spilleberettigelsen, men NCAA fjernede dette krav permanent i januar 2023 (gældende fra 2023-24). Spilleberettigelsen afgøres nu af core-GPA og core courses, ikke af en testscore.
 
-## Amatørstatus
+Bemærk dog to ting: nogle universiteter kan stadig kræve SAT/ACT ved selve optagelsen eller til visse legater, og som ikke-engelsktalende skal du ofte dokumentere engelskniveau (fx TOEFL eller Duolingo). Tjek altid de nyeste krav hos den enkelte skole.
 
-NCAA har regler om tidligere professionel aktivitet og betaling. For europæiske atleter med klub- eller ungdomssport kan det være et særligt opmærksomhedspunkt, da fx kontrakter eller pengepræmier kan påvirke status. Få det afklaret tidligt.
+## Amatørstatus — en regel i opbrud
+
+Amatørprincippet, som NCAA byggede på i over 100 år, er reelt under afvikling. Siden 2021 må atleter tjene på deres Name, Image and Likeness (NIL), og efter House-forliget fra 2025 må universiteter dele indtægter direkte med atleterne. Eligibility Center vurderer dog stadig din baggrund.
+
+For europæiske atleter med klub- eller ungdomssport er det fortsat et særligt opmærksomhedspunkt: tidligere professionelle kontrakter, løn eller pengepræmier kan påvirke din status og skal afklares tidligt. Få det undersøgt, før du regner med specifikke regler.
 
 ## Ofte stillede spørgsmål
 
 ### Skal jeg tage SAT for at komme i NCAA?
 
-Kravene har ændret sig, og mange skoler er test-optional. Det varierer mellem skoler og kan ændre sig fra år til år — tjek den aktuelle status hos den enkelte skole og NCAA.
+Nej, ikke for selve NCAA-spilleberettigelsen — NCAA fjernede SAT/ACT-kravet permanent i 2023. Men nogle skoler kan stadig kræve en testscore ved optagelse eller til legater, så tjek hos den enkelte skole.
+
+### Må college-atleter tjene penge nu?
+
+Ja. Atleter kan tjene på NIL (Name, Image and Likeness) siden 2021, og fra 2025 må universiteter også dele indtægter direkte med atleterne. Tidligere professionel aktivitet kan dog stadig påvirke din eligibility — afklar det tidligt.
 
 ## Læs også
 
 - [Det amerikanske universitetssystem](/viden/amerikansk-universitetssystem)
 - [Redshirt & eligibility-år](/viden/redshirt-og-eligibility)
-- [NCAA vs NAIA vs NJCAA](/viden/ncaa-naia-njcaa)', 'NCAA Eligibility Center, core courses, GPA og amatørstatus: hvad skal danske atleter opfylde for at blive spilleberettiget?', 1, 'guide', 'begreber', datetime('now'))
+- [NCAA vs NAIA vs NJCAA](/viden/ncaa-naia-njcaa)
+
+## Kilder
+
+- [Higher Ed Dive — NCAA fjerner permanent SAT/ACT-krav (D-I og D-II)](https://www.highereddive.com/news/ncaa-permanently-ends-sat-act-eligibility-requirement-division-i-ii/642117/)
+- [NCAA — Eligibility Center](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)
+- [Ropes & Gray — House-forliget og direkte betaling af atleter](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'NCAA Eligibility Center, core courses, GPA og amatørstatus: hvad skal danske atleter opfylde for at blive spilleberettiget?', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -271,7 +334,9 @@ Transfer-portalen er en officiel database, hvor en atlet kan melde sig som villi
 
 ## Reglerne om at skifte
 
-Reglerne er løbende blevet lempet, og atleter kan i dag typisk skifte uden at skulle sidde en sæson over, som man tidligere skulle. Detaljerne — og antal tilladte skift — ændrer sig dog, så tjek den aktuelle status.
+Reglerne er lempet markant. Siden april 2024 kan akademisk velfungerende atleter skifte og være umiddelbart spilleberettigede — også ved deres andet, tredje eller fjerde skift. Tidligere skulle man sidde en sæson over efter sit første skift. Kravet er, at man forlader sin gamle skole i god akademisk stand og lever op til ''progress-toward-degree'' på den nye.
+
+Skift sker inden for fastlagte transfervinduer (windows), der varierer fra sport til sport. Man kan ikke skifte midt i en sæson og spille for to hold samme sæson. Detaljerne justeres løbende, så tjek den aktuelle status.
 
 ## Hvorfor det betyder noget for danskere
 
@@ -281,7 +346,12 @@ Spillertrupper ændrer sig hurtigt, og portalen giver atleter mulighed for at fi
 
 - [Redshirt & eligibility-år](/viden/redshirt-og-eligibility)
 - [Divisioner i NCAA](/viden/ncaa-divisioner)
-- [Alle danske atleter](/atleter)', 'Hvad er NCAA''s transfer portal, og hvordan virker den? Sådan skifter college-atleter universitet — og hvad det betyder for danske spillere.', 1, 'guide', 'begreber', datetime('now'))
+- [Alle danske atleter](/atleter)
+
+## Kilder
+
+- [NCAA.org — Division I Council godkender ændrede transferregler (april 2024)](https://www.ncaa.org/news/2024/4/17/media-center-division-i-council-approves-changes-to-transfer-rules.aspx)
+- [ESPN — NCAA godkender umiddelbar spilleberettigelse ved transfer](https://www.espn.com/college-football/story/_/id/39963389/ncaa-approves-new-transfer-rule-allowing-immediate-eligibility)', 'Hvad er NCAA''s transfer portal, og hvordan virker den? Sådan skifter college-atleter universitet — og hvad det betyder for danske spillere.', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -291,29 +361,48 @@ ON CONFLICT(slug) DO UPDATE SET
   updated_at = datetime('now');
 
 INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('redshirt-og-eligibility', 'Redshirt og eligibility-år forklaret', 'Hvor mange år må man egentlig spille i NCAA? Begreberne ''eligibility'' og ''redshirt'' forvirrer mange — her er forklaringen.
+VALUES ('redshirt-og-eligibility', 'Redshirt og eligibility-år forklaret', 'Hvor mange år må man egentlig spille i NCAA? Reglerne er netop blevet lagt grundlæggende om: den klassiske ''fire sæsoner inden for fem år'' og selve redshirt-begrebet er på vej ud, til fordel for en aldersbaseret model. Her er forklaringen — på både det gamle og det nye.
 
-## Fire sæsoner inden for fem år
+## Stor ændring: aldersbaseret model fra 2026
 
-Som udgangspunkt har en NCAA-atlet fire sæsoners konkurrence at bruge, typisk inden for et vindue på fem år (''the five-year clock''). Uret begynder at tikke, når man indskrives på fuld tid.
+Division I vedtog i juni 2026 en ny aldersbaseret eligibility-model. Fremover får en atlet op til fem års spilleberettigelse, forudsat man indskrives på college senest i det akademiske år, der følger ens 19-års fødselsdag. Modellen afskaffer de sportsspecifikke regler, season-of-competition-grænser og — vigtigst — selve redshirt-reglerne og de fleste eligibility-dispensationer.
 
-## Hvad er en redshirt?
+Med andre ord kan man ikke længere ''redshirte'' eller søge waivere for at vinde ekstra konkurrenceår. Kun snævre undtagelser kan sætte uret på pause: graviditet/barsel, aktiv militærtjeneste og officielle religiøse missioner — og kun hvis man ikke deltager i organiseret konkurrence imens.
 
-At ''redshirte'' betyder at sidde en sæson over — fx på grund af skade eller for at udvikle sig — uden at bruge et af sine fire konkurrenceår. En ''redshirt freshman'' er altså i sit andet år på campus, men sit første som spillende.
+## Overgangsregler
 
-## Ændringer og undtagelser
+Ændringen indfases. For atleter, der starter på fuld tid i efteråret 2026, og nuværende atleter med eligibility tilbage efter 2025-26 anvender skolerne enten den gamle model (fire sæsoner inden for fem år) eller den nye aldersbaserede model — det, der er mest fordelagtigt for den enkelte. Fra efteråret 2027 gælder kun den aldersbaserede model.
 
-Reglerne har været under forandring (bl.a. ekstra år givet under COVID, og løbende justeringer for JUCO- og transfer-atleter). Der findes også medicinske dispensationer (''medical redshirt''). Tjek den aktuelle status for din situation.
+Dispensationer (waivers) under de gamle regler — fx urforlængelser og hardship-waivers — skal være indsendt senest 31. juli 2026; derefter findes de ikke længere.
+
+## Den gamle model (stadig relevant i overgangen)
+
+Hidtil har en NCAA-atlet haft fire sæsoners konkurrence at bruge inden for et vindue på fem år (''the five-year clock''), der begyndte ved fuldtidsindskrivning. At ''redshirte'' betød at sidde en sæson over — fx på grund af skade eller udvikling — uden at bruge et af de fire konkurrenceår. En ''redshirt freshman'' var altså i sit andet år på campus, men sit første som spillende. Begrebet vil stadig optræde, mens den gamle model fases ud.
 
 ## Class year vs. eligibility
 
 Bemærk, at en atlets studieår (freshman/sophomore/junior/senior) ikke altid følger antallet af brugte konkurrenceår. På vores profiler viser vi ofte forventet dimissionsår. Se også [akademiske krav](/viden/akademiske-krav).
 
+## Ofte stillede spørgsmål
+
+### Findes redshirt stadig?
+
+Den er på vej ud. Med den aldersbaserede model, som Division I vedtog i juni 2026, afskaffes redshirt-reglerne. I en overgangsperiode (efterår 2026 og nuværende atleter) kan den gamle model dog stadig bruges, hvis den er mere fordelagtig. Fra efteråret 2027 gælder kun aldersmodellen.
+
+### Hvor mange år må jeg spille i NCAA fremover?
+
+Under den nye model op til fem år, hvis du er indskrevet på college senest i det akademiske år efter din 19-års fødselsdag.
+
 ## Læs også
 
 - [Transfer Portal forklaret](/viden/transfer-portal)
 - [Akademiske krav & eligibility](/viden/akademiske-krav)
-- [Ordbog: college sport-begreber](/viden/college-sport-ordbog)', 'Hvad er en redshirt, og hvordan fungerer de fire eligibility-år inden for fem? Forstå reglerne for, hvor længe man må konkurrere i NCAA.', 1, 'guide', 'begreber', datetime('now'))
+- [Ordbog: college sport-begreber](/viden/college-sport-ordbog)
+
+## Kilder
+
+- [NCAA.org — Division I vedtager aldersbaseret eligibility-model (juni 2026)](https://www.ncaa.org/news/2026/6/23/media-center-division-i-adopts-age-based-eligibility-model.aspx)
+- [CBS Sports — NCAA godkender aldersbaseret femårsregel](https://www.cbssports.com/college-football/news/ncaa-five-year-eligibility-rule-college-football-basketball/)', 'NCAA udfaser redshirt og indfører en aldersbaseret model med op til fem års eligibility. Forstå både den nye og den gamle ordning — og overgangen.', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -327,7 +416,7 @@ VALUES ('college-sport-ordbog', 'Ordbog: college sport-begreber fra A til Z', 'A
 
 ## Amatørstatus (amateurism)
 
-NCAA-regler om, at atleter ikke må have tjent penge som professionelle. Vigtigt for mange europæere — se [akademiske krav](/viden/akademiske-krav).
+Det historiske NCAA-princip om, at atleter ikke måtte tjene penge på deres sport. Reelt under afvikling efter NIL (2021) og House-forliget (2025), men tidligere professionel aktivitet kan stadig påvirke din eligibility — se [akademiske krav](/viden/akademiske-krav).
 
 ## Conference
 
@@ -363,15 +452,27 @@ Junior college (NJCAA) — toårig skole, ofte springbræt. Se [NCAA vs NAIA vs 
 
 ## March Madness
 
-D-I-basketballturneringen i marts. Se [March Madness forklaret](/viden/march-madness-forklaret).
+D-I-basketballturneringen i marts (udvides til 76 hold fra 2026-27). Se [March Madness forklaret](/viden/march-madness-forklaret).
 
 ## Mid-major
 
 Conference uden for de største ''power''-conferences. Se [conferences](/viden/conferences).
 
+## NIL (Name, Image and Likeness)
+
+Atleters ret til at tjene på eget navn, billede og omdømme — fx sponsorater. Tilladt siden 2021. Se [akademiske krav](/viden/akademiske-krav).
+
+## Power Four
+
+De fire største D-I-conferences: Big Ten, SEC, ACC og Big 12 (tidligere ''Power Five''). Se [conferences](/viden/conferences).
+
 ## Redshirt
 
-At sidde en sæson over uden at bruge et konkurrenceår. Se [redshirt & eligibility](/viden/redshirt-og-eligibility).
+At sidde en sæson over uden at bruge et konkurrenceår. Under udfasning med NCAA''s nye aldersbaserede model. Se [redshirt & eligibility](/viden/redshirt-og-eligibility).
+
+## Revenue sharing
+
+Universiteters direkte deling af indtægter med atleterne, indført efter House-forliget (2025). Se [hvad er NCAA?](/viden/hvad-er-ncaa).
 
 ## Roster
 
@@ -393,7 +494,11 @@ En atlet på holdet uden idrætslegat — i modsætning til en ''scholarship''-a
 
 - [Hvad er NCAA?](/viden/hvad-er-ncaa)
 - [Divisioner i NCAA](/viden/ncaa-divisioner)
-- [Akademiske krav & eligibility](/viden/akademiske-krav)', 'Amatørstatus, FBS, mid-major, redshirt, walk-on … de vigtigste begreber i amerikansk college sport forklaret kort på dansk.', 1, 'guide', 'begreber', datetime('now'))
+- [Akademiske krav & eligibility](/viden/akademiske-krav)
+
+## Kilder
+
+- [NCAA.org — Glossary / NCAA 101](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)', 'Amatørstatus, FBS, mid-major, redshirt, walk-on … de vigtigste begreber i amerikansk college sport forklaret kort på dansk.', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -407,11 +512,15 @@ VALUES ('march-madness-forklaret', 'March Madness forklaret', 'March Madness er 
 
 ## Hvad er March Madness?
 
-March Madness er NCAA Division I''s afsluttende basketballturnering for både kvinder og mænd, der spilles hen over marts og april. 68 hold spiller single-elimination — taber du én kamp, er du ude. Det skaber de berømte overraskelser (''upsets'').
+March Madness er NCAA Division I''s afsluttende basketballturnering for både kvinder og mænd, der spilles hen over marts og april. Holdene spiller single-elimination — taber du én kamp, er du ude. Det skaber de berømte overraskelser (''upsets''). Feltet har været på 68 hold og udvides til 76 fra sæsonen 2026-27.
 
 ## Bracket og de berømte runder
 
 Holdene seedes i et ''bracket''. Efter de indledende kampe (''First Four'') følger runderne ned mod Sweet 16, Elite Eight og Final Four, inden mesteren findes. Millioner udfylder deres egen bracket og forsøger at forudsige vinderne.
+
+## Udvidelse til 76 hold fra 2026-27
+
+NCAA besluttede i 2026 at udvide både herrernes og kvindernes turnering fra 68 til 76 hold med virkning fra sæsonen 2026-27. I praksis spiller 24 hold 12 kampe i en udvidet indledende runde (over to dage), hvorefter de velkendte 64 hold er tilbage til første runde. Det klassiske bracket-format bevares altså.
 
 ## Den danske vinkel
 
@@ -421,7 +530,12 @@ Danske [basketball](/basketball)-atleter kan være med, når deres hold når tur
 
 - [Basketball i NCAA](/basketball)
 - [Sæsonkalenderen](/viden/saeson-kalender)
-- [College Football Playoff forklaret](/viden/college-football-playoff-forklaret)', '68 hold, single-elimination og en hel nation i basketball-feber. Sådan fungerer March Madness — NCAA''s store basketballturnering.', 1, 'guide', 'saeson', datetime('now'))
+- [College Football Playoff forklaret](/viden/college-football-playoff-forklaret)
+
+## Kilder
+
+- [NCAA.org — Turneringerne udvides til 76 hold](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
+- [NCAA.com — Sådan fungerer den udvidede 2027-turnering](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)', 'Single-elimination og en hel nation i basketball-feber. Sådan fungerer March Madness — NCAA''s store basketballturnering (udvides til 76 hold fra 2026-27).', 1, 'guide', 'saeson', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -435,7 +549,9 @@ VALUES ('college-football-playoff-forklaret', 'College Football Playoff forklare
 
 ## Hvad er CFP?
 
-College Football Playoff er slutspillet, der kårer den nationale mester i Division I [football](/football). Et udvalg rangerer de bedste hold, der derefter spiller om titlen. Fra 2024-sæsonen blev feltet udvidet til 12 hold — formatet har ændret sig over tid, så tjek den aktuelle struktur.
+College Football Playoff er slutspillet, der kårer den nationale mester i Division I [football](/football). Et udvalg rangerer de bedste hold, der derefter spiller om titlen. Fra 2024-sæsonen blev feltet udvidet til 12 hold.
+
+12-holdsformatet fortsætter til og med 2026-sæsonen — med to justeringer, der sikrer alle fire Power Four-mestre adgang og giver Notre Dame en plads ved en top 12-placering. En yderligere udvidelse til 14 eller 16 hold diskuteres for tiden for 2027 og frem, så tjek den aktuelle struktur.
 
 ## Bowl games
 
@@ -449,7 +565,12 @@ Danskere i college football er ofte specialister (kickere, puntere) og linemen. 
 
 - [Football i NCAA](/football)
 - [Conferences forklaret](/viden/conferences)
-- [Sæsonkalenderen](/viden/saeson-kalender)', 'Hvordan kåres mesteren i college football? Guide til College Football Playoff, det udvidede slutspil og bowl-systemet.', 1, 'guide', 'saeson', datetime('now'))
+- [Sæsonkalenderen](/viden/saeson-kalender)
+
+## Kilder
+
+- [Wikipedia — College Football Playoff (format og historik)](https://en.wikipedia.org/wiki/College_Football_Playoff)
+- [Sports Illustrated — CFP forbliver 12 hold i 2026](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)', 'Hvordan kåres mesteren i college football? Guide til College Football Playoff, det udvidede slutspil og bowl-systemet.', 1, 'guide', 'saeson', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -467,17 +588,30 @@ Signing Day er dagen, hvor rekrutter officielt underskriver med deres kommende s
 
 ## National Letter of Intent (NLI)
 
-NLI har historisk været den bindende aftale, der knytter atlet og skole sammen mod tilbud om idrætsstøtte. Systemet er imidlertid under forandring, og dele af det er ved at blive erstattet af andre aftaleformer. Tjek den aktuelle status, før du regner med specifikke regler.
+NLI var i 60 år (fra 1964) den bindende aftale, der knyttede atlet og skole sammen mod tilbud om idrætsstøtte for ét år. Men NCAA afskaffede NLI-programmet i Division I i oktober 2024. Det er erstattet af en ny aftale om økonomisk støtte (financial aid agreement), der ofte kobles til den nye model for indtægtsdeling (revenue sharing).
+
+Bemærk: Division II brugte fortsat NLI på tidspunktet for ændringen. Tjek den aktuelle status for netop din division og sport.
 
 ## Hvad betyder det for danske atleter?
 
-For danskere er det vigtigt at forstå, hvornår en aftale bliver bindende, og hvad den dækker. Sørg for, at det akademiske er på plads først — se [akademiske krav](/viden/akademiske-krav).
+For danskere er det vigtigt at forstå, hvornår en aftale bliver bindende, og hvad den dækker — uanset om det er en NLI eller den nye financial aid agreement. Sørg for, at det akademiske er på plads først — se [akademiske krav](/viden/akademiske-krav).
+
+## Ofte stillede spørgsmål
+
+### Findes National Letter of Intent (NLI) stadig?
+
+Ikke i Division I — NCAA afskaffede NLI-programmet i oktober 2024 og erstattede det med en financial aid agreement. Division II brugte fortsat NLI på tidspunktet for ændringen.
 
 ## Læs også
 
 - [Akademiske krav & eligibility](/viden/akademiske-krav)
 - [Ordbog: college sport-begreber](/viden/college-sport-ordbog)
-- [Alle danske atleter](/atleter)', 'Hvad sker der på Signing Day, og hvad er en National Letter of Intent? Sådan formaliseres aftalen mellem atlet og universitet.', 1, 'guide', 'saeson', datetime('now'))
+- [Alle danske atleter](/atleter)
+
+## Kilder
+
+- [ESPN — NCAA godkender afskaffelse af NLI-programmet](https://www.espn.com/college-sports/story/_/id/41702974/ncaa-approves-elimination-national-letter-intent-program)
+- [NCSA — NCAA afskaffer NLI: hvad nu?](https://www.ncsasports.org/blog/ncaa-eliminates-nli)', 'Hvad sker der på Signing Day, og hvad er en National Letter of Intent? Sådan formaliseres aftalen mellem atlet og universitet.', 1, 'guide', 'saeson', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
