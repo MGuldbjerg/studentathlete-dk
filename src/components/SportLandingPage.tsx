@@ -183,54 +183,111 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
 }
 
 /** Simpel markdown → HTML for pillar-tekst (kun ## og ### overskrifter + afsnit) */
+/** Parse inline markdown: **fed** og [tekst](url). Interne stier og http(s)-links. */
+function parseInline(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*|\[(.+?)\]\((.+?)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
+    if (match[1] !== undefined) {
+      nodes.push(<strong key={match.index}>{match[1]}</strong>);
+    } else if (match[2] !== undefined && match[3] !== undefined) {
+      const href = match[3];
+      const external = href.startsWith("http");
+      nodes.push(
+        <a
+          key={match.index}
+          href={href}
+          className="underline hover:text-flag-blue transition-colors"
+          target={external ? "_blank" : undefined}
+          rel={external ? "noopener noreferrer" : undefined}
+        >
+          {match[2]}
+        </a>,
+      );
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return nodes.length > 0 ? nodes : [text];
+}
+
 function PillarContent({ markdown }: { markdown: string }) {
   const lines = markdown.trim().split("\n");
   const elements: React.ReactNode[] = [];
   let paragraph: string[] = [];
+  let listItems: string[] = [];
   let key = 0;
 
   function flushParagraph() {
     if (paragraph.length > 0) {
       elements.push(
         <p key={key++} className="text-muted text-sm leading-relaxed mb-4">
-          {paragraph.join(" ")}
+          {parseInline(paragraph.join(" "))}
         </p>
       );
       paragraph = [];
     }
   }
 
+  function flushList() {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={key++} className="list-disc pl-5 mb-4 space-y-1">
+          {listItems.map((item, i) => (
+            <li key={i} className="text-muted text-sm leading-relaxed">
+              {parseInline(item)}
+            </li>
+          ))}
+        </ul>
+      );
+      listItems = [];
+    }
+  }
+
+  function flush() {
+    flushParagraph();
+    flushList();
+  }
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (trimmed.startsWith("### ")) {
-      flushParagraph();
+      flush();
       elements.push(
         <h3
           key={key++}
           className="text-base font-bold text-ink mt-6 mb-2"
           style={{ fontFamily: "var(--font-serif)" }}
         >
-          {trimmed.slice(4)}
+          {parseInline(trimmed.slice(4))}
         </h3>
       );
     } else if (trimmed.startsWith("## ")) {
-      flushParagraph();
+      flush();
       elements.push(
         <h2
           key={key++}
           className="text-lg font-bold text-ink mt-8 mb-3"
           style={{ fontFamily: "var(--font-serif)" }}
         >
-          {trimmed.slice(3)}
+          {parseInline(trimmed.slice(3))}
         </h2>
       );
-    } else if (trimmed === "") {
+    } else if (trimmed.startsWith("- ")) {
       flushParagraph();
+      listItems.push(trimmed.slice(2));
+    } else if (trimmed === "") {
+      flush();
     } else {
+      flushList();
       paragraph.push(trimmed);
     }
   }
-  flushParagraph();
+  flush();
 
   return <>{elements}</>;
 }

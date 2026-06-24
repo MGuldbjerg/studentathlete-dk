@@ -31,11 +31,17 @@ College football-sæsonen er kort og intens. Den regulære sæson løber fra slu
 
 ### Sådan fungerer college-systemet
 
-Frem til 2025 måtte et Division I-hold (FBS) give 85 fulde football-stipendier, men efter det store "House"-forlig i 2025 er der i stedet indført et samlet trupsloft på 105 spillere, hvor alle i princippet kan modtage stipendium. Spillere har typisk fem år til at gennemføre fire sæsoner, og en "redshirt"-sæson lader en spiller træne med uden at bruge af spilleberettigelsen — ofte det første år, mens man vænner sig til niveauet og sproget. Den klassiske "walk-on" uden stipendium er på vej ud med de nye regler.
+Frem til 2025 måtte et Division I-hold (FBS) give 85 fulde football-stipendier, men efter det store "House"-forlig i 2025 er der i stedet indført et samlet trupsloft på 105 spillere, hvor alle i princippet kan modtage stipendium. Den klassiske "walk-on" uden stipendium er dermed på vej ud — ingen er formelt forbudt, men hver plads tæller nu mod loftet. Hertil er selve spilleberettigelsen lagt om: den gamle "fire sæsoner inden for fem år" og redshirt-ordningen erstattes gradvist af en aldersbaseret model (op til fem års eligibility). Læs mere i [redshirt og eligibility-år](/viden/redshirt-og-eligibility).
 
 ### Tidbits
 
-Morten Andersen — "The Great Dane" — er den mest berømte dansker i amerikansk football og sidder i Pro Football Hall of Fame som NFL's mest scorende spiller gennem tiderne; han kom selv gennem college som All-American kicker på Michigan State. En nyere profil er Hjalte Froholdt, der gik fra Danmark via University of Arkansas til NFL som offensive lineman. Stemningen er enorm: Michigans stadion "The Big House" rummer over 107.000 tilskuere, flere end nogen by mellem København og Aarhus. Den store rekrutteringsdag, "National Signing Day" i februar, følges som en helligdag af amerikanske fans.`,
+Morten Andersen — "The Great Dane" — er den mest berømte dansker i amerikansk football og sidder i Pro Football Hall of Fame som NFL's mest scorende spiller gennem tiderne; han kom selv gennem college som All-American kicker på Michigan State. En nyere profil er Hjalte Froholdt, der gik fra Danmark via University of Arkansas til NFL som offensive lineman. Stemningen er enorm: Michigans stadion "The Big House" rummer over 107.000 tilskuere, flere end nogen by mellem København og Aarhus. Den store rekrutteringsdag, "National Signing Day" i februar, følges som en helligdag af amerikanske fans.
+
+### Kilder
+
+- [NCAA.org — DI Board vedtager nye trup-lofter (House-forliget)](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
+- [CBS Sports — NCAA fjerner stipendielofter, indfører trup-lofter](https://www.cbssports.com/college-football/news/ncaa-removes-scholarship-limits-aligns-with-house-settlement-as-roster-sizes-evolve-in-new-college-sports-era/)
+- [SI — College Football Playoff forbliver 12 hold i 2026](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)`,
   },
 
   basketball: {
@@ -54,11 +60,16 @@ NCAA basketball-sæsonen begynder i november og kulminerer med March Madness —
 
 ### Sådan fungerer March Madness
 
-Slutspillet er en knockout-turnering med 68 hold, der spilles i én lang weekend-rytme over tre uger: taber man én kamp, er man ude. Holdene seedes 1 til 16 i fire regioner, og hvert år overrasker en lavtseedet "Cinderella"-skole ved at slå favoritterne. Faserne hedder Sweet Sixteen, Elite Eight og Final Four, og det hele afsluttes med en finale, der ses af titusinder af danskere på trods af tidsforskellen.
+Slutspillet er en knockout-turnering, der spilles i én lang weekend-rytme over tre uger: taber man én kamp, er man ude. Holdene seedes 1 til 16 i fire regioner, og hvert år overrasker en lavtseedet "Cinderella"-skole ved at slå favoritterne. Faserne hedder Sweet Sixteen, Elite Eight og Final Four, og det hele afsluttes med en finale, der ses af titusinder af danskere på trods af tidsforskellen. Feltet har været på 68 hold, men NCAA besluttede i 2026 at udvide både herrernes og kvindernes turnering til 76 hold fra sæsonen 2026-27.
 
 ### Tidbits
 
-College basketball har en helt anden stemning end de professionelle ligaer: studenter-sektioner, der står op hele kampen, marchorkestre og rivaliseringer, der går generationer tilbage. Turneringen er så uforudsigelig, at den årlige "bracket"-konkurrence — hvor man forsøger at gætte alle resultater — aldrig i historien er blevet ramt perfekt. Danske spillere roses ofte for deres alsidighed, holdspilsmentalitet og taktiske forståelse, som amerikanske trænere vurderer højt. To danske college-pionerer rager op: Christian Drejer spillede for Florida Gators og blev i 2004 den første dansker nogensinde, der blev draftet til NBA, mens Inge Nissen vandt to nationale mesterskaber med Old Dominion omkring 1980 og siden er optaget i Women's Basketball Hall of Fame.`,
+College basketball har en helt anden stemning end de professionelle ligaer: studenter-sektioner, der står op hele kampen, marchorkestre og rivaliseringer, der går generationer tilbage. Turneringen er så uforudsigelig, at den årlige "bracket"-konkurrence — hvor man forsøger at gætte alle resultater — aldrig i historien er blevet ramt perfekt. Danske spillere roses ofte for deres alsidighed, holdspilsmentalitet og taktiske forståelse, som amerikanske trænere vurderer højt. To danske college-pionerer rager op: Christian Drejer spillede for Florida Gators og blev i 2004 den første dansker nogensinde, der blev draftet til NBA, mens Inge Nissen vandt to nationale mesterskaber med Old Dominion omkring 1980 og siden er optaget i Women's Basketball Hall of Fame.
+
+### Kilder
+
+- [NCAA.org — Turneringerne udvides til 76 hold](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
+- [NCAA.com — Sådan fungerer den udvidede 2027-turnering](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)`,
   },
 
   baseball: {
@@ -81,7 +92,12 @@ College baseball spilles med aluminiums- og kompositbat (BBCOR-godkendte) i sted
 
 ### Tidbits
 
-Baseball er en såkaldt "equivalency sport": et hold deler et begrænset antal stipendier ud over en stor trup, så fuldt stipendium er sjældent. Mange spillere bliver draftet til den professionelle MLB direkte fra college. Softball og baseball er voksende sportsgrene i Danmark, og med flere unge, der tager sporten op, kan vi forvente at se flere danskere på amerikanske college-hold i de kommende år.`,
+Baseball var historisk en såkaldt "equivalency sport": et hold delte et begrænset antal stipendier (11,7 i Division I) ud over en stor trup, så fuldt stipendium var sjældent. Det ændrede House-forliget i 2025: de sportsspecifikke stipendielofter er afskaffet og erstattet af et trupsloft på 34 spillere i D-I, hvor alle på truppen i princippet kan få fuldt stipendium. Mange spillere bliver draftet til den professionelle MLB direkte fra college. Softball og baseball er voksende sportsgrene i Danmark, og med flere unge, der tager sporten op, kan vi forvente at se flere danskere på amerikanske college-hold i de kommende år.
+
+### Kilder
+
+- [NCAA.org — DI Board vedtager nye trup-lofter (House-forliget)](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
+- [NCSA — Nye NCAA-stipendie- og trup-lofter for 2025-26](https://www.ncsasports.org/blog/ncaa-scholarship-roster-limits-2024)`,
   },
 
   fodbold: {
@@ -96,7 +112,7 @@ Fodbold — eller soccer, som det hedder i USA — er en af de mest populære ve
 
 ### Sæsonens gang
 
-NCAA soccer-sæsonen er kort og intens: kvinder og herrer spiller begge i efteråret, fra august til november, med omkring 18-20 kampe presset sammen på få måneder. Det betyder ofte to kampe om ugen og stor belastning på kroppen. College Cup — NCAA's slutspil med 48 hold — afgøres i begyndelsen af december. Foråret bruges til individuel udvikling, styrketræning og uofficielle forårsturneringer.
+NCAA soccer-sæsonen er kort og intens: kvinder og herrer spiller begge i efteråret, fra august til november, med omkring 18-20 kampe presset sammen på få måneder. Det betyder ofte to kampe om ugen og stor belastning på kroppen. NCAA-slutspillet (hvor finalestævnet kaldes College Cup) har 48 hold hos herrerne og 64 hold hos kvinderne og afgøres i begyndelsen af december. Foråret bruges til individuel udvikling, styrketræning og uofficielle forårsturneringer.
 
 ### Sådan adskiller reglerne sig
 
@@ -104,7 +120,12 @@ College soccer har sine egne særregler, der overrasker europæere. På de flest
 
 ### Tidbits
 
-Kvindefodbold er enormt i USA og i mange år bygget op netop omkring college-systemet — flere stjerner fra det amerikanske VM-vindende landshold er gået vejen gennem NCAA. Den danske fodboldtradition med fokus på boldbehandling, positionsspil og taktisk disciplin passer godt til college soccer, og mange danske spillere opnår startpladser fra dag ét. Fodbold er faktisk den sportsgren, der sender flest danskere til NCAA — på tværs af herre- og kvindehold ligger danske spillere på rosters fra Division I til Division III over hele USA, selvom de største danske fodboldtalenter typisk går den professionelle vej herhjemme i stedet for over Atlanten.`,
+Kvindefodbold er enormt i USA og i mange år bygget op netop omkring college-systemet — flere stjerner fra det amerikanske VM-vindende landshold er gået vejen gennem NCAA. Den danske fodboldtradition med fokus på boldbehandling, positionsspil og taktisk disciplin passer godt til college soccer, og mange danske spillere opnår startpladser fra dag ét. Fodbold er faktisk den sportsgren, der sender flest danskere til NCAA — på tværs af herre- og kvindehold ligger danske spillere på rosters fra Division I til Division III over hele USA, selvom de største danske fodboldtalenter typisk går den professionelle vej herhjemme i stedet for over Atlanten.
+
+### Kilder
+
+- [NCAA.org — Ændrede substitutionsregler i DI herrefodbold (2024)](https://www.ncaa.org/news/2024/4/18/media-center-substitution-rules-changes-approved-for-di-mens-soccer.aspx)
+- [NCAA.com — Vejen til College Cup (herrer)](https://www.ncaa.com/championships/soccer-men/d1/road-to-the-championship)`,
   },
 
   svoemning: {
@@ -127,7 +148,11 @@ I et "dual meet" møder to skoler hinanden, og selvom hver svømmer kæmper indi
 
 ### Tidbits
 
-En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-yards-bassin ("short course yards"), ikke de 50 meter, man kender hjemmefra — så tiderne kan ikke sammenlignes direkte. De fleste stævner afvikles med indledende heat om morgenen og finaler om aftenen. Den danske svømmeskoles fokus på teknik og udholdenhed forbereder atleterne godt, og flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships. North Carolina State har været et samlingspunkt for danske svømmere: distancesvømmeren Anton Ipsen markerede sig blandt USA's bedste, og Søren Dahl vandt to NCAA-titler med skolens stafetter i 2016 og 2017.`,
+En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-yards-bassin ("short course yards"), ikke de 50 meter, man kender hjemmefra — så tiderne kan ikke sammenlignes direkte. De fleste stævner afvikles med indledende heat om morgenen og finaler om aftenen. Den danske svømmeskoles fokus på teknik og udholdenhed forbereder atleterne godt, og flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships. North Carolina State har været et samlingspunkt for danske svømmere: distancesvømmeren Anton Ipsen markerede sig blandt USA's bedste, og Søren Dahl vandt to NCAA-titler med skolens stafetter i 2016 og 2017.
+
+### Kilder
+
+- [NCAA.com — DI svømning & udspring (officiel)](https://www.ncaa.com/sports/swimming-men/d1)`,
   },
 
   atletik: {
@@ -150,7 +175,12 @@ Selvom hver enkelt øvelse er en individuel præstation, samles det hele til en 
 
 ### Tidbits
 
-Stafetterne er blandt de mest populære øvelser, og holdfølelsen omkring dem er stor selv i en ellers individuel sport. NCAA-systemet har fostret mange olympiske medaljevindere, og flere danske atletikudøvere har sat sig spor med All-American-udnævnelser og conference-mesterskaber. Den danske atletiktradition, særligt inden for mellemdistance og spring, passer godt til det amerikanske college-system. Et godt eksempel er forhindringsløberen Ole Hesselbjerg, der blev tredobbelt All-American på Eastern Kentucky og senere repræsenterede Danmark i 3.000 m steeplechase ved OL i Rio 2016.`,
+Stafetterne er blandt de mest populære øvelser, og holdfølelsen omkring dem er stor selv i en ellers individuel sport. NCAA-systemet har fostret mange olympiske medaljevindere, og flere danske atletikudøvere har sat sig spor med All-American-udnævnelser og conference-mesterskaber. Den danske atletiktradition, særligt inden for mellemdistance og spring, passer godt til det amerikanske college-system. Et godt eksempel er forhindringsløberen Ole Hesselbjerg, der blev tredobbelt All-American på Eastern Kentucky og senere repræsenterede Danmark i 3.000 m steeplechase ved OL i Rio 2016.
+
+### Kilder
+
+- [NCAA.com — DI udendørs atletik (officiel)](https://www.ncaa.com/sports/track-field-outdoor-men/d1)
+- [NCAA.com — DI cross country (officiel)](https://www.ncaa.com/sports/cross-country-men/d1)`,
   },
 
   golf: {
@@ -173,7 +203,11 @@ Det meste af sæsonen spilles som "stroke play" over 54 huller (tre runder): hve
 
 ### Tidbits
 
-Vejen fra dansk ungdomsgolf til NCAA er veletableret, og flere danskere har vundet individuelle NCAA-turneringer og bidraget til holdets succes i conference-mesterskaber. For mange er college golf et springbræt direkte til professionel golf på PGA- og LPGA-touren. Rasmus Neergaard-Petersen er et nutidigt eksempel: han blev All-American på Oklahoma State — samme stærke program som Viktor Hovland — og er siden rykket op på de professionelle touren.`,
+Vejen fra dansk ungdomsgolf til NCAA er veletableret, og flere danskere har vundet individuelle NCAA-turneringer og bidraget til holdets succes i conference-mesterskaber. For mange er college golf et springbræt direkte til professionel golf på PGA- og LPGA-touren. Rasmus Neergaard-Petersen er et nutidigt eksempel: han blev All-American på Oklahoma State — samme stærke program som Viktor Hovland — og er siden rykket op på de professionelle touren.
+
+### Kilder
+
+- [NCAA.com — DI herregolf (officiel)](https://www.ncaa.com/sports/golf-men/d1)`,
   },
 
   tennis: {
@@ -196,7 +230,12 @@ En "dual match" mellem to skoler afgøres på syv mulige point. Først spilles t
 
 ### Tidbits
 
-College tennis bryder med den professionelle sports stilhed: holdkammerater og studenter hepper højlydt mellem boldskifterne, og stemningen minder mere om en holdsport end om en Grand Slam. Mange kampe spilles desuden med "no-ad"-scoring, hvor et point ved 40-40 afgør hele partiet — det gør spillet hurtigere og mere nervepirrende. Den tekniske træning og kamperfaring fra dansk og europæisk tennis giver et solidt fundament for NCAA-konkurrence. Danskerne har sat markante aftryk: Mikael Torpegaard blev femdobbelt All-American på Ohio State, og August Holmgren spillede sig hele vejen til finalen i NCAA's individuelle mesterskab i 2022 for San Diego.`,
+College tennis bryder med den professionelle sports stilhed: holdkammerater og studenter hepper højlydt mellem boldskifterne, og stemningen minder mere om en holdsport end om en Grand Slam. Mange kampe spilles desuden med "no-ad"-scoring, hvor et point ved 40-40 afgør hele partiet — det gør spillet hurtigere og mere nervepirrende. Den tekniske træning og kamperfaring fra dansk og europæisk tennis giver et solidt fundament for NCAA-konkurrence. Danskerne har sat markante aftryk: Mikael Torpegaard blev femdobbelt All-American på Ohio State, og August Holmgren spillede sig hele vejen til finalen i NCAA's individuelle mesterskab i 2022 for San Diego.
+
+### Kilder
+
+- [NCAA.com — College tennis går over til no-ad-scoring](https://www.ncaa.com/news/tennis-men/article/2015-08-13/division-i-tennis-championships-move-no-ad-scoring)
+- [ITA — Regelændringer for college tennis 2025-26](https://wearecollegetennis.com/2025/07/14/2025-2026-ita-rule-modifications-changes-and-clarifications/)`,
   },
 
   roning: {
@@ -219,7 +258,11 @@ Når to eller flere skoler mødes til en regatta, stiller hver skole op med fler
 
 ### Tidbits
 
-Et kuriosum værd at kende: kvinderoning er en officiel NCAA-mesterskabssport, mens herreroningen historisk styres af en separat organisation (IRA) uden for NCAA — så stipendiemulighederne er klart størst for kvinder. Den danske roningstradition er stærk, og flere danskere har brugt college-roning som springbræt til international konkurrence og OL. Joachim Sutton var en af de første danske roere på et amerikansk universitetshold, da han ankom til University of California, Berkeley.`,
+Et kuriosum værd at kende: kvinderoning er en officiel NCAA-mesterskabssport, mens herreroningen historisk styres af en separat organisation (IRA) uden for NCAA — så stipendiemulighederne er klart størst for kvinder. Den danske roningstradition er stærk, og flere danskere har brugt college-roning som springbræt til international konkurrence og OL. Joachim Sutton var en af de første danske roere på et amerikansk universitetshold, da han ankom til University of California, Berkeley.
+
+### Kilder
+
+- [NCAA.com — DI kvinderoning (officiel)](https://www.ncaa.com/sports/rowing-women/d1)`,
   },
 
   gymnastik: {
@@ -242,7 +285,11 @@ Når to eller flere skoler mødes, konkurrerer gymnasterne i de enkelte apparate
 
 ### Tidbits
 
-En charmerende særhed ved kvindernes college-gymnastik: den holder fast i den klassiske 10-skala, hvor det "perfekte 10-tal" stadig findes — i modsætning til både elitegymnastikkens internationale system og herrernes college-gymnastik, der begge bruger en åben skala uden loft. Et perfekt 10-tal i en fyldt amerikansk hal udløser euforisk jubel. Danmarks gymnastiktradition er bred, og de atleter, der tager springet til NCAA, kommer typisk fra konkurrencemiljøet med en stærk teknisk baggrund.`,
+En charmerende særhed ved kvindernes college-gymnastik: den holder fast i den klassiske 10-skala, hvor det "perfekte 10-tal" stadig findes — i modsætning til både elitegymnastikkens internationale system og herrernes college-gymnastik, der begge bruger en åben skala uden loft. Et perfekt 10-tal i en fyldt amerikansk hal udløser euforisk jubel. Danmarks gymnastiktradition er bred, og de atleter, der tager springet til NCAA, kommer typisk fra konkurrencemiljøet med en stærk teknisk baggrund.
+
+### Kilder
+
+- [NCAA.com — DI kvindegymnastik (officiel)](https://www.ncaa.com/sports/gymnastics-women/d1)`,
   },
 
   ishockey: {
@@ -261,7 +308,14 @@ College hockey-sæsonen løber fra oktober til april. Holdene spiller omkring 34
 
 ### Tidbits
 
-College hockey er en af de vigtigste leverandører af spillere til NHL: mange spillere udvikler sig her i stedet for i de canadiske juniorligaer, fordi de samtidig kan tage en uddannelse. En særhed ved amatørstatussen er, at en draftet NHL-spiller godt kan fortsætte i college, så længe han ikke har skrevet professionel kontrakt. Med den danske ishockeys stigende niveau og flere danske spillere i professionelle ligaer verden over er NCAA-vejen blevet en attraktiv mulighed for unge danske spillere, der vil kombinere sport og uddannelse. Forsvarsspilleren Oliver Lauridsen gik fx vejen gennem St. Cloud State, før han blev draftet og spillede i NHL.`,
+College hockey er en af de vigtigste leverandører af spillere til NHL: mange spillere udvikler sig her i stedet for i de canadiske juniorligaer, fordi de samtidig kan tage en uddannelse. En særhed ved amatørstatussen er, at en draftet NHL-spiller godt kan fortsætte i college, så længe han ikke har skrevet professionel kontrakt.
+
+En historisk regelændring trådte i kraft 1. august 2025: spillere fra den canadiske major junior-liga (CHL) kan nu også spille NCAA Division I-hockey. Tidligere blev de betragtet som professionelle og var udelukket — ændringen åbner et helt nyt rekrutteringslandskab (gælder dog ikke Division III). Med den danske ishockeys stigende niveau og flere danske spillere i professionelle ligaer verden over er NCAA-vejen blevet en attraktiv mulighed for unge danske spillere, der vil kombinere sport og uddannelse. Forsvarsspilleren Oliver Lauridsen gik fx vejen gennem St. Cloud State, før han blev draftet og spillede i NHL.
+
+### Kilder
+
+- [NHL.com — CHL-spillere bliver spilleberettigede til NCAA fra 2025-26](https://www.nhl.com/news/chl-players-to-be-eligible-to-play-ncaa-hockey-beginning-in-2025-26)
+- [College Hockey Inc. — DI Council gør CHL-spillere spilleberettigede](https://www.collegehockeyinc.com/2024/11/breaking-ncaa-di-council-votes-to-make-chl-players-eligible/)`,
   },
 
   volleyball: {
@@ -280,7 +334,11 @@ De to køn spiller i hver sin halvdel af året: kvindevolleyball er en efterårs
 
 ### Tidbits
 
-Ud over den klassiske indendørs 6-mod-6-volleyball er beachvolley vokset til en selvstændig NCAA-mesterskabssport, hvor par spiller mod par i sandet — en hurtigt voksende disciplin, hvor europæiske spillere klarer sig godt. En libero-spiller bærer afvigende trøjefarve og er specialist i forsvar, men må ikke angribe over nettet. Den danske volleyballtradition med fokus på teknik og taktik passer godt til college-sporten, og flere danske spillere har gjort sig bemærket med All-Conference-udnævnelser.`,
+Ud over den klassiske indendørs 6-mod-6-volleyball er beachvolley vokset til en selvstændig NCAA-mesterskabssport, hvor par spiller mod par i sandet — en hurtigt voksende disciplin, hvor europæiske spillere klarer sig godt. En libero-spiller bærer afvigende trøjefarve og er specialist i forsvar, men må ikke angribe over nettet. Den danske volleyballtradition med fokus på teknik og taktik passer godt til college-sporten, og flere danske spillere har gjort sig bemærket med All-Conference-udnævnelser.
+
+### Kilder
+
+- [NCAA.com — DI kvindevolleyball (officiel)](https://www.ncaa.com/sports/volleyball-women/d1)`,
   },
 
   andet: {
@@ -291,7 +349,7 @@ Ud over den klassiske indendørs 6-mod-6-volleyball er beachvolley vokset til en
       "Danske atleter i øvrige NCAA-sportsgrene – nyheder og profiler fra niche-sportsgrene i USA.",
     pillar: `## Andre sportsgrene i NCAA
 
-NCAA dækker over 20 forskellige sportsgrene, og danske atleter kan findes i mange af dem. Fra lacrosse til fægtning, fra vandpolo og sejlsport til skisport og wrestling — mulighederne er bredere, end de fleste tror.
+NCAA afvikler mesterskaber i omkring 24 sportsgrene, og danske atleter kan findes i mange af dem. Fra lacrosse til fægtning, fra vandpolo og sejlsport til skisport og wrestling — mulighederne er bredere, end de fleste tror. Udbuddet vokser stadig: kvindebrydning fik sit første NCAA-mesterskab i 2026, og acrobatics & tumbling samt stunt følger fra 2027.
 
 ### Holdsport og individuelle stævner
 
@@ -299,7 +357,12 @@ Sportsgrenene i denne kategori afgøres på vidt forskellige måder. Nogle, som 
 
 ### Tidbits
 
-Flere af NCAAʼs mindre sportsgrene har færre ansøgere til stipendierne, hvilket kan være en reel fordel for danske atleter med talent inden for en nichesport. Wrestling (amerikansk brydning) er fx en stor og traditionsrig college-sport, og lacrosse vokser hastigt. Efterhånden som kendskabet til NCAA-systemet breder sig i Danmark, ser vi atleter fra stadig flere sportsgrene tage springet over Atlanten.`,
+Flere af NCAAʼs mindre sportsgrene har færre ansøgere til stipendierne, hvilket kan være en reel fordel for danske atleter med talent inden for en nichesport. Wrestling (amerikansk brydning) er fx en stor og traditionsrig college-sport, og lacrosse vokser hastigt. Efterhånden som kendskabet til NCAA-systemet breder sig i Danmark, ser vi atleter fra stadig flere sportsgrene tage springet over Atlanten.
+
+### Kilder
+
+- [NCAA.org — NCAA tilføjer fire nye mesterskaber](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-to-add-four-new-championships.aspx)
+- [NCAA.org — NCAA's første kvindebrydningsmesterskaber](https://www.ncaa.org/news/2026/3/4/media-center-ncaas-first-womens-wrestling-championships-what-to-know.aspx)`,
   },
 };
 
