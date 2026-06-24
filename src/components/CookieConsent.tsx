@@ -31,7 +31,9 @@ function writeConsent(marketing: boolean) {
  */
 export function CookieConsent({ enabled }: { enabled: boolean }) {
   const [show, setShow] = useState(false);
-  const [decided, setDecided] = useState(true);
+  // Start "ubesluttet" → SSR renderer intet; useEffect afgør ud fra cookien
+  // (undgår et glimt af gen-åbn-knappen før vi har tjekket samtykke).
+  const [decided, setDecided] = useState(false);
 
   useEffect(() => {
     if (!enabled) return;
