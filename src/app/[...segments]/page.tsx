@@ -24,6 +24,7 @@ import { FeatureTemplate } from "@/components/templates/FeatureTemplate";
 import { RecruitingTemplate } from "@/components/templates/RecruitingTemplate";
 import { SeasonUpdateTemplate } from "@/components/templates/SeasonUpdateTemplate";
 import { ArticleBody } from "@/components/ui/ArticleBody";
+import { AdminEditButton } from "@/components/AdminEditButton";
 
 type Params = Promise<{ segments: string[] }>;
 
@@ -213,13 +214,16 @@ export default async function DynamicPage({ params }: { params: Params }) {
         countAthletesBySport(dbSport),
       ]);
       return (
-        <SportLandingPage
-          sport={slug}
-          content={sportContent}
-          articles={articles}
-          athletes={athletes}
-          counts={counts}
-        />
+        <>
+          <SportLandingPage
+            sport={slug}
+            content={sportContent}
+            articles={articles}
+            athletes={athletes}
+            counts={counts}
+          />
+          <AdminEditButton href={`/admin/sider/${slug}`} label="Rediger sportsside" />
+        </>
       );
     }
 
@@ -237,6 +241,7 @@ export default async function DynamicPage({ params }: { params: Params }) {
             </h1>
             <ArticleBody content={page.content} />
           </article>
+          <AdminEditButton href={`/admin/sider/${slug}`} label="Rediger side" />
         </main>
       );
     }
@@ -262,7 +267,12 @@ export default async function DynamicPage({ params }: { params: Params }) {
           getArticlesByAthleteId(athlete.id, 10),
           getAthleteEvents(athlete.id),
         ]);
-        return <AthleteProfilePage athlete={athlete} articles={articles} events={events} />;
+        return (
+          <>
+            <AthleteProfilePage athlete={athlete} articles={articles} events={events} />
+            <AdminEditButton href={`/admin/atleter/${athlete.id}`} label="Rediger atlet" />
+          </>
+        );
       }
     }
 
@@ -274,7 +284,12 @@ export default async function DynamicPage({ params }: { params: Params }) {
           getAthletesByUniversity(school.name),
           getArticlesByUniversity(school.name, 6),
         ]);
-        return <SchoolProfilePage school={school} athletes={athletes} articles={articles} />;
+        return (
+          <>
+            <SchoolProfilePage school={school} athletes={athletes} articles={articles} />
+            <AdminEditButton href="/admin/skoler" label="Rediger skoler" />
+          </>
+        );
       }
     }
 
@@ -293,12 +308,19 @@ export default async function DynamicPage({ params }: { params: Params }) {
 
       const props = { article, athlete, relatedArticles };
 
+      let template;
       switch (article.article_type) {
-        case "feature":       return <FeatureTemplate {...props} />;
-        case "recruiting":    return <RecruitingTemplate {...props} />;
-        case "season_update": return <SeasonUpdateTemplate {...props} />;
-        default:              return <NewsTemplate {...props} />;
+        case "feature":       template = <FeatureTemplate {...props} />; break;
+        case "recruiting":    template = <RecruitingTemplate {...props} />; break;
+        case "season_update": template = <SeasonUpdateTemplate {...props} />; break;
+        default:              template = <NewsTemplate {...props} />;
       }
+      return (
+        <>
+          {template}
+          <AdminEditButton href={`/admin/rediger/${article.id}`} label="Rediger artikel" />
+        </>
+      );
     }
   }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
+import { AdminEditButton } from "@/components/AdminEditButton";
 import { BASE_URL, getOgImageUrl, breadcrumbStructuredData, formatDate } from "@/lib/seo";
 import { getPublishedGuideBySlug } from "@/lib/admin";
 import {
@@ -127,6 +128,7 @@ export default async function GuidePage({ params }: { params: Params }) {
       </h1>
 
       <ArticleBody content={g.content} />
+      <AdminEditButton href={`/admin/sider/${slug}`} label="Rediger guide" />
     </main>
   );
 }
