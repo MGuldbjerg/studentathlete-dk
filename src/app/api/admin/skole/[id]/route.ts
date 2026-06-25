@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, updateSchoolColors } from "@/lib/admin";
+import { updateSchoolColors } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
@@ -14,17 +15,14 @@ export async function PUT(
       return NextResponse.json({ error: "Ugyldigt id" }, { status: 400 });
     }
 
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
     const body = await req.json();
-    const { token, primary_color, secondary_color } = body as {
-      token: string;
+    const { primary_color, secondary_color } = body as {
       primary_color?: string | null;
       secondary_color?: string | null;
     };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
 
     for (const v of [primary_color, secondary_color]) {
       if (v && !HEX_RE.test(v)) {

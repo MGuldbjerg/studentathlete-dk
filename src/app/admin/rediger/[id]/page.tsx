@@ -1,21 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getArticleById, getFactSheetForArticle } from "@/lib/admin";
+import { getArticleById, getFactSheetForArticle } from "@/lib/admin";
 import { getAllAthletes } from "@/lib/db";
 import { EditArticleForm } from "./EditArticleForm";
 import { FactSheetPanel } from "./FactSheetPanel";
 
 export default async function EditArticlePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ token?: string }>;
 }) {
   const { id: idStr } = await params;
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
 
   const id = parseInt(idStr, 10);
   if (isNaN(id)) notFound();
@@ -35,13 +30,13 @@ export default async function EditArticlePage({
           <h1 className="text-2xl font-bold text-ink">Rediger artikel</h1>
           <div className="flex gap-3">
             <Link
-              href={`/admin/${article.id}?token=${token}`}
+              href={`/admin/${article.id}`}
               className="text-sm text-muted hover:text-ink transition-colors"
             >
               Forhåndsvisning →
             </Link>
             <Link
-              href={`/admin?token=${token}`}
+              href={`/admin`}
               className="text-sm text-muted hover:text-ink transition-colors"
             >
               ← Tilbage
@@ -61,7 +56,7 @@ export default async function EditArticlePage({
 
         {factSheet ? (
           <div className="grid gap-6 lg:grid-cols-[1fr_340px] items-start">
-            <EditArticleForm article={article} athletes={athletes} token={token!} />
+            <EditArticleForm article={article} athletes={athletes} />
             <FactSheetPanel
               factSheetJson={factSheet.fact_sheet}
               factStatus={factSheet.fact_status}
@@ -70,7 +65,7 @@ export default async function EditArticlePage({
             />
           </div>
         ) : (
-          <EditArticleForm article={article} athletes={athletes} token={token!} />
+          <EditArticleForm article={article} athletes={athletes} />
         )}
       </div>
     </main>

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 import { getDB } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
     const body = await req.json();
-    const { token, name, sport, university, division, position, hometown, university_state } =
+    const { name, sport, university, division, position, hometown, university_state } =
       body as {
-        token: string;
         name: string;
         sport: string;
         university: string;
@@ -16,11 +18,6 @@ export async function POST(req: NextRequest) {
         hometown?: string | null;
         university_state?: string | null;
       };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
 
     if (!name || !sport || !university) {
       return NextResponse.json(

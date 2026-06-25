@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, addAthleteEvent, deleteAthleteEvent } from "@/lib/admin";
+import { addAthleteEvent, deleteAthleteEvent } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
     const body = await req.json();
-    const { token, athlete_id, season, kind, award_name, summary, significance } = body as {
-      token?: string;
+    const { athlete_id, season, kind, award_name, summary, significance } = body as {
       athlete_id?: number;
       season?: string | null;
       kind?: string;
@@ -13,9 +16,6 @@ export async function POST(req: NextRequest) {
       summary?: string;
       significance?: string;
     };
-    if (!(await validateAdminToken(token ?? null))) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
     if (!athlete_id || !summary?.trim()) {
       return NextResponse.json({ error: "athlete_id og beskrivelse er påkrævet" }, { status: 400 });
     }
@@ -35,11 +35,11 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { token, id } = body as { token?: string; id?: number };
-    if (!(await validateAdminToken(token ?? null))) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
+    const body = await req.json();
+    const { id } = body as { id?: number };
     if (!id) return NextResponse.json({ error: "Mangler id" }, { status: 400 });
     await deleteAthleteEvent(id);
     return NextResponse.json({ success: true });

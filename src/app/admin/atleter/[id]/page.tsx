@@ -1,20 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getAthleteById } from "@/lib/admin";
+import { getAthleteById } from "@/lib/admin";
 import { getAthleteEvents } from "@/lib/db";
 import { EditAthleteForm } from "./EditAthleteForm";
 import { AthleteEventsEditor } from "./AthleteEventsEditor";
 
 export default async function EditAthletePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ token?: string }>;
 }) {
-  const [{ id: idStr }, { token }] = await Promise.all([params, searchParams]);
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+  const { id: idStr } = await params;
 
   const id = parseInt(idStr, 10);
   if (isNaN(id)) notFound();
@@ -33,15 +29,15 @@ export default async function EditAthletePage({
             </p>
           </div>
           <Link
-            href={`/admin/atleter?token=${token}`}
+            href={`/admin/atleter`}
             className="text-sm text-muted hover:text-ink"
           >
             ← Tilbage
           </Link>
         </div>
 
-        <EditAthleteForm athlete={athlete} token={token!} />
-        <AthleteEventsEditor athleteId={id} token={token!} events={events} />
+        <EditAthleteForm athlete={athlete} />
+        <AthleteEventsEditor athleteId={id} events={events} />
       </div>
     </main>
   );

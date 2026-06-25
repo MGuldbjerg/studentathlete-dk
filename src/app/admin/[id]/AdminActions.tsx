@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 
 export function AdminActions({
   articleId,
-  token,
 }: {
   articleId: number;
-  token: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState<"publish" | "reject" | null>(null);
@@ -23,7 +21,7 @@ export function AdminActions({
       const res = await fetch("/api/admin/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: articleId, action, token }),
+        body: JSON.stringify({ id: articleId, action }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -31,7 +29,7 @@ export function AdminActions({
         setLoading(null);
         return;
       }
-      router.push(`/admin?token=${token}`);
+      router.push(`/admin`);
       router.refresh();
     } catch {
       alert("Netværksfejl — prøv igen");

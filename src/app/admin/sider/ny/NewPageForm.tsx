@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { MarkdownToolbar } from "@/components/ui/MarkdownToolbar";
 
-export function NewPageForm({ token }: { token: string }) {
+export function NewPageForm() {
   const router = useRouter();
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
@@ -52,7 +52,6 @@ export function NewPageForm({ token }: { token: string }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           title: title.trim(),
           content: content.trim(),
           meta_description: metaDescription.trim() || null,
@@ -66,7 +65,7 @@ export function NewPageForm({ token }: { token: string }) {
         setMessage({ type: "ok", text: "Siden er oprettet!" });
         // Redirect til redigering af den nye side
         setTimeout(() => {
-          router.push(`/admin/sider/${slug}?token=${token}`);
+          router.push(`/admin/sider/${slug}`);
         }, 800);
       }
     } catch {

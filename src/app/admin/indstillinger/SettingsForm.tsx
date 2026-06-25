@@ -6,11 +6,9 @@ import type { SettingDef } from "@/lib/site-content";
 export function SettingsForm({
   fields,
   values,
-  token,
 }: {
   fields: SettingDef[];
   values: Record<string, string>;
-  token: string;
 }) {
   const [state, setState] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.key, values[f.key] ?? f.default])),
@@ -29,7 +27,7 @@ export function SettingsForm({
       const res = await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, values: state }),
+        body: JSON.stringify({ values: state }),
       });
       if (!res.ok) {
         const b = await res.json().catch(() => ({}));

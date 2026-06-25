@@ -5,7 +5,7 @@ import type { AdminSchool } from "@/lib/admin";
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
-function SchoolRow({ school, token }: { school: AdminSchool; token: string }) {
+function SchoolRow({ school }: { school: AdminSchool }) {
   const [primary, setPrimary] = useState(school.primary_color ?? "");
   const [secondary, setSecondary] = useState(school.secondary_color ?? "");
   const [saving, setSaving] = useState(false);
@@ -28,7 +28,6 @@ function SchoolRow({ school, token }: { school: AdminSchool; token: string }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           primary_color: primary || null,
           secondary_color: secondary || null,
         }),
@@ -114,14 +113,14 @@ function SchoolRow({ school, token }: { school: AdminSchool; token: string }) {
   );
 }
 
-export function SkolerClient({ schools, token }: { schools: AdminSchool[]; token: string }) {
+export function SkolerClient({ schools }: { schools: AdminSchool[] }) {
   if (schools.length === 0) {
     return <p className="text-sm text-muted text-center py-8">Ingen skoler med aktive atleter.</p>;
   }
   return (
     <div className="flex flex-col gap-3">
       {schools.map((s) => (
-        <SchoolRow key={s.id} school={s} token={token} />
+        <SchoolRow key={s.id} school={s} />
       ))}
     </div>
   );

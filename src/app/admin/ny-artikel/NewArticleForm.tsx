@@ -8,10 +8,8 @@ import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 
 export function NewArticleForm({
   athletes,
-  token,
 }: {
   athletes: Athlete[];
-  token: string;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -38,7 +36,6 @@ export function NewArticleForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           title: title.trim(),
           summary: summary.trim(),
           content,
@@ -53,7 +50,7 @@ export function NewArticleForm({
         setMessage({ type: "err", text: (body as { error?: string }).error ?? "Noget gik galt" });
       } else {
         const data = (await res.json()) as { id: number };
-        router.push(`/admin/rediger/${data.id}?token=${token}`);
+        router.push(`/admin/rediger/${data.id}`);
       }
     } catch {
       setMessage({ type: "err", text: "Netværksfejl — prøv igen" });

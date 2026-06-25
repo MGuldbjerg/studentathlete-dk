@@ -1,15 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getAllPages } from "@/lib/admin";
+import { getAllPages } from "@/lib/admin";
 
-export default async function AdminPagesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+export default async function AdminPagesPage() {
 
   const dbPages = await getAllPages();
 
@@ -43,7 +36,7 @@ export default async function AdminPagesPage({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-ink">Sider</h1>
           <Link
-            href={`/admin?token=${token}`}
+            href={`/admin`}
             className="text-sm text-muted hover:text-ink transition-colors"
           >
             ← Tilbage
@@ -64,7 +57,7 @@ export default async function AdminPagesPage({
                 {inGroup.map((page) => (
                   <Link
                     key={page.slug}
-                    href={`/admin/sider/${page.slug}?token=${token}`}
+                    href={`/admin/sider/${page.slug}`}
                     className="block bg-paper rounded-lg border border-border p-4 active:scale-[0.98] transition-transform"
                   >
                     <div className="flex items-center gap-2">
@@ -100,7 +93,7 @@ export default async function AdminPagesPage({
         })}
 
         <Link
-          href={`/admin/sider/ny?token=${token}`}
+          href={`/admin/sider/ny`}
           className="mt-6 block w-full py-3 rounded-lg font-semibold text-white text-center transition-opacity"
           style={{ backgroundColor: "#00205B" }}
         >

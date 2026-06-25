@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, getPageBySlug, upsertPage } from "@/lib/admin";
+import { getPageBySlug, upsertPage } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 export async function GET(
   req: NextRequest,
@@ -7,11 +8,8 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const token = req.nextUrl.searchParams.get("token");
-
-    const valid = await validateAdminToken(token);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
 
     const page = await getPageBySlug(slug);
@@ -28,19 +26,16 @@ export async function PUT(
 ) {
   try {
     const { slug } = await params;
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
     const body = await req.json();
-    const { token, title, content, meta_description, published } = body as {
-      token: string;
+    const { title, content, meta_description, published } = body as {
       title: string;
       content: string;
       meta_description?: string | null;
       published?: number;
     };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
 
     if (!title?.trim() || !content?.trim()) {
       return NextResponse.json({ error: "Titel og indhold er påkrævet" }, { status: 400 });

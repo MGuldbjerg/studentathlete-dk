@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { PhotoSuggestion } from "@/lib/admin";
 
-function SuggestionCard({ suggestion, token }: { suggestion: PhotoSuggestion; token: string }) {
+function SuggestionCard({ suggestion }: { suggestion: PhotoSuggestion }) {
   const [credit, setCredit] = useState(suggestion.credit);
   const [busy, setBusy] = useState(false);
   const [decided, setDecided] = useState<"approved" | "rejected" | null>(null);
@@ -16,7 +16,7 @@ function SuggestionCard({ suggestion, token }: { suggestion: PhotoSuggestion; to
       const res = await fetch(`/api/admin/foto/${suggestion.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, action, credit: credit.trim() }),
+        body: JSON.stringify({ action, credit: credit.trim() }),
       });
       if (res.ok) {
         setDecided(action === "approve" ? "approved" : "rejected");
@@ -101,10 +101,8 @@ function SuggestionCard({ suggestion, token }: { suggestion: PhotoSuggestion; to
 
 export function FotosClient({
   suggestions,
-  token,
 }: {
   suggestions: PhotoSuggestion[];
-  token: string;
 }) {
   if (suggestions.length === 0) {
     return (
@@ -116,7 +114,7 @@ export function FotosClient({
   return (
     <div className="flex flex-col gap-3">
       {suggestions.map((s) => (
-        <SuggestionCard key={s.id} suggestion={s} token={token} />
+        <SuggestionCard key={s.id} suggestion={s} />
       ))}
     </div>
   );

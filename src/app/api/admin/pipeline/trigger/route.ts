@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 import { getEnv } from "@/lib/db";
 
 const REPO = "MGuldbjerg/studentathlete-dk";
@@ -15,13 +15,11 @@ const WORKFLOWS: Record<string, { file: string; label: string }> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { token, step } = body as { token: string; step: string };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 401 });
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
+    const body = await req.json();
+    const { step } = body as { step: string };
 
     const workflow = WORKFLOWS[step];
     if (!workflow) {

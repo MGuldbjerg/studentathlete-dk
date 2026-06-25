@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 import { getEnv } from "@/lib/db";
 
 const REPO = "MGuldbjerg/studentathlete-dk";
 
 export async function GET(req: NextRequest) {
+  if (!(await isAdmin(req.headers))) {
+    return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+  }
   const { searchParams } = new URL(req.url);
-  const token = searchParams.get("token");
   const workflowFile = searchParams.get("workflow");
   const after = searchParams.get("after"); // ISO timestamp
-
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) {
-    return NextResponse.json({ error: "Ugyldigt token" }, { status: 401 });
-  }
 
   if (!workflowFile) {
     return NextResponse.json({ error: "Mangler workflow-parameter" }, { status: 400 });

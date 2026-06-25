@@ -9,14 +9,12 @@ export function EditPageForm({
   initialContent,
   initialMetaDescription,
   initialPublished,
-  token,
 }: {
   slug: string;
   initialTitle: string;
   initialContent: string;
   initialMetaDescription: string;
   initialPublished: boolean;
-  token: string;
 }) {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
@@ -40,7 +38,6 @@ export function EditPageForm({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           title: title.trim(),
           content: content.trim(),
           meta_description: metaDescription.trim() || null,

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, getStyleCorrections, createStyleCorrection } from "@/lib/admin";
+import { getStyleCorrections, createStyleCorrection } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.nextUrl.searchParams.get("token");
-    const valid = await validateAdminToken(token);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
 
     const corrections = await getStyleCorrections();
@@ -19,19 +18,16 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
     const body = await req.json();
-    const { token, wrong_phrase, correct_phrase, category, note } = body as {
-      token: string;
+    const { wrong_phrase, correct_phrase, category, note } = body as {
       wrong_phrase: string;
       correct_phrase: string;
       category: string;
       note: string | null;
     };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
 
     if (!wrong_phrase?.trim() || !correct_phrase?.trim()) {
       return NextResponse.json(

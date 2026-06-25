@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, updateArticle } from "@/lib/admin";
+import { updateArticle } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 export async function PUT(
   req: NextRequest,
@@ -12,9 +13,10 @@ export async function PUT(
       return NextResponse.json({ error: "Ugyldigt ID" }, { status: 400 });
     }
 
-    const body = await req.json();
-    const { token, ...fields } = body as {
-      token: string;
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
+    const fields = (await req.json()) as {
       title?: string;
       summary?: string;
       content?: string;
@@ -23,11 +25,6 @@ export async function PUT(
       athlete_id?: number | null;
       featured?: number;
     };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
 
     await updateArticle(id, fields);
     return NextResponse.json({ success: true });

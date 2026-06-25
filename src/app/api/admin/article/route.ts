@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, createArticle } from "@/lib/admin";
+import { createArticle } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 export async function POST(req: NextRequest) {
   try {
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
     const body = await req.json();
-    const { token, title, summary, content, article_type, author, athlete_id } = body as {
-      token: string;
+    const { title, summary, content, article_type, author, athlete_id } = body as {
       title: string;
       summary: string;
       content: string;
@@ -13,11 +16,6 @@ export async function POST(req: NextRequest) {
       author: string;
       athlete_id: number | null;
     };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
 
     if (!title?.trim() || !content?.trim()) {
       return NextResponse.json({ error: "Titel og indhold er påkrævet" }, { status: 400 });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, deleteStyleCorrection, decideStyleSuggestion } from "@/lib/admin";
+import { deleteStyleCorrection, decideStyleSuggestion } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 /** Godkend/afvis et pipeline-mined stilforslag (mine-edits.ts). */
 export async function PUT(
@@ -13,13 +14,11 @@ export async function PUT(
       return NextResponse.json({ error: "Ugyldigt ID" }, { status: 400 });
     }
 
-    const body = await req.json();
-    const { token, action } = body as { token: string; action: "approve" | "reject" };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
+    const body = await req.json();
+    const { action } = body as { action: "approve" | "reject" };
     if (action !== "approve" && action !== "reject") {
       return NextResponse.json({ error: "Ugyldig handling" }, { status: 400 });
     }
@@ -46,12 +45,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Ugyldigt ID" }, { status: 400 });
     }
 
-    const body = await req.json();
-    const { token } = body as { token: string };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
 
     await deleteStyleCorrection(id);

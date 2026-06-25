@@ -1,16 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getSchoolsWithAthletes } from "@/lib/admin";
+import { getSchoolsWithAthletes } from "@/lib/admin";
 import { SkolerClient } from "./SkolerClient";
 
-export default async function AdminSchoolsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+export default async function AdminSchoolsPage() {
 
   const schools = await getSchoolsWithAthletes();
 
@@ -20,7 +13,7 @@ export default async function AdminSchoolsPage({
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold text-ink">Skoler</h1>
           <Link
-            href={`/admin?token=${token}`}
+            href={`/admin`}
             className="text-sm text-muted hover:text-ink transition-colors"
           >
             ← Tilbage
@@ -31,7 +24,7 @@ export default async function AdminSchoolsPage({
           aktive danske atleter vises. Tom primærfarve → sportens standardfarve.
         </p>
 
-        <SkolerClient schools={schools} token={token!} />
+        <SkolerClient schools={schools} />
       </div>
     </main>
   );

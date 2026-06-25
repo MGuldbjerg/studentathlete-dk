@@ -8,11 +8,9 @@ import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 export function EditArticleForm({
   article,
   athletes,
-  token,
 }: {
   article: Article;
   athletes: Athlete[];
-  token: string;
 }) {
   const [title, setTitle] = useState(article.title);
   const [summary, setSummary] = useState(article.summary ?? "");
@@ -46,7 +44,6 @@ export function EditArticleForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           wrong_phrase: corrWrong.trim(),
           correct_phrase: corrCorrect.trim(),
           category: corrCategory,
@@ -77,7 +74,6 @@ export function EditArticleForm({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           title: title.trim(),
           summary: summary.trim(),
           content,

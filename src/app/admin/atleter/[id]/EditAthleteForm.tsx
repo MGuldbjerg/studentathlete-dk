@@ -5,10 +5,8 @@ import type { Athlete } from "@/lib/types";
 
 export function EditAthleteForm({
   athlete,
-  token,
 }: {
   athlete: Athlete;
-  token: string;
 }) {
   const [photoUrl, setPhotoUrl] = useState(athlete.photo_url ?? "");
   const [photoCredit, setPhotoCredit] = useState(athlete.photo_credit ?? "");
@@ -25,7 +23,6 @@ export function EditAthleteForm({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           photo_url: photoUrl || null,
           photo_credit: photoCredit || null,
           preferred_name: preferredName || null,

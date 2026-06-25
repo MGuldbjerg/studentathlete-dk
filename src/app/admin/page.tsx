@@ -1,16 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount } from "@/lib/admin";
+import { getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 
-export default async function AdminDashboard({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+export default async function AdminDashboard() {
 
   const [drafts, allArticles, pendingPhotos] = await Promise.all([
     getDraftArticles(),
@@ -26,62 +19,62 @@ export default async function AdminDashboard({
 
         <div className="flex flex-wrap gap-3 mb-8">
           <Link
-            href={`/admin/ny-artikel?token=${token}`}
+            href={`/admin/ny-artikel`}
             className="inline-block px-4 py-2 text-sm font-semibold text-white rounded-lg"
             style={{ backgroundColor: "#00205B" }}
           >
             + Ny artikel
           </Link>
           <Link
-            href={`/admin/tilfoej?token=${token}`}
+            href={`/admin/tilfoej`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             + Tilføj atlet
           </Link>
           <Link
-            href={`/admin/atleter?token=${token}`}
+            href={`/admin/atleter`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Atleter
           </Link>
           <Link
-            href={`/admin/sider?token=${token}`}
+            href={`/admin/sider`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Sider
           </Link>
           <Link
-            href={`/admin/indstillinger?token=${token}`}
+            href={`/admin/indstillinger`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Tekster
           </Link>
           <Link
-            href={`/admin/skoler?token=${token}`}
+            href={`/admin/skoler`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Skoler
           </Link>
           <Link
-            href={`/admin/fotos?token=${token}`}
+            href={`/admin/fotos`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Fotos{pendingPhotos > 0 ? ` (${pendingPhotos})` : ""}
           </Link>
           <Link
-            href={`/admin/pipeline?token=${token}`}
+            href={`/admin/pipeline`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Pipeline
           </Link>
           <Link
-            href={`/admin/stilguide?token=${token}`}
+            href={`/admin/stilguide`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Stilguide
           </Link>
           <Link
-            href={`/admin/analytics?token=${token}`}
+            href={`/admin/analytics`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Statistik
@@ -170,14 +163,14 @@ export default async function AdminDashboard({
                   : null}
                 <div className="flex gap-3 mt-3">
                   <Link
-                    href={`/admin/rediger/${draft.id}?token=${token}`}
+                    href={`/admin/rediger/${draft.id}`}
                     className="text-sm font-medium hover:underline"
                     style={{ color: "#00205B" }}
                   >
                     Rediger
                   </Link>
                   <Link
-                    href={`/admin/${draft.id}?token=${token}`}
+                    href={`/admin/${draft.id}`}
                     className="text-sm font-medium text-muted hover:underline"
                   >
                     Forhåndsvis
@@ -220,7 +213,7 @@ export default async function AdminDashboard({
                   </p>
                 </div>
                 <Link
-                  href={`/admin/rediger/${article.id}?token=${token}`}
+                  href={`/admin/rediger/${article.id}`}
                   className="text-sm font-medium flex-shrink-0 ml-4 hover:underline"
                   style={{ color: "#00205B" }}
                 >

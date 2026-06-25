@@ -10,7 +10,7 @@ const SPORTS = [
 
 const DIVISIONS = ["NCAA D1", "NCAA D2", "NCAA D3", "NAIA", "NJCAA"];
 
-export function AddAthleteForm({ token }: { token: string }) {
+export function AddAthleteForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,6 @@ export function AddAthleteForm({ token }: { token: string }) {
 
     const form = new FormData(e.currentTarget);
     const data = {
-      token,
       name: form.get("name") as string,
       sport: form.get("sport") as string,
       university: form.get("university") as string,
@@ -50,7 +49,7 @@ export function AddAthleteForm({ token }: { token: string }) {
         setLoading(false);
         return;
       }
-      router.push(`/admin?token=${token}`);
+      router.push(`/admin`);
       router.refresh();
     } catch {
       setError("Netværksfejl — prøv igen");

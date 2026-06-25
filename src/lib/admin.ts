@@ -1,22 +1,8 @@
-import { getDB, getEnv, ARTICLE_SELECT } from "./db";
+import { getDB, ARTICLE_SELECT } from "./db";
 import { generateSlug } from "./slug";
 import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS } from "./site-content";
 import { extractEvents, seasonFromDate } from "./athlete-events";
-
-// ─── Token-validering ───────────────────────────────────────────────────────
-
-export async function validateAdminToken(token: string | null): Promise<boolean> {
-  if (!token) return false;
-  try {
-    const env = await getEnv();
-    const expected = env.ADMIN_TOKEN;
-    if (!expected) return false;
-    return token === expected;
-  } catch {
-    return false;
-  }
-}
 
 // ─── DB-queries til admin ───────────────────────────────────────────────────
 

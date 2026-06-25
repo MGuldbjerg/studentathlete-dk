@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, upsertSetting } from "@/lib/admin";
+import { upsertSetting } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 import { SETTING_KEYS } from "@/lib/site-content";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { token, values } = body as { token?: string; values?: Record<string, string> };
-
-    if (!(await validateAdminToken(token ?? null))) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
+    const body = await req.json();
+    const { values } = body as { values?: Record<string, string> };
     if (!values || typeof values !== "object") {
       return NextResponse.json({ error: "Ingen værdier" }, { status: 400 });
     }

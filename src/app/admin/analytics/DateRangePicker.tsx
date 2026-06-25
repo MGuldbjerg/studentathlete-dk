@@ -65,12 +65,11 @@ function makePresets(): Preset[] {
 }
 
 interface Props {
-  token: string;
   currentFrom: string;
   currentTo: string;
 }
 
-export function DateRangePicker({ token, currentFrom, currentTo }: Props) {
+export function DateRangePicker({ currentFrom, currentTo }: Props) {
   const router = useRouter();
   const [customFrom, setCustomFrom] = useState(currentFrom);
   const [customTo, setCustomTo] = useState(currentTo);
@@ -78,7 +77,7 @@ export function DateRangePicker({ token, currentFrom, currentTo }: Props) {
   const presets = makePresets();
 
   function navigate(from: string, to: string) {
-    const params = new URLSearchParams({ token, from, to });
+    const params = new URLSearchParams({ from, to });
     router.push(`/admin/analytics?${params.toString()}`);
   }
 

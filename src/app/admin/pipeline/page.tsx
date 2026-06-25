@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getPipelineStats } from "@/lib/admin";
+import { getPipelineStats } from "@/lib/admin";
 import { PipelineActions } from "./PipelineActions";
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -37,14 +37,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default async function PipelinePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+export default async function PipelinePage() {
 
   const stats = await getPipelineStats();
 
@@ -54,7 +47,7 @@ export default async function PipelinePage({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-ink">Pipeline-overblik</h1>
           <Link
-            href={`/admin?token=${token}`}
+            href={`/admin`}
             className="text-sm text-muted hover:text-ink"
           >
             Tilbage
@@ -64,7 +57,7 @@ export default async function PipelinePage({
         {/* Pipeline-handlinger */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-ink mb-3">Kør pipeline</h2>
-          <PipelineActions token={token!} />
+          <PipelineActions />
         </section>
 
         {!stats ? (

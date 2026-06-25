@@ -1,17 +1,9 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { validateAdminToken } from "@/lib/admin";
+import Link from "next/link";
 import { getAllAthletes, getAlumniAthletes } from "@/lib/db";
 import { getSportColor } from "@/lib/types";
 
-export default async function AdminAthletesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+export default async function AdminAthletesPage() {
 
   const [active, alumni] = await Promise.all([
     getAllAthletes(),
@@ -30,7 +22,7 @@ export default async function AdminAthletesPage({
             </p>
           </div>
           <Link
-            href={`/admin?token=${token}`}
+            href={`/admin`}
             className="text-sm text-muted hover:text-ink"
           >
             ← Kladder
@@ -43,7 +35,7 @@ export default async function AdminAthletesPage({
             return (
               <Link
                 key={athlete.id}
-                href={`/admin/atleter/${athlete.id}?token=${token}`}
+                href={`/admin/atleter/${athlete.id}`}
                 className="flex items-center gap-3 p-3 bg-paper rounded-lg border border-border
                            active:scale-[0.98] transition-transform"
               >

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateAdminToken, decidePhotoSuggestion } from "@/lib/admin";
+import { decidePhotoSuggestion } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
 
 export async function POST(
   req: NextRequest,
@@ -12,17 +13,14 @@ export async function POST(
       return NextResponse.json({ error: "Ugyldigt id" }, { status: 400 });
     }
 
+    if (!(await isAdmin(req.headers))) {
+      return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+    }
     const body = await req.json();
-    const { token, action, credit } = body as {
-      token: string;
+    const { action, credit } = body as {
       action: "approve" | "reject";
       credit?: string;
     };
-
-    const valid = await validateAdminToken(token ?? null);
-    if (!valid) {
-      return NextResponse.json({ error: "Ugyldigt token" }, { status: 404 });
-    }
     if (action !== "approve" && action !== "reject") {
       return NextResponse.json({ error: "Ugyldig handling" }, { status: 400 });
     }

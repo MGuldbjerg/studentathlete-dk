@@ -6,11 +6,9 @@ import type { AthleteEventRow } from "@/lib/athlete-events";
 
 export function AthleteEventsEditor({
   athleteId,
-  token,
   events,
 }: {
   athleteId: number;
-  token: string;
   events: AthleteEventRow[];
 }) {
   const router = useRouter();
@@ -36,7 +34,6 @@ export function AthleteEventsEditor({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           athlete_id: athleteId,
           summary: summary.trim(),
           award_name: awardName.trim() || null,
@@ -67,7 +64,7 @@ export function AthleteEventsEditor({
       const res = await fetch("/api/admin/athlete-event", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, id }),
+        body: JSON.stringify({ id }),
       });
       if (res.ok) router.refresh();
     } finally {

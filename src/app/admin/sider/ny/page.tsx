@@ -1,16 +1,8 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { validateAdminToken } from "@/lib/admin";
+import Link from "next/link";
 import { NewPageForm } from "./NewPageForm";
 
-export default async function NewPagePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+export default async function NewPagePage() {
 
   return (
     <main className="min-h-screen bg-surface">
@@ -18,14 +10,14 @@ export default async function NewPagePage({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-ink">Opret ny side</h1>
           <Link
-            href={`/admin/sider?token=${token}`}
+            href={`/admin/sider`}
             className="text-sm text-muted hover:text-ink transition-colors"
           >
             ← Tilbage
           </Link>
         </div>
 
-        <NewPageForm token={token!} />
+        <NewPageForm />
       </div>
     </main>
   );

@@ -1,21 +1,16 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { validateAdminToken, getArticleById } from "@/lib/admin";
+import { getArticleById } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminActions } from "./AdminActions";
 
 export default async function AdminArticlePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ token?: string }>;
 }) {
   const { id: idStr } = await params;
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
 
   const id = parseInt(idStr, 10);
   if (isNaN(id)) notFound();
@@ -65,7 +60,7 @@ export default async function AdminArticlePage({
             <span>LLM: {article.llm_provider}/{article.model_used}</span>
           )}
           <Link
-            href={`/admin/rediger/${article.id}?token=${token}`}
+            href={`/admin/rediger/${article.id}`}
             className="font-medium hover:underline"
             style={{ color: "#00205B" }}
           >
@@ -92,7 +87,7 @@ export default async function AdminArticlePage({
       </div>
 
       {/* Sticky knapper i bunden */}
-      <AdminActions articleId={article.id} token={token!} />
+      <AdminActions articleId={article.id} />
     </main>
   );
 }

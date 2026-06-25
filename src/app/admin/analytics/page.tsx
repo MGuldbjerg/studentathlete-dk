@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { validateAdminToken } from "@/lib/admin";
 import { getDB } from "@/lib/db";
 import { getAnalytics } from "@/lib/analytics";
 import { DateRangePicker } from "./DateRangePicker";
@@ -55,12 +54,10 @@ function Table({ rows, keyCol, valCol }: { rows: Row[]; keyCol: string; valCol: 
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string }>;
 }) {
-  const { token, from: rawFrom, to: rawTo } = await searchParams;
+  const { from: rawFrom, to: rawTo } = await searchParams;
 
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
 
   // Standard: seneste 30 dage
   const todayDate = new Date();
@@ -110,7 +107,7 @@ export default async function AnalyticsPage({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-ink">Statistik</h1>
           <a
-            href={`/admin?token=${token}`}
+            href={`/admin`}
             className="text-sm text-muted hover:text-ink transition-colors"
           >
             ← Admin
@@ -119,7 +116,7 @@ export default async function AnalyticsPage({
 
         {/* Datointerval-vælger */}
         <div className="bg-paper rounded-lg border border-border p-4 mb-6">
-          <DateRangePicker token={token ?? ""} currentFrom={from} currentTo={to} />
+          <DateRangePicker currentFrom={from} currentTo={to} />
         </div>
 
         {/* Nøgletal */}

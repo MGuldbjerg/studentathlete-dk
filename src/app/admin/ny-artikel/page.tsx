@@ -1,17 +1,9 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { validateAdminToken } from "@/lib/admin";
+import Link from "next/link";
 import { getAllAthletes } from "@/lib/db";
 import { NewArticleForm } from "./NewArticleForm";
 
-export default async function NewArticlePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  const valid = await validateAdminToken(token ?? null);
-  if (!valid) notFound();
+export default async function NewArticlePage() {
 
   const athletes = await getAllAthletes();
 
@@ -21,14 +13,14 @@ export default async function NewArticlePage({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-ink">Ny artikel</h1>
           <Link
-            href={`/admin?token=${token}`}
+            href={`/admin`}
             className="text-sm text-muted hover:text-ink transition-colors"
           >
             ← Tilbage
           </Link>
         </div>
 
-        <NewArticleForm athletes={athletes} token={token!} />
+        <NewArticleForm athletes={athletes} />
       </div>
     </main>
   );

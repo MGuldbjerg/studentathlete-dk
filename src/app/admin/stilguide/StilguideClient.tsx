@@ -19,11 +19,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 function SuggestionRow({
   suggestion,
-  token,
   onDecided,
 }: {
   suggestion: StyleCorrection;
-  token: string;
   onDecided: (id: number, approved: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -34,7 +32,7 @@ function SuggestionRow({
       const res = await fetch(`/api/admin/stilguide/${suggestion.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, action }),
+        body: JSON.stringify({ action }),
       });
       if (res.ok) onDecided(suggestion.id, action === "approve");
     } finally {
@@ -90,11 +88,9 @@ function SuggestionRow({
 export function StilguideClient({
   initialCorrections,
   initialSuggestions,
-  token,
 }: {
   initialCorrections: StyleCorrection[];
   initialSuggestions: StyleCorrection[];
-  token: string;
 }) {
   const [corrections, setCorrections] = useState(initialCorrections);
   const [suggestions, setSuggestions] = useState(initialSuggestions);
@@ -124,7 +120,6 @@ export function StilguideClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token,
           wrong_phrase: wrongPhrase.trim(),
           correct_phrase: correctPhrase.trim(),
           category,
@@ -167,7 +162,6 @@ export function StilguideClient({
       const res = await fetch(`/api/admin/stilguide/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
       });
 
       if (res.ok) {
@@ -206,7 +200,7 @@ export function StilguideClient({
           </p>
           <div className="flex flex-col gap-1.5">
             {suggestions.map((s) => (
-              <SuggestionRow key={s.id} suggestion={s} token={token} onDecided={handleDecided} />
+              <SuggestionRow key={s.id} suggestion={s} onDecided={handleDecided} />
             ))}
           </div>
         </div>

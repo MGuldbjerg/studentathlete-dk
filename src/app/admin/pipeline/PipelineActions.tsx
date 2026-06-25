@@ -53,7 +53,7 @@ const PHASE_LABEL: Record<Phase, string> = {
   done: "",
 };
 
-export function PipelineActions({ token }: { token: string }) {
+export function PipelineActions() {
   const [runState, setRunState] = useState<RunState | null>(null);
   const [lastResult, setLastResult] = useState<{
     step: string;
@@ -89,7 +89,6 @@ export function PipelineActions({ token }: { token: string }) {
     pollRef.current = setInterval(async () => {
       try {
         const params = new URLSearchParams({
-          token,
           workflow: runState.workflowFile,
           after: runState.triggeredAt,
         });
@@ -129,7 +128,7 @@ export function PipelineActions({ token }: { token: string }) {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-  }, [runState?.workflowFile, runState?.triggeredAt, runState?.phase, token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [runState?.workflowFile, runState?.triggeredAt, runState?.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleRun(stepId: string) {
     if (runState) return;
@@ -138,7 +137,7 @@ export function PipelineActions({ token }: { token: string }) {
     const res = await fetch("/api/admin/pipeline/trigger", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, step: stepId }),
+      body: JSON.stringify({ step: stepId }),
     });
 
     const data = await res.json() as {
