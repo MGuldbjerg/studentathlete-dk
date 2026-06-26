@@ -194,6 +194,17 @@ export default async function AtleterPage({
         <>
           <SortTabs sort={sort} />
 
+          {/* Forklaring af dimissions-badge */}
+          <div className="mb-8 flex items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-muted">
+            <span aria-hidden className="leading-none">🎓</span>
+            <p>
+              Hatten markerer atleter, der er{" "}
+              <strong className="text-ink">dimitteret inden for det seneste år</strong> — perioden,
+              hvor vi stadig følger draft- og kontraktnyheder. Derefter flyttes de til{" "}
+              <em>Tidligere atleter</em>.
+            </p>
+          </div>
+
           {/* Aktive atleter */}
           <h2
             className="text-xl font-bold text-ink mb-6"

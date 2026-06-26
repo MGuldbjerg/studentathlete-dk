@@ -11,6 +11,9 @@ export function EditAthleteForm({
   const [photoUrl, setPhotoUrl] = useState(athlete.photo_url ?? "");
   const [photoCredit, setPhotoCredit] = useState(athlete.photo_credit ?? "");
   const [preferredName, setPreferredName] = useState(athlete.preferred_name ?? "");
+  const [gradYear, setGradYear] = useState(
+    athlete.expected_graduation ? String(athlete.expected_graduation) : "",
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
@@ -26,6 +29,7 @@ export function EditAthleteForm({
           photo_url: photoUrl || null,
           photo_credit: photoCredit || null,
           preferred_name: preferredName || null,
+          expected_graduation: gradYear.trim() ? parseInt(gradYear, 10) : null,
         }),
       });
 
@@ -61,6 +65,29 @@ export function EditAthleteForm({
         />
         <p className="text-[11px] text-muted mt-1">
           Det korte navn der bruges i artikler efter første omtale (fx &quot;Marie Eline&quot; i stedet for &quot;Marie Eline Madsen&quot;). Tomt = fuldt navn bruges.
+        </p>
+      </div>
+
+      {/* Dimissionsår */}
+      <div className="bg-paper rounded-lg border border-border p-4">
+        <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
+          Dimissionsår
+        </p>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={2000}
+          max={2100}
+          value={gradYear}
+          onChange={(e) => setGradYear(e.target.value)}
+          placeholder="fx 2025"
+          className="w-32 px-3 py-2.5 border border-border rounded-lg bg-paper text-ink text-sm
+                     placeholder:text-muted focus:outline-none focus:border-flag-blue"
+        />
+        <p className="text-[11px] text-muted mt-1">
+          Året atleten dimitterer. 🎓-hatten vises i ét år efter (draft-/kontraktvinduet);
+          derefter flyttes atleten automatisk til &quot;Tidligere atleter&quot;. Tomt = ukendt
+          (vises som aktiv uden hat).
         </p>
       </div>
 

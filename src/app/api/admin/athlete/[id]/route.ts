@@ -17,16 +17,27 @@ export async function PUT(
       return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
     const body = await req.json();
-    const { photo_url, photo_credit, preferred_name } = body as {
+    const { photo_url, photo_credit, preferred_name, expected_graduation } = body as {
       photo_url?: string | null;
       photo_credit?: string | null;
       preferred_name?: string | null;
+      expected_graduation?: number | null;
     };
+
+    // Kun et fornuftigt 4-cifret år accepteres; alt andet ryddes.
+    const gradYear =
+      typeof expected_graduation === "number" &&
+      Number.isInteger(expected_graduation) &&
+      expected_graduation >= 2000 &&
+      expected_graduation <= 2100
+        ? expected_graduation
+        : null;
 
     await updateAthlete(id, {
       photo_url: photo_url?.trim() || null,
       photo_credit: photo_credit?.trim() || null,
       preferred_name: preferred_name?.trim() || null,
+      expected_graduation: gradYear,
     });
 
     return NextResponse.json({ success: true });

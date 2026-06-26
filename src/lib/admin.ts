@@ -738,18 +738,20 @@ export async function updateAthlete(
     photo_url?: string | null;
     photo_credit?: string | null;
     preferred_name?: string | null;
+    expected_graduation?: number | null;
   },
 ): Promise<void> {
   const db = await getDB();
   if (!db) return;
   await db
     .prepare(
-      `UPDATE athletes SET photo_url = ?, photo_credit = ?, preferred_name = ?, updated_at = datetime('now') WHERE id = ?`
+      `UPDATE athletes SET photo_url = ?, photo_credit = ?, preferred_name = ?, expected_graduation = ?, updated_at = datetime('now') WHERE id = ?`
     )
     .bind(
       fields.photo_url ?? null,
       fields.photo_credit ?? null,
       fields.preferred_name ?? null,
+      fields.expected_graduation ?? null,
       id,
     )
     .run();
