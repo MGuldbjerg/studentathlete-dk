@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { SearchBar } from "./SearchBar";
+import { AdminBarLink } from "./AdminBarLink";
 
 export function Header() {
   return (
@@ -22,18 +23,23 @@ export function Header() {
           />
         </a>
 
-        {/* Desktop navigation + søgefelt */}
-        <div className="hidden md:flex items-center gap-6 flex-1 justify-end">
-          <a
-            href="/atleter"
-            className="text-sm font-medium text-white/70 hover:text-white transition-colors whitespace-nowrap"
-          >
-            Atleter
-          </a>
-          <div className="w-full max-w-sm">
-            <Suspense fallback={null}>
-              <SearchBar />
-            </Suspense>
+        {/* Højre side: admin-knap (vises på alle skærme når logget ind) + desktop-nav */}
+        <div className="flex items-center gap-4 md:gap-6 md:flex-1 md:justify-end">
+          <AdminBarLink />
+
+          {/* Desktop navigation + søgefelt */}
+          <div className="hidden md:flex items-center gap-6 flex-1 justify-end">
+            <a
+              href="/atleter"
+              className="text-sm font-medium text-white/70 hover:text-white transition-colors whitespace-nowrap"
+            >
+              Atleter
+            </a>
+            <div className="w-full max-w-sm">
+              <Suspense fallback={null}>
+                <SearchBar />
+              </Suspense>
+            </div>
           </div>
         </div>
       </div>
