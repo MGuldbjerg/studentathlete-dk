@@ -42,3 +42,6 @@ next-env.d.ts
 .wrangler/
 .env.local
 .open-next/
+
+# Graphify knowledge-graph build output (generated, ~3MB)
+graphify-out/

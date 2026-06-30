@@ -4,6 +4,7 @@
  */
 
 import * as cheerio from "cheerio";
+import { detectHonor, HONORS_BOOST } from "./honors";
 
 export interface ExtractedStory {
   url: string;
@@ -445,6 +446,10 @@ export async function extractStoriesForSchool(
     const searchText = `${item.title} ${item.description} ${item.link}`;
     const matches = matchAthletes(searchText, athletes);
 
+    // Hædersbevisninger ("Player of the Week" m.fl.) er stærke artikel-triggere
+    // → boost relevance så generate-articles prioriterer dem. Se honors.ts.
+    const honor = detectHonor(`${item.title} ${item.description}`);
+
     for (const { athlete, relevance_score } of matches) {
       // Dedupliker: samme URL + same atlet
       const key = `${item.link}::${athlete.id}`;
@@ -457,7 +462,9 @@ export async function extractStoriesForSchool(
         summary: item.description || null,
         content: null,
         athlete_id: athlete.id,
-        relevance_score,
+        relevance_score: honor
+          ? Math.min(100, relevance_score + HONORS_BOOST)
+          : relevance_score,
       });
     }
   }
