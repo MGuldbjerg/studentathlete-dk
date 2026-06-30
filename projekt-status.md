@@ -1,6 +1,37 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-23 (redaktionel kontrol Phase 1a: viden-guider redigerbare i admin; OG-hotfix; Fanatics-template; /viden+/skoler)
+**Sidst opdateret**: 2026-06-30 (faktatjek + APA-kildeangivelse på sport-/viden-tekster)
+
+## 👉 Seneste arbejde (2026-06-30) — faktatjek (djævelens advokat) + APA-kilder på de statiske tekster
+**Mål (Mikkel): maksimér ethos — alle påstande i sport-pillartekster + viden-guider websøgt og verificeret, og "Kilder" omlagt til APA-referenceliste (akademisk stil), fordi AI er en integreret del af projektet.**
+
+Verificeret påstand-for-påstand mod primærkilder. Teksterne var generelt meget præcise; rettelser anvendt i `src/lib/sport-content.ts` + `src/lib/viden-content.ts` (tsc rent):
+- 🔴 **Faktafejl rettet — Morten Andersen** (`sport-content.ts`): påstod han er NFL's mestscorende spiller gennem tiderne. Forkert siden 2018 (Adam Vinatieri passerede ham → Andersen nr. 2). Nu korrekt + "Big House" = præcis 107.601 + Signing Day omformuleret (december-perioden er nu primær).
+- 🟠 **Inge Nissen** (basketball): titlerne 1979/1980 var **AIAW**, ikke NCAA (NCAA kørte ikke kvindebasketball før 1981-82) → markeret som "AIAW, forløberen for NCAA-turneringen".
+- 🟠 Football-intro "wide receivers" → "linemen"; **volleyball** "titusinder" → reelle ~18.000-19.000 (finalestævne); **roning** Sutton strammet til den kildebelagte kendsgerning (første dansker på Cal-holdet, 2015).
+- 🟡 Blødgjort ukildebelagte påstande: basketball-seertal, fodbold "faktisk flest danskere" (→ "egen optælling"), football-kausalpåstand. "knap 90 mesterskaber" → "omkring 90 (kvindebrydning = nr. 91 i 2026)".
+- **APA-omlægning**: alle "Kilder"/`sources` (17 i sport, 27 i viden) → `Org. (År, D. måned). Title.` som klikbar APA-reference (URL = link-mål bag citatteksten). Tilføjet støttekilder (Pro Football HOF, Women's Basketball HOF, Cal Athletics, golf-history).
+- **Statiske sider** (om/ai-brug/kontakt): ingen eksterne faktapåstande → ingen APA nødvendig; Twemoji CC-BY 4.0-kreditering var allerede korrekt. NB: `om.md` "over 100 aktive atleter" = selvpåstand bundet til live-DB — hold den ærlig når rosteren ændrer sig.
+- **Forbehold**: nyhedskilder uden tydelig byline brugt med organisation-som-forfatter (gyldig APA-praksis); enkelte `.com`-opslagssider er `(n.d.)`. Personlige bylines kan tilføjes på ønske.
+- **Ikke committet/deployet endnu** — afventer Mikkels review.
+
+## 👉 Seneste arbejde (2026-06-25)
+- **Honors-monitor LØST** (`pipeline/discover/honors.ts` + `_honors-test.ts`, 15/15 grøn): regelbaseret `detectHonor()` genkender ugentlige konference-hædersbevisninger ("Player/Athlete/Pitcher/Freshman of the Week", "of the Month", "All-Conference", "All-American"). Wiret ind i `extract-story.extractStoriesForSchool` → `HONORS_BOOST=15` (kappet ved 100) løfter honors-historier i `stories.relevance_score`, så `generate-articles` prioriterer dem. **Ingen ny infra**: honors flyder allerede gennem de skole-feeds der overvåges i check-sources (skolen poster typisk selv "X kåret til Conference POTW"). Verificeret web: konference-sites er Sidearm m. `/rss.aspx` (big12sports.com `.dbml`/`.aspx`, meacsports.com `rss_feeds.aspx`) — `Source.source_type` har allerede `'conference'`-værdi reserveret → konference-feeds kan tilføjes som backup uden skemaændring.
+- **Box-score-API research (ikke wiret — afventer go):** `henrygd/ncaa-api` (gratis, self-hostbar, `/game/{id}/boxscore`, multi-sport) = bedste API, MEN nøglet til ncaa.com game-IDs og individuelle stat-lines tynde for D2/D3/NJCAA (stor del af seed). → fast-path for D1-marquee, IKKE erstatning for nuværende Sidearm-scrape (`box-score.ts`). `CollegeFootballData` = rig men kun football. Anbefaling: behold scrape som baseline; tilføj evt. ncaa-api som D1-fast-path senere (kræver game-ID-opslag + build-factsheet-integration = rører genererings-kernen).
+- **Hashtags: PAUSET** på Mikkels anmodning (research gjort: Bluesky 2-3 tags = reel discovery, Facebook 0-1, identitets-tag #DanskeriUSA højest værdi; undgå scholarship-framing).
+
+## 👉 Seneste arbejde (2026-06-24)
+- **Athlete career-timeline LØST + deployet** (commits 9ff4eca + 131f857; se [[project-studentathlete-generation]]). `athlete_events`-tabel (migration-023) + regelbaseret extractor (`src/lib/athlete-events.ts`) der høster priser/begivenheder ved publish (dedup, fail-safe). Genereringen fodres med kontinuitets-kontekst (`pipeline/generate/timeline.ts`, "N. år i træk"-derivation) via athleteFactsBlock (alle 4 typer). Profil viser "Karriere-højdepunkter"; admin-redigerbar (tilføj/slet) på atlet-siden. Backfill kørt (9 begivenheder). Verificeret live (Marie Madsen).
+- **Presseetik-prompts #1 + #2 LØST** (commit 2efc484, pipeline): artikeltekst fra stats/egen komposition; kilde kun til ét citat + tal-tjek; navngiv medie tidligt.
+- **Cookie-features LØST** (commits 4a11a58 + 86fc617): scan → sitet er **cookieløst i dag** (ingen Set-Cookie nogen steder). GDPR-samtykkeboks bygget men **dormant** (vises kun når `consent.enabled` slås til i admin → Tekster — gør det når ads/tracking aktiveres). `/cookies`-deklaration (redigerbar) + footer-link + sitemap. `sa_consent`-cookie; "Kun nødvendige" ligestillet m. "Accepter alle"; fremtidige ad-scripts skal læse `sa_consent.marketing`.
+- **weekly-digest fix** (commit f1bba02): `.ts`-extension-import fjernet (TS5097).
+
+### Mulige næste skridt (intet aftalt)
+- Aktivér ads → slå cookie-boks til + wire ad-scripts bag `sa_consent.marketing`.
+- Fanatics-affiliate (bygges fra spec) · crisp-card pre-render (R2/CI) · valgfri citatskik-stramning (mindre kvalitativ udtrækning ved rene medie-kilder).
+
+---
+
 
 ## 👉 Seneste arbejde (2026-06-23) — redaktionel kontrol (Phase 1) + hotfix
 **Mål (Mikkels regel): Mikkel skal kunne redigere ALT selv i /admin, uafhængigt af AI-rate-limits. Plan: [EDITORIAL-PLAN.md](EDITORIAL-PLAN.md) i repo-roden.**
