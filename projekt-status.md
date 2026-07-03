@@ -1,6 +1,23 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-07-02 (faktatjek fra 06-30 er nu LIVE — D1 re-seedet + deployet)
+**Sidst opdateret**: 2026-07-03 (strategi-sparring → stor bygge-batch, commit 7868856, deployet 4e93c142)
+
+## 👉 Seneste arbejde (2026-07-02/03) — strategibeslutninger + bygge-batch (alt LIVE)
+**Mikkels beslutninger (2026-07-02, sparring):** INGEN auto-publish nogensinde (menneskelig godkendelse = permanent politik; skalering via landsredaktør-model) · DK kører på $0 (Anthropic-nøgle droppet — kreditter kom aldrig; JSON-mode på gratis-kæden i stedet) · Canada nedprioriteret (dæknings-gab-logik) · skader = normal dækning (kun tidslinje-hallucination skal værnes) · kildepolitik: team-sites OK, kommercielle medier kun citatskik; langsigtede søjler = frivillige/freelance-interviews (evt. YouTube) · NSSA-leadgen genoplives når motoren er bevist (15% af fee-aftale fandtes i site v1). **PLAN-autonomi-uk.md er OMSKREVET** til at afspejle alt dette.
+
+**Bygget + deployet (migrations 024–028 kørt remote FØR deploy; alle 193 tests grønne; typecheck ren):**
+1. **JSON structured outputs på gratis-kæden**: `GenerateOpts.json` → Mistral/Groq `response_format: json_object`, Gemini `responseMimeType` (CF AI/Anthropic ignorerer flaget bevidst). Skrivefasen beder om `{title, summary, content}`-JSON (`buildSystemPrompt(..., {jsonOutput:true})` + `parseArticleOutputSmart` m. legacy-fallback); `json:true` på alle 6 JSON-kaldesteder (verify-article, box-score, build-factsheet, verify-story, mine-edits, generate). Dræber fed-titel/tomme kladder + prompt-ekko. Test: `_parse-output-test.ts` (19).
+2. **Sensitive-detektor** (`pipeline/discover/sensitive.ts`, regelbaseret): crime/discipline/eligibility/personal; værn mod sports-idiomer ("sudden death", "eligibility remaining", "court"). Migration-024 `stories.sensitive`; sat i extract-story + google-news; **rød FØLSOM-badge** øverst i admin-kladdeliste (flagede sorteres først); `sensitiveCareBlock()` føjes til skrive-prompten. Skader er BEVIDST ikke en kategori. Test: `_sensitive-test.ts` (23).
+3. **Skade-tidslinje-værn**: system-prompt regel 23 (tidslinjer KUN fra kilden, aldrig estimeret) + verify-article SPECIAL RULE (usourced tidslinje → high).
+4. **Byline-fundament**: migration-025 `articles.author_role` (NULL=AI; 'human' skjuler AiDisclaimer i alle 4 templates); redigerbar i admin-editoren (rolle-select). Forbereder frivillige/interviews.
+5. **Synlige rettelser**: migration-026 `correction_note`/`corrected_at`; admin-felt (kun publicerede); `CorrectionNotice`-boks ("Rettet [dato]: …") før SourceBox i alle templates. `corrected_at` stemples automatisk i updateArticle.
+6. **Review-log**: migration-027 `review_log`; publishArticle logger approved_as_is/edited (content vs original_content), deleteArticle logger rejected (kun AI-kladder); 28-dages fordeling i weekly digest. Formål: EVIDENS for review-omkostning (landsredaktør-rekruttering), ikke auto-publish.
+7. **Leads m. attribution (NSSA-prep)**: migration-028 `leads`; offentlig side `/spil-i-usa` (guide-links + formular) → `/api/lead` (isbot + same-origin + honeypot + feltlængder); admin → **Leads** (statusflow ny→kontaktet→videresendt→lukket) + badge på dashboard. Verificeret live: gyldig gemmes, evil-origin + honeypot smides stille væk, tom → 400. Syntetisk verify-række slettet.
+8. **YouTube-embeds**: `src/lib/youtube.ts` (`youtubeIdFromUrl` — kun blokke der KUN er en YT-URL; nocookie-domæne = cookieløs status bevaret) + ArticleBody-branch. Test: `_youtube-test.ts` (17).
+9. **`/ig` link-i-bio-side** (noindex, mobil-først, seneste 12 artikler som store tryk-mål + CTA'er) — til Instagram-profilens bio-link.
+10. **Oprydning**: X-secrets slettet fra GitHub (API død → social-poster springer X over); migrate.sh manglede 023, nu 023–028; pre-eksisterende typefejl i `_honors-test.ts` fikset; admin article-PUT whitelister nu felter eksplicit.
+
+**Udestående før sæsonstart (fra omskrevet plan):** R2 pre-render af kampkort · CI-testkørsel på push · ugentlig D1-backup · D1↔kode drift-tjek på sport/viden-tekster · newsletter (fase 1.5) · Meta-app til Facebook+Instagram (samme app, FB-kode findes).
 
 ## 👉 Seneste arbejde (2026-07-02) — faktatjekket indhold DEPLOYET til D1 + Worker
 **Opdaget**: 06-30-faktatjekket (commit 307ad7b) ramte kun `src/lib/sport-content.ts`/`viden-content.ts` — men alle 13 sport- + 13 viden-sider har D1-overrides (Phase 1, `resolveSportContent`/pages-tabellen fletter D1 over kode), og alle 26 rækker var seedet **06-24, FØR faktatjekket** → intet af det var faktisk live. Mikkel havde selv lappet `football`-siden manuelt i admin samme morgen (kun Vinatieri-delen, ikke Big House/APA) — den rettelse er nu overskrevet af den fulde, kildebelagte version fra koden (samme faktakonklusion, mere komplet).
