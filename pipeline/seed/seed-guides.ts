@@ -11,6 +11,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { VIDEN_GUIDES, guideToMarkdown } from "../../src/lib/viden-content";
+import { guidesContentHash, seedHashUpsertSql, SEED_HASH_KEYS } from "../lib/content-hash";
 
 const esc = (s: string) => s.replace(/'/g, "''");
 
@@ -27,5 +28,8 @@ ON CONFLICT(slug) DO UPDATE SET
   updated_at = datetime('now');`;
 });
 
+// Seed-hash-stempel: fortæller drift-tjekket at D1 nu matcher denne kode-version
+stmts.push(seedHashUpsertSql(SEED_HASH_KEYS.guides, guidesContentHash()));
+
 writeFileSync("db/seed-guides.sql", stmts.join("\n\n") + "\n");
-console.log(`Skrev ${stmts.length} guide-upserts til db/seed-guides.sql`);
+console.log(`Skrev ${stmts.length - 1} guide-upserts + seed-hash til db/seed-guides.sql`);

@@ -1,0 +1,53 @@
+name: CI (typecheck + tests)
+
+# Kører på hvert push/PR til main — testsuiterne er offline (stubs, ingen D1/LLM)
+# og hele kørslen tager ~2 min. Fanger parser-regressioner FØR søndagens scrape.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Typecheck src (Next)
+        run: npx tsc --noEmit
+
+      - name: Typecheck pipeline
+        run: npx tsc -p pipeline/tsconfig.json --noEmit
+
+      - name: Unit-tests
+        run: |
+          set -e
+          for t in \
+            pipeline/generate/_parse-output-test.ts \
+            pipeline/generate/_boxscore-test.ts \
+            pipeline/discover/_sensitive-test.ts \
+            pipeline/discover/_honors-test.ts \
+            pipeline/learn/_mine-edits-test.ts \
+            pipeline/lib/_danish-cities-test.ts \
+            pipeline/lib/_athlete-identity-test.ts \
+            pipeline/social/_social-test.ts \
+            src/lib/_analytics-test.ts \
+            src/lib/_youtube-test.ts
+          do
+            echo "── $t"
+            npx tsx "$t"
+          done
+
+      # Ingen Discord-notify: GitHub sender selv mail ved brudt CI på main,
+      # og PR-status er synlig i UI'et.

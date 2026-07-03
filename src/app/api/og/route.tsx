@@ -1,9 +1,13 @@
 import { ImageResponse } from "next/og";
+import type { ReactElement } from "react";
 import { NextRequest } from "next/server";
-import { SPORT_COLORS } from "@/lib/types";
 import { getDB, getEnv } from "@/lib/db";
-
-const FALLBACK_COLOR = "#00205B";
+import { cardBlobKey } from "@/lib/seo";
+import {
+  buildMatchCardElement,
+  getSportColorSafe,
+  type CardData,
+} from "@/lib/og-card";
 
 // ─── Fonte + logo som assets ─────────────────────────────────────────────────
 // Satori (ImageResponse) har INGEN default-font på Workers — uden eksplicit
@@ -65,11 +69,6 @@ function ogFonts(assets: OgAssets) {
   ];
 }
 
-function getSportColorSafe(sport: string | null): string {
-  if (!sport) return FALLBACK_COLOR;
-  return SPORT_COLORS[sport.toLowerCase()] ?? FALLBACK_COLOR;
-}
-
 // ─── Eksplicit edge-cache ────────────────────────────────────────────────────
 // Worker-svar caches IKKE automatisk på edge (Cache-Control alene gør intet
 // dér) — uden cache.put renderes hvert billede ved HVERT sidevisning, og satori
@@ -97,38 +96,6 @@ async function withEdgeCache(url: string, res: Response): Promise<Response> {
   return res;
 }
 
-// Twemoji-piktogrammer (CC-BY 4.0 — krediteret på /ai-brug) pr. sport-nøgle
-const SPORT_EMOJI: Record<string, string> = {
-  football: "🏈",
-  basketball: "🏀",
-  baseball: "⚾",
-  fodbold: "⚽",
-  "svømning": "🏊",
-  svoemning: "🏊",
-  atletik: "🏃",
-  golf: "⛳",
-  tennis: "🎾",
-  roning: "🚣",
-  gymnastik: "🤸",
-  ishockey: "🏒",
-  volleyball: "🏐",
-};
-
-function getSportEmoji(sport: string | null): string {
-  if (!sport) return "🏅";
-  return SPORT_EMOJI[sport.toLowerCase()] ?? "🏅";
-}
-
-interface CardData {
-  title: string;
-  athlete_name: string | null;
-  sport: string | null;
-  university: string | null;
-  primary_color: string | null;
-  fact_sheet: string | null;
-  created_at: string;
-}
-
 /** Hent kampkort-data for én artikel (én query, fail-soft → null). */
 async function getCardData(articleId: number): Promise<CardData | null> {
   try {
@@ -152,36 +119,6 @@ async function getCardData(articleId: number): Promise<CardData | null> {
   }
 }
 
-interface CardFacts {
-  opponent: string | null;
-  competition: string | null;
-  date: string | null;
-  finalScore: string | null;
-  outcome: string | null;
-}
-
-function parseCardFacts(factSheetJson: string | null): CardFacts {
-  const empty: CardFacts = { opponent: null, competition: null, date: null, finalScore: null, outcome: null };
-  if (!factSheetJson) return empty;
-  try {
-    const fs = JSON.parse(factSheetJson) as {
-      event?: { opponent?: string | null; competition?: string | null; date?: string | null } | null;
-      result?: { final_score?: string | null; outcome?: string | null } | null;
-    };
-    return {
-      opponent: fs.event?.opponent ?? null,
-      competition: fs.event?.competition ?? null,
-      date: fs.event?.date ?? null,
-      finalScore: fs.result?.final_score ?? null,
-      outcome: fs.result?.outcome ?? null,
-    };
-  } catch {
-    return empty;
-  }
-}
-
-const HEX_RE = /^#[0-9a-fA-F]{6}$/;
-
 /**
  * Dynamisk OG-billede (1200×630 PNG) til artikler, atleter og sport-sider.
  *
@@ -198,15 +135,26 @@ export async function GET(req: NextRequest) {
   if (cached) return cached;
 
   const type = searchParams.get("type") || "article";
-  const assets = await loadOgAssets(req.nextUrl.origin);
 
   // Kampkort: synligt cover genereret fra artiklens egne data (IDEA-billeder.md niveau 1)
   if (type === "card") {
     const articleId = parseInt(searchParams.get("article") ?? "", 10);
-    const data = Number.isFinite(articleId) ? await getCardData(articleId) : null;
-    if (data) return withEdgeCache(req.url, matchCard(data, assets));
+    if (Number.isFinite(articleId)) {
+      // 1) Pre-rendret 1200×630 fra pipelinen (card_blobs, migration-029) —
+      //    skarpt kort UDEN satori-CPU på free-plan. Fail-soft til fallback.
+      const blob = await getCardBlob(articleId);
+      if (blob) return withEdgeCache(req.url, blob);
+      // 2) Fallback: on-the-fly 600×315 (free-plan-budgettet) — som hidtil
+      const data = await getCardData(articleId);
+      if (data) {
+        const assets = await loadOgAssets(req.nextUrl.origin);
+        return withEdgeCache(req.url, matchCard(data, assets));
+      }
+    }
     // Fald igennem til generisk design med de params der måtte være sat
   }
+
+  const assets = await loadOgAssets(req.nextUrl.origin);
 
   const title = searchParams.get("title") || "StudentAthlete.dk";
   const subtitle = searchParams.get("subtitle") || "";
@@ -414,210 +362,11 @@ export async function GET(req: NextRequest) {
   ));
 }
 
-/** Kampkort-cover: skolefarve + sport-piktogram + modstander/score fra faktaarket. */
+/** Kampkort-fallback: on-the-fly 600×315 via det DELTE element-træ (og-card.ts). */
 function matchCard(data: CardData, assets: OgAssets) {
-  const facts = parseCardFacts(data.fact_sheet);
-  const color =
-    data.primary_color && HEX_RE.test(data.primary_color)
-      ? data.primary_color
-      : getSportColorSafe(data.sport);
-  const emoji = getSportEmoji(data.sport);
-  const sportLabel = data.sport
-    ? data.sport.charAt(0).toUpperCase() + data.sport.slice(1)
-    : null;
-  const dateLabel =
-    facts.date ??
-    new Date(data.created_at).toLocaleDateString("da-DK", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  const name = data.athlete_name ?? data.title;
-  const nameSize = name.length > 22 ? 52 : 64;
-
   return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "1200px",
-          height: "630px",
-          transform: "scale(0.5)",
-          transformOrigin: "top left",
-          display: "flex",
-          position: "relative",
-          fontFamily: "'Playfair Display', serif",
-          overflow: "hidden",
-        }}
-      >
-        {/* Baggrund i skolefarve — solid + rgba-overlay (alpha-hex i gradients fejler i satori) */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: color }} />
-        <div
-          style={{
-            position: "absolute",
-            top: 0, left: 0, right: 0, bottom: 0,
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: 0, left: 0, right: 0, bottom: 0,
-            opacity: 0.06,
-            backgroundImage:
-              "repeating-linear-gradient(135deg, #fff 0, #fff 1px, transparent 0, transparent 16px)",
-          }}
-        />
-
-        {/* Stort halvtransparent piktogram */}
-        <div
-          style={{
-            position: "absolute",
-            right: -30,
-            bottom: -50,
-            fontSize: 320,
-            opacity: 0.14,
-            display: "flex",
-          }}
-        >
-          {emoji}
-        </div>
-
-        {/* Rød venstre streg */}
-        <div
-          style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 8, background: "#BF0A30" }}
-        />
-
-        {/* Indhold */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            padding: "60px 80px",
-            width: "100%",
-            height: "100%",
-            position: "relative",
-          }}
-        >
-          {/* Sport-chip + piktogram */}
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
-            <div style={{ fontSize: 36, display: "flex" }}>{emoji}</div>
-            {sportLabel && (
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.2)",
-                  borderRadius: 4,
-                  padding: "6px 16px",
-                  color: "white",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  letterSpacing: 2,
-                  fontFamily: "'Noto Sans', sans-serif",
-                }}
-              >
-                {sportLabel.toUpperCase()}
-              </div>
-            )}
-          </div>
-
-          {/* Atletnavn + skole */}
-          <div style={{ fontSize: nameSize, fontWeight: 900, color: "white", lineHeight: 1.1, maxWidth: 800 }}>
-            {name}
-          </div>
-          {data.university && (
-            <div
-              style={{
-                fontSize: 26,
-                color: "rgba(255,255,255,0.75)",
-                marginTop: 10,
-                fontFamily: "'Noto Sans', sans-serif",
-              }}
-            >
-              {data.university}
-            </div>
-          )}
-
-          {/* Kamp-linje */}
-          {(facts.opponent || facts.competition) && (
-            <div
-              style={{
-                fontSize: 22,
-                color: "rgba(255,255,255,0.6)",
-                marginTop: 22,
-                fontFamily: "'Noto Sans', sans-serif",
-                display: "flex",
-                gap: 10,
-              }}
-            >
-              {facts.opponent ? `mod ${facts.opponent}` : ""}
-              {facts.opponent && facts.competition ? " · " : ""}
-              {facts.competition ?? ""}
-            </div>
-          )}
-
-          {/* Score-blok */}
-          {facts.finalScore && (
-            <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 26 }}>
-              <div
-                style={{
-                  background: "rgba(255,255,255,0.14)",
-                  border: "1px solid rgba(255,255,255,0.25)",
-                  borderRadius: 8,
-                  padding: "10px 26px",
-                  color: "white",
-                  fontSize: 54,
-                  fontWeight: 900,
-                  fontFamily: "'Noto Sans', sans-serif",
-                }}
-              >
-                {facts.finalScore}
-              </div>
-              {facts.outcome && facts.outcome.length <= 24 && (
-                <div
-                  style={{
-                    fontSize: 22,
-                    color: "rgba(255,255,255,0.7)",
-                    fontFamily: "'Noto Sans', sans-serif",
-                  }}
-                >
-                  {facts.outcome}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Dato */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 28,
-              left: 80,
-              fontSize: 18,
-              color: "rgba(255,255,255,0.5)",
-              fontFamily: "'Noto Sans', sans-serif",
-            }}
-          >
-            {dateLabel}
-          </div>
-        </div>
-
-        {/* Logo-branding */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={assets.logoDataUri}
-          alt=""
-          width={200}
-          height={36}
-          style={{ position: "absolute", bottom: 28, right: 40, opacity: 0.4 }}
-        />
-
-        {/* Rød bund-streg */}
-        <div
-          style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "#BF0A30" }}
-        />
-      </div>
-    ),
+    // Plain-object-element-træet er satori-kompatibelt; next/og sender det uændret videre.
+    buildMatchCardElement(data, assets.logoDataUri, 0.5) as unknown as ReactElement,
     {
       width: 600,
       height: 315,
@@ -628,4 +377,28 @@ function matchCard(data: CardData, assets: OgAssets) {
       },
     },
   );
+}
+
+/** Pre-rendret kort fra card_blobs (base64-TEXT → PNG). Fail-soft: null = fallback. */
+async function getCardBlob(articleId: number): Promise<Response | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+    const r = await db
+      .prepare("SELECT png_base64 FROM card_blobs WHERE key = ?")
+      .bind(cardBlobKey(articleId))
+      .first() as { png_base64: string } | null;
+    if (!r?.png_base64) return null;
+    const binary = atob(r.png_base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Response(bytes, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "public, max-age=86400, s-maxage=604800",
+      },
+    });
+  } catch {
+    return null;
+  }
 }

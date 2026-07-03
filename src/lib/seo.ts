@@ -50,10 +50,17 @@ export function formatRelativeTime(dateStr: string | null): string {
  * i cover_image_url ignoreres (de er ikke kampkort).
  */
 // Bump ved design-ændringer i kampkortet — buster edge-cachen (s-maxage 7 dage)
-// v7: tilbage til 600×315-render. 1200×630 (v6) sprængte free-plan CPU-budgettet
-// (10 ms) ved kolde renders → 503 "Worker exceeded resource limits". Skarphed
-// må vente på en billigere løsning (pre-render til R2 / betalt plan).
-const CARD_VERSION = 7;
+// OG matcher pre-render-nøglen i card_blobs (migration-029): pipeline-rendrede
+// 1200×630-kort gemmes som `card-{id}-v{CARD_VERSION}` og serveres af /api/og
+// før on-the-fly-fallbacket (600×315 — fuldsize on-the-fly (v6) sprængte
+// free-plan CPU). R2 var førstevalget men kræver dashboard-aktivering af
+// R2 på kontoen (fejl 10042) → D1-blobs, samme resultat på $0.
+export const CARD_VERSION = 8;
+
+/** Nøgle i card_blobs for et pre-rendret kampkort (delt mellem Worker og pipeline). */
+export function cardBlobKey(articleId: number): string {
+  return `card-${articleId}-v${CARD_VERSION}`;
+}
 
 /**
  * Cover til lister/karrusel/thumbnails er ALTID det genererede 16:9 kampkort:

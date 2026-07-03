@@ -20,10 +20,9 @@ export default async function AdminLeadsPage() {
         <h1 className="text-2xl font-bold text-ink mt-2 mb-1">Leads</h1>
         <p className="text-muted text-sm mb-6">
           {leads.length} henvendelse{leads.length === 1 ? "" : "r"}
-          {newCount > 0 ? ` · ${newCount} ny${newCount === 1 ? "" : "e"}` : ""} — fra{" "}
-          <a href="/spil-i-usa" className="underline">/spil-i-usa</a>. Hver række har
-          attribution (side + referrer), så et partnersamarbejde kan afregnes pr.
-          dokumenteret lead.
+          {newCount > 0 ? ` · ${newCount} ny${newCount === 1 ? "" : "e"}` : ""} — fra
+          Spil i USA-formularen (pt. offline). Hver række har attribution (side +
+          referrer), så et partnersamarbejde kan afregnes pr. dokumenteret lead.
         </p>
         <LeadsClient leads={leads} />
       </div>

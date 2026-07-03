@@ -7,6 +7,11 @@ import { LeadForm } from "./LeadForm";
  * "Spil i USA" — landingsside for unge atleter (og forældre) der drømmer om
  * college-sport. Formularens leads gemmes med attribution (NSSA-forberedelse,
  * se migration-028). Indholdet er evergreen og linker til viden-guiderne.
+ *
+ * OFFLINE (Mikkel, 2026-07-03): mappen er underscore-privat (_spil-i-usa) indtil
+ * NSSA-sporet genoptages. GENAKTIVERING: omdøb `_spil-i-usa` -> `spil-i-usa` OG
+ * `api/_lead` -> `api/lead`, og sæt /ig- + admin-tekstlinks tilbage. Migration-028
+ * (leads-tabellen) og admin -> Leads er stadig live.
  */
 export const metadata: Metadata = {
   title: "Spil i USA — sådan kommer du i gang | StudentAthlete.dk",

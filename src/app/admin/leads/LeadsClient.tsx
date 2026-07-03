@@ -40,7 +40,8 @@ export function LeadsClient({ leads: initial }: { leads: Lead[] }) {
   if (leads.length === 0) {
     return (
       <p className="text-muted text-sm">
-        Ingen leads endnu. Formularen ligger på <a href="/spil-i-usa" className="underline">/spil-i-usa</a>.
+        Ingen leads endnu. Formularen er taget offline (kode i <code>src/app/_spil-i-usa</code> —
+        omdøb mappen + <code>api/_lead</code> uden underscore for at genaktivere).
       </p>
     );
   }

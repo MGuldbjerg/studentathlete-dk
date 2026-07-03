@@ -11,6 +11,7 @@
  */
 import { writeFileSync } from "node:fs";
 import { SPORT_CONTENT } from "../../src/lib/sport-content";
+import { sportContentHash, seedHashUpsertSql, SEED_HASH_KEYS } from "../lib/content-hash";
 
 const esc = (s: string) => s.replace(/'/g, "''");
 
@@ -26,5 +27,8 @@ ON CONFLICT(slug) DO UPDATE SET
   updated_at = datetime('now');`,
 );
 
+// Seed-hash-stempel: fortæller drift-tjekket at D1 nu matcher denne kode-version
+stmts.push(seedHashUpsertSql(SEED_HASH_KEYS.sport, sportContentHash()));
+
 writeFileSync("db/seed-sport.sql", stmts.join("\n\n") + "\n");
-console.log(`Skrev ${stmts.length} sport-upserts til db/seed-sport.sql`);
+console.log(`Skrev ${stmts.length - 1} sport-upserts + seed-hash til db/seed-sport.sql`);

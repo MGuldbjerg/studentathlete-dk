@@ -1,0 +1,52 @@
+name: Ugentlig D1-backup
+
+# Eksporterer hele produktions-databasen (schema + data) som SQL og gemmer den
+# som GitHub Actions-artefakt (90 dages opbevaring → altid ~13 ugentlige punkter).
+# $0-princip: ingen ekstern storage. D1 Time Travel dækker kun 30 dage og
+# beskytter ikke mod fx en destruktiv seed-kørsel opdaget sent.
+on:
+  schedule:
+    # Lørdag 02:00 UTC — FØR søndagens weekly-scrape rører databasen
+    - cron: '0 2 * * 6'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Eksportér D1 (schema + data)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 export studentathlete-dk --remote --output=backup.sql
+          gzip -9 backup.sql
+          ls -lh backup.sql.gz
+
+      - name: Gem som artefakt (90 dage)
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-backup-${{ github.run_id }}
+          path: backup.sql.gz
+          retention-days: 90
+
+      - name: Discord-notifikation ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ D1-backup fejlede\",\"description\":\"Den ugentlige database-backup kunne ikke tages. [Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

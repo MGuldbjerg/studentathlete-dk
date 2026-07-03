@@ -6,7 +6,7 @@ import { getArticleUrl, getArticleCoverUrl, formatDateShort } from "@/lib/seo";
 /**
  * Link-i-bio-side til Instagram (Instagram tillader ikke klikbare links i
  * captions — profilens ene bio-link peger her). Mobil-først: seneste artikler
- * som store tryk-mål + indgange til forsiden/atleter/spil-i-usa.
+ * som store tryk-mål + indgange til forsiden/atleter.
  * noindex — siden er en distributionskanal, ikke søge-indhold.
  */
 export const metadata: Metadata = {
@@ -77,10 +77,10 @@ export default async function IgLandingPage() {
             Alle danske atleter
           </Link>
           <Link
-            href="/spil-i-usa"
+            href="/viden"
             className="block text-center py-3 rounded-xl font-semibold border border-border bg-paper text-ink"
           >
-            Vil du selv spille i USA?
+            Guides: sådan fungerer college-sport
           </Link>
         </div>
       </div>

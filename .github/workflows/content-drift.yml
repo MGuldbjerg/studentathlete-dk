@@ -1,0 +1,41 @@
+name: Content-drift-tjek
+
+# Dagligt: er kodens sport/viden-tekster re-seedet til D1? (D1 overstyrer koden,
+# så en kode-ændring er ellers usynlig — gotcha 2026-07-02, hvor et faktatjek lå
+# upubliceret i 3 dage.) Discord KUN ved drift/fejl.
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Sammenlign kode-hash med D1-seed-stempel
+        run: npx tsx pipeline/checks/content-drift.ts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      - name: Discord-notifikation ved drift
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"⚠️ Sport/viden-tekster er ude af sync med D1\",\"description\":\"Koden er ændret uden re-seed (eller tjekket fejlede) — teksterne på sitet viser IKKE kodens version. Kør seed-sport/seed-guides mod D1 (tjek admin-redigeringer først). [Se loggen]($RUN_URL).\",\"color\":16753920,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

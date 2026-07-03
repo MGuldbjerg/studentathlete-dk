@@ -35,6 +35,7 @@ MIGRATIONS=(
   db/migration-026-corrections.sql
   db/migration-027-review-log.sql
   db/migration-028-leads.sql
+  db/migration-029-card-blobs.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do
