@@ -30,7 +30,9 @@ const ICON_PATHS: Record<string, string> = {
   "gymnastik":
     "<path d=\"M7 7a1 1 0 1 0 2 0a1 1 0 0 0 -2 0\" /><path d=\"M13 21l1 -9l7 -6\" /><path d=\"M3 11h6l5 1\" /><path d=\"M11.5 8.5l4.5 -3.5\" />",
   "ishockey":
-    "<path d=\"M5.905 5h3.418a1 1 0 0 1 .928 .629l1.143 2.856a3 3 0 0 0 2.207 1.83l4.717 .926a2.084 2.084 0 0 1 1.682 2.045v.714a1 1 0 0 1 -1 1h-13.895a1 1 0 0 1 -1 -1.1l.8 -8a1 1 0 0 1 1 -.9z\" /><path d=\"M3 19h17a1 1 0 0 0 1 -1\" /><path d=\"M9 15v4\" /><path d=\"M15 15v4\" />",
+    // Egen tegning i Tabler-stil (stav + puck) — skøjten kunne være enhver
+    // issport (Mikkel 2026-07-03); Tabler har intet hockeystav-ikon
+    "<path d=\"M18.5 3l-6.8 13a2.5 2.5 0 0 1 -2.2 1.35h-4\" /><ellipse cx=\"17\" cy=\"19.5\" rx=\"3\" ry=\"1.5\" />",
   "volleyball":
     "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\" /><path d=\"M12 12a8 8 0 0 0 8 4\" /><path d=\"M7.5 13.5a12 12 0 0 0 8.5 6.5\" /><path d=\"M12 12a8 8 0 0 0 -7.464 4.928\" /><path d=\"M12.951 7.353a12 12 0 0 0 -9.88 4.111\" /><path d=\"M12 12a8 8 0 0 0 -.536 -8.928\" /><path d=\"M15.549 15.147a12 12 0 0 0 1.38 -10.611\" />",
   "andet":
