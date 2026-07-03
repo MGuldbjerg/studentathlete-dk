@@ -4,39 +4,55 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { SPORTS, getSportColor } from "@/lib/types";
 
-function SportIcon({ icon, size = 16 }: { icon: string; size?: number }) {
-  const props = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+// Ikoner: Tabler Icons (MIT, tabler.io/icons) — samme streg-stil (24×24, stroke 2)
+// som sitets øvrige ikoner. Udskiftet 2026-07-03: de håndtegnede lignede ikke
+// sportsgrenene (fodbold = krøllet stjerne, volleyball = globus, roning = zigzag).
+// Kompromiser: roning = kajak og ishockey = skøjte (Tabler har intet ro-/hockeystav-ikon).
+const ICON_PATHS: Record<string, string> = {
+  "football":
+    "<path d=\"M15 9l-6 6\" /><path d=\"M10 12l2 2\" /><path d=\"M12 10l2 2\" /><path d=\"M8 21a5 5 0 0 0 -5 -5\" /><path d=\"M16 3c-7.18 0 -13 5.82 -13 13a5 5 0 0 0 5 5c7.18 0 13 -5.82 13 -13a5 5 0 0 0 -5 -5\" /><path d=\"M16 3a5 5 0 0 0 5 5\" />",
+  "basketball":
+    "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\" /><path d=\"M5.65 5.65l12.7 12.7\" /><path d=\"M5.65 18.35l12.7 -12.7\" /><path d=\"M12 3a9 9 0 0 0 9 9\" /><path d=\"M3 12a9 9 0 0 1 9 9\" />",
+  "baseball":
+    "<path d=\"M5.636 18.364a9 9 0 1 0 12.728 -12.728a9 9 0 0 0 -12.728 12.728z\" /><path d=\"M12.495 3.02a9 9 0 0 1 -9.475 9.475\" /><path d=\"M20.98 11.505a9 9 0 0 0 -9.475 9.475\" /><path d=\"M9 9l2 2\" /><path d=\"M13 13l2 2\" /><path d=\"M11 7l2 1\" /><path d=\"M7 11l1 2\" /><path d=\"M16 11l1 2\" /><path d=\"M11 16l2 1\" />",
+  "fodbold":
+    "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\" /><path d=\"M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55z\" /><path d=\"M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45\" />",
+  "sv\u00f8mning":
+    "<path d=\"M16 9m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\" /><path d=\"M6 11l4 -2l3.5 3l-1.5 2\" /><path d=\"M3 16.75a2.4 2.4 0 0 0 1 .25a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 1 -.25\" />",
+  "atletik":
+    "<path d=\"M13 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\" /><path d=\"M4 17l5 1l.75 -1.5\" /><path d=\"M15 21l0 -4l-4 -3l1 -6\" /><path d=\"M7 12l0 -3l5 -1l3 3l3 1\" />",
+  "golf":
+    "<path d=\"M12 18v-15l7 4l-7 4\" /><path d=\"M9 17.67c-.62 .36 -1 .82 -1 1.33c0 1.1 1.8 2 4 2s4 -.9 4 -2c0 -.5 -.38 -.97 -1 -1.33\" />",
+  "tennis":
+    "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\" /><path d=\"M6 5.3a9 9 0 0 1 0 13.4\" /><path d=\"M18 5.3a9 9 0 0 0 0 13.4\" />",
+  "roning":
+    "<path d=\"M6.414 6.414a2 2 0 0 0 0 -2.828l-1.414 -1.414l-2.828 2.828l1.414 1.414a2 2 0 0 0 2.828 0z\" /><path d=\"M17.586 17.586a2 2 0 0 0 0 2.828l1.414 1.414l2.828 -2.828l-1.414 -1.414a2 2 0 0 0 -2.828 0z\" /><path d=\"M6.5 6.5l11 11\" /><path d=\"M22 2.5c-9.983 2.601 -17.627 7.952 -20 19.5c9.983 -2.601 17.627 -7.952 20 -19.5z\" /><path d=\"M6.5 12.5l5 5\" /><path d=\"M12.5 6.5l5 5\" />",
+  "gymnastik":
+    "<path d=\"M7 7a1 1 0 1 0 2 0a1 1 0 0 0 -2 0\" /><path d=\"M13 21l1 -9l7 -6\" /><path d=\"M3 11h6l5 1\" /><path d=\"M11.5 8.5l4.5 -3.5\" />",
+  "ishockey":
+    "<path d=\"M5.905 5h3.418a1 1 0 0 1 .928 .629l1.143 2.856a3 3 0 0 0 2.207 1.83l4.717 .926a2.084 2.084 0 0 1 1.682 2.045v.714a1 1 0 0 1 -1 1h-13.895a1 1 0 0 1 -1 -1.1l.8 -8a1 1 0 0 1 1 -.9z\" /><path d=\"M3 19h17a1 1 0 0 0 1 -1\" /><path d=\"M9 15v4\" /><path d=\"M15 15v4\" />",
+  "volleyball":
+    "<path d=\"M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0\" /><path d=\"M12 12a8 8 0 0 0 8 4\" /><path d=\"M7.5 13.5a12 12 0 0 0 8.5 6.5\" /><path d=\"M12 12a8 8 0 0 0 -7.464 4.928\" /><path d=\"M12.951 7.353a12 12 0 0 0 -9.88 4.111\" /><path d=\"M12 12a8 8 0 0 0 -.536 -8.928\" /><path d=\"M15.549 15.147a12 12 0 0 0 1.38 -10.611\" />",
+  "andet":
+    "<polygon points=\"12,2 14.9,8.3 22,9.3 17,14.1 18.2,21.1 12,17.8 5.8,21.1 7,14.1 2,9.3 9.1,8.3\" />",
+};
 
-  switch (icon) {
-    case "football":
-      return <svg {...props}><ellipse cx="12" cy="12" rx="10" ry="6" transform="rotate(-30 12 12)" /><path d="M6 3l4 4m4 4l4 4M14 3l-4 4m-4 4l-4 4" /></svg>;
-    case "basketball":
-      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M12 2v20M2 12h20" /><path d="M4.93 4.93c4.08 2.52 4.08 11.62 0 14.14M19.07 4.93c-4.08 2.52-4.08 11.62 0 14.14" /></svg>;
-    case "baseball":
-      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M8 2.5c0 5.5-2 10-2 14M16 2.5c0 5.5 2 10 2 14" /></svg>;
-    case "atletik":
-      return <svg {...props}><circle cx="12" cy="5" r="2" /><path d="M6 20l3-7 3 2 3-5 3 10" /><path d="M9 13l-3 7" /></svg>;
-    case "svømning":
-      return <svg {...props}><path d="M2 16c1.5-1 3-2 4.5-1s3 2 4.5 1 3-2 4.5-1 3 2 4.5 1" /><path d="M2 20c1.5-1 3-2 4.5-1s3 2 4.5 1 3-2 4.5-1 3 2 4.5 1" /><circle cx="8" cy="8" r="2" /><path d="M10 8l4 4-2 3" /></svg>;
-    case "fodbold":
-      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M12 2l3 5h5l1 5-4 4 1 5-5 1-4-4-4 4-5-1 1-5-4-4 1-5h5z" /></svg>;
-    case "golf":
-      return <svg {...props}><path d="M17 3v10l-5-3v-7z" /><line x1="17" y1="13" x2="17" y2="20" /><ellipse cx="17" cy="21" rx="3" ry="1.5" /></svg>;
-    case "tennis":
-      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M5.5 5.5C8.5 8.5 8.5 15.5 5.5 18.5" /><path d="M18.5 5.5C15.5 8.5 15.5 15.5 18.5 18.5" /></svg>;
-    case "roning":
-      return <svg {...props}><path d="M3 17l5-10 5 5 5-10" /><path d="M3 17l3 3M13 12l3 3" /></svg>;
-    case "gymnastik":
-      return <svg {...props}><circle cx="12" cy="4" r="2" /><path d="M12 6v5M9 8l-4 5M15 8l4 5M9 11l-1 7M15 11l1 7" /></svg>;
-    case "ishockey":
-      return <svg {...props}><path d="M18 4L6 16" /><path d="M6 16l-2 3h4" /><ellipse cx="12" cy="21" rx="6" ry="2" /></svg>;
-    case "volleyball":
-      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M12 2C9 6 9 18 12 22" /><path d="M12 2C15 6 15 18 12 22" /><path d="M2 9h20M2 15h20" /></svg>;
-    case "andet":
-      return <svg {...props}><polygon points="12,2 14.9,8.3 22,9.3 17,14.1 18.2,21.1 12,17.8 5.8,21.1 7,14.1 2,9.3 9.1,8.3" /></svg>;
-    default:
-      return <svg {...props}><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>;
-  }
+function SportIcon({ icon, size = 16 }: { icon: string; size?: number }) {
+  const paths =
+    ICON_PATHS[icon] ?? '<circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" />';
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      dangerouslySetInnerHTML={{ __html: paths }}
+    />
+  );
 }
 
 export function CategoryNav() {
