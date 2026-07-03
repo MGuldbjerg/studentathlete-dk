@@ -25,11 +25,12 @@
 | 0.8 | Synlige rettelser (correction_note → "Rettet [dato]"-boks) | ✅ 2026-07-02 |
 | 0.9 | Review-beslutningslog (publish/slet → approved_as_is/edited/rejected; i weekly digest) | ✅ 2026-07-02 |
 
-**Udestående før sæsonstart (august 2026):**
-- [ ] **R2 pre-render af kampkort** (1200×630 renderes i pipelinen → R2; Worker serverer statisk. Fjerner free-plan-CPU-problemet OG holder $0-princippet — R2 gratis-tier rækker)
-- [ ] CI: kør testsuiterne + tsc i GitHub Actions på push
-- [ ] Ugentlig D1-backup (wrangler d1 export → artefakt/R2)
-- [ ] Drift-tjek: kode-tekster (SPORT_CONTENT/VIDEN_GUIDES) vs. D1-pages → Discord ved afvigelse (gotcha 2026-07-02: faktatjek lå usynligt i 3 dage bag D1-override)
+**Sæsonstarts-hærdning — FÆRDIG 2026-07-03 (commit 2209806):**
+- [x] **Pre-render af kampkort i fuld 1200×630** — via **D1-blobs**, ikke R2 (R2 kræver dashboard-aktivering på kontoen, API-fejl 10042 → Mikkels næste-uge-liste hvis ønsket; migrering er lille). `pipeline/render/render-cards.ts` (satori+resvg i Node) + delt element-træ `src/lib/og-card.ts` + `card_blobs` (migration-029); `/api/og` serverer blob først, on-the-fly 600×315 som fallback. Alle 18 kort uploadet; timevis `render-cards.yml` (:05). CARD_VERSION=8
+- [x] CI: tsc (src+pipeline) + alle 10 testsuiter på push/PR (`ci.yml`)
+- [x] Ugentlig D1-backup: `weekly-backup.yml` (lørdag 02:00, gzip-artefakt 90 dage)
+- [x] Drift-tjek: seed-hash-stempel i site_content + dagligt `content-drift.yml` → Discord ved kode-ændring uden re-seed
+- Kendt SEO-småting (ikke fikset): catch-all'en serverer 404-siden med HTTP 200 (soft-404) for ukendte slugs — ret ved lejlighed
 
 ## Fase 1 — In-season validering (august–november 2026)
 

@@ -1,6 +1,14 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-07-03 (strategi-sparring → stor bygge-batch, commit 7868856, deployet 4e93c142)
+**Sidst opdateret**: 2026-07-03 #2 (sæsonstarts-hærdning: pre-rendrede kort + CI + backup + drift-tjek, commit 2209806, deployet dc306ee9)
+
+## 👉 Seneste arbejde (2026-07-03 #2) — hærdnings-batch (alt LIVE + verificeret)
+1. **Kampkort i FULD 1200×630 er live** — pre-rendret UDENFOR Workeren: `pipeline/render/render-cards.ts` (satori+resvg i Node, egen twemoji-loader) + DELT element-træ `src/lib/og-card.ts` (plain-object-elementer, ingen JSX — én kilde til sandhed med `/api/og`-fallbacket). Gemt som base64 i D1 `card_blobs` (migration-029, ~220 KB/kort); `/api/og?type=card` serverer blob → fallback on-the-fly 600×315. `CARD_VERSION=8` (buster gamle edge-caches). Alle 18 publicerede kort uploadet + verificeret live (curl: 1200×630 fra prod; fallback-vej: 600×315). Timevis `render-cards.yml` (:05, før social :15; `--force`-input til design-ændringer). **NB: R2 var Mikkels ønske, men kontoen har aldrig aktiveret R2 (API-fejl 10042 "enable R2 through the dashboard") → D1-blobs giver samme resultat på $0. Vil Mikkel have R2 senere: aktivér i dashboard → lille migrering.**
+2. **CI**: `ci.yml` — tsc (src+pipeline) + alle 10 testsuiter på hvert push/PR. Første kørsel grøn på commit 2209806.
+3. **Ugentlig D1-backup**: `weekly-backup.yml` (lørdag 02:00 UTC, FØR søndags-scrapen) — `wrangler d1 export` → gzip → Actions-artefakt 90 dage. Discord ved fejl.
+4. **Drift-tjek (gotcha-værnet fra 07-02)**: seed-scripts stempler nu content-hash i `site_content` (`seedhash.sport`/`seedhash.guides`, delt helper `pipeline/lib/content-hash.ts`); dagligt `content-drift.yml` (06:30) sammenligner kodens hash med stemplet → Discord-alarm "kør seed-scripts" KUN ved drift. Admin-redigeringer rører ikke stemplet → ingen falske alarmer. Stemplet + verificeret grønt.
+5. **`/spil-i-usa` + `/api/lead` PARKERET** (Mikkel: ikke klar til den lead-model endnu): mapper omdøbt til `_spil-i-usa`/`_lead` (Next ignorerer underscore-mapper; genaktivering = omdøb tilbage, note i page-headeren). `/ig`-CTA peger nu på `/viden`. Admin → Leads + migration-028 består (tom, harmløs). Verificeret: begge URL'er serverer 404-siden.
+6. **Kendt SEO-småting (IKKE fikset)**: catch-all'en returnerer HTTP 200 med 404-indhold (soft-404) for ukendte slugs — pre-eksisterende; ret ved lejlighed.
 
 ## 👉 Seneste arbejde (2026-07-02/03) — strategibeslutninger + bygge-batch (alt LIVE)
 **Mikkels beslutninger (2026-07-02, sparring):** INGEN auto-publish nogensinde (menneskelig godkendelse = permanent politik; skalering via landsredaktør-model) · DK kører på $0 (Anthropic-nøgle droppet — kreditter kom aldrig; JSON-mode på gratis-kæden i stedet) · Canada nedprioriteret (dæknings-gab-logik) · skader = normal dækning (kun tidslinje-hallucination skal værnes) · kildepolitik: team-sites OK, kommercielle medier kun citatskik; langsigtede søjler = frivillige/freelance-interviews (evt. YouTube) · NSSA-leadgen genoplives når motoren er bevist (15% af fee-aftale fandtes i site v1). **PLAN-autonomi-uk.md er OMSKREVET** til at afspejle alt dette.
