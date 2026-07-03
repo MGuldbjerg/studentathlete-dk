@@ -2,6 +2,7 @@
 
 import React from "react";
 import { AdSlot } from "./AdSlot";
+import { youtubeIdFromUrl, youtubeEmbedUrl } from "@/lib/youtube";
 
 /** Parse inline markdown: **fed**, *kursiv*, [tekst](url) */
 function parseInline(text: string): React.ReactNode[] {
@@ -66,8 +67,25 @@ export function ArticleBody({ content }: { content: string }) {
 
     let element: React.ReactNode;
 
+    // Blok der KUN er en YouTube-URL → privatlivsvenlig embed (interviews).
+    // nocookie-domænet sætter først cookies ved afspilning → cookieløs status bevares.
+    const ytId = youtubeIdFromUrl(trimmed);
+    if (ytId) {
+      element = (
+        <div key={i} className="my-8 aspect-video">
+          <iframe
+            src={youtubeEmbedUrl(ytId)}
+            title="YouTube-video"
+            className="w-full h-full rounded"
+            loading="lazy"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
     // ## Heading 2
-    if (trimmed.startsWith("## ")) {
+    else if (trimmed.startsWith("## ")) {
       element = (
         <h2
           key={i}

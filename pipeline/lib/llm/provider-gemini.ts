@@ -3,7 +3,7 @@
  * Gratis tier: 250-500 RPD, 250K TPM.
  */
 
-import type { LLMProvider, LLMResponse } from "./types";
+import type { GenerateOpts, LLMProvider, LLMResponse } from "./types";
 
 interface GeminiResponse {
   candidates: Array<{
@@ -29,11 +29,7 @@ export class GeminiProvider implements LLMProvider {
     return !!this.apiKey;
   }
 
-  async generate(opts: {
-    system: string;
-    prompt: string;
-    max_tokens: number;
-  }): Promise<LLMResponse> {
+  async generate(opts: GenerateOpts): Promise<LLMResponse> {
     const model = "gemini-2.5-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
 
@@ -52,6 +48,7 @@ export class GeminiProvider implements LLMProvider {
         ],
         generationConfig: {
           maxOutputTokens: opts.max_tokens,
+          ...(opts.json ? { responseMimeType: "application/json" } : {}),
         },
       }),
     });

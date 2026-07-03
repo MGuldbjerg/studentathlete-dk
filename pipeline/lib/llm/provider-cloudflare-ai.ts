@@ -4,7 +4,7 @@
  * Token-counts estimeres (CF rapporterer ikke altid).
  */
 
-import type { LLMProvider, LLMResponse } from "./types";
+import type { GenerateOpts, LLMProvider, LLMResponse } from "./types";
 
 interface CFAIResponse {
   result: {
@@ -28,11 +28,9 @@ export class CloudflareAIProvider implements LLMProvider {
     return !!this.apiToken && !!this.accountId;
   }
 
-  async generate(opts: {
-    system: string;
-    prompt: string;
-    max_tokens: number;
-  }): Promise<LLMResponse> {
+  // NB: opts.json ignoreres bevidst — CF Workers AI's response_format-understøttelse
+  // varierer pr. model; kaldernes prompt-instruks + fail-safe JSON-parsing dækker.
+  async generate(opts: GenerateOpts): Promise<LLMResponse> {
     const model = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
     const url = `https://api.cloudflare.com/client/v4/accounts/${this.accountId}/ai/run/${model}`;
 

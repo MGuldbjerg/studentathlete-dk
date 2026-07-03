@@ -24,7 +24,7 @@ export interface ArticleVerdict {
 }
 
 export interface ChainLike {
-  generate(opts: { system: string; prompt: string; max_tokens: number; preferProvider?: string }): Promise<{ text: string }>;
+  generate(opts: { system: string; prompt: string; max_tokens: number; json?: boolean; preferProvider?: string }): Promise<{ text: string }>;
 }
 
 const SYSTEM_MESSAGE =
@@ -36,6 +36,9 @@ const SYSTEM_MESSAGE =
   "athlete's profile (name, sport, school, hometown, class year). DO flag invented numbers, scores, " +
   "minutes, dates, ages, places, statistics, quotes, or events that appear in neither the fact sheet " +
   "nor the profile. The article is in Danish; the fact sheet may be in English — judge meaning, not language. " +
+  "SPECIAL RULE — injury timelines: any injury/recovery time-frame in the ARTICLE ('out 4-6 weeks', " +
+  "'back in the spring') that does not appear verbatim-in-meaning in the fact sheet is a fabricated " +
+  "health prognosis about a named person: flag it and treat it as high severity. " +
   "Respond with ONLY a JSON object.";
 
 function parseArgs(): { limit: number; dryRun: boolean } {
@@ -98,7 +101,7 @@ export async function verifyArticle(
 
   let text: string;
   try {
-    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 400 });
+    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 400, json: true });
     text = res.text;
   } catch {
     return null;

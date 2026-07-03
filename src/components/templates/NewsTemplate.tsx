@@ -7,6 +7,7 @@ import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
+import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
 interface Props {
   article: Article;
@@ -113,8 +114,9 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
 
         {/* ── Kilde ──────────────────────────────────────────────── */}
         <div className="px-5 md:px-0">
+          <CorrectionNotice article={article} />
           <SourceBox sourceUrl={article.source_url} />
-          <AiDisclaimer />
+          {article.author_role !== "human" && <AiDisclaimer />}
         </div>
 
         {/* ── Annonce efter artikel ────────────────────────────── */}

@@ -32,6 +32,7 @@ interface ChainLike {
     system: string;
     prompt: string;
     max_tokens: number;
+    json?: boolean;
   }): Promise<{ text: string }>;
 }
 
@@ -107,6 +108,7 @@ export async function verifyStory(
       system: SYSTEM_MESSAGE,
       prompt,
       max_tokens: 200,
+      json: true,
     });
 
     const jsonString = extractJsonString(response.text);

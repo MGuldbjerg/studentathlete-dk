@@ -17,6 +17,8 @@ export function EditArticleForm({
   const [content, setContent] = useState(article.content);
   const [articleType, setArticleType] = useState(article.article_type);
   const [author, setAuthor] = useState(article.author ?? "");
+  const [authorRole, setAuthorRole] = useState(article.author_role ?? "");
+  const [correctionNote, setCorrectionNote] = useState(article.correction_note ?? "");
   const [athleteId, setAthleteId] = useState<number | null>(article.athlete_id);
   const [featured, setFeatured] = useState(article.featured === 1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -79,6 +81,8 @@ export function EditArticleForm({
           content,
           article_type: articleType,
           author: author.trim(),
+          author_role: authorRole || null,
+          correction_note: correctionNote.trim() || null,
           athlete_id: athleteId,
           featured: featured ? 1 : 0,
         }),
@@ -149,6 +153,19 @@ export function EditArticleForm({
             className={inputClass}
           />
         </div>
+      </div>
+
+      {/* Forfatter-rolle: 'human' skjuler Ai-disclaimeren (interviews/frivillige) */}
+      <div>
+        <label className="block text-xs font-semibold text-muted mb-1">Forfatter-rolle</label>
+        <select
+          value={authorRole}
+          onChange={(e) => setAuthorRole(e.target.value)}
+          className={inputClass}
+        >
+          <option value="">AI / redaktionen (Ai-disclaimer vises)</option>
+          <option value="human">Menneskelig bidragyder (interview/frivillig — ingen Ai-disclaimer)</option>
+        </select>
       </div>
 
       {/* Atlet-kobling */}
@@ -261,6 +278,25 @@ export function EditArticleForm({
           </div>
         )}
       </div>
+
+      {/* Synlig rettelse (kun publicerede — presseetik) */}
+      {article.published === 1 && (
+        <div>
+          <label className="block text-xs font-semibold text-muted mb-1">
+            Rettelse (vises som &quot;Rettet [dato]: …&quot; på artiklen — udfyld ved væsentlige rettelser efter publicering)
+          </label>
+          <textarea
+            value={correctionNote}
+            onChange={(e) => setCorrectionNote(e.target.value)}
+            rows={2}
+            placeholder="Fx: En tidligere version angav forkert antal scoringer. Tallet er rettet."
+            className={`${inputClass} resize-y`}
+          />
+          {article.corrected_at && correctionNote && (
+            <p className="text-xs text-muted mt-1">Senest stemplet: {article.corrected_at}</p>
+          )}
+        </div>
+      )}
 
       {/* Feedback */}
       {message && (

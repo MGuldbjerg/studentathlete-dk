@@ -27,9 +27,10 @@ export async function getEnv(): Promise<Record<string, any>> {
 
 export const ARTICLE_SELECT = `
   a.id, a.title, a.slug, a.summary, a.content, a.article_type,
-  a.author, a.cover_image_url, a.published, a.published_at,
+  a.author, a.author_role, a.cover_image_url, a.published, a.published_at,
   a.created_at, a.updated_at, a.athlete_id, a.source_url,
   a.model_used, a.llm_provider, a.original_content, a.featured,
+  a.correction_note, a.corrected_at,
   a.fabrication_risk, a.fact_flags, a.story_id,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;

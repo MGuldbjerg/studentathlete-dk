@@ -114,8 +114,8 @@ async function checkSchoolFeeds(
         try {
           const res = await db.execute(
             `INSERT OR IGNORE INTO stories
-             (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+             (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               story.athlete_id,
               story.url,
@@ -125,6 +125,7 @@ async function checkSchoolFeeds(
               contentRaw,
               `school_feed_${school.news_feed_type}`,
               story.relevance_score,
+              story.sensitive,
             ],
           );
           if (res.meta.changes > 0) {

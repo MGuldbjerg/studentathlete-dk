@@ -6,6 +6,7 @@ import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
+import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
 interface Props {
   article: Article;
@@ -106,8 +107,9 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
         <div className="max-w-4xl mx-auto px-6 md:px-8 py-10 flex gap-8">
           <div className="flex-1 max-w-3xl article-drop-cap">
             <ArticleBody content={article.content} />
+            <CorrectionNotice article={article} />
             <SourceBox sourceUrl={article.source_url} />
-            <AiDisclaimer />
+            {article.author_role !== "human" && <AiDisclaimer />}
 
             <AdSlot slot="article-footer" className="my-6" />
 

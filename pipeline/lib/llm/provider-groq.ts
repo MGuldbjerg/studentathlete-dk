@@ -3,7 +3,7 @@
  * Gratis tier: 1000 RPD, 500K tokens/dag.
  */
 
-import type { LLMProvider, LLMResponse } from "./types";
+import type { GenerateOpts, LLMProvider, LLMResponse } from "./types";
 import { openAICompatibleGenerate } from "./openai-compat";
 
 export class GroqProvider implements LLMProvider {
@@ -18,11 +18,7 @@ export class GroqProvider implements LLMProvider {
     return !!this.apiKey;
   }
 
-  async generate(opts: {
-    system: string;
-    prompt: string;
-    max_tokens: number;
-  }): Promise<LLMResponse> {
+  async generate(opts: GenerateOpts): Promise<LLMResponse> {
     return openAICompatibleGenerate(
       "https://api.groq.com/openai/v1/chat/completions",
       this.apiKey!,
@@ -31,6 +27,7 @@ export class GroqProvider implements LLMProvider {
       opts.prompt,
       opts.max_tokens,
       this.name,
+      opts.json ?? false,
     );
   }
 }

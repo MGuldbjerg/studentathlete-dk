@@ -58,6 +58,50 @@ export function parseArticleOutput(
   };
 }
 
+/**
+ * Parser JSON-output ({"title","summary","content"}) fra structured-output-mode.
+ * Returnerer null hvis teksten ikke er brugbar JSON — kalderen falder tilbage
+ * til det linjebaserede format via parseArticleOutputSmart.
+ */
+export function parseArticleJson(
+  text: string,
+  articleType: string = "news",
+): ParsedArticle | null {
+  const stripped = text
+    .replace(/^```(?:json)?\s*/im, "")
+    .replace(/\s*```\s*$/im, "")
+    .trim();
+  const m = stripped.match(/\{[\s\S]*\}/);
+  if (!m) return null;
+
+  let raw: { title?: unknown; summary?: unknown; content?: unknown };
+  try {
+    raw = JSON.parse(m[0]);
+  } catch {
+    return null;
+  }
+
+  const title = typeof raw.title === "string" ? stripHeadingMarkup(raw.title) : "";
+  const content = typeof raw.content === "string" ? raw.content.trim() : "";
+  // Uden titel OG brødtekst er JSON'en ubrugelig — lad legacy-parseren prøve.
+  if (!title || !content) return null;
+
+  return {
+    title,
+    summary: typeof raw.summary === "string" ? raw.summary.trim() : "",
+    content,
+    article_type: articleType,
+  };
+}
+
+/** JSON først (structured output), ellers det gamle linjebaserede format. */
+export function parseArticleOutputSmart(
+  text: string,
+  articleType: string = "news",
+): ParsedArticle {
+  return parseArticleJson(text, articleType) ?? parseArticleOutput(text, articleType);
+}
+
 /** Fjern markdown-markører fra en titel-linje: #/##, >, **fed**, *kursiv*, _kursiv_, omsluttende citationstegn. */
 function stripHeadingMarkup(s: string): string {
   let out = s.replace(/^#+\s*/, "").replace(/^>\s*/, "").trim();

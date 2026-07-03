@@ -1,8 +1,15 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-06-30 (faktatjek + APA-kildeangivelse på sport-/viden-tekster)
+**Sidst opdateret**: 2026-07-02 (faktatjek fra 06-30 er nu LIVE — D1 re-seedet + deployet)
 
-## 👉 Seneste arbejde (2026-06-30) — faktatjek (djævelens advokat) + APA-kilder på de statiske tekster
+## 👉 Seneste arbejde (2026-07-02) — faktatjekket indhold DEPLOYET til D1 + Worker
+**Opdaget**: 06-30-faktatjekket (commit 307ad7b) ramte kun `src/lib/sport-content.ts`/`viden-content.ts` — men alle 13 sport- + 13 viden-sider har D1-overrides (Phase 1, `resolveSportContent`/pages-tabellen fletter D1 over kode), og alle 26 rækker var seedet **06-24, FØR faktatjekket** → intet af det var faktisk live. Mikkel havde selv lappet `football`-siden manuelt i admin samme morgen (kun Vinatieri-delen, ikke Big House/APA) — den rettelse er nu overskrevet af den fulde, kildebelagte version fra koden (samme faktakonklusion, mere komplet).
+- Kørt `npx tsx pipeline/seed/seed-sport.ts` + `seed-guides.ts` → `wrangler d1 execute studentathlete-dk --remote --file=db/seed-sport.sql`/`seed-guides.sql` (upsert, 26 rækker skrevet).
+- `npm run deploy` kørt (Worker-version a5b8e2c0) — også fanger `6c74366` (honors-monitor).
+- Verificeret live: `/football` viser nu Vinatieri+2018+107.601+APA-Kilder; `/viden/hvad-er-ncaa` viser "91. i 2026"-rettelsen.
+- **NB fremover**: `seed-sport.ts`/`seed-guides.ts` er destruktive upserts — kør dem KUN lige efter en kode-ændring af pillar/guide-tekst, ALDRIG uden at tjekke om der er uafhængige admin-redigeringer i D1 først (`wrangler d1 execute ... --command "SELECT slug,updated_at FROM pages WHERE kind IN ('sport','guide')"`).
+
+## 👉 Tidligere arbejde (2026-06-30) — faktatjek (djævelens advokat) + APA-kilder på de statiske tekster
 **Mål (Mikkel): maksimér ethos — alle påstande i sport-pillartekster + viden-guider websøgt og verificeret, og "Kilder" omlagt til APA-referenceliste (akademisk stil), fordi AI er en integreret del af projektet.**
 
 Verificeret påstand-for-påstand mod primærkilder. Teksterne var generelt meget præcise; rettelser anvendt i `src/lib/sport-content.ts` + `src/lib/viden-content.ts` (tsc rent):
@@ -13,7 +20,7 @@ Verificeret påstand-for-påstand mod primærkilder. Teksterne var generelt mege
 - **APA-omlægning**: alle "Kilder"/`sources` (17 i sport, 27 i viden) → `Org. (År, D. måned). Title.` som klikbar APA-reference (URL = link-mål bag citatteksten). Tilføjet støttekilder (Pro Football HOF, Women's Basketball HOF, Cal Athletics, golf-history).
 - **Statiske sider** (om/ai-brug/kontakt): ingen eksterne faktapåstande → ingen APA nødvendig; Twemoji CC-BY 4.0-kreditering var allerede korrekt. NB: `om.md` "over 100 aktive atleter" = selvpåstand bundet til live-DB — hold den ærlig når rosteren ændrer sig.
 - **Forbehold**: nyhedskilder uden tydelig byline brugt med organisation-som-forfatter (gyldig APA-praksis); enkelte `.com`-opslagssider er `(n.d.)`. Personlige bylines kan tilføjes på ønske.
-- **Ikke committet/deployet endnu** — afventer Mikkels review.
+- **Committet (307ad7b) + nu deployet til D1 + Worker (2026-07-02)** — se sektion ovenfor.
 
 ## 👉 Seneste arbejde (2026-06-25)
 - **Honors-monitor LØST** (`pipeline/discover/honors.ts` + `_honors-test.ts`, 15/15 grøn): regelbaseret `detectHonor()` genkender ugentlige konference-hædersbevisninger ("Player/Athlete/Pitcher/Freshman of the Week", "of the Month", "All-Conference", "All-American"). Wiret ind i `extract-story.extractStoriesForSchool` → `HONORS_BOOST=15` (kappet ved 100) løfter honors-historier i `stories.relevance_score`, så `generate-articles` prioriterer dem. **Ingen ny infra**: honors flyder allerede gennem de skole-feeds der overvåges i check-sources (skolen poster typisk selv "X kåret til Conference POTW"). Verificeret web: konference-sites er Sidearm m. `/rss.aspx` (big12sports.com `.dbml`/`.aspx`, meacsports.com `rss_feeds.aspx`) — `Source.source_type` har allerede `'conference'`-værdi reserveret → konference-feeds kan tilføjes som backup uden skemaændring.

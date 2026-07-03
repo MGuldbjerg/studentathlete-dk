@@ -5,6 +5,7 @@
 
 import * as cheerio from "cheerio";
 import { detectHonor, HONORS_BOOST } from "./honors";
+import { detectSensitive } from "./sensitive";
 
 export interface ExtractedStory {
   url: string;
@@ -263,6 +264,8 @@ export async function extractStories(
 export interface SchoolStoryMatch extends ExtractedStory {
   athlete_id: number;
   relevance_score: number;
+  /** Presseetik-flag fra detectSensitive() — null for normale historier. */
+  sensitive: string | null;
 }
 
 interface AthleteRef {
@@ -449,6 +452,9 @@ export async function extractStoriesForSchool(
     // Hædersbevisninger ("Player of the Week" m.fl.) er stærke artikel-triggere
     // → boost relevance så generate-articles prioriterer dem. Se honors.ts.
     const honor = detectHonor(`${item.title} ${item.description}`);
+    // Presseetik-flag: anholdelse/disciplin/spilleberettigelse/dødsfald m.m.
+    // kræver ekstra kritisk review + nøgtern generering. Se sensitive.ts.
+    const sensitive = detectSensitive(`${item.title} ${item.description}`);
 
     for (const { athlete, relevance_score } of matches) {
       // Dedupliker: samme URL + same atlet
@@ -465,6 +471,7 @@ export async function extractStoriesForSchool(
         relevance_score: honor
           ? Math.min(100, relevance_score + HONORS_BOOST)
           : relevance_score,
+        sensitive: sensitive?.type ?? null,
       });
     }
   }

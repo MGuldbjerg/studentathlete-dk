@@ -166,7 +166,7 @@ function extractJson(text: string): string | null {
 }
 
 export interface ChainLike {
-  generate(opts: { system: string; prompt: string; max_tokens: number }): Promise<{ text: string }>;
+  generate(opts: { system: string; prompt: string; max_tokens: number; json?: boolean }): Promise<{ text: string }>;
 }
 
 export async function classifyEditsLLM(
@@ -179,7 +179,7 @@ export async function classifyEditsLLM(
       `AI-UDKAST:\n${original.slice(0, 6000)}\n\n` +
       `REDAKTØRENS ENDELIGE VERSION:\n${edited.slice(0, 6000)}\n\n` +
       `Svar med JSON i dette format:\n${LLM_SCHEMA}`;
-    const res = await chain.generate({ system: LLM_SYSTEM, prompt, max_tokens: 1000 });
+    const res = await chain.generate({ system: LLM_SYSTEM, prompt, max_tokens: 1000, json: true });
     const json = extractJson(res.text);
     if (!json) return [];
     const raw = JSON.parse(json) as {

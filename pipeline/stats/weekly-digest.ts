@@ -6,6 +6,26 @@ if (!WEBHOOK) throw new Error("Mangler DISCORD_WEBHOOK_URL");
 
 const db = createD1Client();
 
+// Review-log (migration-027): beslutningsfordeling seneste 28 dage — evidensen
+// for review-omkostning pr. kladde (ikke auto-publish; menneskelig godkendelse
+// er permanent, jf. beslutning 2026-07-02). Fail-safe hvis tabellen mangler.
+let reviewLine = "";
+try {
+  const rl = await db.query<{ decision: string; cnt: number }>(`
+    SELECT decision, COUNT(*) as cnt FROM review_log
+    WHERE datetime(decided_at) >= datetime('now', '-28 days')
+    GROUP BY decision
+  `);
+  const counts: Record<string, number> = {};
+  for (const r of rl.results) counts[r.decision] = r.cnt;
+  const total = (counts.approved_as_is ?? 0) + (counts.edited ?? 0) + (counts.rejected ?? 0);
+  if (total > 0) {
+    reviewLine = `✅ ${counts.approved_as_is ?? 0} godkendt som-er · ✏️ ${counts.edited ?? 0} redigeret · ❌ ${counts.rejected ?? 0} afvist (28 dage)`;
+  }
+} catch {
+  /* review_log findes ikke endnu — udelad linjen */
+}
+
 const [articles, athletes, stories, totals, learning] = await Promise.all([
   db.query<{ article_type: string; cnt: number }>(`
     SELECT article_type, COUNT(*) as cnt
@@ -80,6 +100,7 @@ const learningLine =
   (uneditedRate !== null
     ? `**${uneditedRate}%** publiceret uredigeret (${unedited_week}/${pub_week})`
     : "Ingen publiceringer i ugen") +
+  (reviewLine ? `\n${reviewLine}` : "") +
   (pending_suggestions > 0 ? `\n✏️ ${pending_suggestions} stilforslag venter i admin → Stilguide` : "");
 
 const embed = {
@@ -102,7 +123,7 @@ const embed = {
       inline: false,
     },
     {
-      name: "Redigeringsgrad (auto-publish-KPI)",
+      name: "Redigeringsgrad + review-beslutninger",
       value: learningLine,
       inline: false,
     },

@@ -1,7 +1,7 @@
 INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
 VALUES ('football', 'Football', '## Dansk football i NCAA
 
-Amerikansk football er den sportsgren, der har åbnet flest døre for danske atleter i USA. Særligt kicker- og punter-positionen er blevet en dansk specialitet — det kræver præcision og is i maven, og den danske fodboldtradition giver et solidt fundament for sparketeknik. En dansk fodboldopvækst lærer benet at ramme bolden rent, og det er præcis den evne, college-trænere mangler.
+Amerikansk football er den sportsgren, der har åbnet flest døre for danske atleter i USA. Særligt kicker- og punter-positionen er blevet en dansk specialitet — det kræver præcision og is i maven, og en dansk fodboldopvækst træner benet i at ramme bolden rent. Det er en evne, som flere college-programmer aktivt rekrutterer efter i udlandet.
 
 ### Sæsonens gang
 
@@ -13,13 +13,14 @@ Frem til 2025 måtte et Division I-hold (FBS) give 85 fulde football-stipendier,
 
 ### Tidbits
 
-Morten Andersen — "The Great Dane" — er den mest berømte dansker i amerikansk football og sidder i Pro Football Hall of Fame som NFL''s mest scorende spiller gennem tiderne; han kom selv gennem college som All-American kicker på Michigan State. En nyere profil er Hjalte Froholdt, der gik fra Danmark via University of Arkansas til NFL som offensive lineman. Stemningen er enorm: Michigans stadion "The Big House" rummer over 107.000 tilskuere, flere end nogen by mellem København og Aarhus. Den store rekrutteringsdag, "National Signing Day" i februar, følges som en helligdag af amerikanske fans.
+Morten Andersen — "The Great Dane" — er den mest berømte dansker i amerikansk football og sidder i Pro Football Hall of Fame; han var i en årrække NFL''s mestscorende spiller gennem tiderne (i dag nummer to, efter Adam Vinatieri passerede ham i 2018) og kom selv gennem college som All-American kicker på Michigan State. En nyere profil er Hjalte Froholdt, der gik fra Danmark via University of Arkansas til NFL som offensive lineman. Stemningen er enorm: Michigans stadion "The Big House" rummer 107.601 tilskuere, flere end nogen by mellem København og Aarhus. Rekrutteringskalenderen har sin egen dramatik: den tidlige underskrivningsperiode i december er i dag den vigtigste, mens den traditionelle "National Signing Day" i februar stadig følges tæt.
 
 ### Kilder
 
-- [NCAA.org — DI Board vedtager nye trup-lofter (House-forliget)](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
-- [CBS Sports — NCAA fjerner stipendielofter, indfører trup-lofter](https://www.cbssports.com/college-football/news/ncaa-removes-scholarship-limits-aligns-with-house-settlement-as-roster-sizes-evolve-in-new-college-sports-era/)
-- [SI — College Football Playoff forbliver 12 hold i 2026](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)', 'Danske football-atleter i NCAA – nyheder, profiler og resultater fra college football i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
+- [CBS Sports. (2025). NCAA removes scholarship limits, aligns with House settlement as roster sizes evolve.](https://www.cbssports.com/college-football/news/ncaa-removes-scholarship-limits-aligns-with-house-settlement-as-roster-sizes-evolve-in-new-college-sports-era/)
+- [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)
+- [Pro Football Hall of Fame. (2017). Morten Andersen.](https://www.profootballhof.com/players/morten-andersen)', 'Danske football-atleter i NCAA – nyheder, profiler og resultater fra college football i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -38,16 +39,17 @@ NCAA basketball-sæsonen begynder i november og kulminerer med March Madness —
 
 ### Sådan fungerer March Madness
 
-Slutspillet er en knockout-turnering, der spilles i én lang weekend-rytme over tre uger: taber man én kamp, er man ude. Holdene seedes 1 til 16 i fire regioner, og hvert år overrasker en lavtseedet "Cinderella"-skole ved at slå favoritterne. Faserne hedder Sweet Sixteen, Elite Eight og Final Four, og det hele afsluttes med en finale, der ses af titusinder af danskere på trods af tidsforskellen. Feltet har været på 68 hold, men NCAA besluttede i 2026 at udvide både herrernes og kvindernes turnering til 76 hold fra sæsonen 2026-27.
+Slutspillet er en knockout-turnering, der spilles i én lang weekend-rytme over tre uger: taber man én kamp, er man ude. Holdene seedes 1 til 16 i fire regioner, og hvert år overrasker en lavtseedet "Cinderella"-skole ved at slå favoritterne. Faserne hedder Sweet Sixteen, Elite Eight og Final Four, og det hele afsluttes med en finale, der trods tidsforskellen også har sit danske publikum. Feltet har været på 68 hold, men NCAA besluttede i 2026 at udvide både herrernes og kvindernes turnering til 76 hold fra sæsonen 2026-27.
 
 ### Tidbits
 
-College basketball har en helt anden stemning end de professionelle ligaer: studenter-sektioner, der står op hele kampen, marchorkestre og rivaliseringer, der går generationer tilbage. Turneringen er så uforudsigelig, at den årlige "bracket"-konkurrence — hvor man forsøger at gætte alle resultater — aldrig i historien er blevet ramt perfekt. Danske spillere roses ofte for deres alsidighed, holdspilsmentalitet og taktiske forståelse, som amerikanske trænere vurderer højt. To danske college-pionerer rager op: Christian Drejer spillede for Florida Gators og blev i 2004 den første dansker nogensinde, der blev draftet til NBA, mens Inge Nissen vandt to nationale mesterskaber med Old Dominion omkring 1980 og siden er optaget i Women''s Basketball Hall of Fame.
+College basketball har en helt anden stemning end de professionelle ligaer: studenter-sektioner, der står op hele kampen, marchorkestre og rivaliseringer, der går generationer tilbage. Turneringen er så uforudsigelig, at den årlige "bracket"-konkurrence — hvor man forsøger at gætte alle resultater — aldrig i historien er blevet ramt perfekt. Danske spillere roses ofte for deres alsidighed, holdspilsmentalitet og taktiske forståelse, som amerikanske trænere vurderer højt. To danske college-pionerer rager op: Christian Drejer spillede for Florida Gators og blev i 2004 den første dansker nogensinde, der blev draftet til NBA, mens Inge Nissen vandt to nationale mesterskaber med Old Dominion (1979 og 1980 — dengang under AIAW, forløberen for NCAA''s kvindeturnering) og siden er optaget i Women''s Basketball Hall of Fame.
 
 ### Kilder
 
-- [NCAA.org — Turneringerne udvides til 76 hold](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
-- [NCAA.com — Sådan fungerer den udvidede 2027-turnering](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)', 'Danske basketball-atleter i NCAA – nyheder, profiler og resultater fra college basketball i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (2026, 7. maj). NCAA basketball tournaments expanding to 76 teams: What to know.](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
+- [NCAA. (2026, 7. maj). How the 2027 expanded NCAA tournament and March Madness brackets will work.](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)
+- [Women''s Basketball Hall of Fame. (2012). Inge Nissen.](https://wbhof.com/member/inge-nissen/)', 'Danske basketball-atleter i NCAA – nyheder, profiler og resultater fra college basketball i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -74,8 +76,8 @@ Baseball var historisk en såkaldt "equivalency sport": et hold delte et begræn
 
 ### Kilder
 
-- [NCAA.org — DI Board vedtager nye trup-lofter (House-forliget)](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
-- [NCSA — Nye NCAA-stipendie- og trup-lofter for 2025-26](https://www.ncsasports.org/blog/ncaa-scholarship-roster-limits-2024)', 'Danske baseball-atleter i NCAA – nyheder, profiler og resultater fra college baseball i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
+- [NCSA. (2025). New NCAA scholarship and roster limits for 2025-26.](https://www.ncsasports.org/blog/ncaa-scholarship-roster-limits-2024)', 'Danske baseball-atleter i NCAA – nyheder, profiler og resultater fra college baseball i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -98,12 +100,12 @@ College soccer har sine egne særregler, der overrasker europæere. På de flest
 
 ### Tidbits
 
-Kvindefodbold er enormt i USA og i mange år bygget op netop omkring college-systemet — flere stjerner fra det amerikanske VM-vindende landshold er gået vejen gennem NCAA. Den danske fodboldtradition med fokus på boldbehandling, positionsspil og taktisk disciplin passer godt til college soccer, og mange danske spillere opnår startpladser fra dag ét. Fodbold er faktisk den sportsgren, der sender flest danskere til NCAA — på tværs af herre- og kvindehold ligger danske spillere på rosters fra Division I til Division III over hele USA, selvom de største danske fodboldtalenter typisk går den professionelle vej herhjemme i stedet for over Atlanten.
+Kvindefodbold er enormt i USA og i mange år bygget op netop omkring college-systemet — flere stjerner fra det amerikanske VM-vindende landshold er gået vejen gennem NCAA. Den danske fodboldtradition med fokus på boldbehandling, positionsspil og taktisk disciplin passer godt til college soccer, og mange danske spillere opnår startpladser fra dag ét. Fodbold er efter StudentAthlete.dk''s egen optælling blandt de sportsgrene, der sender flest danskere til NCAA — på tværs af herre- og kvindehold ligger danske spillere på rosters fra Division I til Division III over hele USA, selvom de største danske fodboldtalenter typisk går den professionelle vej herhjemme i stedet for over Atlanten.
 
 ### Kilder
 
-- [NCAA.org — Ændrede substitutionsregler i DI herrefodbold (2024)](https://www.ncaa.org/news/2024/4/18/media-center-substitution-rules-changes-approved-for-di-mens-soccer.aspx)
-- [NCAA.com — Vejen til College Cup (herrer)](https://www.ncaa.com/championships/soccer-men/d1/road-to-the-championship)', 'Danske fodboldspillere (soccer) i NCAA – nyheder, profiler og resultater fra college soccer i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (2024, 18. april). Substitution rules changes approved for DI men''s soccer.](https://www.ncaa.org/news/2024/4/18/media-center-substitution-rules-changes-approved-for-di-mens-soccer.aspx)
+- [NCAA. (n.d.). Road to the championship: Men''s soccer (College Cup).](https://www.ncaa.com/championships/soccer-men/d1/road-to-the-championship)', 'Danske fodboldspillere (soccer) i NCAA – nyheder, profiler og resultater fra college soccer i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -130,7 +132,7 @@ En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-ya
 
 ### Kilder
 
-- [NCAA.com — DI svømning & udspring (officiel)](https://www.ncaa.com/sports/swimming-men/d1)', 'Danske svømmere i NCAA – nyheder, profiler og resultater fra college-svømning i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (n.d.). NCAA Division I men''s swimming & diving.](https://www.ncaa.com/sports/swimming-men/d1)', 'Danske svømmere i NCAA – nyheder, profiler og resultater fra college-svømning i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -157,8 +159,8 @@ Stafetterne er blandt de mest populære øvelser, og holdfølelsen omkring dem e
 
 ### Kilder
 
-- [NCAA.com — DI udendørs atletik (officiel)](https://www.ncaa.com/sports/track-field-outdoor-men/d1)
-- [NCAA.com — DI cross country (officiel)](https://www.ncaa.com/sports/cross-country-men/d1)', 'Danske atletikudøvere i NCAA – nyheder, profiler og resultater fra track and field i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (n.d.). NCAA Division I men''s outdoor track and field.](https://www.ncaa.com/sports/track-field-outdoor-men/d1)
+- [NCAA. (n.d.). NCAA Division I men''s cross country.](https://www.ncaa.com/sports/cross-country-men/d1)', 'Danske atletikudøvere i NCAA – nyheder, profiler og resultater fra track and field i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -185,7 +187,8 @@ Vejen fra dansk ungdomsgolf til NCAA er veletableret, og flere danskere har vund
 
 ### Kilder
 
-- [NCAA.com — DI herregolf (officiel)](https://www.ncaa.com/sports/golf-men/d1)', 'Danske golfspillere i NCAA – nyheder, profiler og resultater fra college golf i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (n.d.). NCAA Division I men''s golf.](https://www.ncaa.com/sports/golf-men/d1)
+- [NCAA. (n.d.). DI men''s golf championship history.](https://www.ncaa.com/history/golf-men/d1)', 'Danske golfspillere i NCAA – nyheder, profiler og resultater fra college golf i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -212,8 +215,8 @@ College tennis bryder med den professionelle sports stilhed: holdkammerater og s
 
 ### Kilder
 
-- [NCAA.com — College tennis går over til no-ad-scoring](https://www.ncaa.com/news/tennis-men/article/2015-08-13/division-i-tennis-championships-move-no-ad-scoring)
-- [ITA — Regelændringer for college tennis 2025-26](https://wearecollegetennis.com/2025/07/14/2025-2026-ita-rule-modifications-changes-and-clarifications/)', 'Danske tennisspillere i NCAA – nyheder, profiler og resultater fra college tennis i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (2015, 13. august). Division I tennis championships move to no-ad scoring.](https://www.ncaa.com/news/tennis-men/article/2015-08-13/division-i-tennis-championships-move-no-ad-scoring)
+- [Intercollegiate Tennis Association. (2025, 14. juli). 2025-2026 ITA rule modifications, changes and clarifications.](https://wearecollegetennis.com/2025/07/14/2025-2026-ita-rule-modifications-changes-and-clarifications/)', 'Danske tennisspillere i NCAA – nyheder, profiler og resultater fra college tennis i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -236,11 +239,12 @@ Når to eller flere skoler mødes til en regatta, stiller hver skole op med fler
 
 ### Tidbits
 
-Et kuriosum værd at kende: kvinderoning er en officiel NCAA-mesterskabssport, mens herreroningen historisk styres af en separat organisation (IRA) uden for NCAA — så stipendiemulighederne er klart størst for kvinder. Den danske roningstradition er stærk, og flere danskere har brugt college-roning som springbræt til international konkurrence og OL. Joachim Sutton var en af de første danske roere på et amerikansk universitetshold, da han ankom til University of California, Berkeley.
+Et kuriosum værd at kende: kvinderoning er en officiel NCAA-mesterskabssport, mens herreroningen historisk styres af en separat organisation (IRA) uden for NCAA — så stipendiemulighederne er klart størst for kvinder. Den danske roningstradition er stærk, og flere danskere har brugt college-roning som springbræt til international konkurrence og OL. Joachim Sutton blev den første dansker på roholdet ved University of California, Berkeley, da han ankom i 2015 — han vandt siden OL-bronze i toer uden styrmand.
 
 ### Kilder
 
-- [NCAA.com — DI kvinderoning (officiel)](https://www.ncaa.com/sports/rowing-women/d1)', 'Danske roere i NCAA – nyheder, profiler og resultater fra college rowing i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (n.d.). NCAA Division I women''s rowing.](https://www.ncaa.com/sports/rowing-women/d1)
+- [California Golden Bears Athletics. (2017, 1. februar). Inside the lair: Danish rower makes immediate impact in Berkeley.](https://calbears.com/news/2017/2/1/inside-the-lair-danish-rower-makes-immediate-impact-in-berkeley.aspx)', 'Danske roere i NCAA – nyheder, profiler og resultater fra college rowing i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -267,7 +271,7 @@ En charmerende særhed ved kvindernes college-gymnastik: den holder fast i den k
 
 ### Kilder
 
-- [NCAA.com — DI kvindegymnastik (officiel)](https://www.ncaa.com/sports/gymnastics-women/d1)', 'Danske gymnaster i NCAA – nyheder, profiler og resultater fra college gymnastics i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (n.d.). NCAA Division I women''s gymnastics.](https://www.ncaa.com/sports/gymnastics-women/d1)', 'Danske gymnaster i NCAA – nyheder, profiler og resultater fra college gymnastics i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -292,8 +296,8 @@ En historisk regelændring trådte i kraft 1. august 2025: spillere fra den cana
 
 ### Kilder
 
-- [NHL.com — CHL-spillere bliver spilleberettigede til NCAA fra 2025-26](https://www.nhl.com/news/chl-players-to-be-eligible-to-play-ncaa-hockey-beginning-in-2025-26)
-- [College Hockey Inc. — DI Council gør CHL-spillere spilleberettigede](https://www.collegehockeyinc.com/2024/11/breaking-ncaa-di-council-votes-to-make-chl-players-eligible/)', 'Danske ishockeyspillere i NCAA – nyheder, profiler og resultater fra college hockey i USA.', 1, 'sport', NULL, datetime('now'))
+- [NHL.com. (2024, 7. november). CHL players to be eligible to play NCAA hockey beginning in 2025-26.](https://www.nhl.com/news/chl-players-to-be-eligible-to-play-ncaa-hockey-beginning-in-2025-26)
+- [College Hockey Inc. (2024, november). NCAA DI Council votes to make CHL players eligible.](https://www.collegehockeyinc.com/2024/11/breaking-ncaa-di-council-votes-to-make-chl-players-eligible/)', 'Danske ishockeyspillere i NCAA – nyheder, profiler og resultater fra college hockey i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -308,7 +312,7 @@ Volleyball er en af NCAAʼs største sportsgrene, især for kvinder, med tusindv
 
 ### Sæsonens gang
 
-De to køn spiller i hver sin halvdel af året: kvindevolleyball er en efterårssport (august-december), mens herrevolleyball spilles om foråret (januar-maj). Kvindernes NCAA Volleyball Championship i december er en af efterårets store tv-begivenheder og fylder arenaer med titusinder af tilskuere.
+De to køn spiller i hver sin halvdel af året: kvindevolleyball er en efterårssport (august-december), mens herrevolleyball spilles om foråret (januar-maj). Kvindernes NCAA Volleyball Championship i december er en af efterårets store tv-begivenheder og fylder store arenaer — finalestævnet trækker omkring 18.000-19.000 tilskuere.
 
 ### Tidbits
 
@@ -316,7 +320,7 @@ Ud over den klassiske indendørs 6-mod-6-volleyball er beachvolley vokset til en
 
 ### Kilder
 
-- [NCAA.com — DI kvindevolleyball (officiel)](https://www.ncaa.com/sports/volleyball-women/d1)', 'Danske volleyballspillere i NCAA – nyheder, profiler og resultater fra college volleyball i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (n.d.). NCAA Division I women''s volleyball.](https://www.ncaa.com/sports/volleyball-women/d1)', 'Danske volleyballspillere i NCAA – nyheder, profiler og resultater fra college volleyball i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -339,8 +343,8 @@ Flere af NCAAʼs mindre sportsgrene har færre ansøgere til stipendierne, hvilk
 
 ### Kilder
 
-- [NCAA.org — NCAA tilføjer fire nye mesterskaber](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-to-add-four-new-championships.aspx)
-- [NCAA.org — NCAA''s første kvindebrydningsmesterskaber](https://www.ncaa.org/news/2026/3/4/media-center-ncaas-first-womens-wrestling-championships-what-to-know.aspx)', 'Danske atleter i øvrige NCAA-sportsgrene – nyheder og profiler fra niche-sportsgrene i USA.', 1, 'sport', NULL, datetime('now'))
+- [NCAA. (2026, 16. januar). NCAA to add four new championships.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-to-add-four-new-championships.aspx)
+- [NCAA. (2026, 4. marts). NCAA''s first women''s wrestling championships: What to know.](https://www.ncaa.org/news/2026/3/4/media-center-ncaas-first-womens-wrestling-championships-what-to-know.aspx)', 'Danske atleter i øvrige NCAA-sportsgrene – nyheder og profiler fra niche-sportsgrene i USA.', 1, 'sport', NULL, datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,

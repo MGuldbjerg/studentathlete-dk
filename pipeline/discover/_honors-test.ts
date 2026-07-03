@@ -10,7 +10,7 @@ import { detectHonor, type HonorType } from "./honors";
 let passed = 0;
 let failed = 0;
 
-function expectType(text: string, want: HonorType | null, label: string): void {
+function expectType(text: string | null, want: HonorType | null, label: string): void {
   const got = detectHonor(text)?.type ?? null;
   if (got === want) {
     passed++;

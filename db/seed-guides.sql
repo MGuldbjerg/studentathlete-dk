@@ -3,7 +3,7 @@ VALUES ('hvad-er-ncaa', 'Hvad er NCAA?', 'NCAA (National Collegiate Athletic Ass
 
 ## Hvad står NCAA for?
 
-NCAA er en non-profit-organisation, der fastsætter regler og afvikler mesterskaber for college sport i USA. Sammenslutningen tæller over 1.100 universiteter og mere end en halv million atleter — i 2024-25 var deltagertallet rekordhøje 554.298. Der konkurreres i omkring 24 sportsgrene med knap 90 nationale mesterskaber for både kvinder og mænd.
+NCAA er en non-profit-organisation, der fastsætter regler og afvikler mesterskaber for college sport i USA. Sammenslutningen tæller over 1.100 universiteter og mere end en halv million atleter — i 2024-25 var deltagertallet rekordhøje 554.298. Der konkurreres i omkring 24 sportsgrene med omkring 90 nationale mesterskaber for både kvinder og mænd (kvindebrydning blev det 91. i 2026).
 
 Universiteterne er inddelt i tre divisioner og samlet i [conferences](/viden/conferences), der konkurrerer mod hinanden gennem sæsonen.
 
@@ -50,9 +50,9 @@ Ja, i stigende grad. Atleter har siden 2021 kunnet tjene på deres Name, Image a
 
 ## Kilder
 
-- [NCAA.org — Rekordmange student-athletes i 2024-25](https://www.ncaa.org/news/2025/9/15/media-center-a-record-number-of-ncaa-student-athletes-participated-in-2024-25.aspx)
-- [NCAA.org — Om NCAA og medlemskab](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)
-- [ESPN — Dommer godkender House-forliget (direkte betaling af atleter)](https://www.espn.com/college-sports/story/_/id/45467505/judge-grants-final-approval-house-v-ncaa-settlement)', 'NCAA organiserer college sport i USA — over 1.000 universiteter og en halv million atleter. Forstå systemet, og hvad det betyder for danske atleter.', 1, 'guide', 'system', datetime('now'))
+- [NCAA. (2025, 15. september). A record number of NCAA student-athletes participated in 2024-25.](https://www.ncaa.org/news/2025/9/15/media-center-a-record-number-of-ncaa-student-athletes-participated-in-2024-25.aspx)
+- [NCAA. (2021). NCAA 101: What is the NCAA?](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)
+- [ESPN. (2025). Judge grants final approval of House v. NCAA settlement.](https://www.espn.com/college-sports/story/_/id/45467505/judge-grants-final-approval-house-v-ncaa-settlement)', 'NCAA organiserer college sport i USA — over 1.000 universiteter og en halv million atleter. Forstå systemet, og hvad det betyder for danske atleter.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -96,8 +96,8 @@ Nej. D-III tilbyder ikke idrætslegater, men kan give akademisk og behovsbaseret
 
 ## Kilder
 
-- [NCAA.org — Our Three Divisions](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-our-three-divisions.aspx)
-- [Ropes & Gray — House-forliget: æra med direkte betaling begynder](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'Forskellen på NCAA Division I, II og III — niveau, idrætslegater og balancen mellem sport og studie. Hvad betyder det for danske atleter?', 1, 'guide', 'system', datetime('now'))
+- [NCAA. (2021). NCAA 101: Our three divisions.](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-our-three-divisions.aspx)
+- [Ropes & Gray. (2025, juni). House v. NCAA settlement approved: Era of direct payments to college athletes begins.](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'Forskellen på NCAA Division I, II og III — niveau, idrætslegater og balancen mellem sport og studie. Hvad betyder det for danske atleter?', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -137,8 +137,8 @@ Conference afgør modstandere, rejseafstande, eksponering og ofte niveau. På pr
 
 ## Kilder
 
-- [Wikipedia — Power conferences (Power Four)](https://en.wikipedia.org/wiki/Power_conferences)
-- [Front Office Sports — Power 5-æraen er forbi](https://frontofficesports.com/conference-realignment-end-of-power-5-end/)', 'Hvad er en conference i college sport? Big Ten, SEC, ACC og de mange andre — hvordan de fungerer, og hvorfor de betyder noget.', 1, 'guide', 'system', datetime('now'))
+- [Wikipedia. (n.d.). Power conferences. Hentet juni 2026.](https://en.wikipedia.org/wiki/Power_conferences)
+- [Front Office Sports. (n.d.). Conference realignment and the end of the Power 5 era.](https://frontofficesports.com/conference-realignment-end-of-power-5-end/)', 'Hvad er en conference i college sport? Big Ten, SEC, ACC og de mange andre — hvordan de fungerer, og hvorfor de betyder noget.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -176,9 +176,9 @@ Det afhænger af niveau, karakterer, økonomi og mål. JUCO kan åbne døre, hvi
 
 ## Kilder
 
-- [NAIA — officiel hjemmeside](https://www.naia.org/)
-- [NJCAA — officiel hjemmeside](https://www.njcaa.org/)
-- [ESPN — NCAA giver dispensation til tidligere JUCO-spillere (Pavia)](https://www.espn.com/college-football/story/_/id/43131557/ncaa-division-board-grants-waiver-former-juco-players-appealing-diego-pavia-injunction)', 'NCAA er ikke det eneste forbund for college sport i USA. Forstå NAIA og NJCAA (junior colleges) — og hvornår de er den rigtige vej for danske atleter.', 1, 'guide', 'system', datetime('now'))
+- [NAIA. (n.d.). Official website.](https://www.naia.org/)
+- [NJCAA. (n.d.). Official website.](https://www.njcaa.org/)
+- [ESPN. (2024). NCAA Division I board grants waiver for former JUCO players appealing in Diego Pavia injunction.](https://www.espn.com/college-football/story/_/id/43131557/ncaa-division-board-grants-waiver-former-juco-players-appealing-diego-pavia-injunction)', 'NCAA er ikke det eneste forbund for college sport i USA. Forstå NAIA og NJCAA (junior colleges) — og hvornår de er den rigtige vej for danske atleter.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -216,8 +216,8 @@ Inden man overhovedet kan konkurrere, skal man opfylde optagelses- og spillebere
 
 ## Kilder
 
-- [NCAA.org — Akademiske standarder og krav](https://www.ncaa.org/sports/2014/10/6/academic-standards.aspx)
-- [NCAA — Eligibility Center (academic requirements)](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)', 'Major, credits, GPA og campus-liv: sådan fungerer amerikanske universiteter — og hvordan hverdagen ser ud som student athlete.', 1, 'guide', 'system', datetime('now'))
+- [NCAA. (2014, 6. oktober). Academic standards.](https://www.ncaa.org/sports/2014/10/6/academic-standards.aspx)
+- [NCAA. (2018, 11. juli). Eligibility Center.](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)', 'Major, credits, GPA og campus-liv: sådan fungerer amerikanske universiteter — og hvordan hverdagen ser ud som student athlete.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -264,7 +264,7 @@ Uden for selve kampsæsonen (''non-traditional season'') trænes der videre, og 
 
 ## Kilder
 
-- [NCAA.com — Mesterskabskalender og datoer](https://www.ncaa.com/)', 'Efterår, vinter eller forår? Overblik over hvornår de enkelte NCAA-sportsgrene har sæson — fra football til roning.', 1, 'guide', 'system', datetime('now'))
+- [NCAA. (n.d.). Championships and dates.](https://www.ncaa.com/)', 'Efterår, vinter eller forår? Overblik over hvornår de enkelte NCAA-sportsgrene har sæson — fra football til roning.', 1, 'guide', 'system', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -314,9 +314,9 @@ Ja. Atleter kan tjene på NIL (Name, Image and Likeness) siden 2021, og fra 2025
 
 ## Kilder
 
-- [Higher Ed Dive — NCAA fjerner permanent SAT/ACT-krav (D-I og D-II)](https://www.highereddive.com/news/ncaa-permanently-ends-sat-act-eligibility-requirement-division-i-ii/642117/)
-- [NCAA — Eligibility Center](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)
-- [Ropes & Gray — House-forliget og direkte betaling af atleter](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'NCAA Eligibility Center, core courses, GPA og amatørstatus: hvad skal danske atleter opfylde for at blive spilleberettiget?', 1, 'guide', 'begreber', datetime('now'))
+- [Higher Ed Dive. (2023). NCAA permanently ends SAT/ACT eligibility requirement (Division I & II).](https://www.highereddive.com/news/ncaa-permanently-ends-sat-act-eligibility-requirement-division-i-ii/642117/)
+- [NCAA. (2018, 11. juli). Eligibility Center.](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)
+- [Ropes & Gray. (2025, juni). House v. NCAA settlement approved: Era of direct payments to college athletes begins.](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'NCAA Eligibility Center, core courses, GPA og amatørstatus: hvad skal danske atleter opfylde for at blive spilleberettiget?', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -350,8 +350,8 @@ Spillertrupper ændrer sig hurtigt, og portalen giver atleter mulighed for at fi
 
 ## Kilder
 
-- [NCAA.org — Division I Council godkender ændrede transferregler (april 2024)](https://www.ncaa.org/news/2024/4/17/media-center-division-i-council-approves-changes-to-transfer-rules.aspx)
-- [ESPN — NCAA godkender umiddelbar spilleberettigelse ved transfer](https://www.espn.com/college-football/story/_/id/39963389/ncaa-approves-new-transfer-rule-allowing-immediate-eligibility)', 'Hvad er NCAA''s transfer portal, og hvordan virker den? Sådan skifter college-atleter universitet — og hvad det betyder for danske spillere.', 1, 'guide', 'begreber', datetime('now'))
+- [NCAA. (2024, 17. april). Division I Council approves changes to transfer rules.](https://www.ncaa.org/news/2024/4/17/media-center-division-i-council-approves-changes-to-transfer-rules.aspx)
+- [ESPN. (2024). NCAA approves new transfer rule allowing immediate eligibility.](https://www.espn.com/college-football/story/_/id/39963389/ncaa-approves-new-transfer-rule-allowing-immediate-eligibility)', 'Hvad er NCAA''s transfer portal, og hvordan virker den? Sådan skifter college-atleter universitet — og hvad det betyder for danske spillere.', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -401,8 +401,8 @@ Under den nye model op til fem år, hvis du er indskrevet på college senest i d
 
 ## Kilder
 
-- [NCAA.org — Division I vedtager aldersbaseret eligibility-model (juni 2026)](https://www.ncaa.org/news/2026/6/23/media-center-division-i-adopts-age-based-eligibility-model.aspx)
-- [CBS Sports — NCAA godkender aldersbaseret femårsregel](https://www.cbssports.com/college-football/news/ncaa-five-year-eligibility-rule-college-football-basketball/)', 'NCAA udfaser redshirt og indfører en aldersbaseret model med op til fem års eligibility. Forstå både den nye og den gamle ordning — og overgangen.', 1, 'guide', 'begreber', datetime('now'))
+- [NCAA. (2026, 23. juni). Division I adopts age-based eligibility model.](https://www.ncaa.org/news/2026/6/23/media-center-division-i-adopts-age-based-eligibility-model.aspx)
+- [CBS Sports. (2026). NCAA votes to approve age-based five-year eligibility rule.](https://www.cbssports.com/college-football/news/ncaa-five-year-eligibility-rule-college-football-basketball/)', 'NCAA udfaser redshirt og indfører en aldersbaseret model med op til fem års eligibility. Forstå både den nye og den gamle ordning — og overgangen.', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -498,7 +498,7 @@ En atlet på holdet uden idrætslegat — i modsætning til en ''scholarship''-a
 
 ## Kilder
 
-- [NCAA.org — Glossary / NCAA 101](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)', 'Amatørstatus, FBS, mid-major, redshirt, walk-on … de vigtigste begreber i amerikansk college sport forklaret kort på dansk.', 1, 'guide', 'begreber', datetime('now'))
+- [NCAA. (2021). NCAA 101: What is the NCAA? (glossary).](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)', 'Amatørstatus, FBS, mid-major, redshirt, walk-on … de vigtigste begreber i amerikansk college sport forklaret kort på dansk.', 1, 'guide', 'begreber', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -534,8 +534,8 @@ Danske [basketball](/basketball)-atleter kan være med, når deres hold når tur
 
 ## Kilder
 
-- [NCAA.org — Turneringerne udvides til 76 hold](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
-- [NCAA.com — Sådan fungerer den udvidede 2027-turnering](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)', 'Single-elimination og en hel nation i basketball-feber. Sådan fungerer March Madness — NCAA''s store basketballturnering (udvides til 76 hold fra 2026-27).', 1, 'guide', 'saeson', datetime('now'))
+- [NCAA. (2026, 7. maj). NCAA basketball tournaments expanding to 76 teams: What to know.](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
+- [NCAA. (2026, 7. maj). How the 2027 expanded NCAA tournament and March Madness brackets will work.](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)', 'Single-elimination og en hel nation i basketball-feber. Sådan fungerer March Madness — NCAA''s store basketballturnering (udvides til 76 hold fra 2026-27).', 1, 'guide', 'saeson', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -569,8 +569,8 @@ Danskere i college football er ofte specialister (kickere, puntere) og linemen. 
 
 ## Kilder
 
-- [Wikipedia — College Football Playoff (format og historik)](https://en.wikipedia.org/wiki/College_Football_Playoff)
-- [Sports Illustrated — CFP forbliver 12 hold i 2026](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)', 'Hvordan kåres mesteren i college football? Guide til College Football Playoff, det udvidede slutspil og bowl-systemet.', 1, 'guide', 'saeson', datetime('now'))
+- [Wikipedia. (n.d.). College Football Playoff. Hentet juni 2026.](https://en.wikipedia.org/wiki/College_Football_Playoff)
+- [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)', 'Hvordan kåres mesteren i college football? Guide til College Football Playoff, det udvidede slutspil og bowl-systemet.', 1, 'guide', 'saeson', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -610,8 +610,8 @@ Ikke i Division I — NCAA afskaffede NLI-programmet i oktober 2024 og erstatted
 
 ## Kilder
 
-- [ESPN — NCAA godkender afskaffelse af NLI-programmet](https://www.espn.com/college-sports/story/_/id/41702974/ncaa-approves-elimination-national-letter-intent-program)
-- [NCSA — NCAA afskaffer NLI: hvad nu?](https://www.ncsasports.org/blog/ncaa-eliminates-nli)', 'Hvad sker der på Signing Day, og hvad er en National Letter of Intent? Sådan formaliseres aftalen mellem atlet og universitet.', 1, 'guide', 'saeson', datetime('now'))
+- [ESPN. (2024). NCAA approves elimination of National Letter of Intent program.](https://www.espn.com/college-sports/story/_/id/41702974/ncaa-approves-elimination-national-letter-intent-program)
+- [NCSA. (2024). NCAA eliminates the NLI: What now?](https://www.ncsasports.org/blog/ncaa-eliminates-nli)', 'Hvad sker der på Signing Day, og hvad er en National Letter of Intent? Sådan formaliseres aftalen mellem atlet og universitet.', 1, 'guide', 'saeson', datetime('now'))
 ON CONFLICT(slug) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,

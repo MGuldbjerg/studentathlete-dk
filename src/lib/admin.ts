@@ -10,13 +10,17 @@ export async function getDraftArticles(): Promise<Article[]> {
   const db = await getDB();
   if (!db) return [];
   try {
+    // s.sensitive: presseetik-flag (FØLSOM-badge) — flagede kladder øverst,
+    // så de aldrig godkendes i forbifarten.
     const r = await db
       .prepare(
-        `SELECT ${ARTICLE_SELECT}
+        `SELECT ${ARTICLE_SELECT}, s.sensitive
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
+         LEFT JOIN stories s ON a.story_id = s.id
          WHERE a.published = 0
-         ORDER BY CASE a.fabrication_risk
+         ORDER BY CASE WHEN s.sensitive IS NOT NULL THEN 0 ELSE 1 END ASC,
+         CASE a.fabrication_risk
            WHEN 'low' THEN 0
            WHEN 'medium' THEN 2
            WHEN 'high' THEN 3
@@ -90,7 +94,8 @@ export async function publishArticle(id: number): Promise<void> {
   const article = await db
     .prepare(
       `SELECT a.cover_image_url, a.title, a.article_type, a.summary, a.content,
-              a.athlete_id, a.source_url, s.fact_sheet,
+              a.athlete_id, a.source_url, a.original_content, a.fabrication_risk,
+              s.fact_sheet, s.sensitive,
               at.photo_url, at.sport
        FROM articles a
        LEFT JOIN athletes at ON a.athlete_id = at.id
@@ -106,7 +111,10 @@ export async function publishArticle(id: number): Promise<void> {
       content: string | null;
       athlete_id: number | null;
       source_url: string | null;
+      original_content: string | null;
+      fabrication_risk: string | null;
       fact_sheet: string | null;
+      sensitive: string | null;
       photo_url: string | null;
       sport: string | null;
     } | null;
@@ -126,6 +134,27 @@ export async function publishArticle(id: number): Promise<void> {
     )
     .bind(coverUrl, id)
     .run();
+
+  // Review-log (plan 1.3, omformålet: evidens for review-omkostning, IKKE
+  // auto-publish-gate): publish af en AI-kladde = godkendt; redigeret hvis
+  // indholdet afviger fra original_content. Kun AI-kladder (original_content
+  // sat) logges — manuelt oprettede artikler er ikke review-beslutninger.
+  // Må aldrig blokere udgivelsen (kører også før migration-027 er kørt).
+  if (article?.original_content) {
+    try {
+      const decision =
+        article.content === article.original_content ? "approved_as_is" : "edited";
+      await db
+        .prepare(
+          `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive)
+           VALUES (?, ?, ?, ?, ?)`
+        )
+        .bind(id, decision, article.article_type ?? null, article.fabrication_risk ?? null, article.sensitive ?? null)
+        .run();
+    } catch {
+      /* log-fejl må aldrig vælte udgivelsen */
+    }
+  }
 
   // Karriere-tidslinje: høst kildebelagte priser/begivenheder fra artiklen
   // (dedup på athlete_id+award_name+season). Må aldrig blokere udgivelsen.
@@ -158,6 +187,34 @@ export async function publishArticle(id: number): Promise<void> {
 export async function deleteArticle(id: number): Promise<void> {
   const db = await getDB();
   if (!db) return;
+  // Review-log: sletning af en AI-kladde = afvist (rejected). Publicerede
+  // artikler og manuelt oprettede kladder logges ikke. Fail-safe.
+  try {
+    const row = await db
+      .prepare(
+        `SELECT a.published, a.original_content, a.article_type, a.fabrication_risk, s.sensitive
+         FROM articles a LEFT JOIN stories s ON a.story_id = s.id WHERE a.id = ?`
+      )
+      .bind(id)
+      .first() as {
+        published: number;
+        original_content: string | null;
+        article_type: string | null;
+        fabrication_risk: string | null;
+        sensitive: string | null;
+      } | null;
+    if (row && row.published === 0 && row.original_content) {
+      await db
+        .prepare(
+          `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive)
+           VALUES (?, 'rejected', ?, ?, ?)`
+        )
+        .bind(id, row.article_type, row.fabrication_risk, row.sensitive)
+        .run();
+    }
+  } catch {
+    /* log-fejl må aldrig blokere sletning */
+  }
   await db.prepare("DELETE FROM articles WHERE id = ?").bind(id).run();
 }
 
@@ -206,6 +263,8 @@ export async function updateArticle(
     content?: string;
     article_type?: string;
     author?: string;
+    author_role?: string | null;
+    correction_note?: string | null;
     athlete_id?: number | null;
     featured?: number;
   },
@@ -225,6 +284,14 @@ export async function updateArticle(
   if (sets.length === 0) return;
 
   sets.push("updated_at = datetime('now')");
+  // Synlig rettelse: sættes/opdateres noten → stempl corrected_at; ryddes → nulstil
+  if (fields.correction_note !== undefined) {
+    sets.push(
+      fields.correction_note
+        ? "corrected_at = datetime('now')"
+        : "corrected_at = NULL",
+    );
+  }
   // Regenerer slug hvis title ændres
   if (fields.title) {
     sets.push("slug = ?");
@@ -755,6 +822,90 @@ export async function updateAthlete(
       id,
     )
     .run();
+}
+
+// ─── Leads ("Spil i USA"-formularen, migration-028 — NSSA-forberedelse) ──────
+
+export interface Lead {
+  id: number;
+  name: string;
+  email: string;
+  sport: string | null;
+  message: string | null;
+  source_path: string | null;
+  referrer: string | null;
+  status: string;
+  created_at: string;
+}
+
+/** Gem et lead fra den offentlige formular. Attribution (source_path/referrer) medfølger. */
+export async function insertLead(fields: {
+  name: string;
+  email: string;
+  sport?: string | null;
+  message?: string | null;
+  source_path?: string | null;
+  referrer?: string | null;
+}): Promise<boolean> {
+  const db = await getDB();
+  if (!db) return false;
+  try {
+    await db
+      .prepare(
+        `INSERT INTO leads (name, email, sport, message, source_path, referrer)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        fields.name,
+        fields.email,
+        fields.sport ?? null,
+        fields.message ?? null,
+        fields.source_path ?? null,
+        fields.referrer ?? null,
+      )
+      .run();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getLeads(): Promise<Lead[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare("SELECT * FROM leads ORDER BY created_at DESC LIMIT 200")
+      .all();
+    return (r.results ?? []) as Lead[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getNewLeadCount(): Promise<number> {
+  const db = await getDB();
+  if (!db) return 0;
+  try {
+    const r = await db
+      .prepare("SELECT COUNT(*) as cnt FROM leads WHERE status = 'new'")
+      .first();
+    return (r as { cnt: number })?.cnt ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function updateLeadStatus(id: number, status: string): Promise<boolean> {
+  const allowed = new Set(["new", "contacted", "forwarded", "closed"]);
+  if (!allowed.has(status)) return false;
+  const db = await getDB();
+  if (!db) return false;
+  const r = await db
+    .prepare("UPDATE leads SET status = ? WHERE id = ?")
+    .bind(status, id)
+    .run();
+  return ((r as { meta?: { changes?: number } })?.meta?.changes ?? 0) > 0;
 }
 
 // ─── Pipeline-statistik til admin ────────────────────────────────────────────

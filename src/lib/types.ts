@@ -15,12 +15,19 @@ export interface Article {
   model_used: string | null;
   llm_provider: string | null;
   author: string | null;
+  /** NULL = AI/redaktionen (Ai-disclaimer vises); 'human' = menneskelig bidragyder */
+  author_role?: string | null;
   original_content: string | null;
   featured?: number;
+  // Synlig rettelse (migration-026) — "Rettet <dato>: <note>" på artiklen
+  correction_note?: string | null;
+  corrected_at?: string | null;
   // Fase 3-verifikation (valgfri — kun sat når kladden er verificeret)
   fabrication_risk?: string | null;
   fact_flags?: string | null;
   story_id?: number | null;
+  /** Presseetik-flag fra stories.sensitive (kun joinet i admin-kladdelisten) */
+  sensitive?: string | null;
   // Joined fra athletes
   athlete_name: string | null;
   athlete_slug: string | null;

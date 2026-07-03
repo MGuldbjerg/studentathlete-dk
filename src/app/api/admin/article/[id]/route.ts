@@ -16,17 +16,33 @@ export async function PUT(
     if (!(await isAdmin(req.headers))) {
       return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
-    const fields = (await req.json()) as {
+    const body = (await req.json()) as {
       title?: string;
       summary?: string;
       content?: string;
       article_type?: string;
       author?: string;
+      author_role?: string | null;
+      correction_note?: string | null;
       athlete_id?: number | null;
       featured?: number;
     };
 
-    await updateArticle(id, fields);
+    // Whitelist felter eksplicit — updateArticle bygger SQL af nøglerne,
+    // så ukendte nøgler fra klienten må aldrig slippe igennem.
+    await updateArticle(id, {
+      title: body.title,
+      summary: body.summary,
+      content: body.content,
+      article_type: body.article_type,
+      author: body.author,
+      author_role:
+        body.author_role === undefined ? undefined : body.author_role === "human" ? "human" : null,
+      correction_note:
+        body.correction_note === undefined ? undefined : body.correction_note?.trim() || null,
+      athlete_id: body.athlete_id,
+      featured: body.featured,
+    });
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Serverfejl";

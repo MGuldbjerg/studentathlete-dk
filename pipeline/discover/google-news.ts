@@ -16,6 +16,7 @@ import * as cheerio from "cheerio";
 import { createD1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import { matchAthletes, isBlockedDomain } from "./extract-story";
+import { detectSensitive } from "./sensitive";
 import { verifyStory } from "./verify-story";
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -226,10 +227,13 @@ export async function main(): Promise<void> {
       }
 
       try {
+        // Presseetik-flag — Google News er netop kilden der kan surface negative
+        // historier (anholdelse, disciplin, dødsfald). Se sensitive.ts.
+        const sensitive = detectSensitive(`${item.title} ${item.description}`);
         await db.execute(
           `INSERT OR IGNORE INTO stories
-             (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score)
-           VALUES (?, ?, ?, ?, ?, ?, 'google_news_rss', ?)`,
+             (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
+           VALUES (?, ?, ?, ?, ?, ?, 'google_news_rss', ?, ?)`,
           [
             athlete.id,
             item.link,
@@ -238,6 +242,7 @@ export async function main(): Promise<void> {
             item.description || null,
             null, // content_raw — Google News links redirect; leave empty
             relevance_score,
+            sensitive?.type ?? null,
           ],
         );
         totalStored++;

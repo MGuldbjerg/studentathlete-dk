@@ -36,6 +36,9 @@ Regler:
 20. Naturlige søgeentiteter: Brug atletens fulde navn, universitet, sport og "dansk"/hjemby naturligt i teksten — det er det folk søger på. MEN aldrig keyword-stuffing, aldrig unaturlige gentagelser, og ALDRIG på bekostning af faktuel præcision (regel 16). Relevante entiteter slår søgeordstæthed
 21. Menneske-først kvalitet (E-E-A-T): Skriv originalt og fyldigt for den danske læser, ikke for søgemaskiner. Googles kvalitetsmodel belønner præcist, velkildebelagt indhold og straffer tynd, masseproduceret AI-tekst — din faktuelle præcision (regel 16) + naturlige kildeattribution (regel 11) ER din SEO-styrke. Scanbar struktur: korte afsnit, sigende underoverskrifter, aktiv form
 22. Eget tekstgrundlag (citatskik): Skriv artiklen på baggrund af STATISTIK, resultater og de kendte ATLET-fakta — fortalt i dine EGNE ord. Genfortæl ALDRIG en enkelt kildeartikels formuleringer eller opbygning. Kildens egen tekst bruges kun til (a) ét eventuelt citat (jf. regel 4) og (b) at bekræfte tallene — aldrig som tekstgrundlag
+23. Skader: Gengiv KUN skades- og comeback-tidslinjer ("ude i 4-6 uger", "tilbage til foråret") hvis tidslinjen ordret fremgår af KILDEINDHOLD. Estimér eller udled ALDRIG selv en tidshorisont — en opdigtet prognose om et navngivet menneskes helbred er den alvorligste fejltype. Mangler kilden en tidslinje, så skriv blot at atleten er ude, uden tidshorisont`;
+
+const MARKDOWN_FORMAT = `
 
 Formatering (bliver til semantisk HTML — brug markdown, ALDRIG rå HTML-tags):
 - Første linje: # Overskrift (bliver sidens <h1> — maks 80 tegn, jf. regel 17)
@@ -44,8 +47,19 @@ Formatering (bliver til semantisk HTML — brug markdown, ALDRIG rå HTML-tags):
 - Underoverskrifter med ## (bliver <h2>) eller ### (bliver <h3>). Brug ALDRIG enkelt # inde i brødteksten (kun til titlen), og brug ALDRIG **fed** som erstatning for en rigtig ## underoverskrift
 - Fremhævning: **fed** (bliver <strong>), *kursiv* (bliver <em>). Lister: "- " (punkt → <ul>) eller "1. " (nummereret → <ol>). Links: [tekst](url)`;
 
-export function buildSystemPrompt(corrections: StyleCorrectionEntry[] = []): string {
-  if (corrections.length === 0) return BASE_PROMPT;
+const JSON_FORMAT = `
+
+Output-format: Svar med PRÆCIS ét gyldigt JSON-objekt og intet andet (ingen tekst før/efter, ingen kodeblokke):
+{"title": "<overskrift — maks 80 tegn, jf. regel 17, ingen markdown-markører>", "summary": "<ingress — 1-2 sætninger, jf. regel 18>", "content": "<brødtekst i markdown>"}
+- content-feltet (bliver til semantisk HTML — brug markdown, ALDRIG rå HTML-tags): afsnit adskilt af én tom linje; underoverskrifter med ## eller ### (ALDRIG enkelt # — titlen ligger i title-feltet, og ALDRIG **fed** som erstatning for en ## underoverskrift); **fed**, *kursiv*; lister med "- " eller "1. "; links [tekst](url)
+- Gentag IKKE titlen eller ingressen i content-feltet`;
+
+export function buildSystemPrompt(
+  corrections: StyleCorrectionEntry[] = [],
+  opts: { jsonOutput?: boolean } = {},
+): string {
+  const base = BASE_PROMPT + (opts.jsonOutput ? JSON_FORMAT : MARKDOWN_FORMAT);
+  if (corrections.length === 0) return base;
 
   const phrases = corrections.filter((c) => (c.rule_type ?? "phrase") === "phrase");
   const houseRules = corrections.filter((c) => c.rule_type === "house_rule");
@@ -67,8 +81,8 @@ export function buildSystemPrompt(corrections: StyleCorrectionEntry[] = []): str
       guide += "\n";
     }
   }
-  return BASE_PROMPT + guide;
+  return base + guide;
 }
 
 // Bagudkompatibilitet
-export const SYSTEM_PROMPT = BASE_PROMPT;
+export const SYSTEM_PROMPT = BASE_PROMPT + MARKDOWN_FORMAT;

@@ -179,7 +179,7 @@ export async function extractBoxScoreStats(
 
   let raw: string;
   try {
-    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 400 });
+    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 400, json: true });
     raw = res.text;
   } catch {
     return null;

@@ -26,6 +26,7 @@ export async function openAICompatibleGenerate(
   prompt: string,
   max_tokens: number,
   providerName: string,
+  jsonMode = false,
 ): Promise<LLMResponse> {
   const response = await fetch(endpoint, {
     method: "POST",
@@ -40,6 +41,9 @@ export async function openAICompatibleGenerate(
         { role: "system", content: system },
         { role: "user", content: prompt },
       ],
+      // json_object-mode kræver at ordet "json" indgår i prompten (OpenAI-konvention;
+      // Mistral og Groq håndhæver det samme) — alle JSON-kaldere gør det allerede.
+      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
     }),
   });
 

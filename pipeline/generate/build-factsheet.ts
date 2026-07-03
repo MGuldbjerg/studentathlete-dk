@@ -38,7 +38,7 @@ export interface FactSheet {
 
 /** Minimal interface — accepterer ProviderChain eller en stub i tests. */
 export interface ChainLike {
-  generate(opts: { system: string; prompt: string; max_tokens: number }): Promise<{ text: string }>;
+  generate(opts: { system: string; prompt: string; max_tokens: number; json?: boolean }): Promise<{ text: string }>;
 }
 
 const SYSTEM_MESSAGE =
@@ -175,7 +175,7 @@ export async function buildFactSheet(
 
   let text: string;
   try {
-    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 900 });
+    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 900, json: true });
     text = res.text;
   } catch {
     return { factSheet: null, status: "failed" };

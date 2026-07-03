@@ -15,11 +15,12 @@ import { newsPrompt } from "./prompts/news";
 import { featurePrompt } from "./prompts/feature";
 import { seasonUpdatePrompt } from "./prompts/season-update";
 import { recruitingPrompt } from "./prompts/recruiting";
-import { parseArticleOutput } from "./parse-output";
+import { parseArticleOutputSmart } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
 import { timelineForGeneration, currentSeasonStart, type AthleteEvent } from "./timeline";
+import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
 
 interface StoryWithAthlete extends Story {
   athlete_name: string;
@@ -32,6 +33,7 @@ interface StoryWithAthlete extends Story {
   class_year: string | null;
   expected_graduation: string | null;
   fact_sheet: string | null;
+  sensitive: string | null;
 }
 
 function selectArticleType(story: StoryWithAthlete): string {
@@ -84,16 +86,28 @@ function buildPrompt(
     timeline,
   };
 
+  let prompt: string;
   switch (articleType) {
     case "feature":
-      return featurePrompt(context);
+      prompt = featurePrompt(context);
+      break;
     case "season_update":
-      return seasonUpdatePrompt(context);
+      prompt = seasonUpdatePrompt(context);
+      break;
     case "recruiting":
-      return recruitingPrompt(context);
+      prompt = recruitingPrompt(context);
+      break;
     default:
-      return newsPrompt(context);
+      prompt = newsPrompt(context);
   }
+
+  // Følsom historie (anholdelse/disciplin/spilleberettigelse/personligt) →
+  // nøgternheds-instruks. Kladden skal desuden altid gennem Mikkels skærpede
+  // review (rød badge i admin via stories.sensitive).
+  if (story.sensitive) {
+    prompt += `\n\n${sensitiveCareBlock(story.sensitive as SensitiveType)}`;
+  }
+  return prompt;
 }
 
 // ─── Sikkerhedsnet ──────────────────────────────────────────────────────────
@@ -134,7 +148,10 @@ async function main(): Promise<void> {
     "SELECT wrong_phrase, correct_phrase, note, rule_type FROM style_corrections WHERE active = 1 LIMIT 50",
   );
   const corrections = corrResult.results;
-  const systemPrompt = buildSystemPrompt(corrections);
+  // JSON-mode: providerens API håndhæver gyldig JSON → ingen fed-titel/tomme
+  // kladder fra gratis-modeller. parseArticleOutputSmart falder tilbage til
+  // linjeformatet hvis en provider alligevel svarer med rå markdown.
+  const systemPrompt = buildSystemPrompt(corrections, { jsonOutput: true });
   console.log(`Stilguide: ${corrections.length} rettelse(r) loaded`);
 
   // Sikkerhedsnet 1: Tjek antal ventende kladder
@@ -275,10 +292,11 @@ async function main(): Promise<void> {
         system: systemPrompt,
         prompt,
         max_tokens: 2000,
+        json: true,
         preferProvider,
       });
 
-      const parsed = parseArticleOutput(response.text, articleType);
+      const parsed = parseArticleOutputSmart(response.text, articleType);
       const slug = generateSlug(parsed.title);
 
       // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering

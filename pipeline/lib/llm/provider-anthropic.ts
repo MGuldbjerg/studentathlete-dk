@@ -4,7 +4,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import type { LLMProvider, LLMResponse } from "./types";
+import type { GenerateOpts, LLMProvider, LLMResponse } from "./types";
 
 export class AnthropicProvider implements LLMProvider {
   readonly name = "anthropic";
@@ -20,11 +20,9 @@ export class AnthropicProvider implements LLMProvider {
     return this.client !== null;
   }
 
-  async generate(opts: {
-    system: string;
-    prompt: string;
-    max_tokens: number;
-  }): Promise<LLMResponse> {
+  // NB: opts.json ignoreres — Messages API har ingen json_object-mode;
+  // Claude følger prompt-instruksen om JSON pålideligt.
+  async generate(opts: GenerateOpts): Promise<LLMResponse> {
     const model = "claude-haiku-4-5-20241022";
 
     const response = await this.client!.messages.create({

@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount } from "@/lib/admin";
+import { getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount, getNewLeadCount } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 
 export default async function AdminDashboard() {
 
-  const [drafts, allArticles, pendingPhotos] = await Promise.all([
+  const [drafts, allArticles, pendingPhotos, newLeads] = await Promise.all([
     getDraftArticles(),
     getAllArticles(),
     getPendingPhotoSuggestionCount(),
+    getNewLeadCount(),
   ]);
   const published = allArticles.filter((a) => a.published === 1);
 
@@ -62,6 +63,12 @@ export default async function AdminDashboard() {
             Fotos{pendingPhotos > 0 ? ` (${pendingPhotos})` : ""}
           </Link>
           <Link
+            href={`/admin/leads`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Leads{newLeads > 0 ? ` (${newLeads})` : ""}
+          </Link>
+          <Link
             href={`/admin/pipeline`}
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
@@ -108,6 +115,15 @@ export default async function AdminDashboard() {
                   <span className="text-[11px] text-muted">
                     {ARTICLE_TYPE_LABELS[draft.article_type] ?? draft.article_type}
                   </span>
+                  {draft.sensitive && (
+                    <span
+                      className="text-[11px] font-bold px-2 py-0.5 rounded text-white"
+                      style={{ backgroundColor: "#7f1d1d" }}
+                      title={`Presseetik-flag: ${draft.sensitive} — læs kilden og vurdér dækningen ekstra kritisk`}
+                    >
+                      ■ FØLSOM ({draft.sensitive})
+                    </span>
+                  )}
                   {draft.fabrication_risk === "low" && (
                     <span
                       className="text-[11px] font-semibold px-2 py-0.5 rounded"

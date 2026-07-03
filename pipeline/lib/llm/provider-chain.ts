@@ -77,6 +77,8 @@ export class ProviderChain {
     system: string;
     prompt: string;
     max_tokens: number;
+    /** Håndhæv gyldig JSON via providerens API hvor muligt (se GenerateOpts.json). */
+    json?: boolean;
     /** Forsøg denne provider først (fx "anthropic" til features), ellers normal rækkefølge. */
     preferProvider?: string;
   }): Promise<LLMResponse> {
