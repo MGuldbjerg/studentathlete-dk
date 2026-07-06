@@ -87,6 +87,24 @@ async function fetchPage(url: string): Promise<string | null> {
   }
 }
 
+/**
+ * Hård per-job timeout. `fetch`/`res.text()` kan INTERMITTENT hænge trods
+ * AbortSignal.timeout (set live: en fastlåst worker → hele parallelMap resolver
+ * aldrig, ELLER loopet tømmes fordi AbortSignal-timeren er unref'd og Node exit'er 0
+ * midt i scrapet). Denne wrapper garanterer at hvert job ALTID settler via en ref'd
+ * setTimeout — så parallelMap altid resolver og processen hverken hænger eller exit'er
+ * for tidligt. p'ets eget resultat vinder hvis det når frem først.
+ */
+function withHardTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    const t = setTimeout(() => resolve(fallback), ms);
+    p.then(
+      (v) => { clearTimeout(t); resolve(v); },
+      () => { clearTimeout(t); resolve(fallback); },
+    );
+  });
+}
+
 async function parallelMap<T, R>(
   items: T[],
   concurrency: number,
@@ -189,39 +207,45 @@ export function buildUpsert(rows: CatalogueAthlete[], nowIso: string): { sql: st
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  let limitPerDiv = 0;
+  let schoolOffset = 0;
+  let schoolLimit = 0; // 0 = alle
   let concurrency = 10;
   let dryRun = false;
   let includeCanada = false;
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--limit-per-div" && args[i + 1]) { limitPerDiv = parseInt(args[++i], 10) || 0; }
+    if (args[i] === "--school-offset" && args[i + 1]) { schoolOffset = parseInt(args[++i], 10) || 0; }
+    else if (args[i] === "--school-limit" && args[i + 1]) { schoolLimit = parseInt(args[++i], 10) || 0; }
     else if (args[i] === "--concurrency" && args[i + 1]) { concurrency = parseInt(args[++i], 10) || 10; }
     else if (args[i] === "--dry-run") { dryRun = true; }
     else if (args[i] === "--include-canada") { includeCanada = true; }
   }
-  return { limitPerDiv, concurrency, dryRun, includeCanada };
+  return { schoolOffset, schoolLimit, concurrency, dryRun, includeCanada };
 }
 
 async function main(): Promise<void> {
-  const { limitPerDiv, concurrency, dryRun, includeCanada } = parseArgs();
+  const { schoolOffset, schoolLimit, concurrency, dryRun, includeCanada } = parseArgs();
   const db = createD1Client();
   const startTime = Date.now();
 
   console.log("=== EKSPANSIONS-KATALOG: internationale NCAA-atleter ===");
   console.log(`Startet: ${new Date().toISOString()} · concurrency ${concurrency}${dryRun ? " · DRY-RUN" : ""}`);
 
-  const divisions = ["NCAA D1", "NCAA D2", "NCAA D3", "NAIA"];
-  const schoolsByDiv: Record<string, SchoolRow[]> = {};
-  for (const div of divisions) {
-    const limitClause = limitPerDiv > 0 ? `LIMIT ${limitPerDiv}` : "";
-    const result = await db.query<SchoolRow>(
-      `SELECT id, name, division, website, platform_type
-       FROM schools WHERE website IS NOT NULL AND division = ?
-       ORDER BY RANDOM() ${limitClause}`,
-      [div],
-    );
-    schoolsByDiv[div] = result.results;
-    console.log(`  ${div}: ${result.results.length} skoler`);
+  // DETERMINISTISK skole-slice (ORDER BY id) så en ekstern runner kan dække alle
+  // skoler i små, pålidelige bidder (den lange enkelt-proces-kørsel exit'er
+  // intermittent 0 midt i en fetch — små slices + retry konvergerer). SQLite kræver
+  // LIMIT før OFFSET; OFFSET uden grænse → LIMIT -1.
+  const limitClause = schoolLimit > 0 ? `LIMIT ${schoolLimit}` : schoolOffset > 0 ? "LIMIT -1" : "";
+  const offsetClause = schoolOffset > 0 ? `OFFSET ${schoolOffset}` : "";
+  const schoolsRes = await db.query<SchoolRow>(
+    `SELECT id, name, division, website, platform_type
+     FROM schools WHERE website IS NOT NULL
+     ORDER BY id ${limitClause} ${offsetClause}`,
+  );
+  const schools = schoolsRes.results;
+  console.log(`Skoler: ${schools.length} (offset ${schoolOffset}${schoolLimit > 0 ? `, limit ${schoolLimit}` : ""})`);
+  if (schools.length === 0) {
+    console.log("Ingen skoler i dette slice.\nFærdig: " + new Date().toISOString());
+    return;
   }
 
   const knownUrls = await getKnownUrls(db);
@@ -230,26 +254,22 @@ async function main(): Promise<void> {
 
   interface Job { school: SchoolRow; sport: string; url: string }
   const jobs: Job[] = [];
-  for (const div of divisions) {
-    for (const school of schoolsByDiv[div]) {
-      for (const sport of ALL_SPORTS) {
-        const known = knownUrls.get(`${school.id}:${sport}`);
-        if (known) { jobs.push({ school, sport, url: known }); continue; }
-        const candidates = getRosterUrls(school.website, sport, school.platform_type)
-          .filter((u) => !failedUrls.has(u));
-        if (candidates.length > 0) jobs.push({ school, sport, url: candidates[0] });
-      }
+  for (const school of schools) {
+    for (const sport of ALL_SPORTS) {
+      const known = knownUrls.get(`${school.id}:${sport}`);
+      if (known) { jobs.push({ school, sport, url: known }); continue; }
+      const candidates = getRosterUrls(school.website, sport, school.platform_type)
+        .filter((u) => !failedUrls.has(u));
+      if (candidates.length > 0) jobs.push({ school, sport, url: candidates[0] });
     }
   }
   console.log(`Jobs: ${jobs.length} · est. ~${Math.round(jobs.length / concurrency * 0.5 / 60)} min\n`);
 
+  // Scrape-funktion pr. job (uændret logik; batching + løbende upsert nedenfor).
   let completed = 0;
-  const perJob = await parallelMap<Job, CatalogueAthlete[]>(jobs, concurrency, async (job) => {
-    const html = await fetchPage(job.url);
-    if (++completed % 500 === 0) {
-      const elapsed = ((Date.now() - startTime) / 60000).toFixed(1);
-      console.log(`  ${completed}/${jobs.length} (${elapsed} min)...`);
-    }
+  const scrapeJob = async (job: Job): Promise<CatalogueAthlete[]> => {
+    const html = await withHardTimeout(fetchPage(job.url), 8000, null as string | null);
+    completed++;
     if (!html) return [];
     try {
       const roster = parseRoster(html);
@@ -280,23 +300,53 @@ async function main(): Promise<void> {
     } catch {
       return [];
     }
-  });
+  };
 
-  // Dedupe på (name_key, school, sport) — samme person kan optræde i flere fetches.
+  // Kør jobs i batches og upsert LØBENDE. Tidligere blev alt samlet og skrevet til
+  // sidst — en lang kørsel der blev afbrudt nær slutningen tabte ALT (set live:
+  // process exit 0 ved ~99% uden at nå slut-upsert). Nu persisterer hver batch, så
+  // afbrydelse koster højst én batch. Dedup på tværs af batches via `seen`; DB'ens
+  // ON CONFLICT er backstop. Vi deaktiverer ALDRIG usete atleter (kataloget akkumulerer).
+  const nowIso = new Date().toISOString().replace("T", " ").slice(0, 19);
   const seen = new Set<string>();
   const athletes: CatalogueAthlete[] = [];
-  for (const list of perJob) {
-    for (const a of list) {
-      const key = `${a.nameKey}|${a.school}|${a.sport}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      athletes.push(a);
+  let written = 0;
+  const BATCH = 800;
+
+  for (let start = 0; start < jobs.length; start += BATCH) {
+    const batch = jobs.slice(start, start + BATCH);
+    const perJob = await parallelMap<Job, CatalogueAthlete[]>(batch, concurrency, scrapeJob);
+
+    const fresh: CatalogueAthlete[] = [];
+    for (const list of perJob) {
+      for (const a of list) {
+        const key = `${a.nameKey}|${a.school}|${a.sport}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        athletes.push(a);
+        fresh.push(a);
+      }
     }
+
+    if (!dryRun) {
+      for (let i = 0; i < fresh.length; i += MAX_UPSERT_ROWS) {
+        const chunk = fresh.slice(i, i + MAX_UPSERT_ROWS);
+        const { sql, params } = buildUpsert(chunk, nowIso);
+        await db.execute(sql, params);
+        written += chunk.length;
+      }
+    }
+
+    const elapsed = ((Date.now() - startTime) / 60000).toFixed(1);
+    console.log(
+      `  ${completed}/${jobs.length} jobs · ${athletes.length} atleter · ${written} skrevet (${elapsed} min)`,
+    );
   }
 
   const summary = summarize(athletes);
-  const elapsed = ((Date.now() - startTime) / 60000).toFixed(1);
-  console.log(`\n=== ${athletes.length} internationale atleter fundet (${elapsed} min) ===`);
+  console.log(
+    `\n=== ${athletes.length} internationale atleter · ${dryRun ? "0 (dry-run)" : written} skrevet til D1 ===`,
+  );
 
   const top = (rec: Record<string, number>, n: number) =>
     Object.entries(rec).sort(([, a], [, b]) => b - a).slice(0, n);
@@ -323,24 +373,6 @@ async function main(): Promise<void> {
     console.warn("  Kunne ikke skrive snapshot:", err);
   }
 
-  if (dryRun) {
-    console.log("\nDRY-RUN — ingen DB-skrivning.");
-    return;
-  }
-
-  // Upsert i chunks. Bemærk: vi DEAKTIVERER ikke usete atleter (en skole der fejlede
-  // dette run må ikke pensionere sine atleter) — kataloget akkumulerer bevidst.
-  const nowIso = new Date().toISOString().replace("T", " ").slice(0, 19);
-  const CHUNK = MAX_UPSERT_ROWS;
-  let written = 0;
-  for (let i = 0; i < athletes.length; i += CHUNK) {
-    const chunk = athletes.slice(i, i + CHUNK);
-    const { sql, params } = buildUpsert(chunk, nowIso);
-    await db.execute(sql, params);
-    written += chunk.length;
-    if (written % 600 === 0) console.log(`  upsert ${written}/${athletes.length}...`);
-  }
-  console.log(`\nUpsert færdig: ${written} rækker (insert eller last_seen-opdatering).`);
   console.log(`Færdig: ${new Date().toISOString()}`);
 }
 

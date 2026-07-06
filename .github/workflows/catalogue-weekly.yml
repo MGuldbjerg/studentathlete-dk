@@ -30,12 +30,15 @@ jobs:
 
       - run: npm ci
 
-      - name: Katalogisér internationale atleter
-        run: npx tsx pipeline/catalogue/catalogue-international.ts --concurrency 10 ${{ inputs.dry_run && '--dry-run' || '' }}
+      # Slice + retry runner (ikke én lang tsx-proces): den lange kørsel exit'er
+      # intermittent 0 midt i en fetch; små slices + idempotent upsert konvergerer.
+      - name: Katalogisér internationale atleter (slice + retry)
+        run: bash scripts/run-catalogue.sh
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          CATALOGUE_DRY: ${{ inputs.dry_run && '1' || '0' }}
 
       - name: Discord ved fejl
         if: failure()
