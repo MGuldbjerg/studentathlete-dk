@@ -31,8 +31,9 @@ const COUNTRY_MARKET: Record<string, MarketProfile> = {
   Iceland: M("Icelandic", "Nordics"),
 
   // ── Engelsk-sprogede (Mikkel redigerer selv — nul oversættelse) ──
-  UK: M("English", "British Isles"),
-  Ireland: M("English", "British Isles"),
+  // Irland poolet ALDRIG under et britisk brand (historisk/politisk følsomhed).
+  UK: M("English", "United Kingdom"),
+  Ireland: M("English", "Ireland"),
   Australia: M("English", "Oceania"),
   "New Zealand": M("English", "Oceania"),
   "South Africa": M("English", "Anglophone Africa"),
@@ -72,9 +73,9 @@ const COUNTRY_MARKET: Record<string, MarketProfile> = {
   "Dominican Republic": M("Spanish", "Latin America"),
   "Puerto Rico": M("Spanish", "Latin America"),
 
-  // ── Portugisisk ──
-  Brazil: M("Portuguese", "Lusophone"),
-  Portugal: M("Portuguese", "Lusophone"),
+  // ── Portugisisk (Brasilien og Portugal er kulturelt distinkte → ikke poolet) ──
+  Brazil: M("Portuguese", "Brazil"),
+  Portugal: M("Portuguese", "Portugal"),
 
   // ── Fransk (Frankrig standalone; frankofon Afrika/Caribien = pool) ──
   France: M("French", "France"),
@@ -95,14 +96,16 @@ const COUNTRY_MARKET: Record<string, MarketProfile> = {
   "Czech Republic": M("Czech", "Central Europe"),
   Hungary: M("Hungarian", "Central Europe"),
   Slovakia: M("Slovak", "Central Europe"),
-  Slovenia: M("Slovenian", "Balkans"),
-  Croatia: M("Croatian", "Balkans"),
-  Serbia: M("Serbian", "Balkans"),
-  Bosnia: M("Bosnian", "Balkans"),
-  "North Macedonia": M("Macedonian", "Balkans"),
-  Montenegro: M("Montenegrin", "Balkans"),
-  Albania: M("Albanian", "Balkans"),
-  Kosovo: M("Albanian", "Balkans"),
+  // Balkan: IKKE poolet — nyere krige/etniske spændinger (Serbien/Kroatien/Bosnien/
+  // Kosovo). Hvert land står alene (deler heller ikke redaktør trods BCMS-nærhed).
+  Slovenia: M("Slovenian", "Slovenia"),
+  Croatia: M("Croatian", "Croatia"),
+  Serbia: M("Serbian", "Serbia"),
+  Bosnia: M("Bosnian", "Bosnia"),
+  "North Macedonia": M("Macedonian", "North Macedonia"),
+  Montenegro: M("Montenegrin", "Montenegro"),
+  Albania: M("Albanian", "Albania"),
+  Kosovo: M("Albanian", "Kosovo"),
   Romania: M("Romanian", "Eastern Europe"),
   Bulgaria: M("Bulgarian", "Eastern Europe"),
   Greece: M("Greek", "Eastern Europe"),
@@ -115,13 +118,13 @@ const COUNTRY_MARKET: Record<string, MarketProfile> = {
   Estonia: M("Estonian", "Baltics"),
   Turkey: M("Turkish", "Turkey"),
   Cyprus: M("Greek", "Eastern Europe"),
-  Malta: M("English", "British Isles"),
+  Malta: M("English", "Malta"),
 
   // ── Nordafrika & Mellemøsten ──
   Egypt: M("Arabic", "MENA"),
   Morocco: M("Arabic/French", "MENA"),
-  Israel: M("Hebrew", "MENA"),
-  Iran: M("Persian", "MENA"),
+  Israel: M("Hebrew", "Israel"),   // aldrig poolet med arabiske stater
+  Iran: M("Persian", "Iran"),      // persisk, ikke arabisk — egen enhed
   Iraq: M("Arabic", "MENA"),
   "Saudi Arabia": M("Arabic", "MENA"),
   UAE: M("Arabic", "MENA"),

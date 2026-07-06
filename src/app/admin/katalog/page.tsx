@@ -4,6 +4,7 @@ import {
   type CatalogueCount,
   type CatalogueCountryRow,
 } from "@/lib/admin";
+import { getPopulationM } from "@/lib/country-population";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,11 @@ export const dynamic = "force-dynamic";
 // Vejledende tærskel fra beslutningstræet: et land der KLART er over ~100 atleter
 // (+ en dedikeret lokal redaktør) er eget-site-kandidat; ellers poolet. Rå tal.
 const OWN_SITE_THRESHOLD = 100;
+
+// Antaget engageret følgeskare pr. atlet (familie, klub, hjemby, skole). Grov
+// demand-proxy: publikummet er INDHOLDS-drevet (atleter vi kan dække), mens
+// befolkning er kontekst/loft. Juster tallet frit.
+const REACH_PER_ATHLETE = 1000;
 
 const NAVY = "#00205B";
 
@@ -138,37 +144,54 @@ function Section({
 }
 
 function CountrySection({ rows }: { rows: CatalogueCountryRow[] }) {
-  const max = rows[0]?.n ?? 0;
   return (
     <section className="mb-10">
       <h2 className="text-lg font-bold text-ink mb-0.5">Pr. land</h2>
       <p className="text-muted text-xs mb-3">
-        Graduerings-input: land-størrelse vs. dets pool (regionen). ★ = eget-site-kandidat
-        (≥ {OWN_SITE_THRESHOLD}).
+        ★ = eget-site-kandidat (≥ {OWN_SITE_THRESHOLD} atleter). »Est. publikum« = atleter
+        × {REACH_PER_ATHLETE.toLocaleString("da-DK")} (antaget følgeskare pr. atlet —
+        publikummet er indholds-drevet); befolkning er kontekst/loft, ikke publikum.
       </p>
-      <div className="bg-paper rounded-lg border border-border px-4 py-2">
-        {rows.map((r) => (
-          <BarRow
-            key={r.name}
-            label={
-              <span className="flex items-center gap-1.5">
-                {r.n >= OWN_SITE_THRESHOLD && (
-                  <span title="Eget-site-kandidat" style={{ color: NAVY }}>
-                    ★
-                  </span>
-                )}
-                {r.name}
-              </span>
-            }
-            n={r.n}
-            max={max}
-            right={
-              <span className="text-xs text-muted truncate">
-                {r.language} · {r.region}
-              </span>
-            }
-          />
-        ))}
+      <div className="bg-paper rounded-lg border border-border overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-muted text-xs border-b border-border">
+              <th className="text-left font-medium px-3 py-2">Land</th>
+              <th className="text-right font-medium px-3 py-2">Atleter</th>
+              <th className="text-right font-medium px-3 py-2">Befolk. (mio.)</th>
+              <th className="text-right font-medium px-3 py-2">Est. publikum</th>
+              <th className="text-left font-medium px-3 py-2">Sprog · Region</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const pop = getPopulationM(r.name);
+              const cand = r.n >= OWN_SITE_THRESHOLD;
+              return (
+                <tr key={r.name} className="border-b border-border/50 last:border-0">
+                  <td className="px-3 py-1.5 text-ink whitespace-nowrap">
+                    {cand && (
+                      <span style={{ color: NAVY }} title="Eget-site-kandidat">★ </span>
+                    )}
+                    {r.name}
+                  </td>
+                  <td className="px-3 py-1.5 text-right tabular-nums font-semibold text-ink">
+                    {r.n}
+                  </td>
+                  <td className="px-3 py-1.5 text-right tabular-nums text-muted">
+                    {pop !== null ? pop.toLocaleString("da-DK") : "—"}
+                  </td>
+                  <td className="px-3 py-1.5 text-right tabular-nums text-muted">
+                    {(r.n * REACH_PER_ATHLETE).toLocaleString("da-DK")}
+                  </td>
+                  <td className="px-3 py-1.5 text-muted text-xs whitespace-nowrap">
+                    {r.language} · {r.region}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </section>
   );
