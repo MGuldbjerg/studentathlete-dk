@@ -15,9 +15,9 @@ export const dynamic = "force-dynamic";
  * Opdateres af det ugentlige catalogue-job.
  */
 
-// Vejledende tærskel fra beslutningstræet: et land der KLART er over ~200 atleter
+// Vejledende tærskel fra beslutningstræet: et land der KLART er over ~100 atleter
 // (+ en dedikeret lokal redaktør) er eget-site-kandidat; ellers poolet. Rå tal.
-const OWN_SITE_THRESHOLD = 200;
+const OWN_SITE_THRESHOLD = 100;
 
 const NAVY = "#00205B";
 
