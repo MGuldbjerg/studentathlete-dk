@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Graphify knowledge-graph build output (generated, ~3MB)
 graphify-out/
+
+# Ekspansions-katalog run-snapshots (genereret data, ikke kode)
+pipeline/catalogue/snapshots/

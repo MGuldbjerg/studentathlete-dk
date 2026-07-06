@@ -1,0 +1,48 @@
+name: Ugentligt ekspansions-katalog
+
+# Akkumulér ALLE internationale NCAA-atleter (ikke kun danskere) i tabellen
+# international_athletes. PREP, ikke live — ingen site-kode læser tabellen. Kører
+# ugentligt så inventaret + land-tallene til pool-vs-eget-site-beslutningstræet
+# bygger sig op inden et sprogmarked launches.
+
+on:
+  schedule:
+    # Søndag kl. 06:00 UTC (efter roster-scraping kl. 04:00, så caches er friske)
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Kør uden at skrive til DB'
+        type: boolean
+        default: false
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Katalogisér internationale atleter
+        run: npx tsx pipeline/catalogue/catalogue-international.ts --concurrency 10 ${{ inputs.dry_run && '--dry-run' || '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      - name: Discord ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Ekspansions-katalog fejlede\",\"description\":\"[Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
