@@ -66,6 +66,8 @@ eq(s.byRegion["Nordics"], 2, "Nordics = 2 (DK+SE)");
 eq(s.byRegion["Latin America"], 2, "Latin America = 2 (MX+AR)");
 eq(s.byLanguage["Spanish"], 3, "Spanish = 3 (ES+MX+AR — én redaktør)");
 eq(s.byCountry["Denmark"], 1, "Denmark = 1");
+eq(s.bySport["soccer"], 2, "soccer = 2 (DK+SE)");
+eq(s.bySport["tennis"], 2, "tennis = 2 (ES+MX)");
 
 // ── buildUpsert ────────────────────────────────────────────────────────
 const up = buildUpsert([sample[0], sample[1]], "2026-07-06 10:00:00");

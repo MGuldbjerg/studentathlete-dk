@@ -992,3 +992,119 @@ export async function getPipelineStats(): Promise<PipelineStats | null> {
     return null;
   }
 }
+
+// ─── Ekspansions-katalog (international_athletes) ────────────────────────────
+// Walled-off tabel — ingen OFFENTLIG side læser den. Denne admin-visning giver
+// beslutnings-input til pool-vs-eget-site-træet (jf. expansion-playbook.md):
+// pr. sprog (redaktør-enhed), pr. region (pool-enhed), pr. land (graduering).
+
+export interface CatalogueCount {
+  name: string;
+  n: number;
+}
+export interface CatalogueCountryRow extends CatalogueCount {
+  language: string;
+  region: string;
+}
+export interface CatalogueCounts {
+  total: number;
+  lastUpdated: string | null;
+  byLanguage: CatalogueCount[];
+  byRegion: CatalogueCount[];
+  byCountry: CatalogueCountryRow[];
+  bySport: CatalogueCount[];
+  /** Region/sprog → top-sportsgrene ("soccer 42 · tennis 18") — hvor man leder efter frivillige. */
+  topSportByLanguage: Record<string, string>;
+  topSportByRegion: Record<string, string>;
+}
+
+/** Byg "top-k sportsgrene" pr. gruppe fra flade (grp, sport, n)-rækker. */
+function topSportsByGroup(
+  rows: Array<{ grp: string; sport: string | null; n: number }>,
+  k = 3,
+): Record<string, string> {
+  const byGrp = new Map<string, Array<{ sport: string; n: number }>>();
+  for (const r of rows) {
+    if (!r.sport) continue;
+    const arr = byGrp.get(r.grp) ?? [];
+    arr.push({ sport: r.sport, n: r.n });
+    byGrp.set(r.grp, arr);
+  }
+  const out: Record<string, string> = {};
+  for (const [grp, arr] of byGrp) {
+    arr.sort((a, b) => b.n - a.n);
+    out[grp] = arr.slice(0, k).map((s) => `${s.sport} ${s.n}`).join(" · ");
+  }
+  return out;
+}
+
+export async function getCatalogueCounts(): Promise<CatalogueCounts | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const [totalRow, langs, regions, countries, sports, langSport, regionSport] =
+      await Promise.all([
+        db
+          .prepare(
+            `SELECT COUNT(*) AS total, MAX(last_seen) AS last
+             FROM international_athletes WHERE active = 1`
+          )
+          .first(),
+        db
+          .prepare(
+            `SELECT language AS name, COUNT(*) AS n FROM international_athletes
+             WHERE active = 1 GROUP BY language ORDER BY n DESC`
+          )
+          .all(),
+        db
+          .prepare(
+            `SELECT region AS name, COUNT(*) AS n FROM international_athletes
+             WHERE active = 1 GROUP BY region ORDER BY n DESC`
+          )
+          .all(),
+        db
+          .prepare(
+            `SELECT home_country AS name, COUNT(*) AS n,
+                    MAX(language) AS language, MAX(region) AS region
+             FROM international_athletes
+             WHERE active = 1 GROUP BY home_country ORDER BY n DESC`
+          )
+          .all(),
+        db
+          .prepare(
+            `SELECT sport AS name, COUNT(*) AS n FROM international_athletes
+             WHERE active = 1 GROUP BY sport ORDER BY n DESC`
+          )
+          .all(),
+        db
+          .prepare(
+            `SELECT language AS grp, sport, COUNT(*) AS n FROM international_athletes
+             WHERE active = 1 GROUP BY language, sport`
+          )
+          .all(),
+        db
+          .prepare(
+            `SELECT region AS grp, sport, COUNT(*) AS n FROM international_athletes
+             WHERE active = 1 GROUP BY region, sport`
+          )
+          .all(),
+      ]);
+    const t = totalRow as { total: number; last: string | null } | null;
+    return {
+      total: t?.total ?? 0,
+      lastUpdated: t?.last ?? null,
+      byLanguage: (langs.results ?? []) as CatalogueCount[],
+      byRegion: (regions.results ?? []) as CatalogueCount[],
+      byCountry: (countries.results ?? []) as CatalogueCountryRow[],
+      bySport: (sports.results ?? []) as CatalogueCount[],
+      topSportByLanguage: topSportsByGroup(
+        (langSport.results ?? []) as Array<{ grp: string; sport: string | null; n: number }>,
+      ),
+      topSportByRegion: topSportsByGroup(
+        (regionSport.results ?? []) as Array<{ grp: string; sport: string | null; n: number }>,
+      ),
+    };
+  } catch {
+    return null;
+  }
+}

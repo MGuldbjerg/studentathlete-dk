@@ -86,6 +86,12 @@ export default async function AdminDashboard() {
           >
             Statistik
           </Link>
+          <Link
+            href={`/admin/katalog`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Katalog
+          </Link>
         </div>
 
         {/* Kladder */}

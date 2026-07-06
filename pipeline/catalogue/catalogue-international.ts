@@ -135,19 +135,22 @@ export interface CatalogueSummary {
   byLanguage: Record<string, number>;
   byRegion: Record<string, number>;
   byCountry: Record<string, number>;
+  bySport: Record<string, number>;
 }
 
-/** Aggregér katalogiserede atleter til de tre beslutnings-views (ren funktion — testet). */
+/** Aggregér katalogiserede atleter til beslutnings-views (ren funktion — testet). */
 export function summarize(athletes: CatalogueAthlete[]): CatalogueSummary {
   const byLanguage: Record<string, number> = {};
   const byRegion: Record<string, number> = {};
   const byCountry: Record<string, number> = {};
+  const bySport: Record<string, number> = {};
   for (const a of athletes) {
     byLanguage[a.language] = (byLanguage[a.language] ?? 0) + 1;
     byRegion[a.region] = (byRegion[a.region] ?? 0) + 1;
     byCountry[a.homeCountry] = (byCountry[a.homeCountry] ?? 0) + 1;
+    if (a.sport) bySport[a.sport] = (bySport[a.sport] ?? 0) + 1;
   }
-  return { byLanguage, byRegion, byCountry };
+  return { byLanguage, byRegion, byCountry, bySport };
 }
 
 /** D1 tillader HØJST 100 bundne SQL-variabler pr. query (strengere end SQLites 999). */
@@ -304,6 +307,8 @@ async function main(): Promise<void> {
   for (const [reg, c] of top(summary.byRegion, 25)) console.log(`  ${reg.padEnd(24)} ${c}`);
   console.log("\nPr. land (graduerings-input, top 40):");
   for (const [country, c] of top(summary.byCountry, 40)) console.log(`  ${country.padEnd(24)} ${c}`);
+  console.log("\nPr. sportsgren (hvor frivillige findes):");
+  for (const [sport, c] of top(summary.bySport, 20)) console.log(`  ${sport.padEnd(24)} ${c}`);
 
   // Skriv snapshot til record (git-ignoreret data — kun til reference)
   try {
