@@ -23,12 +23,14 @@ export interface MarketProfile {
 const M = (language: string, region: string): MarketProfile => ({ language, region });
 
 const COUNTRY_MARKET: Record<string, MarketProfile> = {
-  // ── Norden (samme kulturelle klynge; naboskandinavisk kan evt. deles) ──
-  Denmark: M("Danish", "Nordics"),
-  Sweden: M("Swedish", "Nordics"),
-  Norway: M("Norwegian", "Nordics"),
-  Finland: M("Finnish", "Nordics"),
-  Iceland: M("Icelandic", "Nordics"),
+  // ── Norden ──
+  // ÉN skandinavisk redaktør kan dække DA/SV/NO (indbyrdes forståelige). Finsk
+  // (finsk-ugrisk) og islandsk er EGNE sprog — IKKE poolet under skandinavisk redaktør.
+  Denmark: M("Danish", "Scandinavia"),
+  Sweden: M("Swedish", "Scandinavia"),
+  Norway: M("Norwegian", "Scandinavia"),
+  Finland: M("Finnish", "Finland"),
+  Iceland: M("Icelandic", "Iceland"),
 
   // ── Engelsk-sprogede (Mikkel redigerer selv — nul oversættelse) ──
   // Irland poolet ALDRIG under et britisk brand (historisk/politisk følsomhed).

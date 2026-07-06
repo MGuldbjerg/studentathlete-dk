@@ -20,11 +20,6 @@ export const dynamic = "force-dynamic";
 // (+ en dedikeret lokal redaktør) er eget-site-kandidat; ellers poolet. Rå tal.
 const OWN_SITE_THRESHOLD = 100;
 
-// Antaget engageret følgeskare pr. atlet (familie, klub, hjemby, skole). Grov
-// demand-proxy: publikummet er INDHOLDS-drevet (atleter vi kan dække), mens
-// befolkning er kontekst/loft. Juster tallet frit.
-const REACH_PER_ATHLETE = 1000;
-
 const NAVY = "#00205B";
 
 function BarRow({
@@ -148,9 +143,9 @@ function CountrySection({ rows }: { rows: CatalogueCountryRow[] }) {
     <section className="mb-10">
       <h2 className="text-lg font-bold text-ink mb-0.5">Pr. land</h2>
       <p className="text-muted text-xs mb-3">
-        ★ = eget-site-kandidat (≥ {OWN_SITE_THRESHOLD} atleter). »Est. publikum« = atleter
-        × {REACH_PER_ATHLETE.toLocaleString("da-DK")} (antaget følgeskare pr. atlet —
-        publikummet er indholds-drevet); befolkning er kontekst/loft, ikke publikum.
+        ★ = eget-site-kandidat (≥ {OWN_SITE_THRESHOLD} atleter). »Atleter/mio.« = atleter pr.
+        million indbyggere = kulturel gennemslagskraft (høj = »vores atleter i USA« er en
+        stor lokal historie — fx Island, Jamaica, Norden).
       </p>
       <div className="bg-paper rounded-lg border border-border overflow-x-auto">
         <table className="w-full text-sm">
@@ -159,13 +154,14 @@ function CountrySection({ rows }: { rows: CatalogueCountryRow[] }) {
               <th className="text-left font-medium px-3 py-2">Land</th>
               <th className="text-right font-medium px-3 py-2">Atleter</th>
               <th className="text-right font-medium px-3 py-2">Befolk. (mio.)</th>
-              <th className="text-right font-medium px-3 py-2">Est. publikum</th>
+              <th className="text-right font-medium px-3 py-2">Atleter/mio.</th>
               <th className="text-left font-medium px-3 py-2">Sprog · Region</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => {
               const pop = getPopulationM(r.name);
+              const pen = pop !== null && pop > 0 ? r.n / pop : null;
               const cand = r.n >= OWN_SITE_THRESHOLD;
               return (
                 <tr key={r.name} className="border-b border-border/50 last:border-0">
@@ -182,7 +178,7 @@ function CountrySection({ rows }: { rows: CatalogueCountryRow[] }) {
                     {pop !== null ? pop.toLocaleString("da-DK") : "—"}
                   </td>
                   <td className="px-3 py-1.5 text-right tabular-nums text-muted">
-                    {(r.n * REACH_PER_ATHLETE).toLocaleString("da-DK")}
+                    {pen === null ? "—" : pen >= 10 ? Math.round(pen) : pen.toFixed(1)}
                   </td>
                   <td className="px-3 py-1.5 text-muted text-xs whitespace-nowrap">
                     {r.language} · {r.region}
