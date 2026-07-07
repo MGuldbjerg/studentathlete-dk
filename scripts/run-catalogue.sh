@@ -5,7 +5,7 @@
 # exit'er INTERMITTENT med kode 0 midt i en fetch (event-loop tømmes med et pending
 # promise — ingen exception). Små slices fejler sjældent, og idempotent upsert
 # (ON CONFLICT) betyder at retry blot gen-skriver samme rækker → konvergerer til
-# fuld dækning. Bruges af catalogue-weekly.yml og kan køres manuelt.
+# fuld dækning. Bruges af catalogue-daily.yml og kan køres manuelt.
 #
 # Env: CATALOGUE_STEP (skoler pr. slice, default 30), CATALOGUE_CONC (default 20),
 #      CATALOGUE_MAX (øvre skole-loft, default 1400), CATALOGUE_RETRIES (default 4).
