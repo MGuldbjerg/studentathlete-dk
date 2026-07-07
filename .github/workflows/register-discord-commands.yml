@@ -1,0 +1,33 @@
+name: Registrér Discord-kommandoer
+
+# Kør MANUELT (knap i Actions-fanen) når slash-kommando-listen ændres i
+# workers/discord-bot/register-commands.ts — fx når en ny /kommando tilføjes.
+#
+# Kræver to repo-secrets (tilføjes via Settings → Secrets and variables → Actions):
+#   DISCORD_APP_ID    — Discord Developer Portal → din app → Application ID
+#   DISCORD_BOT_TOKEN — samme app → Bot → Reset/Copy Token
+# Tokenet bruges KUN til at registrere kommandoer (Discord REST API). Worker-verifikationen
+# bruger DISCORD_PUBLIC_KEY, så et token-reset går ikke ud over botten.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  register:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Registrér slash-kommandoer hos Discord
+        run: npx tsx workers/discord-bot/register-commands.ts
+        env:
+          DISCORD_APP_ID: ${{ secrets.DISCORD_APP_ID }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
