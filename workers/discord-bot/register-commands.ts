@@ -27,6 +27,10 @@ const commands = [
     name: "stats",
     description: "Send ugentlig statistik-digest med det samme",
   },
+  {
+    name: "catalogue",
+    description: "Kør ekspansions-katalog-sweep nu (internationale atleter)",
+  },
 ];
 
 const res = await fetch(

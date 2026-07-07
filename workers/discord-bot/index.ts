@@ -12,6 +12,7 @@ const WORKFLOWS: Record<string, { file: string; label: string }> = {
   generate: { file: "generate-manual.yml", label: "Artikelgenerering" },
   scrape: { file: "weekly-scrape.yml", label: "Roster-scraping" },
   stats: { file: "weekly-digest.yml", label: "Ugentlig statistik" },
+  catalogue: { file: "catalogue-daily.yml", label: "Ekspansions-katalog (internationale atleter)" },
 };
 
 function hexToBytes(hex: string): Uint8Array {
