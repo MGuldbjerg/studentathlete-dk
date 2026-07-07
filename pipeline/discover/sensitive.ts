@@ -4,8 +4,8 @@
  * spilleberettigelse og alvorlige personlige forhold (dødsfald, indlæggelse).
  *
  * Hvorfor: dækningen er normalt neutral/positiv (resultater, hæder), og dér er
- * forelæggelse unødvendig. Men Google News-kilden kan surface negative historier
- * om navngivne unge mennesker. En flaget historie skal ALTID ses af Mikkel med
+ * forelæggelse unødvendig. Men skole-/holdfeeds kan alligevel surface negative
+ * historier om navngivne unge mennesker. En flaget historie skal ALTID ses af Mikkel med
  * ekstra kritisk blik (rød FØLSOM-badge i admin), og genereringen får en
  * nøgternheds-instruks. Skader er BEVIDST ikke en kategori — objektiv
  * skadesdækning er normal sportsjournalistik (tidslinje-værn ligger i
