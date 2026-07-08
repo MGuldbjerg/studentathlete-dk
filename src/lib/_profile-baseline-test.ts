@@ -51,7 +51,7 @@ expectText(base, spring26,
 
 // ── Veteran (2.+ år) ─────────────────────────────────────────────────────────
 expectText(base, fall26,
-  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio, USA som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
   "veteran-formulering fra 2. år");
 
 // ── Manglende felter ─────────────────────────────────────────────────────────
@@ -59,18 +59,18 @@ expectText({ ...base, position: null, hometown: null, university_state: null }, 
   "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University.",
   "uden position/hjemby/stat");
 expectText({ ...base, year_enrolled: null }, fall26,
-  "Mikkel Jensen spiller fodbold for Ohio State University i Ohio, USA som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spiller fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
   "uden optagelsesår");
 
 // ── Status-varianter ─────────────────────────────────────────────────────────
 expectText({ ...base, expected_graduation: 2026 }, new Date(Date.UTC(2026, 6, 10)),
-  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio, USA som Midfielder og dimitterede i 2026. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio som Midfielder og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "dimitteret efter 1. juni");
 expectText({ ...base, expected_graduation: 2026 }, new Date(Date.UTC(2030, 0, 1)),
-  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio, USA som Midfielder og dimitterede i 2026. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio som Midfielder og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "datid bevares år efter dimission (udenfor badge-vindue)");
 expectText({ ...base, active: 0, expected_graduation: null }, fall26,
-  "Mikkel Jensen spillede tidligere fodbold for Ohio State University i Ohio, USA som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spillede tidligere fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
   "inaktiv uden dimission");
 
 // ── Navne og tekstdetaljer ───────────────────────────────────────────────────
@@ -86,6 +86,19 @@ expectText({ ...base, hometown: "Aarhus" }, fall25,
 expectText({ ...base, sport: "Ishockey", position: null }, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller ishockey. Mikkel kommer fra Aarhus.",
   "sport dekapitaliseres");
+
+// ── Delstat + beskidt roster-position ────────────────────────────────────────
+expectText({ ...base, university: "Northern Illinois University", university_state: "IL" }, fall26,
+  "Mikkel Jensen har siden 2025 spillet fodbold for Northern Illinois University i Illinois som Midfielder. Mikkel kommer fra Aarhus.",
+  "delstatsforkortelse skrives helt ud");
+expectText({ ...base, university_state: "CA" }, fall26,
+  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Californien som Midfielder. Mikkel kommer fra Aarhus.",
+  "dansk eksonym for Californien");
+expectText(
+  { ...base, position: "Midfielder\n\t\t\t                            \n\t\t\t\t                            M" },
+  fall26,
+  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
+  "flerlinjet Sidearm-position → kun første linje");
 
 console.log(`\nprofile-baseline: ${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

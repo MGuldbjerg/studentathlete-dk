@@ -10,6 +10,29 @@
  * athlete_events (kildebelagte begivenheder) ad samme udkast→godkend-vej.
  */
 
+import { cleanPosition } from "./roster-clean";
+
+// Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
+// forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
+// "USA" udelades helt: alle atleter på sitet spiller i USA.
+const STATE_NAMES: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "Californien",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi",
+  MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire",
+  NJ: "New Jersey", NM: "New Mexico", NY: "New York", NC: "North Carolina",
+  ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania",
+  RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee",
+  TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington",
+  WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming", DC: "Washington D.C.",
+};
+
+function stateName(abbrevOrName: string): string {
+  return STATE_NAMES[abbrevOrName.toUpperCase()] ?? abbrevOrName;
+}
+
 export interface BaselineAthlete {
   name: string;
   preferred_name: string | null;
@@ -45,9 +68,10 @@ function cleanHometown(hometown: string): string {
 export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): string {
   const firstName = a.preferred_name ?? a.name.split(" ")[0];
   const sport = sportNoun(a.sport);
-  const pos = a.position ? ` som ${a.position}` : "";
+  const position = cleanPosition(a.position);
+  const pos = position ? ` som ${position}` : "";
   const where = a.university_state
-    ? `${a.university} i ${a.university_state}, USA`
+    ? `${a.university} i ${stateName(a.university_state)}`
     : a.university;
 
   // Dimitteret = forbi 1. juni i dimissionsåret (samme skæring som 🎓-badgen,

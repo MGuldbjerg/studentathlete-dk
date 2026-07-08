@@ -17,6 +17,7 @@ import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
 import { samePerson } from "../lib/athlete-identity";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
+import { cleanPosition } from "../../src/lib/roster-clean";
 import type { School } from "../lib/types";
 
 interface RosterCheckWithSchool {
@@ -461,7 +462,9 @@ async function main(): Promise<void> {
               athlete.name,
               slug,
               sportLabel,
-              athlete.position,
+              // Sidearm-celler kan være flerlinjede ("Midfielder\n…\nM") —
+              // rens FØR insert så snavset aldrig når DB/profiltekster/sidebar.
+              cleanPosition(athlete.position),
               athlete.hometown,
               check.name,
               check.state,
