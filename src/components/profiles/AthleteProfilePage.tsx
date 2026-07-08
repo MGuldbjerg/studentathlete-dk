@@ -144,7 +144,8 @@ export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
 
           {/* ── Hoved ────────────────────────────────────────────── */}
           <div>
-            {/* Profilresumé */}
+            {/* Profilresumé — vises KUN når et menneske har godkendt teksten i
+                /admin/profiler (profile_summary skrives aldrig automatisk) */}
             {athlete.profile_summary && (
               <section className="mb-10 pb-10" style={{ borderBottom: "1px solid #E2E0DC" }}>
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">

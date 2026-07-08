@@ -745,6 +745,132 @@ export async function decidePhotoSuggestion(
   return true;
 }
 
+// ─── Profiludkast (athletes.profile_draft, migration-031) ────────────────────
+// Udkast-konvention (deles med pipeline/profiles/build-profile-drafts.ts):
+// draft != NULL = afventer · godkend → summary=tekst, draft+draft_at=NULL ·
+// afvis → draft=NULL men draft_at BEHOLDES (markerer "afvist" så baseline-
+// tilstanden aldrig genforeslår; expand-kørsler må gerne).
+
+export interface ProfileDraft {
+  id: number; // athletes.id
+  name: string;
+  slug: string;
+  university: string;
+  sport: string;
+  profile_summary: string | null;
+  profile_draft: string;
+  profile_draft_at: string | null;
+}
+
+export interface ProfileDraftEvent {
+  season: string | null;
+  award_name: string | null;
+  summary: string;
+  source_url: string | null;
+}
+
+export async function getPendingProfileDrafts(limit = 50): Promise<ProfileDraft[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT id, name, slug, university, sport,
+                profile_summary, profile_draft, profile_draft_at
+         FROM athletes
+         WHERE profile_draft IS NOT NULL
+         ORDER BY profile_draft_at ASC
+         LIMIT ?`
+      )
+      .bind(limit)
+      .all();
+    return (r.results ?? []) as unknown as ProfileDraft[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getPendingProfileDraftCount(): Promise<number> {
+  const db = await getDB();
+  if (!db) return 0;
+  try {
+    const r = await db
+      .prepare("SELECT COUNT(*) as cnt FROM athletes WHERE profile_draft IS NOT NULL")
+      .first();
+    return (r as { cnt: number })?.cnt ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Kildebelagte events for flere atleter ad gangen (grundlag i godkendelses-UI). */
+export async function getEventsForAthletes(
+  athleteIds: number[],
+): Promise<Map<number, ProfileDraftEvent[]>> {
+  const map = new Map<number, ProfileDraftEvent[]>();
+  if (athleteIds.length === 0) return map;
+  const db = await getDB();
+  if (!db) return map;
+  try {
+    const placeholders = athleteIds.map(() => "?").join(",");
+    const r = await db
+      .prepare(
+        `SELECT athlete_id, season, award_name, summary, source_url
+         FROM athlete_events WHERE athlete_id IN (${placeholders})
+         ORDER BY season ASC, occurred_on ASC`
+      )
+      .bind(...athleteIds)
+      .all();
+    for (const row of (r.results ?? []) as (ProfileDraftEvent & { athlete_id: number })[]) {
+      const arr = map.get(row.athlete_id) ?? [];
+      arr.push({ season: row.season, award_name: row.award_name, summary: row.summary, source_url: row.source_url });
+      map.set(row.athlete_id, arr);
+    }
+  } catch {
+    // tomt map = UI viser blot udkastet uden fakta-grundlag
+  }
+  return map;
+}
+
+/**
+ * Godkend (evt. redigeret tekst → profile_summary) eller afvis et profiludkast.
+ * Publicering sker KUN her — pipeline skriver aldrig profile_summary.
+ */
+export async function decideProfileDraft(
+  athleteId: number,
+  action: "approve" | "reject",
+  editedText?: string,
+): Promise<boolean> {
+  const db = await getDB();
+  if (!db) return false;
+
+  const row = await db
+    .prepare("SELECT profile_draft FROM athletes WHERE id = ? AND profile_draft IS NOT NULL")
+    .bind(athleteId)
+    .first() as { profile_draft: string } | null;
+  if (!row) return false;
+
+  if (action === "approve") {
+    const text = editedText?.trim() || row.profile_draft;
+    await db
+      .prepare(
+        `UPDATE athletes SET profile_summary = ?, profile_draft = NULL,
+         profile_draft_at = NULL, updated_at = datetime('now') WHERE id = ?`
+      )
+      .bind(text, athleteId)
+      .run();
+  } else {
+    // Afvis: draft_at beholdes som afvisnings-markør (se konvention ovenfor).
+    await db
+      .prepare(
+        "UPDATE athletes SET profile_draft = NULL, updated_at = datetime('now') WHERE id = ?"
+      )
+      .bind(athleteId)
+      .run();
+  }
+  return true;
+}
+
 // ─── Atlet-queries til admin ─────────────────────────────────────────────────
 
 export async function createAthlete(fields: {

@@ -42,8 +42,10 @@ jobs:
             pipeline/lib/_danish-cities-test.ts \
             pipeline/lib/_athlete-identity-test.ts \
             pipeline/social/_social-test.ts \
+            pipeline/profiles/_profile-drafts-test.ts \
             src/lib/_analytics-test.ts \
-            src/lib/_youtube-test.ts
+            src/lib/_youtube-test.ts \
+            src/lib/_profile-baseline-test.ts
           do
             echo "── $t"
             npx tsx "$t"
