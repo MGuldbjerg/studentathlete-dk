@@ -8,13 +8,16 @@
 # fuld dækning. Bruges af catalogue-daily.yml og kan køres manuelt.
 #
 # Env: CATALOGUE_STEP (skoler pr. slice, default 30), CATALOGUE_CONC (default 20),
-#      CATALOGUE_MAX (øvre skole-loft, default 1400), CATALOGUE_RETRIES (default 4).
+#      CATALOGUE_MAX (øvre skole-loft, default 2000), CATALOGUE_RETRIES (default 4).
+# CATALOGUE_MAX er kun et sikkerheds-loft: loopet stopper af sig selv når D1
+# returnerer "Skoler: 0" ved en offset (ingen flere skoler). 2000 > de ~1761
+# skoler i DB → ALLE skoler dækkes, med hovedrum til vækst uden spildte offsets.
 set -u
 cd "$(dirname "$0")/.."
 
 STEP="${CATALOGUE_STEP:-30}"
 CONC="${CATALOGUE_CONC:-20}"
-MAX_SCHOOLS="${CATALOGUE_MAX:-1400}"
+MAX_SCHOOLS="${CATALOGUE_MAX:-2000}"
 RETRIES="${CATALOGUE_RETRIES:-4}"
 DRY_FLAG=""
 [ "${CATALOGUE_DRY:-0}" = "1" ] && DRY_FLAG="--dry-run"
