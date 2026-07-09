@@ -73,6 +73,16 @@ export function eventsBlock(events: EventRow[]): string[] {
   });
 }
 
+/**
+ * Sammensæt basis-teksten med kildebelagte skifte-sætninger (athlete_events,
+ * kind='transfer', skrevet af scrape-rosters.ts som allerede-færdig dansk
+ * prosa: "Skiftede fra X til Y."). Kronologisk, ingen dubletter. Rent
+ * hjælpefunktion (DB-uafhængig) så den kan testes uden D1.
+ */
+export function composeBaselineDraft(baseline: string, transferSummaries: string[]): string {
+  return [baseline, ...transferSummaries].filter(Boolean).join(" ");
+}
+
 export function buildExpandPrompt(baseline: string, eventLines: string[]): string {
   return [
     "GRUNDFAKTA (roster):",
@@ -156,7 +166,14 @@ async function runBaseline(db: D1Client, dryRun: boolean, onlyAthlete: number | 
   const rows = r.results ?? [];
   let queued = 0;
   for (const a of rows) {
-    const draft = baselineProfile(a);
+    const transferRows = await db.query<{ summary: string }>(
+      "SELECT summary FROM athlete_events WHERE athlete_id = ? AND kind = 'transfer' ORDER BY occurred_on ASC, id ASC",
+      [a.id],
+    );
+    const draft = composeBaselineDraft(
+      baselineProfile(a),
+      (transferRows.results ?? []).map((row) => row.summary),
+    );
     if (dryRun) {
       console.log(`[dry-run] #${a.id} ${a.name}: ${draft}`);
     } else {

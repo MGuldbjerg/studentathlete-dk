@@ -2,7 +2,7 @@
  * Unit-tests for build-profile-drafts.ts (rene funktioner — ingen netværk/DB).
  * Kør: npx tsx pipeline/profiles/_profile-drafts-test.ts
  */
-import { eventsBlock, buildExpandPrompt, extractProfileText, verifyDraft, excludeHealthEvents, type EventRow } from "./build-profile-drafts";
+import { eventsBlock, buildExpandPrompt, extractProfileText, verifyDraft, excludeHealthEvents, composeBaselineDraft, type EventRow } from "./build-profile-drafts";
 
 let passed = 0;
 let failed = 0;
@@ -68,6 +68,22 @@ check(
   "verify: URL fanges",
 );
 check(verifyDraft("Mikkel kort.", corpus, "Mikkel Jensen").some((p) => p === "for kort"), "verify: for kort fanges");
+
+// ── composeBaselineDraft (skifte-historik i basis-udkast) ────────────────────
+check(
+  composeBaselineDraft("Mikkel spiller fodbold for X.", []) === "Mikkel spiller fodbold for X.",
+  "composeBaselineDraft: ingen skift → uændret",
+);
+check(
+  composeBaselineDraft("Mikkel spiller fodbold for X.", ["Skiftede fra Y til X."]) ===
+    "Mikkel spiller fodbold for X. Skiftede fra Y til X.",
+  "composeBaselineDraft: ét skift tilføjes",
+);
+check(
+  composeBaselineDraft("Mikkel spiller fodbold for Z.", ["Skiftede fra X til Y.", "Skiftede fra Y til Z."]) ===
+    "Mikkel spiller fodbold for Z. Skiftede fra X til Y. Skiftede fra Y til Z.",
+  "composeBaselineDraft: flere skift i kronologisk rækkefølge",
+);
 
 console.log(`\nprofile-drafts: ${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

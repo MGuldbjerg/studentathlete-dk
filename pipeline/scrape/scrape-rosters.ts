@@ -18,6 +18,7 @@ import { generateSlug } from "../lib/slug";
 import { samePerson } from "../lib/athlete-identity";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { cleanPosition } from "../../src/lib/roster-clean";
+import { seasonFromDate } from "../../src/lib/athlete-events";
 import type { School } from "../lib/types";
 
 interface RosterCheckWithSchool {
@@ -446,6 +447,23 @@ async function main(): Promise<void> {
             if (transferred) {
               console.log(
                 `  ⇄ ${existing.name}: ${existing.university} → ${check.name} (transfer/navne-variant)`,
+              );
+              // Skiftet gemmes som athlete_event (kind='transfer') så det kan
+              // nævnes i profilteksten (basis-udkast + sommer-udvidelsens LLM-
+              // kontekst) — ellers gik oplysningen tabt i console.log alene.
+              // INSERT OR IGNORE: unik-indekset (athlete_id, award_name, season)
+              // forhindrer dubletter, men skiftet detekteres kun ÉN gang (næste
+              // scrape ser existing.university === check.name).
+              await db.execute(
+                `INSERT OR IGNORE INTO athlete_events
+                 (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, created_at)
+                 VALUES (?, date('now'), ?, 'transfer', 'Transfer', ?, 'notable', ?, datetime('now'))`,
+                [
+                  existing.id,
+                  seasonFromDate(null),
+                  `Skiftede fra ${existing.university} til ${check.name}.`,
+                  bioUrl ?? null,
+                ],
               );
             }
             athletesInCheck++;
