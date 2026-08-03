@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 /**
  * Kanonisk vært + skema. Eliminerer duplikat-sider i Google Search Console
@@ -9,7 +10,45 @@ import type { NextRequest } from "next/server";
  */
 const CANONICAL_HOST = "studentathlete.dk";
 
-export function middleware(req: NextRequest) {
+/**
+ * Nedlagte atlet-slugs (navneskift hos skolen, eller to rækker flettet til én)
+ * skal svare 301 — ikke 200.
+ *
+ * Opslaget hører hjemme HER og ikke i siden: roden har en loading.tsx, så
+ * enhver side-render streamer skallen med status 200 med det samme. Et
+ * redirect() i selve siden når derfor aldrig at sætte statuskoden — browseren
+ * følger det klientside, men en crawler ser en 200 uden indhold (soft 404) og
+ * den gamle URL's værdi går tabt i stedet for at blive ført videre.
+ * Middleware kører FØR renderingen og kan sende en ægte 301.
+ *
+ * Koster ét indekseret opslag i en meget lille tabel, kun på /atleter/-stier.
+ * Fejler åbent: kan D1 ikke nås, fortsætter requesten som før.
+ */
+async function athleteAliasRedirect(req: NextRequest): Promise<URL | null> {
+  const m = /^\/atleter\/([^/]+)\/?$/.exec(req.nextUrl.pathname);
+  if (!m) return null;
+  const slug = decodeURIComponent(m[1]);
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = (env as any).DB;
+    if (!db) return null;
+    const row = (await db
+      .prepare(
+        `SELECT a.slug FROM athlete_aliases al
+         JOIN athletes a ON a.id = al.athlete_id
+         WHERE al.slug = ?`,
+      )
+      .bind(slug)
+      .first()) as { slug: string } | null;
+    if (!row?.slug || row.slug === slug) return null;
+    return new URL(`/atleter/${row.slug}`, req.nextUrl.origin);
+  } catch {
+    return null;
+  }
+}
+
+export async function middleware(req: NextRequest) {
   const host = (req.headers.get("host") ?? "").toLowerCase();
 
   // Lokal udvikling (next dev / wrangler dev) røres ikke.
@@ -31,6 +70,9 @@ export function middleware(req: NextRequest) {
     );
     return NextResponse.redirect(target, 301);
   }
+
+  const alias = await athleteAliasRedirect(req);
+  if (alias) return NextResponse.redirect(alias, 301);
 
   return NextResponse.next();
 }

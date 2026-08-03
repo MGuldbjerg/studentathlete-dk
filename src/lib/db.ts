@@ -236,7 +236,9 @@ export async function getAthleteSlugByAlias(slug: string): Promise<string | null
       .bind(slug)
       .first();
     return (r as { slug: string } | null)?.slug ?? null;
-  } catch {
+  } catch (err) {
+    // Tavs fejl her = døde links uden spor. Logges, så `wrangler tail` viser den.
+    console.error("getAthleteSlugByAlias fejlede:", err);
     return null;
   }
 }
