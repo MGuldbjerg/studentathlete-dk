@@ -40,12 +40,14 @@ jobs:
             pipeline/discover/_honors-test.ts \
             pipeline/learn/_mine-edits-test.ts \
             pipeline/lib/_hometown-test.ts \
+            pipeline/lib/_hometown-uk-test.ts \
             pipeline/lib/_athlete-identity-test.ts \
             pipeline/social/_social-test.ts \
             pipeline/profiles/_profile-drafts-test.ts \
             src/lib/_analytics-test.ts \
             src/lib/_youtube-test.ts \
             src/lib/_profile-baseline-test.ts \
+            src/lib/_profile-baseline-en-test.ts \
             src/lib/_positions-test.ts \
             src/lib/_athlete-merge-test.ts
           do

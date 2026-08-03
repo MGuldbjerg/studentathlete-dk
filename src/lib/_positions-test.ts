@@ -2,7 +2,7 @@
  * Unit-tests for positions-ordbogen. Kør: npx tsx src/lib/_positions-test.ts
  */
 import { expandPosition, POSITION_CODES } from "./positions";
-import { languagePack } from "./i18n";
+import { LANGUAGES } from "./i18n";
 
 let passed = 0;
 let failed = 0;
@@ -78,21 +78,31 @@ for (const [sport, table] of Object.entries(POSITION_CODES)) {
   }
 }
 
-// Hvert begreb kernen kan producere skal kunne siges på dansk — ellers ville
-// begrebets rå id ("attacking_midfielder") sive ud i en profiltekst.
-// Atletik undtaget med vilje: dér ER id'et det engelske øvelsesnavn (se
-// positions.ts regel 4), som profil-grammatikken selv oversætter.
-const { positionPhrase } = languagePack("da");
-for (const [sport, table] of Object.entries(POSITION_CODES)) {
-  if (sport === "track-and-field") continue;
-  for (const concept of new Set(Object.values(table as Record<string, string>))) {
-    if (positionPhrase[concept]) passed++;
-    else {
-      failed++;
-      console.error(`  ✗ ${sport}: begrebet "${concept}" mangler i den danske sprogpakke`);
+// Hvert begreb kernen kan producere skal kunne siges på ALLE registrerede
+// sprog — ellers ville begrebets rå id ("attacking_midfielder") sive ud i en
+// profiltekst. Atletik undtaget med vilje: dér ER id'et det engelske
+// øvelsesnavn (se positions.ts regel 4), som profil-grammatikken selv oversætter.
+for (const [lang, pack] of Object.entries(LANGUAGES)) {
+  for (const [sport, table] of Object.entries(POSITION_CODES)) {
+    if (sport === "track-and-field") continue;
+    for (const concept of new Set(Object.values(table as Record<string, string>))) {
+      if (pack.positionPhrase[concept]) passed++;
+      else {
+        failed++;
+        console.error(`  ✗ ${sport}: begrebet "${concept}" mangler i sprogpakken "${lang}"`);
+      }
     }
   }
 }
+
+// ── Engelsk pakke: samme opslag, andet sprog ─────────────────────────────────
+eq(expandPosition("soccer", "F", "en"), "striker", "F i fodbold på engelsk = striker");
+eq(expandPosition("soccer", "Midfielder", "en"), "midfielder", "engelsk beholder midfielder");
+eq(expandPosition("soccer", "CB", "en"), "centre-back", "britisk stavning centre-back");
+eq(expandPosition("ice-hockey", "G", "en"), "goalkeeper", "G i ishockey på engelsk");
+eq(expandPosition("ice-hockey", "D", "en"), "defenceman", "britisk stavning defenceman");
+eq(expandPosition("swimming-and-diving", "IM", "en"), "individual medley", "IM på engelsk");
+eq(expandPosition("basketball", "G/F", "en"), "guard/forward", "sammensat på engelsk");
 
 console.log(`\npositions: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

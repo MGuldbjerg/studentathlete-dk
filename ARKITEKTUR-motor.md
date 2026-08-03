@@ -1,6 +1,9 @@
 # Motoren: kerne / sprog / land
 
 **Skrevet**: 2026-08-03. Status: **implementeret** (migration 034 + 035 kørt, deployet).
+**UK-forberedelse samme dag**: sprog nr. 2 (`i18n/en.ts` + engelsk profil-grammatik)
+og land nr. 2 (`countries/uk.ts`) er skrevet og testet, men UK er **IKKE registreret
+i `COUNTRIES`** — se afsnittet "UK: forberedt, ikke aktiveret" nederst.
 
 Ét site i dag, men koden er skåret så et fix sker ÉT sted og gælder alle sites.
 Læs dette før du tilføjer noget der handler om sprog, land eller sportsgrene.
@@ -58,6 +61,24 @@ samme, kun klassifikationen adskiller sig.
   de standardsitets sprog. Plumbingen er mekanisk når site nummer to lander.
 - **Redaktør-roller** — se `IDEA-payload.md`: `admin_users(email, role, country)`
   oven på Cloudflare Access, ikke et nyt CMS.
+
+## UK: forberedt, ikke aktiveret (2026-08-03)
+
+Klart: `i18n/en.ts` (britisk konvention: soccer→"Football" på slugget /football,
+amerikansk fodbold→/american-football, atletik→"Athletics") · engelsk
+profil-grammatik (`profile-baseline-en.ts`, registreret i `PROFILE_BUILDERS`) ·
+`countries/uk.ts` (markers-først-klassifikation — næsten alle britiske bynavne
+har US-navnebrødre, så bylisten er kort og bar "London" klassificeres bevidst
+ikke). Tests: `_hometown-uk-test.ts` (57) + `_profile-baseline-en-test.ts` (32)
++ sprogpakke-completeness i `_positions-test.ts` for ALLE registrerede sprog.
+
+**Aktivering er med vilje udeladt** — én linje i `COUNTRIES` sætter UK i
+`activeCountries()`, og så begynder næste scrape at indsætte ~1.000 UK-atleter
+i den levende `athletes`-tabel. Før den linje skrives, mangler (se headeren i
+`countries/uk.ts`): domæne købt + wrangler-route · ENGELSKE prompts
+(`pipeline/generate/prompts/` er hardcodet dansk) · ~400 danske UI-strenge i
+JSX + danske route-mapper (`/atleter`, `/viden`, `/skoler`) · Mikkels go efter
+DK's in-season-validering.
 
 ## Datamodellen efter migration 034/035
 

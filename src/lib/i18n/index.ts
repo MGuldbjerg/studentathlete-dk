@@ -6,11 +6,12 @@
  */
 import type { LanguagePack } from "./types";
 import { da } from "./da";
+import { en } from "./en";
 import { SPORT_KEYS, type SportKey, isSportKey } from "../sports";
 
 export type { LanguagePack } from "./types";
 
-export const LANGUAGES: Record<string, LanguagePack> = { da };
+export const LANGUAGES: Record<string, LanguagePack> = { da, en };
 
 /** Sproget der bruges når intet andet er angivet (= standardsitets sprog). */
 export const DEFAULT_LANGUAGE = "da";

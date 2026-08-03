@@ -10,12 +10,14 @@
  * positions → sprogpakke.)
  */
 import { baselineProfile, type BaselineAthlete } from "../profile-baseline";
+import { baselineProfileEn } from "../profile-baseline-en";
 import { DEFAULT_LANGUAGE } from "./index";
 
 export type ProfileBuilder = (athlete: BaselineAthlete, now?: Date) => string;
 
 export const PROFILE_BUILDERS: Record<string, ProfileBuilder> = {
   da: baselineProfile,
+  en: baselineProfileEn,
 };
 
 export function profileBuilder(lang: string = DEFAULT_LANGUAGE): ProfileBuilder {

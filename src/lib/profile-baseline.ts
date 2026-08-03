@@ -18,7 +18,7 @@ import { sportLabel } from "./i18n";
 // Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
 // forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
 // "USA" udelades helt: alle atleter på sitet spiller i USA.
-const STATE_NAMES: Record<string, string> = {
+export const STATE_NAMES: Record<string, string> = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "Californien",
   CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
   HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
@@ -95,8 +95,9 @@ const ROSTER_TIER_RE = /^(varsity|novice|junior varsity|jv|freshman|redshirt)$/i
 // for roning; andre sportsgrenes ord filtreres ikke af denne (sport-specifik).
 const REDUNDANT_ROLE_BY_SPORT: Record<string, RegExp> = { rowing: /^rower$/i };
 
-/** Rå position → vis den som " som X", eller null hvis den er støj. */
-function meaningfulPosition(sport: string, position: string | null): string | null {
+/** Rå position → vis den som " som X", eller null hvis den er støj.
+ *  Sprogfri støj-detektion — deles med de andre sprogs profil-grammatikker. */
+export function meaningfulPosition(sport: string, position: string | null): string | null {
   if (!position) return null;
   const p = position.trim();
   if (!p || HEIGHT_RE.test(p) || ROSTER_TIER_RE.test(p)) return null;
