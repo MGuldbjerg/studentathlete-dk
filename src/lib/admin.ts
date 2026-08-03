@@ -1133,12 +1133,8 @@ export async function decideMergeCandidate(
   for (const stmt of buildMergeStatements(keep, loser)) {
     await db.prepare(stmt.sql).bind(...stmt.params).run();
   }
-  await db
-    .prepare(
-      "UPDATE merge_candidates SET status = 'merged', decided_at = datetime('now') WHERE id = ?",
-    )
-    .bind(candidateId)
-    .run();
+  // Selve forslaget er allerede fjernet af buildMergeStatements (det peger på
+  // taberen, og fremmednøglen kræver at det ryger før atleten slettes).
   return { ok: true };
 }
 

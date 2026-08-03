@@ -140,14 +140,22 @@ export function buildMergeStatements(
     params: [keep.slug],
   });
 
-  out.push({ sql: "DELETE FROM athletes WHERE id = ?", params: [loser.id] });
-
-  // Køen må ikke foreslå en række der ikke findes mere.
+  // Køen har FREMMEDNØGLER til athletes(id) (migration 032). Rækker der peger på
+  // taberen SKAL væk FØR atleten slettes — ellers fejler slettningen med
+  // "FOREIGN KEY constraint failed", og fletningen dør halvvejs igennem.
+  // Det slog ikke fejl i pipeline-scriptet, fordi den første fletning skete før
+  // køen overhovedet havde rækker.
+  //
+  // Vi sletter i stedet for at markere 'merged': taberen findes ikke mere, så
+  // forslaget kan hverken vises eller genbesøges. Sporet ligger i
+  // athlete_aliases-rækken (reason='merge' + taberens navn og dato).
+  // Forslag der involverer KEEPEREN og en tredje atlet står urørt.
   out.push({
-    sql: `UPDATE merge_candidates SET status = 'merged', decided_at = datetime('now')
-          WHERE status = 'pending' AND (athlete_id_keep = ? OR athlete_id_merge = ?)`,
+    sql: "DELETE FROM merge_candidates WHERE athlete_id_keep = ? OR athlete_id_merge = ?",
     params: [loser.id, loser.id],
   });
+
+  out.push({ sql: "DELETE FROM athletes WHERE id = ?", params: [loser.id] });
 
   return out;
 }
