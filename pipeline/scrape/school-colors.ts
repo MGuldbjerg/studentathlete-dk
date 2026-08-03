@@ -17,6 +17,7 @@
  */
 import { createD1Client } from "../lib/d1-client";
 
+import { pipelineUserAgent } from "../../src/lib/site";
 interface SchoolRow {
   id: number;
   name: string;
@@ -93,7 +94,7 @@ async function fetchHomepage(url: string): Promise<string | null> {
     const timer = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; StudentAthleteBot/1.0)" },
+      headers: { "User-Agent": pipelineUserAgent() },
       redirect: "follow",
     });
     clearTimeout(timer);

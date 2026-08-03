@@ -5,6 +5,7 @@ import { getAthleteEvents } from "@/lib/db";
 import { EditAthleteForm } from "./EditAthleteForm";
 import { AthleteEventsEditor } from "./AthleteEventsEditor";
 
+import { sportLabel } from "@/lib/i18n";
 export default async function EditAthletePage({
   params,
 }: {
@@ -25,7 +26,7 @@ export default async function EditAthletePage({
           <div>
             <h1 className="text-xl font-bold text-ink">{athlete.name}</h1>
             <p className="text-muted text-sm">
-              {athlete.university} · {athlete.sport}
+              {athlete.university} · {sportLabel(athlete.sport)}
             </p>
           </div>
           <Link

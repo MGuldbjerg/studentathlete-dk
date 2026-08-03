@@ -16,9 +16,14 @@
  *   npx tsx pipeline/profiles/refresh-position-drafts.ts --apply   # læg i kø
  */
 import { createD1Client } from "../lib/d1-client";
-import { baselineProfile, type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { profileBuilder } from "../../src/lib/i18n/profile-builders";
+import { countryProfile } from "../../src/lib/countries";
+
 import { expandPosition } from "../../src/lib/positions";
 import { cleanPosition } from "../../src/lib/roster-clean";
+
+const baselineProfile = profileBuilder(countryProfile().language);
 
 interface Row extends BaselineAthlete {
   id: number;

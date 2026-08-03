@@ -1,9 +1,18 @@
 import type { Article, Athlete, School } from "./types";
 import { dbSportToUrlSlug } from "./types";
+import { countryProfile } from "./countries";
+import { siteBaseUrl } from "./site";
+import { sportLabel } from "./i18n";
 
+/**
+ * Standardsitets base-URL. Værten står ét sted — landeprofilen — så et nyt site
+ * er en profilfil, ikke en jagt efter hardkodede domæner.
+ *
+ * Til absolutte URL'er i en request-kontekst med flere sites: brug
+ * `siteBaseUrl(siteFromHost(host))`, som giver det site læseren faktisk er på.
+ */
 export const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://studentathlete.dk";
+  process.env.NEXT_PUBLIC_SITE_URL ?? siteBaseUrl(countryProfile());
 
 export function getReadingTime(content: string): number {
   const wordCount = content.trim().split(/\s+/).length;
@@ -132,7 +141,7 @@ export function articleStructuredData(
           "@type": "Person",
           name: athlete.name,
           url: `${BASE_URL}${getAthleteUrl(athlete.slug)}`,
-          sport: athlete.sport,
+          sport: sportLabel(athlete.sport),
           affiliation: { "@type": "CollegeOrUniversity", name: athlete.university },
         }
       : undefined,
@@ -155,7 +164,7 @@ export function athleteStructuredData(
     mainEntity: {
       "@type": "Person",
       name: athlete.name,
-      sport: athlete.sport,
+      sport: sportLabel(athlete.sport),
       image: athlete.photo_url ?? undefined,
       description: athlete.profile_summary ?? undefined,
       affiliation: {

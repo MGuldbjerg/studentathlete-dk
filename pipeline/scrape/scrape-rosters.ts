@@ -13,8 +13,11 @@ import {
   isBrowserRenderAvailable,
   BrowserRenderError,
 } from "../lib/browser-render";
-import { isDanishHometown } from "../lib/danish-cities";
-import { generateSlug } from "../lib/slug";
+import { classifyHometown } from "../../src/lib/hometown";
+import { activeCountries } from "../../src/lib/countries";
+import { pipelineUserAgent } from "../../src/lib/site";
+import { sportKeyFromSource } from "../../src/lib/sports";
+import { generateSlug } from "../../src/lib/slug";
 import { samePerson, rosterKey } from "../lib/athlete-identity";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { cleanPosition } from "../../src/lib/roster-clean";
@@ -36,22 +39,11 @@ interface RosterCheckWithSchool {
   platform_type: string | null;
 }
 
-const SPORT_MAP: Record<string, string> = {
-  football: "football",
-  basketball: "basketball",
-  baseball: "baseball",
-  soccer: "fodbold",
-  "track-and-field": "atletik",
-  "swimming-and-diving": "svømning",
-  golf: "golf",
-  tennis: "tennis",
-  rowing: "roning",
-  gymnastics: "gymnastik",
-  "ice-hockey": "ishockey",
-  volleyball: "volleyball",
-};
+// Ingen SPORT_MAP længere: roster_checks.sport ER den kanoniske nøgle
+// (src/lib/sports.ts), og athletes.sport gemmer nu samme værdi. Tidligere
+// oversatte vi til danske ord her — det gjorde databasen sprogafhængig.
 
-const USER_AGENT = "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
+const USER_AGENT = pipelineUserAgent();
 
 /** PrestoSports bruger egne sport-koder i roster.aspx?path= */
 const PRESTO_SPORT_CODES: Record<string, string[]> = {
@@ -431,13 +423,18 @@ async function main(): Promise<void> {
         continue;
       }
 
-      const danishAthletes = roster.filter((entry) => isDanishHometown(entry.hometown));
+      // Nationalitet bliver DATA: klassificér mod de aktive landeprofiler og gem
+      // koden på rækken, i stedet for at lade "rækken findes" betyde "dansk".
+      const countries = activeCountries();
+      const matchedAthletes = roster
+        .map((entry) => ({ entry, country: classifyHometown(entry.hometown, countries) }))
+        .filter((x): x is { entry: typeof x.entry; country: string } => x.country !== null);
 
       const academicYear = getAcademicYear();
       let athletesInCheck = 0;
-      for (const athlete of danishAthletes) {
+      for (const { entry: athlete, country: homeCountry } of matchedAthletes) {
         const slug = generateSlug(athlete.name);
-        const sportLabel = SPORT_MAP[check.sport] ?? check.sport;
+        const sportKey = sportKeyFromSource(check.sport);
         const { classYear, expectedGraduation, yearEnrolled } =
           resolveClassYear(athlete.year, academicYear);
         const bioUrl = toAbsoluteUrl(athlete.bioUrl, check.website);
@@ -447,7 +444,7 @@ async function main(): Promise<void> {
           // identitet+sport)? Hvis ja — også ved navne-variant eller skoleskift —
           // opdatér DEN række (inkl. university) i stedet for at indsætte en ny slug.
           const existing = await findExistingAthleteByIdentity(
-            db, athlete.name, sportLabel, athlete.hometown, bioUrl,
+            db, athlete.name, sportKey, athlete.hometown, bioUrl,
           );
 
           if (existing) {
@@ -480,6 +477,7 @@ async function main(): Promise<void> {
               `UPDATE athletes
                SET name = ?, slug = ?,
                    roster_name = ?, roster_key = COALESCE(?, roster_key),
+                   home_country = COALESCE(home_country, ?),
                    university = ?, university_state = ?, division = ?,
                    class_year = ?, expected_graduation = ?,
                    year_enrolled = COALESCE(year_enrolled, ?),
@@ -489,7 +487,7 @@ async function main(): Promise<void> {
                WHERE id = ?`,
               [
                 renamed ? athlete.name : existing.name, newSlug,
-                athlete.name, rosterKey(bioUrl),
+                athlete.name, rosterKey(bioUrl), homeCountry,
                 check.name, check.state, check.division,
                 classYear, expectedGraduation, yearEnrolled,
                 athlete.hometown, bioUrl, existing.id,
@@ -538,16 +536,17 @@ async function main(): Promise<void> {
 
           await db.execute(
             `INSERT OR IGNORE INTO athletes
-             (name, slug, roster_name, roster_key, sport, position, hometown,
+             (name, slug, roster_name, roster_key, home_country, sport, position, hometown,
               university, university_state, division,
               class_year, expected_graduation, year_enrolled, bio_url)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               athlete.name,
               slug,
               athlete.name,
               rosterKey(bioUrl),
-              sportLabel,
+              homeCountry,
+              sportKey,
               // Sidearm-celler kan være flerlinjede ("Midfielder\n…\nM") —
               // rens FØR insert så snavset aldrig når DB/profiltekster/sidebar.
               cleanPosition(athlete.position),
@@ -580,7 +579,7 @@ async function main(): Promise<void> {
       }
 
       // Opdatér roster_check status
-      const status = danishAthletes.length > 0 ? "success" : roster.length > 0 ? "empty" : "error";
+      const status = matchedAthletes.length > 0 ? "success" : roster.length > 0 ? "empty" : "error";
       const errorMsg = roster.length === 0 ? "Ingen roster-data fundet i HTML" : null;
 
       await db.execute(
@@ -590,9 +589,9 @@ async function main(): Promise<void> {
         [status, athletesInCheck, errorMsg, check.check_id],
       );
 
-      if (danishAthletes.length > 0) {
+      if (matchedAthletes.length > 0) {
         console.log(
-          `  ${check.name} / ${check.sport}: Fandt ${danishAthletes.length} dansk(e) atlet(er)`,
+          `  ${check.name} / ${check.sport}: Fandt ${matchedAthletes.length} matchende atlet(er)`,
         );
       }
     } catch (err) {

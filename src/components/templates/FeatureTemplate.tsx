@@ -8,6 +8,7 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
+import { sportLabel } from "@/lib/i18n";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -51,7 +52,7 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
               </span>
               {article.sport && (
                 <span className="text-[10px] tracking-[0.2em] uppercase text-white/50 font-medium">
-                  {article.sport}
+                  {sportLabel(article.sport)}
                 </span>
               )}
               <span className="text-white/30 text-[10px] tracking-[0.15em]">

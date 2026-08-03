@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const SPORTS = [
-  "football", "basketball", "baseball", "fodbold", "svømning", "atletik",
-  "golf", "tennis", "roning", "gymnastik", "ishockey", "volleyball", "andet",
-];
+import { sportNav } from "@/lib/i18n";
+// Værdien der gemmes er den kanoniske nøgle ("soccer"); teksten i dropdownen
+// er sprogpakkens label ("Fodbold"). Før stod de danske ord som VÆRDIER, så en
+// manuelt tilføjet atlet fik en anden sport-nøgle end scraperen ville give.
+const SPORT_OPTIONS = sportNav();
 
 const DIVISIONS = ["NCAA D1", "NCAA D2", "NCAA D3", "NAIA", "NJCAA"];
 
@@ -67,9 +68,9 @@ export function AddAthleteForm() {
           required
           className="w-full px-3 py-2.5 border border-border rounded-lg bg-paper text-ink text-sm"
         >
-          {SPORTS.map((s) => (
-            <option key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+          {SPORT_OPTIONS.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.label}
             </option>
           ))}
         </select>

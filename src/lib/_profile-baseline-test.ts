@@ -21,7 +21,7 @@ const base: BaselineAthlete = {
   preferred_name: null,
   university: "Ohio State University",
   university_state: "Ohio",
-  sport: "Fodbold",
+  sport: "soccer",
   position: "Midfielder",
   hometown: "Aarhus, Denmark",
   year_enrolled: 2025,
@@ -83,7 +83,7 @@ expectText({ ...base, hometown: "Copenhagen, Denmark" }, fall25,
 expectText({ ...base, hometown: "Aarhus" }, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra Aarhus.",
   "hjemby uden suffiks bruges råt");
-expectText({ ...base, sport: "Ishockey", position: null }, fall25,
+expectText({ ...base, sport: "ice-hockey", position: null }, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller ishockey. Mikkel kommer fra Aarhus.",
   "sport dekapitaliseres");
 
@@ -103,7 +103,7 @@ expectText(
 // ── Sportsspecifikke verber (Mikkel 2026-07-08: ikke alt er "spillet X") ─────
 // Position vises stadig når den er ægte information (svømmestil, Coxswain) —
 // kun højde-værdier og den generiske pladsholder "Rower" filtreres fra.
-const swimmer: BaselineAthlete = { ...base, sport: "Svømning", position: "Freestyle" };
+const swimmer: BaselineAthlete = { ...base, sport: "swimming-and-diving", position: "Freestyle" };
 expectText(swimmer, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og svømmer som freestyle. Mikkel kommer fra Aarhus.",
   "svømning: freshman — svømmestil bevares");
@@ -120,7 +120,7 @@ expectText({ ...swimmer, position: "5'9\"" }, fall26,
   "Mikkel Jensen har siden 2025 svømmet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "svømning: højde i position-feltet er støj → filtreres fra");
 
-const rower: BaselineAthlete = { ...base, sport: "Roning", position: "Coxswain" };
+const rower: BaselineAthlete = { ...base, sport: "rowing", position: "Coxswain" };
 expectText(rower, fall26,
   "Mikkel Jensen har siden 2025 roet for Ohio State University i Ohio som styrmand. Mikkel kommer fra Aarhus.",
   "roning: veteran — 'roet', ikke 'spillet roning'; Coxswain bevares (ægte rolle)");
@@ -137,7 +137,7 @@ expectText({ ...rower, position: "Varsity" }, fall26,
   "Mikkel Jensen har siden 2025 roet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "roning: 'Varsity' er holdniveau, ikke en rolle → filtreres fra");
 
-const sprinter: BaselineAthlete = { ...base, sport: "Atletik", position: "Sprints" };
+const sprinter: BaselineAthlete = { ...base, sport: "track-and-field", position: "Sprints" };
 expectText(sprinter, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og løber som sprinter. Mikkel kommer fra Aarhus.",
   "atletik/løb: freshman — disciplin oversat til rolle ('som sprinter')");
@@ -147,11 +147,11 @@ expectText(sprinter, fall26,
 expectText({ ...sprinter, expected_graduation: 2026 }, new Date(Date.UTC(2026, 6, 10)),
   "Mikkel Jensen løb for Ohio State University i Ohio som sprinter og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "atletik/løb: dimitteret — preteritum 'løb' (uregelmæssigt verbum)");
-expectText({ ...base, sport: "Atletik", position: "Middle Distance" }, fall26,
+expectText({ ...base, sport: "track-and-field", position: "Middle Distance" }, fall26,
   "Mikkel Jensen har siden 2025 løbet for Ohio State University i Ohio som mellemdistanceløber. Mikkel kommer fra Aarhus.",
   "atletik/løb: 'Middle Distance' → 'mellemdistanceløber' (matcher Mikkels egen redigering)");
 
-const shotputter: BaselineAthlete = { ...base, sport: "Atletik", position: "Shot Put" };
+const shotputter: BaselineAthlete = { ...base, sport: "track-and-field", position: "Shot Put" };
 expectText(shotputter, fall26,
   "Mikkel Jensen har siden 2025 kæmpet i kuglestød for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "atletik/kast: kuglestød oversat + 'kæmpet i'");
@@ -159,38 +159,44 @@ expectText({ ...shotputter, expected_graduation: 2026 }, new Date(Date.UTC(2026,
   "Mikkel Jensen kæmpede i kuglestød for Ohio State University i Ohio og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "atletik/kast: dimitteret — preteritum 'kæmpede i'");
 
-const jumper: BaselineAthlete = { ...base, sport: "Atletik", position: "Long Jump" };
+const jumper: BaselineAthlete = { ...base, sport: "track-and-field", position: "Long Jump" };
 expectText(jumper, fall26,
   "Mikkel Jensen har siden 2025 kæmpet i længdespring for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "atletik/spring: længdespring oversat");
 
-const unknownDiscipline: BaselineAthlete = { ...base, sport: "Atletik", position: null };
+const unknownDiscipline: BaselineAthlete = { ...base, sport: "track-and-field", position: null };
 expectText(unknownDiscipline, fall26,
   "Mikkel Jensen har siden 2025 dyrket atletik for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "atletik: ukendt disciplin → 'dyrket atletik'-fallback");
 
-const gymnast: BaselineAthlete = { ...base, sport: "Gymnastik", position: null };
+const gymnast: BaselineAthlete = { ...base, sport: "gymnastics", position: null };
 expectText(gymnast, fall26,
   "Mikkel Jensen har siden 2025 dyrket gymnastik for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "gymnastik: 'dyrket', ikke 'spillet'");
 
-// ── DB gemmer sport med SMÅ forbogstaver ("atletik", "svømning", …) — ikke
-// SPORTS[].label-casingen. sportVerb skal matche produktions-casingen. ────────
-expectText({ ...base, sport: "fodbold" }, fall26,
+// ── DB gemmer den KANONISKE nøgle ("soccer", "swimming-and-diving"), ikke et
+// dansk ord (migration 035). Sætningen skal stadig blive dansk — beviset på at
+// nøgle og sprog er adskilt. ─────────────────────────────────────────────────
+expectText({ ...base, sport: "soccer" }, fall26,
   "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som midtbanespiller. Mikkel kommer fra Aarhus.",
-  "reel DB-casing: 'fodbold' (småt) matcher boldspil");
-expectText({ ...base, sport: "svømning", position: null }, fall26,
+  "kanonisk nøgle 'soccer' → dansk 'fodbold' i sætningen");
+expectText({ ...base, sport: "swimming-and-diving", position: null }, fall26,
   "Mikkel Jensen har siden 2025 svømmet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
-  "reel DB-casing: 'svømning' (småt) matcher svømme-verbet");
-expectText({ ...base, sport: "roning", position: null }, fall26,
+  "kanonisk nøgle 'swimming-and-diving' matcher svømme-verbet");
+expectText({ ...base, sport: "rowing", position: null }, fall26,
   "Mikkel Jensen har siden 2025 roet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
-  "reel DB-casing: 'roning' (småt) matcher ro-verbet");
-expectText({ ...base, sport: "atletik", position: "Sprints" }, fall26,
+  "kanonisk nøgle 'rowing' matcher ro-verbet");
+// En efterladt dansk værdi er en migrationsfejl — den skal degradere synligt,
+// ikke lade som om alt er i orden.
+expectText({ ...base, sport: "fodbold", position: null }, fall26,
+  "Mikkel Jensen har siden 2025 dyrket andet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
+  "gammel dansk værdi → 'andet' (synlig fejl, ikke stille forkert verbum)");
+expectText({ ...base, sport: "track-and-field", position: "Sprints" }, fall26,
   "Mikkel Jensen har siden 2025 løbet for Ohio State University i Ohio som sprinter. Mikkel kommer fra Aarhus.",
-  "reel DB-casing: 'atletik' (småt) matcher løbe-verbet");
+  "kanonisk nøgle 'track-and-field' matcher løbe-verbet");
 expectText({ ...base, sport: "volleyball", position: null }, fall26,
   "Mikkel Jensen har siden 2025 spillet volleyball for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
-  "volleyball er boldspil (fandtes i DB, men manglede i BALL_SPORTS)");
+  "volleyball er boldspil");
 expectText({ ...base, sport: "andet", position: null }, fall26,
   "Mikkel Jensen har siden 2025 dyrket andet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "'andet' (diverse-kategori i DB) rammer dyrke-fallback, ikke spille");

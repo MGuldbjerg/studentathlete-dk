@@ -8,6 +8,7 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
+import { sportLabel } from "@/lib/i18n";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -47,7 +48,7 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
           )}
           {article.sport && (
             <span className="text-[10px] tracking-[0.15em] uppercase text-muted font-medium">
-              {article.sport}
+              {sportLabel(article.sport)}
             </span>
           )}
         </div>
@@ -122,7 +123,7 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
             <div className="grid grid-cols-3 divide-x"
               style={{ borderTop: "1px solid #E2E0DC" }}>
               {[
-                { label: "Sport", value: athlete.sport },
+                { label: "Sport", value: sportLabel(athlete.sport) },
                 { label: "Position", value: athlete.position ?? "–" },
                 { label: "Division", value: athlete.division },
               ].map((stat) => (

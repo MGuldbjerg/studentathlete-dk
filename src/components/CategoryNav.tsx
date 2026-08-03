@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { SPORTS, getSportColor } from "@/lib/types";
+import { getSportColor } from "@/lib/types";
+import { sportNav } from "@/lib/i18n";
+import { SPORT_ICONS } from "@/lib/sports";
 
 // Ikoner: Tabler Icons (MIT, tabler.io/icons) — samme streg-stil (24×24, stroke 2)
 // som sitets øvrige ikoner. Udskiftet 2026-07-03: de håndtegnede lignede ikke
@@ -64,7 +66,7 @@ export function CategoryNav() {
   return (
     <nav className="w-full overflow-x-auto border-b border-border bg-white scrollbar-hide sticky top-0 z-40">
       <div className="flex items-center min-w-max px-4 md:px-8 gap-1">
-        {SPORTS.map((sport) => {
+        {sportNav().map((sport) => {
           const sportColor = sport.slug ? getSportColor(sport.slug) : "#00205B";
 
           // "Alle" filtrerer på forsiden
@@ -102,7 +104,7 @@ export function CategoryNav() {
                 fontWeight: 500,
               }}
             >
-              <SportIcon icon={sport.icon} size={15} />
+              <SportIcon icon={SPORT_ICONS[sport.key]} size={15} />
               {sport.label}
             </Link>
           );

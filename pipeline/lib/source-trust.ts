@@ -6,11 +6,12 @@
  * 2. Klassificere domæner som trusted/neutral/rejected
  * 3. Afvise kendte svindel-TLD'er og utrygge redirects
  */
+import { pipelineUserAgent } from "../../src/lib/site";
 
 export type DomainTrust = "trusted" | "neutral" | "rejected";
 
 const USER_AGENT =
-  "Mozilla/5.0 (compatible; StudentAthleteBot/1.0; +https://studentathlete.dk)";
+  pipelineUserAgent();
 
 // Kendte pålidelige nyhedsdomæner for college-atletik
 const TRUSTED_DOMAIN_PATTERNS: RegExp[] = [

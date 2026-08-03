@@ -13,36 +13,19 @@
  *  - alpha-hex i gradients fejler tavst: solid farve + rgba()-overlay
  *  - hver div med >1 barn skal have display:flex
  */
-import { SPORT_COLORS } from "./types";
+import { sportColor, sportEmoji } from "./sports";
+import { sportLabel as sportLabelFor } from "./i18n";
 
 export const FALLBACK_COLOR = "#00205B";
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 // Twemoji-piktogrammer (CC-BY 4.0 — krediteret på /ai-brug) pr. sport-nøgle
-const SPORT_EMOJI: Record<string, string> = {
-  football: "🏈",
-  basketball: "🏀",
-  baseball: "⚾",
-  fodbold: "⚽",
-  "svømning": "🏊",
-  svoemning: "🏊",
-  atletik: "🏃",
-  golf: "⛳",
-  tennis: "🎾",
-  roning: "🚣",
-  gymnastik: "🤸",
-  ishockey: "🏒",
-  volleyball: "🏐",
-};
-
 export function getSportEmoji(sport: string | null): string {
-  if (!sport) return "🏅";
-  return SPORT_EMOJI[sport.toLowerCase()] ?? "🏅";
+  return sportEmoji(sport);
 }
 
 export function getSportColorSafe(sport: string | null): string {
-  if (!sport) return FALLBACK_COLOR;
-  return SPORT_COLORS[sport.toLowerCase()] ?? FALLBACK_COLOR;
+  return sportColor(sport);
 }
 
 export interface CardData {
@@ -110,8 +93,9 @@ export function buildMatchCardElement(
       ? data.primary_color
       : getSportColorSafe(data.sport);
   const emoji = getSportEmoji(data.sport);
+  // Kampkortets tekst er læservendt → sprogpakkens navn, ikke den rå nøgle.
   const sportLabel = data.sport
-    ? data.sport.charAt(0).toUpperCase() + data.sport.slice(1)
+    ? sportLabelFor(data.sport)
     : null;
   const dateLabel =
     facts.date ??

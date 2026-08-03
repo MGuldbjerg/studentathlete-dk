@@ -11,7 +11,8 @@
  *   npx tsx pipeline/report/cleanup-false-positives.ts --apply --hard-delete  # slet permanent (cascade)
  */
 import { createD1Client } from "../lib/d1-client";
-import { isDanishHometown } from "../lib/danish-cities";
+import { classifyHometown } from "../../src/lib/hometown";
+import { activeCountries } from "../../src/lib/countries";
 
 interface AthleteRow {
   id: number;
@@ -42,7 +43,7 @@ async function main() {
       nullCount++;
       continue;
     }
-    if (!isDanishHometown(a.hometown)) falsePositives.push(a);
+    if (!classifyHometown(a.hometown, activeCountries())) falsePositives.push(a);
   }
 
   console.log(`${nullCount} atleter med tom hometown sprunget over (antaget legitime).\n`);

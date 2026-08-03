@@ -6,9 +6,10 @@
 
 import { createD1Client } from "../lib/d1-client";
 import type { School } from "../lib/types";
+import { pipelineUserAgent } from "../../src/lib/site";
 
 const USER_AGENT =
-  "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
+  pipelineUserAgent();
 
 interface SchoolWithCount extends School {
   athlete_count: number;

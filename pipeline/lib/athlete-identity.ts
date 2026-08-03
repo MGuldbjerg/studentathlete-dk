@@ -14,7 +14,7 @@
  * og navnedelen af URL'en er dekorativ — begge staveformer serverer samme profil.
  * rosterKey() = "vært#id" er derfor stærkere bevis end noget navne-heuristik.
  */
-import { generateSlug } from "./slug";
+import { generateSlug } from "../../src/lib/slug";
 
 /**
  * Stien lige før spiller-id'et skal være navne-segmentet. Uden denne vagt ville

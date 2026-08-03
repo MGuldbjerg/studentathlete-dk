@@ -25,7 +25,13 @@
  */
 import { createD1Client, D1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
-import { baselineProfile, type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { profileBuilder } from "../../src/lib/i18n/profile-builders";
+import { countryProfile } from "../../src/lib/countries";
+
+// Grammatikken vælges af sitets sprog, ikke hardkodet. Med ét site er det
+// stadig dansk — men et tysk site henter sin egen bygger samme vej.
+const baselineProfile = profileBuilder(countryProfile().language);
 
 export interface AthleteRow extends BaselineAthlete {
   id: number;

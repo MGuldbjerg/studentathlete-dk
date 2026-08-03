@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/admin";
 
+import { sportNav } from "@/lib/i18n";
 export async function Footer() {
   const settings = await getSiteSettings();
   return (
@@ -28,20 +29,7 @@ export async function Footer() {
             Sportsgrene
           </h5>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-            {[
-              { label: "Football", slug: "football" },
-              { label: "Basketball", slug: "basketball" },
-              { label: "Baseball", slug: "baseball" },
-              { label: "Fodbold", slug: "fodbold" },
-              { label: "Svømning", slug: "svoemning" },
-              { label: "Atletik", slug: "atletik" },
-              { label: "Golf", slug: "golf" },
-              { label: "Tennis", slug: "tennis" },
-              { label: "Roning", slug: "roning" },
-              { label: "Gymnastik", slug: "gymnastik" },
-              { label: "Ishockey", slug: "ishockey" },
-              { label: "Volleyball", slug: "volleyball" },
-            ].map((sport) => (
+            {sportNav().filter((s) => s.key !== "other").map((sport) => (
               <Link
                 key={sport.slug}
                 href={`/${sport.slug}`}

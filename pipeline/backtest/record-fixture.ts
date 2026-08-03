@@ -27,7 +27,8 @@ import { verifyArticle } from "../generate/verify-article";
 import { parseArticleOutput } from "../generate/parse-output";
 import { newsPrompt, type ArticleContext } from "../generate/prompts/news";
 
-const UA = "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
+import { pipelineUserAgent } from "../../src/lib/site";
+const UA = pipelineUserAgent();
 const WRITE_SYSTEM = "You are a Danish sports journalist writing a short factual article.";
 const SNAP_DIR = path.join(__dirname, "snapshots");
 

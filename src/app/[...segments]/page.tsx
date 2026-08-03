@@ -17,6 +17,7 @@ import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
 import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl } from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
+import { sportLabel } from "@/lib/i18n";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
@@ -107,16 +108,16 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       if (athlete) {
         const description =
           athlete.profile_summary ??
-          `${athlete.name} spiller ${athlete.sport} for ${athlete.university}. Følg den danske student athlete på StudentAthlete.dk.`;
+          `${athlete.name} spiller ${sportLabel(athlete.sport).toLowerCase()} for ${athlete.university}. Følg den danske student athlete på StudentAthlete.dk.`;
         const ogImage = athlete.photo_url
           ?? getOgImageUrl({
                title: athlete.name,
-               subtitle: `${athlete.university} · ${athlete.sport}`,
+               subtitle: `${athlete.university} · ${sportLabel(athlete.sport)}`,
                sport: athlete.sport,
                type: "athlete",
              });
         return {
-          title: `${athlete.name} – ${athlete.sport} | StudentAthlete.dk`,
+          title: `${athlete.name} – ${sportLabel(athlete.sport)} | StudentAthlete.dk`,
           description,
           openGraph: {
             title: `${athlete.name} | StudentAthlete.dk`,
@@ -178,7 +179,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           type: "article",
           publishedTime: article.published_at ?? undefined,
           modifiedTime: article.updated_at,
-          tags: [article.sport, article.article_type, "student athlete", "dansk"]
+          tags: [article.sport ? sportLabel(article.sport) : null, article.article_type, "student athlete", "dansk"]
             .filter(Boolean) as string[],
           siteName: "StudentAthlete.dk",
           url: canonicalUrl,

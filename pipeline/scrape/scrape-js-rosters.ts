@@ -10,8 +10,10 @@
 
 import { createD1Client } from "../lib/d1-client";
 import { parseRoster } from "./parsers";
-import { isDanishHometown } from "../lib/danish-cities";
-import { generateSlug } from "../lib/slug";
+import { classifyHometown } from "../../src/lib/hometown";
+import { activeCountries } from "../../src/lib/countries";
+import { sportKeyFromSource } from "../../src/lib/sports";
+import { generateSlug } from "../../src/lib/slug";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
 
@@ -25,20 +27,7 @@ interface JsRosterCheck {
   division: string;
 }
 
-const SPORT_MAP: Record<string, string> = {
-  football: "football",
-  basketball: "basketball",
-  baseball: "baseball",
-  soccer: "fodbold",
-  "track-and-field": "atletik",
-  "swimming-and-diving": "svømning",
-  golf: "golf",
-  tennis: "tennis",
-  rowing: "roning",
-  gymnastics: "gymnastik",
-  "ice-hockey": "ishockey",
-  volleyball: "volleyball",
-};
+// Ingen SPORT_MAP: roster_checks.sport er allerede den kanoniske nøgle.
 
 // Renderingen sker via den fælles renderPage-helper (CF /content-endpointet), som
 // er den eneste der virker: det tidligere bespoke /scrape-kald med formats:["html"]
@@ -146,13 +135,16 @@ async function main(): Promise<void> {
     }
 
     const roster = parseRoster(html);
-    const danishAthletes = roster.filter((entry) => isDanishHometown(entry.hometown));
+    const countries = activeCountries();
+    const matchedAthletes = roster
+      .map((entry) => ({ entry, country: classifyHometown(entry.hometown, countries) }))
+      .filter((x): x is { entry: typeof x.entry; country: string } => x.country !== null);
 
     const academicYear = getAcademicYear();
     let athletesInCheck = 0;
-    for (const athlete of danishAthletes) {
+    for (const { entry: athlete, country: homeCountry } of matchedAthletes) {
       const slug = generateSlug(athlete.name);
-      const sportLabel = SPORT_MAP[check.sport] ?? check.sport;
+      const sportKey = sportKeyFromSource(check.sport);
       const { classYear, expectedGraduation, yearEnrolled } =
         resolveClassYear(athlete.year, academicYear);
       const bioUrl = toAbsoluteUrl(athlete.bioUrl, check.roster_url);
@@ -160,13 +152,14 @@ async function main(): Promise<void> {
       try {
         await db.execute(
           `INSERT OR IGNORE INTO athletes
-           (name, slug, sport, position, hometown, university, university_state, division,
+           (name, slug, home_country, sport, position, hometown, university, university_state, division,
             class_year, expected_graduation, year_enrolled, bio_url)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             athlete.name,
             slug,
-            sportLabel,
+            homeCountry,
+            sportKey,
             athlete.position,
             athlete.hometown,
             check.school_name,
@@ -208,7 +201,7 @@ async function main(): Promise<void> {
       }
     }
 
-    const status = danishAthletes.length > 0 ? "success" : roster.length > 0 ? "empty" : "error";
+    const status = matchedAthletes.length > 0 ? "success" : roster.length > 0 ? "empty" : "error";
 
     await db.execute(
       `UPDATE roster_checks
@@ -218,8 +211,8 @@ async function main(): Promise<void> {
       [status, athletesInCheck, check.check_id],
     );
 
-    if (danishAthletes.length > 0) {
-      console.log(`    Fandt ${danishAthletes.length} dansk(e) atlet(er)`);
+    if (matchedAthletes.length > 0) {
+      console.log(`    Fandt ${matchedAthletes.length} matchende atlet(er)`);
     }
 
     totalProcessed++;

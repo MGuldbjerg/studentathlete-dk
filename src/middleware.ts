@@ -4,11 +4,15 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 /**
  * Kanonisk vært + skema. Eliminerer duplikat-sider i Google Search Console
- * (http:// + www. udgaver) ved at 301-redirecte ALT til https://studentathlete.dk.
+ * (http:// + www. udgaver) ved at 301-redirecte til sitets egen kanoniske vært.
  * Selve canonical-taggene peger samme sted (se generateMetadata), men en hård
  * 301 fjerner duplikaterne ved kilden i stedet for kun at signalere dem.
+ *
+ * Værten er IKKE en konstant her længere: den slås op i landeregistret, så
+ * www.example.de sendes til example.de — ikke til det danske site. Ukendte
+ * værter (workers.dev, previews) falder tilbage til standardsitet som før.
  */
-const CANONICAL_HOST = "studentathlete.dk";
+import { siteFromHost } from "./lib/site";
 
 /**
  * Nedlagte atlet-slugs (navneskift hos skolen, eller to rækker flettet til én)
@@ -60,13 +64,15 @@ export async function middleware(req: NextRequest) {
   const proto =
     req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", "");
 
-  const wrongHost = host !== CANONICAL_HOST; // fanger www. og *.workers.dev
+  // Kendt vært → dens eget site; ukendt (workers.dev, preview) → standardsitet.
+  const canonicalHost = siteFromHost(host).host;
+  const wrongHost = host !== canonicalHost; // fanger www. og *.workers.dev
   const wrongProto = proto !== "https";
 
   if (wrongHost || wrongProto) {
     const target = new URL(
       req.nextUrl.pathname + req.nextUrl.search,
-      `https://${CANONICAL_HOST}`,
+      `https://${canonicalHost}`,
     );
     return NextResponse.redirect(target, 301);
   }

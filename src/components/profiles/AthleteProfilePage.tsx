@@ -5,10 +5,11 @@ import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 
+import { sportLabel } from "@/lib/i18n";
 interface Props { athlete: Athlete; articles: Article[]; events?: AthleteEventRow[] }
 
 const STAT_ROWS = (a: Athlete) => [
-  { label: "Sport",     value: a.sport },
+  { label: "Sport",     value: sportLabel(a.sport) },
   { label: "Position",  value: a.position },
   { label: "Hjemby",   value: a.hometown },
   { label: "Universitet", value: a.university },
@@ -75,7 +76,7 @@ export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
             <div className="flex items-center gap-3 mb-3">
               <span className="text-[10px] font-black tracking-[0.2em] uppercase text-white px-2.5 py-1.5"
                 style={{ backgroundColor: "#BF0A30" }}>
-                {athlete.sport}
+                {sportLabel(athlete.sport)}
               </span>
               {graduationBadgeYear(athlete.expected_graduation) ? (
                 <span

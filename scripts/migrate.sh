@@ -42,6 +42,8 @@ MIGRATIONS=(
   # 033 (unikt indeks på roster_key) fejler bevidst hvis der stadig findes
   # dubletter — kør backfill-roster-keys.ts + dedup-athletes.ts --apply først.
   db/migration-033-roster-key-unique.sql
+  db/migration-034-country.sql
+  db/migration-035-canonical-sport-keys.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do

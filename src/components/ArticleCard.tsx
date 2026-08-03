@@ -2,6 +2,7 @@ import type { Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
 
+import { sportLabel } from "@/lib/i18n";
 interface ArticleCardProps {
   article: Article;
   featured?: boolean;
@@ -44,7 +45,7 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
                 className="inline-block px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white rounded-sm"
                 style={{ backgroundColor: sportColor }}
               >
-                {article.sport}
+                {sportLabel(article.sport)}
               </span>
             )}
             <span className="text-xs text-muted">{typeLabel}</span>
@@ -111,7 +112,7 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
               className="inline-block px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-white rounded-sm"
               style={{ backgroundColor: sportColor }}
             >
-              {article.sport}
+              {sportLabel(article.sport)}
             </span>
           )}
           <span className="text-xs text-muted">{typeLabel}</span>

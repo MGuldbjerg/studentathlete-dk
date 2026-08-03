@@ -1,12 +1,16 @@
 /**
- * Unit-tests for isDanishHometown(). Kør: npx tsx pipeline/lib/_danish-cities-test.ts
+ * Unit-tests for hometown-klassifikationen (matchesCountry mod DK-profilen). Kør: npx tsx pipeline/lib/_hometown-test.ts
  *
  * Dækker især de bekræftede false positives (juni 2026): Lake Elsinore-atleter
  * (Bollerer, Rogers, Criss, Clark) + Josh Frerk (Denmark, Wis.) — alle amerikanske,
  * fejlklassificeret pga. "Elsinore"-aliaset + en US-stat-guard der kun tjekkede sidste
  * komma-del med forkortelser. Sikrer samtidig at ægte danskere stadig genkendes.
  */
-import { isDanishHometown } from "./danish-cities";
+import { matchesCountry } from "../../src/lib/hometown";
+import { dk } from "../../src/lib/countries/dk";
+
+/** Bevarer testens læsbarhed: samme spørgsmål, nu med landeprofilen som data. */
+const isDanishHometown = (h: string | null) => matchesCountry(h, dk);
 
 let passed = 0;
 let failed = 0;

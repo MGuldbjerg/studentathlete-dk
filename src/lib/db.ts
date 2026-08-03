@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { DEFAULT_COUNTRY } from "./countries";
 import type { Article, Athlete, School } from "./types";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
@@ -23,6 +24,18 @@ export async function getEnv(): Promise<Record<string, any>> {
   } catch {
     return {};
   }
+}
+
+/**
+ * Hvilket sites indhold hentes der? Nationalitet er DATA nu (migration 034), så
+ * listerne filtrerer eksplicit i stedet for at antage at "alle rækker" er danske.
+ *
+ * Med ét site er værdien altid "DK", og filtrene ændrer intet. Pointen er at
+ * site nummer to ikke kræver en gennemgang af hver eneste query — kun at
+ * kaldere begynder at sende deres egen landekode med.
+ */
+export function siteCountry(country?: string): string {
+  return (country ?? DEFAULT_COUNTRY).toUpperCase();
 }
 
 export const ARTICLE_SELECT = `
@@ -244,7 +257,7 @@ export async function getAthleteSlugByAlias(slug: string): Promise<string | null
 }
 
 export async function getAthletesByUniversity(
-  university: string, limit = 20
+  university: string, limit = 20, country?: string
 ): Promise<Athlete[]> {
   const db = await getDB();
   if (!db) {
@@ -256,15 +269,15 @@ export async function getAthletesByUniversity(
   try {
     const r = await db
       .prepare(
-        "SELECT * FROM athletes WHERE university = ? AND active = 1 ORDER BY name LIMIT ?"
+        "SELECT * FROM athletes WHERE university = ? AND home_country = ? AND active = 1 ORDER BY name LIMIT ?"
       )
-      .bind(university, limit)
+      .bind(university, siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
 }
 
-export async function getAllAthletes(): Promise<Athlete[]> {
+export async function getAllAthletes(country?: string): Promise<Athlete[]> {
   const db = await getDB();
   if (!db) {
     return MOCK_ATHLETES
@@ -273,13 +286,14 @@ export async function getAllAthletes(): Promise<Athlete[]> {
   }
   try {
     const r = await db
-      .prepare("SELECT * FROM athletes WHERE active = 1 ORDER BY sport, name")
+      .prepare("SELECT * FROM athletes WHERE home_country = ? AND active = 1 ORDER BY sport, name")
+      .bind(siteCountry(country))
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
 }
 
-export async function getAlumniAthletes(): Promise<Athlete[]> {
+export async function getAlumniAthletes(country?: string): Promise<Athlete[]> {
   const db = await getDB();
   if (!db) {
     return MOCK_ATHLETES
@@ -288,14 +302,15 @@ export async function getAlumniAthletes(): Promise<Athlete[]> {
   }
   try {
     const r = await db
-      .prepare("SELECT * FROM athletes WHERE active = 0 ORDER BY sport, name")
+      .prepare("SELECT * FROM athletes WHERE home_country = ? AND active = 0 ORDER BY sport, name")
+      .bind(siteCountry(country))
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
 }
 
 export async function getAthletesBySport(
-  sport: string, limit = 50
+  sport: string, limit = 50, country?: string
 ): Promise<Athlete[]> {
   const db = await getDB();
   if (!db) {
@@ -306,15 +321,15 @@ export async function getAthletesBySport(
   }
   try {
     const r = await db
-      .prepare("SELECT * FROM athletes WHERE sport = ? AND active = 1 ORDER BY name LIMIT ?")
-      .bind(sport, limit)
+      .prepare("SELECT * FROM athletes WHERE sport = ? AND home_country = ? AND active = 1 ORDER BY name LIMIT ?")
+      .bind(sport, siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
 }
 
 export async function getArticlesBySport(
-  sport: string, limit = 12
+  sport: string, limit = 12, country?: string
 ): Promise<Article[]> {
   const db = await getDB();
   if (!db) {
@@ -329,16 +344,16 @@ export async function getArticlesBySport(
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE at.sport = ? AND a.published = 1
+         WHERE at.sport = ? AND a.country = ? AND a.published = 1
          ORDER BY a.published_at DESC LIMIT ?`
       )
-      .bind(sport, limit)
+      .bind(sport, siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Article[];
   } catch { return []; }
 }
 
-export async function countAthletesBySport(sport: string): Promise<{ active: number; alumni: number }> {
+export async function countAthletesBySport(sport: string, country?: string): Promise<{ active: number; alumni: number }> {
   const db = await getDB();
   if (!db) {
     const active = MOCK_ATHLETES.filter((a) => a.sport.toLowerCase() === sport.toLowerCase() && a.active === 1).length;
@@ -347,8 +362,8 @@ export async function countAthletesBySport(sport: string): Promise<{ active: num
   }
   try {
     const r = await db
-      .prepare("SELECT active, COUNT(*) as cnt FROM athletes WHERE sport = ? GROUP BY active")
-      .bind(sport)
+      .prepare("SELECT active, COUNT(*) as cnt FROM athletes WHERE sport = ? AND home_country = ? GROUP BY active")
+      .bind(sport, siteCountry(country))
       .all();
     let active = 0, alumni = 0;
     for (const row of (r.results ?? []) as { active: number; cnt: number }[]) {
@@ -443,7 +458,7 @@ export async function getAllArticleSlugs(): Promise<
   } catch { return []; }
 }
 
-export async function getAllAthleteSlugs(): Promise<
+export async function getAllAthleteSlugs(country?: string): Promise<
   { slug: string; updated_at: string }[]
 > {
   const db = await getDB();
@@ -454,7 +469,8 @@ export async function getAllAthleteSlugs(): Promise<
   }
   try {
     const r = await db
-      .prepare("SELECT slug, updated_at FROM athletes ORDER BY name")
+      .prepare("SELECT slug, updated_at FROM athletes WHERE home_country = ? ORDER BY name")
+      .bind(siteCountry(country))
       .all();
     return (r.results ?? []) as { slug: string; updated_at: string }[];
   } catch { return []; }

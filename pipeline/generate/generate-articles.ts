@@ -7,7 +7,7 @@
  */
 
 import { createD1Client } from "../lib/d1-client";
-import { generateSlug } from "../lib/slug";
+import { generateSlug } from "../../src/lib/slug";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import { buildSystemPrompt } from "./prompts/system";
 import type { StyleCorrectionEntry } from "./prompts/system";

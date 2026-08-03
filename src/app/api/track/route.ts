@@ -3,8 +3,9 @@ import type { NextRequest } from "next/server";
 import { isbot } from "isbot";
 import { getDB, getEnv } from "@/lib/db";
 import { classify, deviceFromUA, hashVisitor, isClickKind } from "@/lib/analytics";
+import { isKnownHost } from "@/lib/site";
 
-const SITE_HOST = "studentathlete.dk";
+// Værterne kommer fra landeprofilerne (src/lib/site.ts) — ikke en konstant her.
 const NO_CONTENT = new NextResponse(null, { status: 204 });
 
 /** Tom 204 — vi lækker aldrig om en hændelse blev gemt. */
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (origin) {
       try {
         const h = new URL(origin).hostname;
-        const ok = h === SITE_HOST || h.endsWith(`.${SITE_HOST}`) || h === "localhost";
+        const ok = isKnownHost(h) || h === "localhost";
         if (!ok) return ack();
       } catch {
         return ack();
@@ -74,7 +75,8 @@ export async function POST(req: NextRequest) {
     if (type === "pageview" && body.referrer) {
       try {
         const h = new URL(body.referrer).hostname;
-        if (h && h !== SITE_HOST && !h.endsWith(`.${SITE_HOST}`)) referrer = h.slice(0, 255);
+        // Egne værter er ikke en henvisning — kun eksterne gemmes.
+        if (h && !isKnownHost(h)) referrer = h.slice(0, 255);
       } catch {
         /* ignorér ugyldig referrer */
       }

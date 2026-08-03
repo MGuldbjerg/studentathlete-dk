@@ -22,7 +22,8 @@ import { writeExcelReport } from "./write-excel";
 import * as fs from "fs";
 import * as path from "path";
 
-const USER_AGENT = "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
+import { pipelineUserAgent } from "../../src/lib/site";
+const USER_AGENT = pipelineUserAgent();
 
 interface SchoolRow {
   id: number;

@@ -8,6 +8,7 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
+import { sportLabel } from "@/lib/i18n";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -43,7 +44,7 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
                 <span className="text-[10px] font-black tracking-[0.25em] uppercase">Officielt</span>
               </div>
               <span className="text-white/30 text-[10px] tracking-[0.2em] uppercase">
-                Rekruttering · {article.sport ?? "Student Athlete"}
+                Rekruttering · {article.sport ? sportLabel(article.sport) : "Student Athlete"}
               </span>
             </div>
 
@@ -63,7 +64,7 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
               <div className="flex-1">
                 {athlete && (
                   <p className="text-white/50 text-xs tracking-[0.2em] uppercase mb-2 font-medium">
-                    {athlete.hometown ?? "Danmark"} · {athlete.sport}
+                    {athlete.hometown ?? "Danmark"} · {sportLabel(athlete.sport)}
                   </p>
                 )}
                 <h1 style={{ fontFamily: "var(--font-serif)" }}
@@ -119,7 +120,7 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
                   <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
                     {[
                       { label: "Navn", value: athlete.name },
-                      { label: "Sport", value: athlete.sport },
+                      { label: "Sport", value: sportLabel(athlete.sport) },
                       { label: "Position", value: athlete.position },
                       { label: "Hjemby", value: athlete.hometown },
                       { label: "Universitet", value: athlete.university },

@@ -12,7 +12,8 @@ import { parseRoster } from "./parsers";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { generateSlug } from "../../src/lib/slug";
 
-const USER_AGENT = "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
+import { pipelineUserAgent } from "../../src/lib/site";
+const USER_AGENT = pipelineUserAgent();
 
 const SPORT_ROSTER_KEY: Record<string, string> = {
   football: "football",

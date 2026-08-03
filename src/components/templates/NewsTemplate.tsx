@@ -9,6 +9,7 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
+import { sportLabel } from "@/lib/i18n";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -47,7 +48,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
               <>
                 <span style={{ color: "#E2E0DC" }}>—</span>
                 <span className="text-xs tracking-[0.1em] uppercase text-muted font-medium">
-                  {article.sport}
+                  {sportLabel(article.sport)}
                 </span>
               </>
             )}
@@ -125,7 +126,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
         {/* ── Tags ───────────────────────────────────────────────── */}
         <div className="px-5 md:px-0 pt-6 pb-10 border-t border-border mt-4">
           <div className="flex flex-wrap gap-2">
-            {[article.sport, typeLabel, "Student athlete"].filter(Boolean).map((tag) => (
+            {[article.sport ? sportLabel(article.sport) : null, typeLabel, "Student athlete"].filter(Boolean).map((tag) => (
               <span key={tag}
                 className="text-xs px-3 py-1 border border-border text-muted
                            hover:border-flag-red hover:text-flag-red transition-colors cursor-default tracking-wide">

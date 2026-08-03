@@ -1,90 +1,83 @@
 /**
- * POSITIONS-ORDBOG — rediger frit, det er meningen.
- * ================================================
+ * KERNE: roster-forkortelse → sprogfrit position-BEGREB.
+ * ======================================================
  *
- * Amerikanske rosters skriver positioner i forkortelser, og de betyder ikke det
- * samme på tværs af sportsgrene: "C" er catcher i baseball, center i basketball
- * og målmand-ish "Center" i ishockey. "F" er forward i basketball, men angriber
- * i fodbold. Uden en ordbog ender profilteksten med "spiller fodbold som F".
+ * "C" betyder ikke det samme på tværs af sportsgrene: catcher i baseball,
+ * center i basketball. Den viden er universel — den er lige sand for et tysk
+ * site — så den bor her, i kernen, og oversættes ikke.
  *
- * SÅDAN RETTER DU (det kræver ingen kodeforståelse):
- *  · Ret et ord?      Find sporten nedenfor og skriv den tekst du vil se.
- *  · Mangler en kode? Tilføj en linje:  "kode": "det der skal stå",
- *  · Fjern en kode?   Slet linjen — så vises skolens egen tekst uændret.
+ * Selve ORDET læseren ser ("midtbanespiller") står i sprogpakken
+ * (`src/lib/i18n/da.ts` → `positionPhrase`). Nyt sprog = oversæt begreberne,
+ * ikke tabellen nedenfor.
  *
- * REGLER teksten her følger:
- *  1. Nøglen (til venstre) skrives med små bogstaver. Opslaget er
- *     versal-ufølsomt og ignorerer punktummer, så "C.", "c" og "C" rammer alle
- *     nøglen "c".
- *  2. Værdien (til højre) skrives med lille begyndelsesbogstav, fordi den
- *     bruges midt i en sætning: "… spiller fodbold som midtbanespiller."
- *  3. Både forkortelser OG hele engelske ord må stå som nøgler. Hele ord er
- *     pointen i fodbold og ishockey, hvor dansk har sine egne ord
- *     ("Midfielder" → "midtbanespiller").
- *  4. Kender vi ikke koden, vises skolens egen tekst uændret. Vi gætter aldrig.
+ * SÅDAN RETTER DU:
+ *  · Mangler en kode?  Tilføj `"kode": "begreb",` under den rigtige sport.
+ *  · Forkert ord?      Ret formuleringen i sprogpakken, ikke her.
+ *  · Nyt begreb?       Tilføj det begge steder — ellers vises begrebets id råt.
  *
- * HVORFOR står der engelsk i basketball, football og baseball?
- * Fordi dansk sportssprog gør det: man siger "point guard" og "quarterback",
- * ikke "punktvogter". I fodbold og ishockey er det omvendt. Du bestemmer —
- * ret bare værdien, hvis du er uenig.
- *
- * Nøglen for sporten skal matche `athletes.sport`, som gemmes med SMÅ
- * bogstaver ("fodbold", "svømning", …).
+ * REGLER:
+ *  1. Nøgler med små bogstaver. Opslag er versal-ufølsomt og ignorerer punktummer.
+ *  2. Begreber er sprogfri id'er med understreg ("attacking_midfielder").
+ *  3. Ukendt kode → skolens egen tekst vises uændret. Vi gætter aldrig.
+ *  4. Ukendt BEGREB (mangler i sprogpakken) → id'et bruges som det er. Det er
+ *     med vilje sådan atletik virker: disciplin-id'erne ER de engelske
+ *     øvelsesnavne ("shot put"), fordi den danske profil-grammatik genkender
+ *     dem og selv vælger "kæmper i kuglestød". Oversætter man dem, går det i stykker.
  */
+import type { SportKey } from "./sports";
+import { languagePack } from "./i18n";
 
-export const POSITION_TERMS: Record<string, Record<string, string>> = {
+export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
   // ── Fodbold ────────────────────────────────────────────────────────────────
-  // Dansk har egne ord — derfor oversættes de hele engelske ord også.
-  fodbold: {
-    gk: "målmand",
-    g: "målmand",
-    k: "målmand",
-    goalkeeper: "målmand",
-    keeper: "målmand",
-    d: "forsvarsspiller",
-    def: "forsvarsspiller",
-    defense: "forsvarsspiller",
-    defence: "forsvarsspiller",
-    defender: "forsvarsspiller",
-    back: "forsvarsspiller",
-    // Allerede dansk i vores egne seed-data — normaliseres til samme ord.
-    forsvar: "forsvarsspiller",
-    midtbane: "midtbanespiller",
-    angreb: "angriber",
-    cb: "midterforsvarer",
-    "center back": "midterforsvarer",
-    lb: "venstre back",
-    rb: "højre back",
-    fb: "back",
-    "full back": "back",
-    fullback: "back",
-    m: "midtbanespiller",
-    mf: "midtbanespiller",
-    mid: "midtbanespiller",
-    midfielder: "midtbanespiller",
-    midfield: "midtbanespiller",
-    cm: "central midtbanespiller",
-    dm: "defensiv midtbanespiller",
-    am: "offensiv midtbanespiller",
-    wm: "kantspiller",
-    winger: "kantspiller",
-    w: "kantspiller",
-    f: "angriber",
-    fw: "angriber",
-    forward: "angriber",
-    st: "angriber",
-    striker: "angriber",
-    attacker: "angriber",
+  soccer: {
+    gk: "goalkeeper",
+    g: "goalkeeper",
+    k: "goalkeeper",
+    goalkeeper: "goalkeeper",
+    keeper: "goalkeeper",
+    d: "defender",
+    def: "defender",
+    defense: "defender",
+    defence: "defender",
+    defender: "defender",
+    back: "defender",
+    forsvar: "defender",
+    cb: "centre_back",
+    "center back": "centre_back",
+    lb: "left_back",
+    rb: "right_back",
+    fb: "fullback",
+    "full back": "fullback",
+    fullback: "fullback",
+    m: "midfielder",
+    mf: "midfielder",
+    mid: "midfielder",
+    midfielder: "midfielder",
+    midfield: "midfielder",
+    midtbane: "midfielder",
+    cm: "central_midfielder",
+    dm: "defensive_midfielder",
+    am: "attacking_midfielder",
+    wm: "winger",
+    winger: "winger",
+    w: "winger",
+    f: "striker",
+    fw: "striker",
+    forward: "striker",
+    st: "striker",
+    striker: "striker",
+    attacker: "striker",
+    angreb: "striker",
   },
 
   // ── Basketball ─────────────────────────────────────────────────────────────
   basketball: {
     g: "guard",
-    pg: "point guard",
-    sg: "shooting guard",
+    pg: "point_guard",
+    sg: "shooting_guard",
     f: "forward",
-    sf: "small forward",
-    pf: "power forward",
+    sf: "small_forward",
+    pf: "power_forward",
     c: "center",
     guard: "guard",
     forward: "forward",
@@ -95,26 +88,25 @@ export const POSITION_TERMS: Record<string, Record<string, string>> = {
   // ── Baseball / softball ────────────────────────────────────────────────────
   baseball: {
     p: "pitcher",
-    rhp: "højrehåndet pitcher",
-    lhp: "venstrehåndet pitcher",
-    sp: "starting pitcher",
-    rp: "relief pitcher",
+    rhp: "right_handed_pitcher",
+    lhp: "left_handed_pitcher",
+    sp: "starting_pitcher",
+    rp: "relief_pitcher",
     c: "catcher",
-    "1b": "first baseman",
-    "2b": "second baseman",
-    "3b": "third baseman",
+    "1b": "first_baseman",
+    "2b": "second_baseman",
+    "3b": "third_baseman",
     ss: "shortstop",
     if: "infielder",
     inf: "infielder",
     of: "outfielder",
     outf: "outfielder",
-    lf: "left fielder",
-    cf: "center fielder",
-    rf: "right fielder",
-    dh: "designated hitter",
-    ut: "utility-spiller",
-    util: "utility-spiller",
-    // Hele ord med småt: de står midt i en dansk sætning ("… som pitcher").
+    lf: "left_fielder",
+    cf: "center_fielder",
+    rf: "right_fielder",
+    dh: "designated_hitter",
+    ut: "utility",
+    util: "utility",
     pitcher: "pitcher",
     catcher: "catcher",
     infielder: "infielder",
@@ -125,43 +117,42 @@ export const POSITION_TERMS: Record<string, Record<string, string>> = {
   // ── Amerikansk fodbold ─────────────────────────────────────────────────────
   football: {
     qb: "quarterback",
-    rb: "running back",
+    rb: "running_back",
     hb: "halfback",
-    fb: "fullback",
-    wr: "wide receiver",
-    te: "tight end",
-    ol: "offensive lineman",
-    ot: "offensive tackle",
-    og: "offensive guard",
+    fb: "am_fullback",
+    wr: "wide_receiver",
+    te: "tight_end",
+    ol: "offensive_lineman",
+    ot: "offensive_tackle",
+    og: "offensive_guard",
     c: "center",
-    dl: "defensive lineman",
-    de: "defensive end",
-    dt: "defensive tackle",
+    dl: "defensive_lineman",
+    de: "defensive_end",
+    dt: "defensive_tackle",
     lb: "linebacker",
-    olb: "outside linebacker",
-    ilb: "inside linebacker",
-    mlb: "middle linebacker",
-    db: "defensive back",
+    olb: "outside_linebacker",
+    ilb: "inside_linebacker",
+    mlb: "middle_linebacker",
+    db: "defensive_back",
     cb: "cornerback",
     s: "safety",
-    fs: "free safety",
-    ss: "strong safety",
+    fs: "free_safety",
+    ss: "strong_safety",
     k: "kicker",
     pk: "placekicker",
     p: "punter",
-    ls: "long snapper",
+    ls: "long_snapper",
     ath: "athlete",
-    // Hele ord med småt: de står midt i en dansk sætning ("… som tight end").
     quarterback: "quarterback",
-    "running back": "running back",
-    "wide receiver": "wide receiver",
-    "tight end": "tight end",
-    "offensive line": "offensive lineman",
-    "offensive lineman": "offensive lineman",
-    "defensive line": "defensive lineman",
-    "defensive lineman": "defensive lineman",
-    "defensive back": "defensive back",
-    "defensive end": "defensive end",
+    "running back": "running_back",
+    "wide receiver": "wide_receiver",
+    "tight end": "tight_end",
+    "offensive line": "offensive_lineman",
+    "offensive lineman": "offensive_lineman",
+    "defensive line": "defensive_lineman",
+    "defensive lineman": "defensive_lineman",
+    "defensive back": "defensive_back",
+    "defensive end": "defensive_end",
     linebacker: "linebacker",
     cornerback: "cornerback",
     safety: "safety",
@@ -171,110 +162,107 @@ export const POSITION_TERMS: Record<string, Record<string, string>> = {
 
   // ── Volleyball ─────────────────────────────────────────────────────────────
   volleyball: {
-    oh: "outside hitter",
-    mb: "middle blocker",
-    mh: "middle hitter",
-    opp: "opposite hitter",
-    rs: "right side hitter",
+    oh: "outside_hitter",
+    mb: "middle_blocker",
+    mh: "middle_hitter",
+    opp: "opposite_hitter",
+    rs: "right_side_hitter",
     s: "setter",
     l: "libero",
     libero: "libero",
-    ds: "defensiv specialist",
-    // Hele ord med småt: de står midt i en dansk sætning ("… som setter").
+    ds: "defensive_specialist",
     setter: "setter",
-    "outside hitter": "outside hitter",
-    "middle blocker": "middle blocker",
-    "opposite hitter": "opposite hitter",
+    "outside hitter": "outside_hitter",
+    "middle blocker": "middle_blocker",
+    "opposite hitter": "opposite_hitter",
   },
 
   // ── Ishockey ───────────────────────────────────────────────────────────────
-  // Dansk hockey-sprog: målmand, back, angriber (ikke "goalie"/"defenseman").
-  ishockey: {
-    g: "målmand",
-    gk: "målmand",
-    goalie: "målmand",
-    goaltender: "målmand",
-    d: "back",
-    def: "back",
-    defense: "back",
-    defence: "back",
-    defenseman: "back",
-    f: "angriber",
-    forward: "angriber",
+  "ice-hockey": {
+    g: "goalkeeper",
+    gk: "goalkeeper",
+    goalie: "goalkeeper",
+    goaltender: "goalkeeper",
+    d: "defenseman",
+    def: "defenseman",
+    defense: "defenseman",
+    defence: "defenseman",
+    defenseman: "defenseman",
+    f: "hockey_forward",
+    forward: "hockey_forward",
     c: "center",
-    lw: "venstre wing",
-    rw: "højre wing",
+    lw: "left_wing",
+    rw: "right_wing",
     w: "wing",
     winger: "wing",
   },
 
   // ── Svømning (disciplin står i position-feltet) ────────────────────────────
-  svømning: {
+  "swimming-and-diving": {
     fr: "freestyle",
     free: "freestyle",
     freestyle: "freestyle",
-    bk: "rygcrawl",
-    back: "rygcrawl",
-    backstroke: "rygcrawl",
-    br: "brystsvømning",
-    breast: "brystsvømning",
-    breaststroke: "brystsvømning",
+    bk: "backstroke",
+    back: "backstroke",
+    backstroke: "backstroke",
+    br: "breaststroke",
+    breast: "breaststroke",
+    breaststroke: "breaststroke",
     fl: "butterfly",
     fly: "butterfly",
     butterfly: "butterfly",
-    im: "individuel medley",
-    "individual medley": "individuel medley",
+    im: "individual_medley",
+    "individual medley": "individual_medley",
     sprint: "sprint",
     distance: "distance",
-    mid: "mellemdistance",
-    diver: "udspringer",
-    diving: "udspring",
-    "1m": "1-meter udspring",
-    "3m": "3-meter udspring",
-    platform: "tårnudspring",
+    mid: "mid_distance",
+    diver: "diver",
+    diving: "diving",
+    "1m": "diving_1m",
+    "3m": "diving_3m",
+    platform: "platform_diving",
   },
 
   // ── Roning ─────────────────────────────────────────────────────────────────
-  roning: {
-    cox: "styrmand",
-    coxswain: "styrmand",
-    coxn: "styrmand",
-    port: "bagbordsåre",
-    starboard: "styrbordsåre",
+  rowing: {
+    cox: "coxswain",
+    coxswain: "coxswain",
+    coxn: "coxswain",
+    port: "port_side",
+    starboard: "starboard_side",
     sculler: "sculler",
     sculling: "sculler",
-    sweep: "åreroer",
-    lw: "letvægtsroer",
-    lightweight: "letvægtsroer",
+    sweep: "sweep_rower",
+    lw: "lightweight",
+    lightweight: "lightweight",
   },
 
   // ── Gymnastik (redskab står i position-feltet) ─────────────────────────────
-  gymnastik: {
-    aa: "allround",
-    "all-around": "allround",
-    "all around": "allround",
-    vt: "spring",
-    vault: "spring",
-    ub: "barre",
-    "uneven bars": "barre",
-    bars: "barre",
-    bb: "bom",
-    beam: "bom",
-    fx: "gulv",
-    floor: "gulv",
-    ph: "bensvingsstol",
-    sr: "ringe",
-    rings: "ringe",
-    pb: "barre",
-    hb: "reck",
+  gymnastics: {
+    aa: "all_around",
+    "all-around": "all_around",
+    "all around": "all_around",
+    vt: "vault",
+    vault: "vault",
+    ub: "uneven_bars",
+    "uneven bars": "uneven_bars",
+    bars: "uneven_bars",
+    bb: "balance_beam",
+    beam: "balance_beam",
+    fx: "floor_exercise",
+    floor: "floor_exercise",
+    ph: "pommel_horse",
+    sr: "rings",
+    rings: "rings",
+    pb: "parallel_bars",
+    hb: "high_bar",
   },
 
   // ── Atletik ────────────────────────────────────────────────────────────────
-  // NB: her oversætter vi til det ENGELSKE disciplinnavn med vilje.
-  // profile-baseline.ts genkender disciplinen på engelsk og vælger derefter det
-  // rigtige danske verbum ("løber som sprinter" vs. "kæmper i kuglestød").
-  // Skriver du dansk her, går den logik i stykker.
-  atletik: {
+  // Begreberne ER de engelske øvelsesnavne, og de oversættes IKKE i sprogpakken
+  // (se regel 4 i toppen). Profil-grammatikken genkender dem og vælger selv
+  // "løber som sprinter" vs. "kæmper i kuglestød".
+  "track-and-field": {
     sp: "shot put",
     dt: "discus",
     ht: "hammer throw",
@@ -296,6 +284,10 @@ export const POSITION_TERMS: Record<string, Record<string, string>> = {
     jumps: "jumps",
     spr: "sprints",
   },
+
+  golf: {},
+  tennis: {},
+  other: {},
 };
 
 /** Adskillere i sammensatte positioner: "G/F", "P, OF", "F-C". */
@@ -310,12 +302,12 @@ function normalizeKey(raw: string): string {
     .trim();
 }
 
-/** Slår ét led op. Ukendt led returneres uændret (vi gætter aldrig). */
-function expandOne(sportKey: string, part: string): string {
-  const table = POSITION_TERMS[sportKey];
-  if (!table) return part.trim();
+/** Slår ét led op → begreb, eller null hvis koden er ukendt. */
+function conceptFor(sport: string, part: string): string | null {
+  const table = POSITION_CODES[sport as SportKey];
+  if (!table) return null;
   const key = normalizeKey(part);
-  if (!key) return "";
+  if (!key) return null;
 
   const hit = table[key];
   if (hit) return hit;
@@ -324,11 +316,11 @@ function expandOne(sportKey: string, part: string): string {
   // Kun når begge sider er korte — ellers ville "cross-country" blive splittet.
   const dash = key.split("-");
   if (dash.length === 2 && dash.every((d) => d.length > 0 && d.length <= 3)) {
-    const both = dash.map((d) => table[d] ?? d);
-    if (both.some((b, i) => b !== dash[i])) return both.join("/");
+    const both = dash.map((d) => table[d]);
+    if (both.every(Boolean)) return both.join("|");
   }
 
-  return part.trim();
+  return null;
 }
 
 /**
@@ -336,22 +328,37 @@ function expandOne(sportKey: string, part: string): string {
  *
  *   expandPosition("basketball", "F")   → "forward"
  *   expandPosition("baseball", "C")     → "catcher"
- *   expandPosition("fodbold", "Midfielder") → "midtbanespiller"
+ *   expandPosition("soccer", "Midfielder") → "midtbanespiller"   (dansk pakke)
  *   expandPosition("basketball", "G/F") → "guard/forward"
- *   expandPosition("golf", "Whatever")  → "Whatever"   (ukendt sport → uændret)
+ *   expandPosition("golf", "Whatever")  → "Whatever"   (ingen koder → uændret)
  *
  * Returnerer null for tomt input. Ukendte koder returneres uændret, så vi
  * aldrig opfinder en rolle atleten ikke har.
  */
-export function expandPosition(sport: string, position: string | null | undefined): string | null {
+export function expandPosition(
+  sport: string,
+  position: string | null | undefined,
+  lang?: string,
+): string | null {
   if (!position) return null;
   const raw = position.trim();
   if (!raw) return null;
 
+  const { positionPhrase } = languagePack(lang);
   const sportKey = sport.trim().toLowerCase();
   const parts = raw.split(COMPOUND_SPLIT).filter((p) => p.trim().length > 0);
   if (parts.length === 0) return null;
 
-  const expanded = parts.map((p) => expandOne(sportKey, p)).filter((p) => p.length > 0);
-  return expanded.length > 0 ? expanded.join("/") : raw;
+  const out = parts.map((part) => {
+    const concept = conceptFor(sportKey, part);
+    if (!concept) return part.trim(); // ukendt kode → skolens egen tekst
+    // "|" = et bindestregs-par blev slået op som to begreber.
+    return concept
+      .split("|")
+      .map((c) => positionPhrase[c] ?? c) // ukendt begreb → id'et som det er
+      .join("/");
+  });
+
+  const joined = out.filter((p) => p.length > 0).join("/");
+  return joined.length > 0 ? joined : raw;
 }

@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isbot } from "isbot";
 import { insertLead } from "@/lib/admin";
+import { isKnownHost } from "@/lib/site";
 
-const SITE_HOST = "studentathlete.dk";
+// Værterne kommer fra landeprofilerne (src/lib/site.ts) — ikke en konstant her.
 
 /**
  * Offentlig POST fra "Spil i USA"-formularen (/spil-i-usa).
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     if (origin) {
       try {
         const h = new URL(origin).hostname;
-        const ok = h === SITE_HOST || h.endsWith(`.${SITE_HOST}`) || h === "localhost";
+        const ok = isKnownHost(h) || h === "localhost";
         if (!ok) return NextResponse.json({ ok: true });
       } catch {
         return NextResponse.json({ ok: true });
@@ -51,7 +52,8 @@ export async function POST(req: NextRequest) {
     if (body.referrer) {
       try {
         const h = new URL(body.referrer).hostname;
-        if (h && h !== SITE_HOST && !h.endsWith(`.${SITE_HOST}`)) referrer = h.slice(0, 255);
+        // Egne værter er ikke en henvisning — kun eksterne gemmes.
+        if (h && !isKnownHost(h)) referrer = h.slice(0, 255);
       } catch {
         /* ignorér ugyldig referrer */
       }

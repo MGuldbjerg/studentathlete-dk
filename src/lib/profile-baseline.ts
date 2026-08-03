@@ -12,6 +12,8 @@
 
 import { cleanPosition } from "./roster-clean";
 import { expandPosition } from "./positions";
+import { BALL_SPORT_KEYS } from "./sports";
+import { sportLabel } from "./i18n";
 
 // Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
 // forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
@@ -53,8 +55,10 @@ export function currentSeasonStart(now: Date = new Date()): number {
 }
 
 /** "Fodbold" → "fodbold" (sport som dansk fællesnavn midt i en sætning). */
+// Sporten gemmes nu som sprogfri nøgle ("soccer"); sætningen skal bruge det
+// danske ord med lille begyndelsesbogstav ("… spiller fodbold").
 function sportNoun(sport: string): string {
-  return sport.charAt(0).toLowerCase() + sport.slice(1);
+  return sportLabel(sport, "da").toLowerCase();
 }
 
 /** Fjern redundant landesuffiks fra roster-hjembyer ("Aarhus, Denmark" → "Aarhus"). */
@@ -78,12 +82,9 @@ interface SportVerb {
   posNoun: string | null;  // klar til " som {posNoun}" — null hvis intet at vise
 }
 
-// NB: athletes.sport gemmes med SMÅ bogstaver ("fodbold", "atletik", …) —
-// IKKE store forbogstaver som i SPORTS[].label (kun brugt til UI-visning).
-// Sammenlign derfor altid på lowercased sport her.
-const BALL_SPORTS = new Set([
-  "football", "basketball", "baseball", "fodbold", "golf", "tennis", "ishockey", "volleyball",
-]);
+// athletes.sport er nu den sprogfri nøgle fra src/lib/sports.ts ("soccer",
+// "swimming-and-diving"), IKKE et dansk ord. Listen over boldspil hører til
+// kernen, fordi "er dette et boldspil" er sandt uanset sprog.
 
 // Roster-position er ofte støj frem for en rigtig rolle: højde ("6'7\"",
 // "5'9\"") eller holdniveau ("Varsity", "JV") — ingen af delene er en rolle,
@@ -92,7 +93,7 @@ const HEIGHT_RE = /^\d+'\d*"?$/;
 const ROSTER_TIER_RE = /^(varsity|novice|junior varsity|jv|freshman|redshirt)$/i;
 // "Rower" gentager blot verbet "ror/roede/roet" og tilføjer intet — kun støj
 // for roning; andre sportsgrenes ord filtreres ikke af denne (sport-specifik).
-const REDUNDANT_ROLE_BY_SPORT: Record<string, RegExp> = { roning: /^rower$/i };
+const REDUNDANT_ROLE_BY_SPORT: Record<string, RegExp> = { rowing: /^rower$/i };
 
 /** Rå position → vis den som " som X", eller null hvis den er støj. */
 function meaningfulPosition(sport: string, position: string | null): string | null {
@@ -136,18 +137,18 @@ const FIELD_EVENTS: { re: RegExp; noun: string }[] = [
 
 function sportVerb(sportRaw: string, position: string | null): SportVerb {
   const sport = sportRaw.toLowerCase();
-  if (BALL_SPORTS.has(sport)) {
+  if (BALL_SPORT_KEYS.has(sport as never)) {
     return { present: "spiller", preteritum: "spillede", participle: "spillet", object: sportNoun(sport), posNoun: meaningfulPosition(sport, position) };
   }
-  if (sport === "svømning") {
+  if (sport === "swimming-and-diving") {
     // Svømmestil (Freestyle/IM/Fly …) er ægte information, ikke støj.
     return { present: "svømmer", preteritum: "svømmede", participle: "svømmet", object: "", posNoun: meaningfulPosition(sport, position) };
   }
-  if (sport === "roning") {
+  if (sport === "rowing") {
     // "Coxswain" er ægte information; "Rower" filtreres (gentager verbet).
     return { present: "ror", preteritum: "roede", participle: "roet", object: "", posNoun: meaningfulPosition(sport, position) };
   }
-  if (sport === "atletik") {
+  if (sport === "track-and-field") {
     if (position) {
       const running = RUNNING_EVENTS.find((r) => r.re.test(position));
       if (running) {
@@ -158,7 +159,7 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
         return { present: "kæmper", preteritum: "kæmpede", participle: "kæmpet", object: `i ${field.noun}`, posNoun: null };
       }
     }
-    return { present: "dyrker", preteritum: "dyrkede", participle: "dyrket", object: "atletik", posNoun: null };
+    return { present: "dyrker", preteritum: "dyrkede", participle: "dyrket", object: sportNoun("track-and-field"), posNoun: null };
   }
   // Fallback (Gymnastik + evt. fremtidige sportsgrene i SPORTS): "dyrke" er
   // grammatisk korrekt for stort set alle individuelle idrætter — i modsætning

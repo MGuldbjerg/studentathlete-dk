@@ -5,8 +5,9 @@ import type { Article } from "@/lib/types";
 import { getSportColor, ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
 
+import { sportLabel } from "@/lib/i18n";
 function SportTag({ sport, type }: { sport?: string | null; type?: string }) {
-  const label = sport ?? (type ? ARTICLE_TYPE_LABELS[type] : null);
+  const label = sport ? sportLabel(sport) : type ? ARTICLE_TYPE_LABELS[type] : null;
   if (!label) return null;
   const color = getSportColor(sport);
   return (

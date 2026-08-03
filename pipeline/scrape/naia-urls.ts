@@ -9,7 +9,8 @@
 import * as cheerio from "cheerio";
 import { createD1Client } from "../lib/d1-client";
 
-const USER_AGENT = "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
+import { pipelineUserAgent } from "../../src/lib/site";
+const USER_AGENT = pipelineUserAgent();
 
 interface NaiaSchool {
   name: string;

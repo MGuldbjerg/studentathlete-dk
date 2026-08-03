@@ -5,7 +5,8 @@
 
 import { createD1Client } from "../lib/d1-client";
 
-const USER_AGENT = "StudentAthlete.dk/1.0 (research)";
+import { pipelineUserAgent } from "../../src/lib/site";
+const USER_AGENT = pipelineUserAgent();
 
 async function probe(url: string): Promise<{ ok: boolean; isRss: boolean; size: number }> {
   try {

@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { homedir } from "node:os";
 import { createD1Client } from "../lib/d1-client";
-import { generateSlug } from "../lib/slug";
+import { generateSlug } from "../../src/lib/slug";
 
 interface CsvRow {
   name: string;

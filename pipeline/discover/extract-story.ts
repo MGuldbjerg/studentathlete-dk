@@ -6,6 +6,7 @@
 import * as cheerio from "cheerio";
 import { detectHonor, HONORS_BOOST } from "./honors";
 import { detectSensitive } from "./sensitive";
+import { pipelineUserAgent } from "../../src/lib/site";
 
 export interface ExtractedStory {
   url: string;
@@ -15,7 +16,7 @@ export interface ExtractedStory {
 }
 
 const USER_AGENT =
-  "StudentAthlete.dk/1.0 (research, contact: info@studentathlete.dk)";
+  pipelineUserAgent();
 
 /**
  * Domæner der udelukkende indeholder stats/profiler — ingen artikel-indhold.

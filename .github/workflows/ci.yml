@@ -39,7 +39,7 @@ jobs:
             pipeline/discover/_sensitive-test.ts \
             pipeline/discover/_honors-test.ts \
             pipeline/learn/_mine-edits-test.ts \
-            pipeline/lib/_danish-cities-test.ts \
+            pipeline/lib/_hometown-test.ts \
             pipeline/lib/_athlete-identity-test.ts \
             pipeline/social/_social-test.ts \
             pipeline/profiles/_profile-drafts-test.ts \

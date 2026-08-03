@@ -81,79 +81,33 @@ export interface School {
   news_last_checked_at?: string | null;
 }
 
-export const SPORT_COLORS: Record<string, string> = {
-  football: "#4A6741",
-  basketball: "#C2571A",
-  baseball: "#8B2D2D",
-  atletik: "#2E6B8A",
-  svømning: "#1B7A8A",
-  svoemning: "#1B7A8A",
-  fodbold: "#2D5A27",
-  golf: "#3D6B4F",
-  tennis: "#8B6914",
-  roning: "#1A5276",
-  gymnastik: "#8B3A62",
-  ishockey: "#2C3E6B",
-  volleyball: "#A0522D",
-  andet: "#6B6B6B",
-};
+// ── Sportsgrene ──────────────────────────────────────────────────────────────
+// Selve vokabularet bor nu i src/lib/sports.ts (sprogfri nøgler, farver, ikoner)
+// og navnene i sprogpakken (src/lib/i18n/). Her står kun gennemstik, så
+// eksisterende importører ikke skal kende den indre opdeling.
+//
+// Uden sprog-argument bruges standardsitets sprog. Et site på et andet sprog
+// sender sit eget sprog med — der er ingen dansk streng tilbage i denne fil.
 
+export { SPORT_KEYS, SPORT_COLORS, type SportKey, isSportKey } from "./sports";
+export { sportLabel, sportSlug, sportKeyFromSlug, sportNav } from "./i18n";
+
+import { sportColor } from "./sports";
+import { sportSlug as sportSlugFor, sportKeyFromSlug as keyFromSlug } from "./i18n";
+
+/** Farve pr. sport (sprogfri). */
 export function getSportColor(sport: string | null | undefined): string {
-  if (!sport) return "#6B6B6B";
-  return SPORT_COLORS[sport.toLowerCase()] ?? "#6B6B6B";
+  return sportColor(sport);
 }
 
-export const SPORTS = [
-  { label: "Alle", slug: "", icon: "all" },
-  { label: "Football", slug: "football", icon: "football" },
-  { label: "Basketball", slug: "basketball", icon: "basketball" },
-  { label: "Baseball", slug: "baseball", icon: "baseball" },
-  { label: "Fodbold", slug: "fodbold", icon: "fodbold" },
-  { label: "Svømning", slug: "svoemning", icon: "svømning" },
-  { label: "Atletik", slug: "atletik", icon: "atletik" },
-  { label: "Golf", slug: "golf", icon: "golf" },
-  { label: "Tennis", slug: "tennis", icon: "tennis" },
-  { label: "Roning", slug: "roning", icon: "roning" },
-  { label: "Gymnastik", slug: "gymnastik", icon: "gymnastik" },
-  { label: "Ishockey", slug: "ishockey", icon: "ishockey" },
-  { label: "Volleyball", slug: "volleyball", icon: "volleyball" },
-  { label: "Andet", slug: "andet", icon: "andet" },
-] as const;
-
-/** Normalisér sport-streng fra scraper til intern nøgle */
-export const SPORT_NORMALIZE: Record<string, string> = {
-  "football": "football",
-  "basketball": "basketball",
-  "baseball": "baseball",
-  "soccer": "fodbold",
-  "track-and-field": "atletik",
-  "swimming-and-diving": "svømning",
-  "golf": "golf",
-  "tennis": "tennis",
-  "rowing": "roning",
-  "gymnastics": "gymnastik",
-  "ice-hockey": "ishockey",
-  "volleyball": "volleyball",
-};
-
-/** Map URL-slug til DB-sportnavn (kun for slugs der afviger fra DB-værdi) */
-const URL_TO_DB_SPORT: Record<string, string> = {
-  svoemning: "svømning",
-};
-
-/** Map DB-sportnavn til URL-safe slug */
-const DB_SPORT_TO_URL: Record<string, string> = {
-  svømning: "svoemning",
-};
-
-/** Konvertér URL-slug til den sport-streng der bruges i databasen */
-export function urlSlugToDbSport(slug: string): string {
-  return URL_TO_DB_SPORT[slug] ?? slug;
+/** URL-slug → den nøgle databasen gemmer. Erstatter urlSlugToDbSport(). */
+export function urlSlugToDbSport(slug: string, lang?: string): string {
+  return keyFromSlug(slug, lang) ?? slug;
 }
 
-/** Konvertér DB-sportnavn til URL-safe slug */
-export function dbSportToUrlSlug(sport: string): string {
-  return DB_SPORT_TO_URL[sport.toLowerCase()] ?? sport.toLowerCase().replace(/\s+/g, "-");
+/** DB-nøgle → URL-slug på sitets sprog. Erstatter dbSportToUrlSlug(). */
+export function dbSportToUrlSlug(sport: string, lang?: string): string {
+  return sportSlugFor(sport, lang);
 }
 
 export const ARTICLE_TYPE_LABELS: Record<string, string> = {
