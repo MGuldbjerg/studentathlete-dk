@@ -1,0 +1,62 @@
+name: Meta-forbindelse (kanariefugl)
+
+# Læse-kald mod Facebook-siden. Poster INTET — den svarer kun på ét spørgsmål:
+# virker vores page-token stadig?
+#
+# Hvorfor overhovedet: page-tokens "udløber aldrig", men de dør stille når
+# Facebook-adgangskoden ændres, app-rettigheder trækkes tilbage, eller siden
+# flyttes til et andet business-portfolio. Uden dette tjek ville vi først
+# opdage det når sæsonen starter og opslagene udeblev — og selv da ville
+# social-post.ts bare markere opslaget failed efter 3 forsøg.
+#
+# Tokenet sendes som Bearer-header, ikke i URL'en, så det aldrig kan havne
+# i et log-output eller i en fejlbesked fra curl.
+
+on:
+  schedule:
+    - cron: '0 7 * * 1' # mandag 07:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Slå siden op via Graph API
+        id: probe
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FB_PAGE_ID:-}" ] || [ -z "${FB_PAGE_ACCESS_TOKEN:-}" ]; then
+            echo "::error::FB_PAGE_ID eller FB_PAGE_ACCESS_TOKEN mangler."
+            exit 1
+          fi
+
+          body=$(curl -sS -w '\n%{http_code}' \
+            -H "Authorization: Bearer ${FB_PAGE_ACCESS_TOKEN}" \
+            "https://graph.facebook.com/v26.0/${FB_PAGE_ID}?fields=name,category,followers_count")
+          code=$(printf '%s' "$body" | tail -1)
+          json=$(printf '%s' "$body" | sed '$d')
+
+          if [ "$code" != "200" ]; then
+            # Fejlbeskeden fra Meta er sikker at vise (den indeholder ikke tokenet).
+            echo "::error::Graph API svarede $code: $(printf '%s' "$json" | jq -c '.error // .' 2>/dev/null || printf '%s' "$json")"
+            exit 1
+          fi
+
+          name=$(printf '%s' "$json" | jq -r '.name')
+          category=$(printf '%s' "$json" | jq -r '.category // "ukendt"')
+          followers=$(printf '%s' "$json" | jq -r '.followers_count // "n/a"')
+          echo "✅ Forbundet til \"$name\" ($category) · $followers følgere"
+          echo "page_name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Discord-notifikation ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Meta-forbindelsen er død\",\"description\":\"Page-tokenet virker ikke længere — nye artikler bliver IKKE delt på Facebook. Generér et nyt token og opdatér \`FB_PAGE_ACCESS_TOKEN\`. Se [kørslen](https://github.com/MGuldbjerg/studentathlete-dk/actions/workflows/meta-check.yml).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk social\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
