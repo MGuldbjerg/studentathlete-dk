@@ -11,6 +11,7 @@
  */
 
 import { cleanPosition } from "./roster-clean";
+import { expandPosition } from "./positions";
 
 // Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
 // forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
@@ -175,7 +176,10 @@ function withObject(verbForm: string, object: string): string {
  */
 export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): string {
   const firstName = a.preferred_name ?? a.name.split(" ")[0];
-  const position = cleanPosition(a.position);
+  // Udvid skolens forkortelse FØR alt andet: så bliver "F" til "forward",
+  // "Midfielder" til "midtbanespiller", og atletik-koder som "SP" til det
+  // engelske disciplinnavn, som disciplin-genkendelsen nedenfor forstår.
+  const position = expandPosition(a.sport, cleanPosition(a.position));
   const v = sportVerb(a.sport, position);
   const posSuffix = v.posNoun ? ` som ${v.posNoun}` : "";
   const where = a.university_state

@@ -43,15 +43,15 @@ if (currentSeasonStart(new Date(Date.UTC(2026, 6, 1))) === 2026) passed++; else 
 
 // ── Freshman ─────────────────────────────────────────────────────────────────
 expectText(base, fall25,
-  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra Aarhus.",
   "freshman i efteråret");
 expectText(base, spring26,
-  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra Aarhus.",
   "freshman-fasen holder hele det akademiske år");
 
 // ── Veteran (2.+ år) ─────────────────────────────────────────────────────────
 expectText(base, fall26,
-  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som midtbanespiller. Mikkel kommer fra Aarhus.",
   "veteran-formulering fra 2. år");
 
 // ── Manglende felter ─────────────────────────────────────────────────────────
@@ -59,29 +59,29 @@ expectText({ ...base, position: null, hometown: null, university_state: null }, 
   "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University.",
   "uden position/hjemby/stat");
 expectText({ ...base, year_enrolled: null }, fall26,
-  "Mikkel Jensen spiller fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spiller fodbold for Ohio State University i Ohio som midtbanespiller. Mikkel kommer fra Aarhus.",
   "uden optagelsesår");
 
 // ── Status-varianter ─────────────────────────────────────────────────────────
 expectText({ ...base, expected_graduation: 2026 }, new Date(Date.UTC(2026, 6, 10)),
-  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio som Midfielder og dimitterede i 2026. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio som midtbanespiller og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "dimitteret efter 1. juni");
 expectText({ ...base, expected_graduation: 2026 }, new Date(Date.UTC(2030, 0, 1)),
-  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio som Midfielder og dimitterede i 2026. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spillede fodbold for Ohio State University i Ohio som midtbanespiller og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "datid bevares år efter dimission (udenfor badge-vindue)");
 expectText({ ...base, active: 0, expected_graduation: null }, fall26,
-  "Mikkel Jensen spillede tidligere fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen spillede tidligere fodbold for Ohio State University i Ohio som midtbanespiller. Mikkel kommer fra Aarhus.",
   "inaktiv uden dimission");
 
 // ── Navne og tekstdetaljer ───────────────────────────────────────────────────
 expectText({ ...base, preferred_name: "Mikki" }, fall25,
-  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som Midfielder. Mikki kommer fra Aarhus.",
+  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikki kommer fra Aarhus.",
   "preferred_name i hjemby-sætning");
 expectText({ ...base, hometown: "Copenhagen, Denmark" }, fall25,
-  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som Midfielder. Mikkel kommer fra Copenhagen.",
+  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra Copenhagen.",
   "landesuffiks strippes");
 expectText({ ...base, hometown: "Aarhus" }, fall25,
-  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra Aarhus.",
   "hjemby uden suffiks bruges råt");
 expectText({ ...base, sport: "Ishockey", position: null }, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller ishockey. Mikkel kommer fra Aarhus.",
@@ -89,15 +89,15 @@ expectText({ ...base, sport: "Ishockey", position: null }, fall25,
 
 // ── Delstat + beskidt roster-position ────────────────────────────────────────
 expectText({ ...base, university: "Northern Illinois University", university_state: "IL" }, fall26,
-  "Mikkel Jensen har siden 2025 spillet fodbold for Northern Illinois University i Illinois som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 spillet fodbold for Northern Illinois University i Illinois som midtbanespiller. Mikkel kommer fra Aarhus.",
   "delstatsforkortelse skrives helt ud");
 expectText({ ...base, university_state: "CA" }, fall26,
-  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Californien som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Californien som midtbanespiller. Mikkel kommer fra Aarhus.",
   "dansk eksonym for Californien");
 expectText(
   { ...base, position: "Midfielder\n\t\t\t                            \n\t\t\t\t                            M" },
   fall26,
-  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som midtbanespiller. Mikkel kommer fra Aarhus.",
   "flerlinjet Sidearm-position → kun første linje");
 
 // ── Sportsspecifikke verber (Mikkel 2026-07-08: ikke alt er "spillet X") ─────
@@ -105,16 +105,16 @@ expectText(
 // kun højde-værdier og den generiske pladsholder "Rower" filtreres fra.
 const swimmer: BaselineAthlete = { ...base, sport: "Svømning", position: "Freestyle" };
 expectText(swimmer, fall25,
-  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og svømmer som Freestyle. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og svømmer som freestyle. Mikkel kommer fra Aarhus.",
   "svømning: freshman — svømmestil bevares");
 expectText(swimmer, fall26,
-  "Mikkel Jensen har siden 2025 svømmet for Ohio State University i Ohio som Freestyle. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 svømmet for Ohio State University i Ohio som freestyle. Mikkel kommer fra Aarhus.",
   "svømning: veteran — 'har svømmet for', ikke 'spillet svømning'");
 expectText({ ...swimmer, expected_graduation: 2026 }, new Date(Date.UTC(2026, 6, 10)),
-  "Mikkel Jensen svømmede for Ohio State University i Ohio som Freestyle og dimitterede i 2026. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen svømmede for Ohio State University i Ohio som freestyle og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "svømning: dimitteret — preteritum 'svømmede'");
 expectText({ ...swimmer, active: 0, expected_graduation: null }, fall26,
-  "Mikkel Jensen svømmede tidligere for Ohio State University i Ohio som Freestyle. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen svømmede tidligere for Ohio State University i Ohio som freestyle. Mikkel kommer fra Aarhus.",
   "svømning: inaktiv");
 expectText({ ...swimmer, position: "5'9\"" }, fall26,
   "Mikkel Jensen har siden 2025 svømmet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
@@ -122,10 +122,10 @@ expectText({ ...swimmer, position: "5'9\"" }, fall26,
 
 const rower: BaselineAthlete = { ...base, sport: "Roning", position: "Coxswain" };
 expectText(rower, fall26,
-  "Mikkel Jensen har siden 2025 roet for Ohio State University i Ohio som Coxswain. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 roet for Ohio State University i Ohio som styrmand. Mikkel kommer fra Aarhus.",
   "roning: veteran — 'roet', ikke 'spillet roning'; Coxswain bevares (ægte rolle)");
 expectText({ ...rower, expected_graduation: 2026 }, new Date(Date.UTC(2026, 6, 10)),
-  "Mikkel Jensen roede for Ohio State University i Ohio som Coxswain og dimitterede i 2026. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen roede for Ohio State University i Ohio som styrmand og dimitterede i 2026. Mikkel kommer fra Aarhus.",
   "roning: dimitteret — preteritum 'roede'");
 expectText({ ...rower, position: "Rower" }, fall26,
   "Mikkel Jensen har siden 2025 roet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
@@ -177,7 +177,7 @@ expectText(gymnast, fall26,
 // ── DB gemmer sport med SMÅ forbogstaver ("atletik", "svømning", …) — ikke
 // SPORTS[].label-casingen. sportVerb skal matche produktions-casingen. ────────
 expectText({ ...base, sport: "fodbold" }, fall26,
-  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som Midfielder. Mikkel kommer fra Aarhus.",
+  "Mikkel Jensen har siden 2025 spillet fodbold for Ohio State University i Ohio som midtbanespiller. Mikkel kommer fra Aarhus.",
   "reel DB-casing: 'fodbold' (småt) matcher boldspil");
 expectText({ ...base, sport: "svømning", position: null }, fall26,
   "Mikkel Jensen har siden 2025 svømmet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",

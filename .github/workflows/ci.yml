@@ -45,7 +45,8 @@ jobs:
             pipeline/profiles/_profile-drafts-test.ts \
             src/lib/_analytics-test.ts \
             src/lib/_youtube-test.ts \
-            src/lib/_profile-baseline-test.ts
+            src/lib/_profile-baseline-test.ts \
+            src/lib/_positions-test.ts
           do
             echo "── $t"
             npx tsx "$t"
