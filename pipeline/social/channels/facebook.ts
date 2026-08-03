@@ -10,10 +10,10 @@
 
 import type { PostContent, SocialChannel } from "../types";
 
-// Meta udgiver ~2 versioner om året og udfaser efter ca. 2 år. v25.0 er den
-// nyeste (feb. 2026); understøttet spænd er p.t. v20–v25. Bump den ved lejlighed
-// — et kald mod en udfaset version fejler med en fejlkode, ikke stilhed.
-const GRAPH = "https://graph.facebook.com/v25.0";
+// Meta udgiver ~2 versioner om året og holder hver i ~2 år. v26.0 udkom
+// 29. juli 2026. Bump ved lejlighed — et kald mod en udfaset version fejler
+// med en fejlkode, ikke med stilhed.
+const GRAPH = "https://graph.facebook.com/v26.0";
 
 export const facebook: SocialChannel = {
   name: "facebook",
