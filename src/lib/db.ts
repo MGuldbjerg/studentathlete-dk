@@ -214,6 +214,33 @@ export async function getAthleteBySlug(slug: string): Promise<Athlete | null> {
   } catch { return null; }
 }
 
+/**
+ * Slår en NEDLAGT atlet-slug op → atletens nuværende slug (301-mål).
+ *
+ * Slugs dør på to måder: skolen ændrer atletens navn, eller to rækker viser sig
+ * at være samme person og flettes. Begge dele efterlader en URL der kan være
+ * delt, linket fra en artikel eller indekseret — athlete_aliases holder den i live.
+ * Slås kun op når `athletes` ikke selv har slug'en, så en levende atlet altid
+ * vinder over et gammelt alias (ingen redirect-løkke).
+ */
+export async function getAthleteSlugByAlias(slug: string): Promise<string | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const r = await db
+      .prepare(
+        `SELECT a.slug FROM athlete_aliases al
+         JOIN athletes a ON a.id = al.athlete_id
+         WHERE al.slug = ?`,
+      )
+      .bind(slug)
+      .first();
+    return (r as { slug: string } | null)?.slug ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getAthletesByUniversity(
   university: string, limit = 20
 ): Promise<Athlete[]> {

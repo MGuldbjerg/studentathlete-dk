@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import {
   getAthleteBySlug,
+  getAthleteSlugByAlias,
   getArticlesByAthleteId,
   getAthleteEvents,
   getSchoolBySlug,
@@ -250,6 +251,10 @@ export default async function DynamicPage({ params }: { params: Params }) {
     const athlete = await getAthleteBySlug(slug);
     if (athlete) redirect(getAthleteUrl(athlete.slug));
 
+    // Nedlagt atlet-slug (navneskift/fletning) → atletens nuværende URL
+    const aliasTarget = await getAthleteSlugByAlias(slug);
+    if (aliasTarget) redirect(getAthleteUrl(aliasTarget));
+
     // Legacy: /{slug} → /skoler/{slug} (301 permanent redirect)
     const school = await getSchoolBySlug(slug);
     if (school) redirect(getSchoolUrl(school.slug));
@@ -262,6 +267,11 @@ export default async function DynamicPage({ params }: { params: Params }) {
     // /atleter/{slug} → atlet-profil
     if (prefix === "atleter") {
       const athlete = await getAthleteBySlug(slug);
+      if (!athlete) {
+        // Gammel slug efter navneskift eller fletning → 301 til den nuværende
+        const aliasTarget = await getAthleteSlugByAlias(slug);
+        if (aliasTarget) redirect(getAthleteUrl(aliasTarget));
+      }
       if (athlete) {
         const [articles, events] = await Promise.all([
           getArticlesByAthleteId(athlete.id, 10),

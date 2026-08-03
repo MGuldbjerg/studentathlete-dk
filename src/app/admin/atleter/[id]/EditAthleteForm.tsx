@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Athlete } from "@/lib/types";
 
 export function EditAthleteForm({
@@ -8,6 +9,8 @@ export function EditAthleteForm({
 }: {
   athlete: Athlete;
 }) {
+  const router = useRouter();
+  const [name, setName] = useState(athlete.name);
   const [photoUrl, setPhotoUrl] = useState(athlete.photo_url ?? "");
   const [photoCredit, setPhotoCredit] = useState(athlete.photo_credit ?? "");
   const [preferredName, setPreferredName] = useState(athlete.preferred_name ?? "");
@@ -26,6 +29,7 @@ export function EditAthleteForm({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: name.trim() || null,
           photo_url: photoUrl || null,
           photo_credit: photoCredit || null,
           preferred_name: preferredName || null,
@@ -33,9 +37,12 @@ export function EditAthleteForm({
         }),
       });
 
+      const body = (await res.json().catch(() => ({}))) as { error?: string; renamed?: boolean };
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setMessage({ type: "err", text: (body as { error?: string }).error ?? "Noget gik galt" });
+        setMessage({ type: "err", text: body.error ?? "Noget gik galt" });
+      } else if (body.renamed) {
+        setMessage({ type: "ok", text: `Gemt! Navnet er nu "${name.trim()}" og den gamle adresse viderestiller.` });
+        router.refresh();
       } else {
         setMessage({ type: "ok", text: "Gemt!" });
       }
@@ -50,6 +57,35 @@ export function EditAthleteForm({
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Navn (vist på sitet) */}
+      <div className="bg-paper rounded-lg border border-border p-4">
+        <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
+          Navn på sitet
+        </p>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full px-3 py-2.5 border border-border rounded-lg bg-paper text-ink text-sm
+                     placeholder:text-muted focus:outline-none focus:border-flag-blue"
+        />
+        <p className="text-[11px] text-muted mt-1">
+          Ret fx skolens <em>Malthe Bogebjerg</em> til <em>Malthe Bøgebjerg</em> — amerikanske
+          rosters stripper æ, ø og å. Skolens stavemåde
+          {athlete.roster_name && athlete.roster_name !== athlete.name ? (
+            <> (<strong>{athlete.roster_name}</strong>)</>
+          ) : null}{" "}
+          gemmes separat, så den ugentlige scraper stadig genkender atleten og
+          <strong> aldrig retter dit navn tilbage</strong>. Den gamle adresse
+          (/atleter/{athlete.slug}) viderestilles automatisk.
+        </p>
+        {athlete.name_locked === 1 && (
+          <p className="text-[11px] text-green-700 mt-1">
+            🔒 Navnet er låst til din rettelse. Skriv skolens stavemåde igen for at låse op.
+          </p>
+        )}
+      </div>
+
       {/* Foretrukket navn */}
       <div className="bg-paper rounded-lg border border-border p-4">
         <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">

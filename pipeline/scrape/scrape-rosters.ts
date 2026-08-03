@@ -15,7 +15,7 @@ import {
 } from "../lib/browser-render";
 import { isDanishHometown } from "../lib/danish-cities";
 import { generateSlug } from "../lib/slug";
-import { samePerson } from "../lib/athlete-identity";
+import { samePerson, rosterKey } from "../lib/athlete-identity";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { cleanPosition } from "../../src/lib/roster-clean";
 import { seasonFromDate } from "../../src/lib/athlete-events";
@@ -197,27 +197,52 @@ function toAbsoluteUrl(href: string | null, base: string): string | null {
   }
 }
 
+interface ExistingAthlete {
+  id: number;
+  name: string;
+  roster_name: string | null;
+  slug: string;
+  sport: string;
+  hometown: string | null;
+  university: string;
+  bio_url: string | null;
+  roster_key: string | null;
+  name_locked: number | null;
+}
+
 /**
- * Find en eksisterende atlet der er SAMME person (samme identitet+sport, jf.
- * athlete-identity.samePerson) — også når navnet staves anderledes (mellemnavn
- * med/uden) eller atleten er skiftet skole. Returnerer null hvis personen ikke
- * findes endnu. Sport-puljen er lille, så et fuldt sport-scan er billigt.
+ * Find en eksisterende atlet der er SAMME person. Rækkefølgen er bevidst:
+ *
+ *  1. Skolens eget spiller-id fra bio_url'en (athlete-identity.rosterKey) — det
+ *     eneste signal der overlever at skolen ÆNDRER navnet på atleten.
+ *  2. samePerson() (navne-identitet + sport, hometown-vagt) — dækker rækker uden
+ *     numerisk spiller-id og skoleskift, hvor id'et nødvendigvis er nyt.
+ *
+ * Returnerer null hvis personen ikke findes endnu. Sport-puljen er lille, så et
+ * fuldt sport-scan er billigt.
  */
 async function findExistingAthleteByIdentity(
   db: D1Client,
   name: string,
   sport: string,
   hometown: string | null,
-): Promise<{ id: number; name: string; university: string } | null> {
-  const r = await db.query<{
-    id: number;
-    name: string;
-    sport: string;
-    hometown: string | null;
-    university: string;
-  }>("SELECT id, name, sport, hometown, university FROM athletes WHERE sport = ?", [sport]);
-  const found = r.results.find((row) => samePerson({ name, sport, hometown }, row));
-  return found ? { id: found.id, name: found.name, university: found.university } : null;
+  bioUrl: string | null,
+): Promise<ExistingAthlete | null> {
+  const r = await db.query<ExistingAthlete>(
+    `SELECT id, name, roster_name, slug, sport, hometown, university, bio_url,
+            roster_key, name_locked
+     FROM athletes WHERE sport = ?`,
+    [sport],
+  );
+
+  const key = rosterKey(bioUrl);
+  if (key) {
+    const byKey = r.results.find((row) => (row.roster_key ?? rosterKey(row.bio_url)) === key);
+    if (byKey) return byKey;
+  }
+
+  const probe = { name, sport, hometown, bio_url: bioUrl };
+  return r.results.find((row) => samePerson(probe, row)) ?? null;
 }
 
 async function main(): Promise<void> {
@@ -422,16 +447,40 @@ async function main(): Promise<void> {
           // identitet+sport)? Hvis ja — også ved navne-variant eller skoleskift —
           // opdatér DEN række (inkl. university) i stedet for at indsætte en ny slug.
           const existing = await findExistingAthleteByIdentity(
-            db, athlete.name, sportLabel, athlete.hometown,
+            db, athlete.name, sportLabel, athlete.hometown, bioUrl,
           );
 
           if (existing) {
             const transferred = existing.university !== check.name;
+
+            // Skolen har ændret navnet (fx Filucca Daugaard → Filucca Andersen).
+            // Vi følger rosteren — MEN aldrig oven på en manuel rettelse
+            // (name_locked, fx "Malthe Bogebjerg" → "Malthe Bøgebjerg").
+            const locked = existing.name_locked === 1;
+            const renamed = !locked && existing.name !== athlete.name;
+            const newSlug = renamed ? generateSlug(athlete.name) : existing.slug;
+            const slugChanged = renamed && newSlug !== existing.slug;
+
+            if (slugChanged) {
+              // Gammel slug → alias, så publicerede/indekserede links overlever.
+              await db.execute(
+                `INSERT OR IGNORE INTO athlete_aliases (athlete_id, slug, name, reason)
+                 VALUES (?, ?, ?, 'rename')`,
+                [existing.id, existing.slug, existing.name],
+              );
+              // Skiftes navnet TILBAGE, må det genbrugte slug ikke også være alias.
+              await db.execute("DELETE FROM athlete_aliases WHERE slug = ?", [newSlug]);
+            }
+
             // hometown overskrives ALDRIG hvis allerede sat (bevarer det verificerede
             // danske signal); fyldes kun ud hvis det manglede.
+            // roster_name = skolens stavemåde, altid opdateret: den er matchnøglen
+            // ved næste scrape, også når `name` er rettet i hånden.
             await db.execute(
               `UPDATE athletes
-               SET university = ?, university_state = ?, division = ?,
+               SET name = ?, slug = ?,
+                   roster_name = ?, roster_key = COALESCE(?, roster_key),
+                   university = ?, university_state = ?, division = ?,
                    class_year = ?, expected_graduation = ?,
                    year_enrolled = COALESCE(year_enrolled, ?),
                    hometown = COALESCE(hometown, ?),
@@ -439,11 +488,27 @@ async function main(): Promise<void> {
                    active = 1, updated_at = datetime('now')
                WHERE id = ?`,
               [
+                renamed ? athlete.name : existing.name, newSlug,
+                athlete.name, rosterKey(bioUrl),
                 check.name, check.state, check.division,
                 classYear, expectedGraduation, yearEnrolled,
                 athlete.hometown, bioUrl, existing.id,
               ],
             );
+
+            if (renamed) {
+              // Bevidst IKKE et athlete_event: tidslinjen er offentlig på profilen,
+              // og et navneskift kan være personligt (ægteskab, familieforhold).
+              // athlete_aliases-rækken er sporet, og den er intern.
+              console.log(
+                `  ✎ Navneskift hos skolen: "${existing.name}" → "${athlete.name}"` +
+                  (slugChanged ? ` (gammel URL /atleter/${existing.slug} → 301)` : ""),
+              );
+            } else if (locked && existing.name !== athlete.name) {
+              console.log(
+                `  🔒 "${existing.name}" beholdt (manuelt rettet; skolen skriver "${athlete.name}")`,
+              );
+            }
             if (transferred) {
               console.log(
                 `  ⇄ ${existing.name}: ${existing.university} → ${check.name} (transfer/navne-variant)`,
@@ -473,12 +538,15 @@ async function main(): Promise<void> {
 
           await db.execute(
             `INSERT OR IGNORE INTO athletes
-             (name, slug, sport, position, hometown, university, university_state, division,
+             (name, slug, roster_name, roster_key, sport, position, hometown,
+              university, university_state, division,
               class_year, expected_graduation, year_enrolled, bio_url)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               athlete.name,
               slug,
+              athlete.name,
+              rosterKey(bioUrl),
               sportLabel,
               // Sidearm-celler kan være flerlinjede ("Midfielder\n…\nM") —
               // rens FØR insert så snavset aldrig når DB/profiltekster/sidebar.

@@ -1,5 +1,6 @@
 import { getDB, ARTICLE_SELECT } from "./db";
 import { generateSlug } from "./slug";
+import { buildMergeStatements } from "./athlete-merge";
 import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS } from "./site-content";
 import { extractEvents, seasonFromDate } from "./athlete-events";
@@ -928,14 +929,16 @@ export async function getAthleteById(id: number): Promise<Athlete | null> {
 export async function updateAthlete(
   id: number,
   fields: {
+    name?: string | null;
     photo_url?: string | null;
     photo_credit?: string | null;
     preferred_name?: string | null;
     expected_graduation?: number | null;
   },
-): Promise<void> {
+): Promise<{ ok: boolean; error?: string; renamed?: boolean }> {
   const db = await getDB();
-  if (!db) return;
+  if (!db) return { ok: false, error: "Ingen databaseforbindelse" };
+
   await db
     .prepare(
       `UPDATE athletes SET photo_url = ?, photo_credit = ?, preferred_name = ?, expected_graduation = ?, updated_at = datetime('now') WHERE id = ?`
@@ -948,6 +951,195 @@ export async function updateAthlete(
       id,
     )
     .run();
+
+  const wanted = fields.name?.trim();
+  if (!wanted) return { ok: true };
+  return await renameAthlete(id, wanted);
+}
+
+/**
+ * Ret det viste navn i hånden — fx skolens ASCII-foldede "Malthe Bogebjerg" →
+ * "Malthe Bøgebjerg".
+ *
+ * Tre ting skal gælde bagefter, ellers ødelægger rettelsen mere end den løser:
+ *  1. Skolens stavemåde bevares i roster_name, så den ugentlige scraper stadig
+ *     genkender atleten (ellers ville rettelsen selv skabe en dublet).
+ *  2. name_locked = 1, så scraperen aldrig retter navnet tilbage.
+ *  3. Den gamle slug bliver 301-alias, så eksisterende links overlever.
+ * Skrives navnet tilbage til skolens stavemåde, låses låsen op igen.
+ */
+export async function renameAthlete(
+  id: number,
+  newName: string,
+): Promise<{ ok: boolean; error?: string; renamed?: boolean }> {
+  const db = await getDB();
+  if (!db) return { ok: false, error: "Ingen databaseforbindelse" };
+
+  const current = (await db
+    .prepare("SELECT id, name, slug, roster_name FROM athletes WHERE id = ?")
+    .bind(id)
+    .first()) as { id: number; name: string; slug: string; roster_name: string | null } | null;
+  if (!current) return { ok: false, error: "Atlet ikke fundet" };
+
+  const name = newName.trim();
+  if (!name) return { ok: false, error: "Navnet må ikke være tomt" };
+  if (name === current.name) return { ok: true, renamed: false };
+
+  const newSlug = generateSlug(name);
+  const clash = (await db
+    .prepare("SELECT id FROM athletes WHERE slug = ? AND id != ?")
+    .bind(newSlug, id)
+    .first()) as { id: number } | null;
+  if (clash) {
+    return {
+      ok: false,
+      error: `URL'en /atleter/${newSlug} bruges allerede af atlet #${clash.id}. Er det den samme person? Så flet dem i stedet.`,
+    };
+  }
+
+  // Skolens stavemåde er matchnøglen — den må ikke gå tabt ved første rettelse.
+  const rosterName = current.roster_name ?? current.name;
+  const locked = name === rosterName ? 0 : 1;
+
+  if (newSlug !== current.slug) {
+    await db
+      .prepare(
+        `INSERT OR IGNORE INTO athlete_aliases (athlete_id, slug, name, reason)
+         VALUES (?, ?, ?, 'manual')`,
+      )
+      .bind(id, current.slug, current.name)
+      .run();
+    // Genbruges en tidligere slug, må den ikke også stå som alias (løkke).
+    await db.prepare("DELETE FROM athlete_aliases WHERE slug = ?").bind(newSlug).run();
+  }
+
+  await db
+    .prepare(
+      `UPDATE athletes SET name = ?, slug = ?, roster_name = ?, name_locked = ?,
+       updated_at = datetime('now') WHERE id = ?`,
+    )
+    .bind(name, newSlug, rosterName, locked, id)
+    .run();
+
+  return { ok: true, renamed: true };
+}
+
+// ─── Dublet-kø (merge_candidates, migration-032) ─────────────────────────────
+
+export interface MergeCandidate {
+  id: number;
+  score: number;
+  reason: string;
+  created_at: string;
+  keep: Athlete;
+  merge: Athlete;
+}
+
+/**
+ * Ventende dublet-forslag. Sikre dubletter (fælles spiller-id hos skolen)
+ * flettes automatisk af pipelinen og havner aldrig her — køen er kun de
+ * tvivlsomme, hvor et menneske skal se på det.
+ */
+export async function getMergeCandidates(limit = 50): Promise<MergeCandidate[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT mc.id, mc.score, mc.reason, mc.created_at,
+                k.id AS k_id, m.id AS m_id
+         FROM merge_candidates mc
+         JOIN athletes k ON k.id = mc.athlete_id_keep
+         JOIN athletes m ON m.id = mc.athlete_id_merge
+         WHERE mc.status = 'pending'
+         ORDER BY mc.score DESC, mc.created_at ASC
+         LIMIT ?`,
+      )
+      .bind(limit)
+      .all();
+    const rows = (r.results ?? []) as unknown as Array<{
+      id: number; score: number; reason: string; created_at: string;
+      k_id: number; m_id: number;
+    }>;
+    const out: MergeCandidate[] = [];
+    for (const row of rows) {
+      const [keep, merge] = await Promise.all([
+        getAthleteById(row.k_id),
+        getAthleteById(row.m_id),
+      ]);
+      if (keep && merge) {
+        out.push({ id: row.id, score: row.score, reason: row.reason, created_at: row.created_at, keep, merge });
+      }
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+export async function getMergeCandidateCount(): Promise<number> {
+  const db = await getDB();
+  if (!db) return 0;
+  try {
+    const r = await db
+      .prepare("SELECT COUNT(*) as cnt FROM merge_candidates WHERE status = 'pending'")
+      .first();
+    return (r as { cnt: number })?.cnt ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Afgør et dublet-forslag. "merge" flytter taberens artikler, historier, kilder
+ * og manglende felter over på keeperen, gør taberens URL til et 301-alias og
+ * sletter taber-rækken (src/lib/athlete-merge.ts). "reject" lukker forslaget,
+ * så det ikke dukker op igen.
+ *
+ * `swap` bytter om på hvem der beholdes — nyttigt når det bedste navn står på
+ * den anden række.
+ */
+export async function decideMergeCandidate(
+  candidateId: number,
+  action: "merge" | "reject",
+  swap = false,
+): Promise<{ ok: boolean; error?: string }> {
+  const db = await getDB();
+  if (!db) return { ok: false, error: "Ingen databaseforbindelse" };
+
+  const row = (await db
+    .prepare(
+      "SELECT athlete_id_keep, athlete_id_merge FROM merge_candidates WHERE id = ? AND status = 'pending'",
+    )
+    .bind(candidateId)
+    .first()) as { athlete_id_keep: number; athlete_id_merge: number } | null;
+  if (!row) return { ok: false, error: "Forslaget findes ikke eller er allerede afgjort" };
+
+  if (action === "reject") {
+    await db
+      .prepare(
+        "UPDATE merge_candidates SET status = 'rejected', decided_at = datetime('now') WHERE id = ?",
+      )
+      .bind(candidateId)
+      .run();
+    return { ok: true };
+  }
+
+  const keepId = swap ? row.athlete_id_merge : row.athlete_id_keep;
+  const loserId = swap ? row.athlete_id_keep : row.athlete_id_merge;
+  const [keep, loser] = await Promise.all([getAthleteById(keepId), getAthleteById(loserId)]);
+  if (!keep || !loser) return { ok: false, error: "En af atleterne findes ikke længere" };
+
+  for (const stmt of buildMergeStatements(keep, loser)) {
+    await db.prepare(stmt.sql).bind(...stmt.params).run();
+  }
+  await db
+    .prepare(
+      "UPDATE merge_candidates SET status = 'merged', decided_at = datetime('now') WHERE id = ?",
+    )
+    .bind(candidateId)
+    .run();
+  return { ok: true };
 }
 
 // ─── Leads ("Spil i USA"-formularen, migration-028 — NSSA-forberedelse) ──────

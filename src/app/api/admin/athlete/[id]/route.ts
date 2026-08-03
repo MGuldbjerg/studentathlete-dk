@@ -17,7 +17,8 @@ export async function PUT(
       return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
     const body = await req.json();
-    const { photo_url, photo_credit, preferred_name, expected_graduation } = body as {
+    const { name, photo_url, photo_credit, preferred_name, expected_graduation } = body as {
+      name?: string | null;
       photo_url?: string | null;
       photo_credit?: string | null;
       preferred_name?: string | null;
@@ -33,14 +34,19 @@ export async function PUT(
         ? expected_graduation
         : null;
 
-    await updateAthlete(id, {
+    const res = await updateAthlete(id, {
+      name: name?.trim() || null,
       photo_url: photo_url?.trim() || null,
       photo_credit: photo_credit?.trim() || null,
       preferred_name: preferred_name?.trim() || null,
       expected_graduation: gradYear,
     });
+    // Navneskiftet kan afvises (slug-kollision) selvom resten er gemt.
+    if (!res.ok) {
+      return NextResponse.json({ error: res.error ?? "Kunne ikke gemme navnet" }, { status: 409 });
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, renamed: res.renamed === true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Serverfejl";
     return NextResponse.json({ error: msg }, { status: 500 });

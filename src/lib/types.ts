@@ -53,6 +53,12 @@ export interface Athlete {
   bio_url?: string | null;
   class_year: string | null;
   expected_graduation: number | null;
+  /** Skolens stavemåde af navnet (matchnøgle for scraperen, migration-032). */
+  roster_name?: string | null;
+  /** Skolens eget spiller-id, "vært#id" — sand identitet på tværs af navneskift. */
+  roster_key?: string | null;
+  /** 1 = `name` er rettet i hånden; scraperen overskriver det aldrig. */
+  name_locked?: number | null;
   created_at: string;
   updated_at: string;
 }

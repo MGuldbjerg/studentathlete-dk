@@ -38,6 +38,10 @@ MIGRATIONS=(
   db/migration-029-card-blobs.sql
   db/migration-030-international-catalogue.sql
   db/migration-031-profile-draft.sql
+  db/migration-032-roster-identity.sql
+  # 033 (unikt indeks på roster_key) fejler bevidst hvis der stadig findes
+  # dubletter — kør backfill-roster-keys.ts + dedup-athletes.ts --apply først.
+  db/migration-033-roster-key-unique.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do
