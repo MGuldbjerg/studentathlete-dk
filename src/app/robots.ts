@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
-import { BASE_URL } from "@/lib/seo";
+import { currentBaseUrl } from "@/lib/site-server";
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const base = await currentBaseUrl();
   return {
     rules: [
       {
@@ -10,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/"],
       },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    sitemap: `${base}/sitemap.xml`,
   };
 }

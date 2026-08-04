@@ -10,7 +10,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { BASE_URL } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/admin";
 import { adsenseIds } from "@/lib/site-content";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,7 +32,7 @@ const playfair = Playfair_Display({
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   return {
-    metadataBase: new URL(BASE_URL),
+    metadataBase: new URL(await currentBaseUrl()),
     title: settings["site.title"],
     description: settings["site.description"],
     alternates: { canonical: "/" },

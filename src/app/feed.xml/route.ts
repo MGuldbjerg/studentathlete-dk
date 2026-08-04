@@ -1,5 +1,6 @@
+import { currentBaseUrl } from "@/lib/site-server";
 import { getLatestArticles } from "@/lib/db";
-import { BASE_URL, getArticleUrl, formatDate } from "@/lib/seo";
+import { getArticleUrl, formatDate} from "@/lib/seo";
 
 function escapeXml(str: string): string {
   return str
@@ -11,11 +12,12 @@ function escapeXml(str: string): string {
 }
 
 export async function GET() {
+  const base = await currentBaseUrl();
   const articles = await getLatestArticles(30);
 
   const items = articles
     .map((a) => {
-      const url = `${BASE_URL}${getArticleUrl(a)}`;
+      const url = `${base}${getArticleUrl(a)}`;
       const pubDate = a.published_at
         ? new Date(a.published_at).toUTCString()
         : new Date(a.created_at).toUTCString();
@@ -42,11 +44,11 @@ export async function GET() {
   xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>StudentAthlete.dk</title>
-    <link>${BASE_URL}</link>
+    <link>${base}</link>
     <description>Dansk dækning af danske student athletes i USA</description>
     <language>da</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
-    <atom:link href="${BASE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${base}/feed.xml" rel="self" type="application/rss+xml"/>
 ${items}
   </channel>
 </rss>`;

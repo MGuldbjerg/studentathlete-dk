@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { countryProfile, type CountryProfile } from "./countries";
-import { siteFromHost } from "./site";
+import { siteFromHost, siteBaseUrl } from "./site";
 
 /**
  * Hvilket site betjener vi LIGE NU?
@@ -24,4 +24,17 @@ export async function currentSite(): Promise<CountryProfile> {
 /** Sproget for det site der betjenes nu. Genvej til `currentSite().language`. */
 export async function currentLanguage(): Promise<string> {
   return (await currentSite()).language;
+}
+
+/**
+ * Absolut base-URL for DET site der betjenes nu.
+ *
+ * `BASE_URL` i seo.ts er en modul-konstant og kan derfor ikke variere pr.
+ * request — den peger altid på standardsitet. Brugt til canonical-tags,
+ * sitemap og feed ville UK-sitet erklære sig selv som en dublet af .dk-sitet,
+ * og så ville Google formentlig aldrig indeksere det. Brug denne i alt der
+ * udsender absolutte URL'er.
+ */
+export async function currentBaseUrl(): Promise<string> {
+  return siteBaseUrl(await currentSite());
 }

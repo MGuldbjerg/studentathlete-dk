@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { ArticleCard } from "@/components/ArticleCard";
 import { getArticles, countArticles } from "@/lib/db";
-import { BASE_URL } from "@/lib/seo";
 import { ARCHIVE_PATH, PAGE_PARAM } from "@/lib/routes";
 import { sportLabel, sportSlug, sportKeyFromSlug, sportNav, t } from "@/lib/i18n";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 /**
  * ARKIVET — alle artikler, pagineret.
@@ -59,7 +58,7 @@ export async function generateMetadata({
   return {
     title,
     description: t("archive.meta_description", lang, { sport: name ? name.toLowerCase() : "" }),
-    alternates: { canonical: `${BASE_URL}${ARCHIVE_PATH}${qs ? `?${qs}` : ""}` },
+    alternates: { canonical: `${await currentBaseUrl()}${ARCHIVE_PATH}${qs ? `?${qs}` : ""}` },
   };
 }
 

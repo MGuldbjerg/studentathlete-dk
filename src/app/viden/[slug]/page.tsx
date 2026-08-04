@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminEditButton } from "@/components/AdminEditButton";
-import { BASE_URL, getOgImageUrl, breadcrumbStructuredData, formatDate } from "@/lib/seo";
+import { getOgImageUrl, breadcrumbStructuredData, formatDate} from "@/lib/seo";
 import { getPublishedGuideBySlug } from "@/lib/admin";
-import { currentSite } from "@/lib/site-server";
+import { currentSite, currentBaseUrl } from "@/lib/site-server";
 import {
   getGuide,
   guideToMarkdown,
@@ -52,11 +52,12 @@ async function resolveGuide(slug: string): Promise<ResolvedGuide | null> {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const base = await currentBaseUrl();
   const site = await currentSite();
   const { slug } = await params;
   const g = await resolveGuide(slug);
   if (!g) return { title: "Side ikke fundet" };
-  const canonical = `${BASE_URL}/viden/${slug}`;
+  const canonical = `${base}/viden/${slug}`;
   const ogImage = getOgImageUrl({ title: g.title, subtitle: site.brand, type: "article" });
   return {
     title: `${g.title} | ${site.brand}`,
@@ -76,12 +77,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function GuidePage({ params }: { params: Params }) {
+  const base = await currentBaseUrl();
   const site = await currentSite();
   const { slug } = await params;
   const g = await resolveGuide(slug);
   if (!g) notFound();
 
-  const url = `${BASE_URL}/viden/${slug}`;
+  const url = `${base}/viden/${slug}`;
   const categoryLabel =
     g.category && g.category in CATEGORY_LABELS
       ? CATEGORY_LABELS[g.category as GuideCategory]
@@ -97,12 +99,12 @@ export default async function GuidePage({ params }: { params: Params }) {
       dateModified: g.updated,
       mainEntityOfPage: url,
       url,
-      publisher: { "@type": "Organization", name: site.brand, url: BASE_URL },
+      publisher: { "@type": "Organization", name: site.brand, url: base },
       author: { "@type": "Organization", name: site.brand },
     },
     breadcrumbStructuredData([
-      { name: "Forside", url: BASE_URL },
-      { name: "Viden", url: `${BASE_URL}/viden` },
+      { name: "Forside", url: base },
+      { name: "Viden", url: `${base}/viden` },
       { name: g.title, url },
     ]),
   ];

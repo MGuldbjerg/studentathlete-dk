@@ -14,8 +14,8 @@ import {
   countAthletesBySport,
 } from "@/lib/db";
 import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
-import { currentLanguage, currentSite } from "@/lib/site-server";
-import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl } from "@/lib/seo";
+import { currentLanguage, currentSite, currentBaseUrl } from "@/lib/site-server";
+import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl} from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { sportLabel, t } from "@/lib/i18n";
@@ -48,6 +48,7 @@ async function resolveSportContent(slug: string): Promise<SportContent | null> {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const base = await currentBaseUrl();
   const { segments } = await params;
   // Brand og sprog følger værten — titler er læservendte og må ikke være
   // hardkodet til .dk-sitet.
@@ -61,7 +62,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
     const sportContent = await resolveSportContent(slug);
     if (sportContent) {
-      const canonicalUrl = `${BASE_URL}/${slug}`;
+      const canonicalUrl = `${base}/${slug}`;
       const ogImage = getOgImageUrl({
         title: sportContent.title,
         subtitle: sportContent.intro,
@@ -96,7 +97,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       return {
         title: `${page.title} | ${brand}`,
         description: page.meta_description ?? undefined,
-        alternates: { canonical: `${BASE_URL}/${slug}` },
+        alternates: { canonical: `${base}/${slug}` },
         robots: { index: true, follow: true },
       };
     }
@@ -133,7 +134,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [{ url: ogImage, width: 1200, height: 630, alt: athlete.name }],
             type: "profile",
             siteName: brand,
-            url: `${BASE_URL}${getAthleteUrl(slug)}`,
+            url: `${base}${getAthleteUrl(slug)}`,
           },
           twitter: {
             card: "summary_large_image",
@@ -141,7 +142,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             description,
             images: [ogImage],
           },
-          alternates: { canonical: `${BASE_URL}${getAthleteUrl(slug)}` },
+          alternates: { canonical: `${base}${getAthleteUrl(slug)}` },
           robots: { index: true, follow: true },
         };
       }
@@ -161,9 +162,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             description,
             type: "website",
             siteName: brand,
-            url: `${BASE_URL}${getSchoolUrl(slug)}`,
+            url: `${base}${getSchoolUrl(slug)}`,
           },
-          alternates: { canonical: `${BASE_URL}${getSchoolUrl(slug)}` },
+          alternates: { canonical: `${base}${getSchoolUrl(slug)}` },
           robots: { index: true, follow: true },
         };
       }
@@ -173,10 +174,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     const article = await getArticleBySlug(slug);
     const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport");
     if (article && normalizedSport === prefix) {
-      const canonicalUrl = `${BASE_URL}${getArticleUrl(article)}`;
+      const canonicalUrl = `${base}${getArticleUrl(article)}`;
       // Brug det genererede 16:9 kampkort som og:image (skarpt + ensartet),
       // ikke et evt. stamplet portræt-headshot fra cover_image_url.
-      const ogImage = `${BASE_URL}${getArticleCoverUrl(article)}`;
+      const ogImage = `${base}${getArticleCoverUrl(article)}`;
 
       return {
         title: `${article.title} | ${brand}`,

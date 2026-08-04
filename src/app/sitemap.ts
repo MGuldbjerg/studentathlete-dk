@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
 import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs } from "@/lib/db";
-import { BASE_URL } from "@/lib/seo";
 import { getSportSlugs } from "@/lib/sport-content";
 import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
 import { ARCHIVE_PATH } from "@/lib/routes";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = await currentBaseUrl();
   const [articles, athletes, schools] = await Promise.all([
     getAllArticleSlugs(),
     getAllAthleteSlugs(),
@@ -16,37 +16,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: BASE_URL,
+      url: base,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}${ARCHIVE_PATH}`,
+      url: `${base}${ARCHIVE_PATH}`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.8,
     },
     {
-      url: `${BASE_URL}/atleter`,
+      url: `${base}/atleter`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${BASE_URL}/viden`,
+      url: `${base}/viden`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${BASE_URL}/skoler`,
+      url: `${base}/skoler`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     ...["om", "kontakt", "ai-brug", "presseetik", "cookies"].map((slug) => ({
-      url: `${BASE_URL}/${slug}`,
+      url: `${base}/${slug}`,
       lastModified: new Date(),
       changeFrequency: "yearly" as const,
       priority: 0.3,
@@ -57,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const dbGuides = await getPublishedGuides();
   const guideSlugs = dbGuides.length ? dbGuides.map((g) => g.slug) : getGuideSlugs(await currentLanguage());
   const guidePages: MetadataRoute.Sitemap = guideSlugs.map((slug) => ({
-    url: `${BASE_URL}/viden/${slug}`,
+    url: `${base}/viden/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
@@ -65,7 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Sport-landingssider (pillar pages)
   const sportPages: MetadataRoute.Sitemap = getSportSlugs(await currentLanguage()).map((slug) => ({
-    url: `${BASE_URL}/${slug}`,
+    url: `${base}/${slug}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.9,
@@ -74,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const articlePages: MetadataRoute.Sitemap = articles.map((a) => {
     const sport = (a.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
     return {
-      url: `${BASE_URL}/${sport}/${a.slug}`,
+      url: `${base}/${sport}/${a.slug}`,
       lastModified: new Date(a.updated_at),
       changeFrequency: "weekly" as const,
       priority: 0.8,
@@ -82,14 +82,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const athletePages: MetadataRoute.Sitemap = athletes.map((a) => ({
-    url: `${BASE_URL}/atleter/${a.slug}`,
+    url: `${base}/atleter/${a.slug}`,
     lastModified: new Date(a.updated_at),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
 
   const schoolPages: MetadataRoute.Sitemap = schools.map((s) => ({
-    url: `${BASE_URL}/skoler/${s.slug}`,
+    url: `${base}/skoler/${s.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.5,
   }));
