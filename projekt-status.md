@@ -35,6 +35,18 @@ Google kræver en **Google-certificeret CMP integreret med IAB TCF v2.2** for at
 
 **`consent.enabled` SLÅET TIL** samme dag (Mikkels ønske). Konsekvens: banneret vises nu, og sitet sætter dermed sin første cookie (`sa_consent` — strengt nødvendig, lovlig uden samtykke). **NB: banneret gater endnu ingenting** — AdSense-verifikationen er bevidst inert (ingen Google-JS), og `NEXT_PUBLIC_ADS_ENABLED` er ikke sat, så der loades stadig ingen marketing-scripts. Når ads tændes: ad-scripts SKAL læse `sa_consent.marketing` før de indlæses. Banneret er client-renderet (SSR viser intet med vilje) → kan kun ses i en browser, ikke med curl; `enabled:true` er bekræftet i sidens payload.
 
+## 👉 UK-LAUNCH påbegyndt (2026-08-04) — se `SETUP-uk-launch.md`
+Domænet **student-athlete.co.uk er købt**. Trin 1–3 af launch-planen er kørt; **trin 4 (engelsk UI) mangler og er blokerende, før domænet må pege på sitet.**
+
+1. **Genereringen er landebevidst**: `generate-articles.ts` slår atletens `home_country` op → landeprofil → sprog → promptsæt, PR. HISTORIE (system-prompten bygges nu inde i løkken, ikke én gang). `articles.country` + `author` (sitets brand) stemples fra atleten.
+   - **Fælden det løste**: `check-sources.ts` vælger atleter på `active = 1` UDEN landefilter. Var UK tændt først, ville danske artikler om briter være landet i den danske kladdekø. Discovery forbliver bevidst landeagnostisk — den overvåger skolefeeds, og generering afgør sproget.
+2. **Engelske prompts**: `pipeline/generate/prompts/en.ts` (hele regelsættet på britisk engelsk, regler nummereret 1–23 identisk med `system.ts` så parringen er mekanisk) + `prompts/index.ts` (`promptsFor(language)`). Britisk sportssprog: football = soccer, American football, athletics.
+3. **UK REGISTRERET** i `COUNTRIES` → roster-scrapen samler nu briter. Startet manuelt 2026-08-04 (kører ~1t40m; uger om at konvergere over ~1.700 skoler). Forventning 1.200–2.000 briter.
+   - **Empirisk valideret**: alle **982** rigtige UK-hjembyer i kataloget klassificeres som UK, **0** som DK. Krydstest: svenskere/nordmænd/irere/australiere/canadiere + Denmark SC/Scotland PA/London Ontario rammer ingen af sitene. 73 assertions.
+4. **Deployet** (Worker faa801f9). Dansk site uberørt: 118 danskere, alle sider 200.
+
+**Næste (blokerende for launch):** engelsk UI (~100–200 JSX-strenge + sprog-pr-request). **Fælde noteret**: `site_content` (sidetitel, meta-beskrivelse, footer-tekst) har ingen landekolonne — begge sites deler værdier. Skal løses sammen med UI-oversættelsen.
+
 ## 👉 Seneste arbejde (2026-08-04) — forsidens rytme, arkiv, kildemåling
 **Baggrund:** forsiden var en væg af næsten ens blokke, fordi ALLE covers er det GENEREREDE kampkort (rigtige fotos findes kun på atletprofiler + inde i artikler). Mikkel spurgte om 3-5 korttyper; konklusionen blev **nej** — flere skabeloner ville lægge et valg oven i hver redigering uden at fjerne ensartetheden. I stedet: **rytme bestemt af pladsen på siden**. Mockup: `https://claude.ai/code/artifact/3f4d7a99-dbbf-455a-a3e8-019926001c85`.
 

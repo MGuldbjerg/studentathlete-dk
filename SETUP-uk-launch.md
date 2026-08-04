@@ -4,6 +4,12 @@
 "site med rigtige artikler". Læs `ARKITEKTUR-motor.md` først — motoren er ét
 kodebase, der serverer flere lande ud fra værten.
 
+> **STATUS 2026-08-04: trin 1, 2 og 3 er GENNEMFØRT** (commit efter `faa801f9`).
+> Pipelinen er landebevidst, de engelske prompts findes, UK er registreret, og
+> roster-scrapen er sat i gang manuelt. **Tilbage: trin 4 (engelsk UI) — og den
+> SKAL være færdig før domænet peger på sitet**, ellers møder britiske læsere
+> en dansk menu. Trin 5 (DNS/zone) kan forberedes parallelt.
+
 ---
 
 ## Hvad UK arver GRATIS
@@ -45,7 +51,16 @@ Derfor: gør trin 1 og 2 færdige, FØR du tænder for indsamlingen i trin 3.
 
 ---
 
-## Trin 1 — Gør pipelinen landebevidst  (kode, ~½ dag)
+## ✅ Trin 1 — Gør pipelinen landebevidst  (GJORT 2026-08-04)
+
+Løst anderledes end skitseret nedenfor, og bedre: **discovery filtreres IKKE**
+på land. Den overvåger skolefeeds, og en skole er interessant så snart den har
+en aktiv atlet — uanset nationalitet. Det er GENERERINGEN der er landebevidst:
+`generate-articles.ts` slår atletens `home_country` op → landeprofil → sprog →
+promptsæt, pr. historie. `articles.country` og `author` (sitets brand) stemples
+fra atleten i stedet for at være hardkodet.
+
+<details><summary>Oprindelig skitse (ikke fulgt)</summary>
 
 Mål: en artikel ved hvilket land — og dermed hvilket sprog — den tilhører.
 
@@ -55,9 +70,21 @@ Mål: en artikel ved hvilket land — og dermed hvilket sprog — den tilhører.
    Sæt den fra atletens `home_country` ved generering i stedet for at hardkode 'DK'.
 3. `generate-articles.ts`: slå landeprofilen op → sprog → vælg promptsæt.
 
-## Trin 2 — Engelske prompts  (kode, ~½ dag)
+</details>
 
-Kopiér `pipeline/generate/prompts/` til en engelsk variant og vælg ud fra sproget.
+## ✅ Trin 2 — Engelske prompts  (GJORT 2026-08-04)
+
+`pipeline/generate/prompts/en.ts` — hele regelsættet på britisk engelsk, i ÉN fil
+frem for fem, så de to sprog kan holdes i sync. **Reglerne er nummereret 1–23
+identisk med `system.ts`** netop for at gøre parringen mekanisk: ændrer du regel
+17 ét sted, skal den ændres samme sted i den anden fil.
+`prompts/index.ts` vælger sæt via `promptsFor(language)`.
+
+**Stadig ikke verificeret: kvaliteten.** Gratis-kæden er kun afprøvet på dansk.
+Læs de første engelske kladder ekstra grundigt, før du sætter volumen på.
+
+<details><summary>Oprindelige noter om oversættelsen</summary>
+
 Husk at oversætte REGLERNE, ikke kun sproget:
 
 - Regel 1 "Skriv ALTID på dansk" → engelsk, britisk stavemåde
@@ -68,35 +95,41 @@ Husk at oversætte REGLERNE, ikke kun sproget:
   track (sprogpakken `i18n/en.ts` har allerede de rigtige ord — genbrug dem)
 - SEO-reglerne og presseetik-reglerne gælder uændret
 
-**Test kvaliteten før du stoler på den**: gratis-kæden er kun verificeret på dansk.
-Kør nogle prøve-genereringer og læs dem, før du sætter volumen på.
+</details>
 
-## Trin 3 — Tænd for UK-indsamlingen  (1 linje + tålmodighed)
+## ✅ Trin 3 — Tænd for UK-indsamlingen  (GJORT 2026-08-04)
 
-```ts
-// src/lib/countries/index.ts
-import { uk } from "./uk";
-export const COUNTRIES = { DK: dk, UK: uk };
-```
+`uk` er registreret i `COUNTRIES`, og roster-scrapen er startet manuelt
+(`gh workflow run weekly-scrape.yml`) i stedet for at vente til søndag. Den tager
+typisk ~1t40m pr. kørsel og **uger at konvergere** over ~1.700 skoler.
+Forventning: **1.200–2.000 briter** (kataloget siger 972 rå; DK-forholdet mellem
+råt og kurateret antyder omkring det dobbelte).
 
-Derefter samler den ugentlige roster-scrape UK-atleter op af sig selv — samme
-kørsel, samme skoler, kun klassifikationen adskiller sig. **Det tager uger at
-konvergere** (scraperen roterer gennem ~1.700 skoler), så det er dét trin der
-skal startes tidligst. Forventning: **1.200–2.000 briter** (kataloget siger 972
-rå, og DK-forholdet mellem råt og kurateret antyder omkring det dobbelte).
+**Klassifikationen er valideret empirisk**: alle 982 rigtige UK-hjembyer i
+kataloget klassificeres som UK, ingen som DK. Krydstest viser at svenskere,
+nordmænd, irere, australiere, canadiere og de amerikanske navnebrødre
+(Denmark SC, Scotland PA, London Ontario) rammer ingen af sitene.
 
-Tjek undervejs:
+Følg med:
 ```bash
 npx wrangler d1 execute studentathlete-dk --remote \
   --command "SELECT home_country, COUNT(*) FROM athletes WHERE active=1 GROUP BY home_country"
 ```
 
-## Trin 4 — Engelsk UI  (kode, ~1 dag, kedeligt men ligetil)
+## ⬅️ Trin 4 — Engelsk UI  (NÆSTE — kode, ~1 dag, kedeligt men ligetil)
 
 Flyt JSX-strengene til sprogpakken og slå sproget op fra værten
-(`siteFromHost()` → `countryProfile.language`). Start med det læseren ser først:
-Header · Footer · forsidens bånd · arkivsiden · artikelskabelonerne. Admin kan
-forblive dansk — den har kun én bruger.
+(`siteFromHost()` → `countryProfile.language`). I server-komponenter hentes
+værten med `headers()`; klientkomponenter (Carousel, SearchBar,
+ConsentSettingsLink) skal have sproget som prop. Start med det læseren ser
+først: Header · Footer · forsidens bånd · arkivsiden · artikelskabelonerne.
+Admin kan forblive dansk — den har kun én bruger.
+
+**Fælde fundet undervejs**: `site_content` (sidetitel, meta-beskrivelse,
+footer-tekst, AI-disclaimer) har INGEN landekolonne — begge sites deler samme
+værdier. Enten skal tabellen have `country`, eller også skal disse felter flytte
+til landeprofilen. Bliver det glemt, får UK-sitet dansk sidetitel og dansk
+footer-tekst, uanset hvor mange JSX-strenge der er oversat.
 
 Ruterne: enten engelske mapper med redirects, eller behold stierne og accepter
 danske URL'er på et engelsk site (grimt). Anbefaling: gør sport-sluggene
