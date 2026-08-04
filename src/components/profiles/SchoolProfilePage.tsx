@@ -1,11 +1,13 @@
+import { t, articleTypeLabel } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 import type { School, Athlete, Article } from "@/lib/types";
-import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 interface Props { school: School; athletes: Athlete[]; articles: Article[] }
 
-export function SchoolProfilePage({ school, athletes, articles }: Props) {
+export async function SchoolProfilePage({ school, athletes, articles }: Props) {
+  const lang = await currentLanguage();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -61,10 +63,10 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
         <div className="max-w-5xl mx-auto px-6 md:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 divide-x">
             {[
-              { label: "Division",         value: school.division },
-              { label: "Conference",       value: school.conference ?? "–" },
-              { label: "Stat",             value: school.state ?? "–" },
-              { label: "Danske atleter",   value: String(athletes.length) },
+              { label: t("fact.division", lang),         value: school.division },
+              { label: t("fact.conference", lang),       value: school.conference ?? "–" },
+              { label: t("fact.state", lang),             value: school.state ?? "–" },
+              { label: t("school.athletes", lang),   value: String(athletes.length) },
             ].map((stat) => (
               <div key={stat.label} className="px-5 py-5">
                 <dt className="text-[10px] text-muted uppercase tracking-[0.12em]">{stat.label}</dt>
@@ -81,7 +83,7 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
       {/* ── Indhold ────────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 md:px-8 py-10">
         <Breadcrumb crumbs={[
-          { label: "Hjem", href: "/" },
+          { label: t("crumb.home", lang), href: "/" },
           { label: school.name },
         ]} />
 
@@ -125,7 +127,7 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
                 ))}
               </div>
             ) : (
-              <p className="text-muted text-sm">Ingen registrerede atleter endnu.</p>
+              <p className="text-muted text-sm">{t("school.no_athletes", lang)}</p>
             )}
           </section>
 
@@ -146,7 +148,7 @@ export function SchoolProfilePage({ school, athletes, articles }: Props) {
                     <div className="flex-1 min-w-0">
                       <span className="text-[10px] font-bold tracking-[0.12em] uppercase"
                         style={{ color: "#BF0A30" }}>
-                        {ARTICLE_TYPE_LABELS[a.article_type] ?? a.article_type}
+                        {articleTypeLabel(a.article_type, lang)}
                       </span>
                       <p className="text-sm font-bold text-ink leading-snug mt-0.5
                                     group-hover:underline line-clamp-2"

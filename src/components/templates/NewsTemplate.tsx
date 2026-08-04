@@ -1,5 +1,4 @@
 import type { Article, Athlete } from "@/lib/types";
-import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
@@ -9,16 +8,18 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
   relatedArticles?: Article[];
 }
 
-export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) {
+export async function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) {
+  const lang = await currentLanguage();
   const readTime = getReadingTime(article.content);
-  const typeLabel = ARTICLE_TYPE_LABELS[article.article_type] ?? "Nyhed";
+  const typeLabel = articleTypeLabel(article.article_type, lang) || t("tpl.news_plural", lang);
 
   return (
     <>
@@ -32,8 +33,8 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
         <header className="px-5 md:px-0 pt-10 pb-0">
           <div className="mb-8">
             <Breadcrumb crumbs={[
-              { label: "Hjem", href: "/" },
-              { label: "Nyheder", href: "/?article_type=news" },
+              { label: t("crumb.home", lang), href: "/" },
+              { label: t("tpl.news_plural", lang), href: "/?article_type=news" },
               { label: article.title },
             ]} />
           </div>
@@ -48,7 +49,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
               <>
                 <span style={{ color: "#E2E0DC" }}>—</span>
                 <span className="text-xs tracking-[0.1em] uppercase text-muted font-medium">
-                  {sportLabel(article.sport)}
+                  {sportLabel(article.sport, lang)}
                 </span>
               </>
             )}
@@ -126,7 +127,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
         {/* ── Tags ───────────────────────────────────────────────── */}
         <div className="px-5 md:px-0 pt-6 pb-10 border-t border-border mt-4">
           <div className="flex flex-wrap gap-2">
-            {[article.sport ? sportLabel(article.sport) : null, typeLabel, "Student athlete"].filter(Boolean).map((tag) => (
+            {[article.sport ? sportLabel(article.sport, lang) : null, typeLabel, t("tpl.student_athlete_tag", lang)].filter(Boolean).map((tag) => (
               <span key={tag}
                 className="text-xs px-3 py-1 border border-border text-muted
                            hover:border-flag-red hover:text-flag-red transition-colors cursor-default tracking-wide">
@@ -135,7 +136,7 @@ export function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) 
             ))}
           </div>
 
-          <RelatedArticles articles={relatedArticles} />
+          <RelatedArticles articles={relatedArticles} title={t("tpl.related", lang)} />
         </div>
       </article>
 

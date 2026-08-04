@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Article } from "@/lib/types";
-import { getSportColor, ARTICLE_TYPE_LABELS } from "@/lib/types";
+import { getSportColor } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
 
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, articleTypeLabel } from "@/lib/i18n";
 
 /** Strenge sendes ind: klientkomponenter har ingen request-kontekst at slå sprog op i. */
 export interface CarouselStrings {
@@ -22,7 +22,7 @@ function fill(tpl: string, n: number): string {
   return tpl.replace("{n}", String(n));
 }
 function SportTag({ sport, type, lang }: { sport?: string | null; type?: string; lang?: string }) {
-  const label = sport ? sportLabel(sport, lang) : type ? ARTICLE_TYPE_LABELS[type] : null;
+  const label = sport ? sportLabel(sport, lang) : type ? articleTypeLabel(type, lang) : null;
   if (!label) return null;
   const color = getSportColor(sport);
   return (

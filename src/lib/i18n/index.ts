@@ -66,6 +66,15 @@ export function sportKeyFromSlug(slug: string, lang?: string): SportKey | null {
   return isSportKey(s) ? s : null;
 }
 
+/**
+ * Artikeltype som vist for læseren ("Nyhed" / "News").
+ * Ukendt type returneres uændret — vi opfinder ikke en etikette.
+ */
+export function articleTypeLabel(type: string | null | undefined, lang?: string): string {
+  const key = (type ?? "").trim();
+  return languagePack(lang).articleTypeLabel[key] ?? key;
+}
+
 /** Navigationslisten: sportsgrene i visningsrækkefølge på ét sprog. */
 export function sportNav(lang?: string): Array<{ key: SportKey; label: string; slug: string }> {
   const pack = languagePack(lang);

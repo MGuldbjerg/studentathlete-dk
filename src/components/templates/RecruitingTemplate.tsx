@@ -8,14 +8,16 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
   relatedArticles?: Article[];
 }
 
-export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: Props) {
+export async function RecruitingTemplate({ article, athlete, relatedArticles = [] }: Props) {
+  const lang = await currentLanguage();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -41,10 +43,10 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
             <div className="flex items-center gap-3 mb-8">
               <div className="flex items-center gap-2 text-white border border-white/20 px-3 py-1.5">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#BF0A30" }} />
-                <span className="text-[10px] font-black tracking-[0.25em] uppercase">Officielt</span>
+                <span className="text-[10px] font-black tracking-[0.25em] uppercase">{t("tpl.official", lang)}</span>
               </div>
               <span className="text-white/30 text-[10px] tracking-[0.2em] uppercase">
-                Rekruttering · {article.sport ? sportLabel(article.sport) : "Student Athlete"}
+                Rekruttering · {article.sport ? sportLabel(article.sport, lang) : t("tpl.student_athlete_tag", lang)}
               </span>
             </div>
 
@@ -64,7 +66,7 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
               <div className="flex-1">
                 {athlete && (
                   <p className="text-white/50 text-xs tracking-[0.2em] uppercase mb-2 font-medium">
-                    {athlete.hometown ?? "Danmark"} · {sportLabel(athlete.sport)}
+                    {athlete.hometown ?? t("fact.home_country", lang)} · {sportLabel(athlete.sport, lang)}
                   </p>
                 )}
                 <h1 style={{ fontFamily: "var(--font-serif)" }}
@@ -95,8 +97,8 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
         {/* ── Indhold ────────────────────────────────────────────── */}
         <div className="max-w-2xl mx-auto px-5 md:px-0 pt-10">
           <Breadcrumb crumbs={[
-            { label: "Hjem", href: "/" },
-            { label: "Rekruttering", href: "/?article_type=recruiting" },
+            { label: t("crumb.home", lang), href: "/" },
+            { label: t("tpl.recruiting", lang), href: "/?article_type=recruiting" },
             { label: article.title },
           ]} />
 
@@ -119,12 +121,12 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
                   </p>
                   <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
                     {[
-                      { label: "Navn", value: athlete.name },
-                      { label: "Sport", value: sportLabel(athlete.sport) },
-                      { label: "Position", value: athlete.position },
-                      { label: "Hjemby", value: athlete.hometown },
-                      { label: "Universitet", value: athlete.university },
-                      { label: "Division", value: athlete.division },
+                      { label: t("fact.name", lang), value: athlete.name },
+                      { label: t("fact.sport", lang), value: sportLabel(athlete.sport, lang) },
+                      { label: t("fact.position", lang), value: athlete.position },
+                      { label: t("fact.hometown", lang), value: athlete.hometown },
+                      { label: t("fact.university", lang), value: athlete.university },
+                      { label: t("fact.division", lang), value: athlete.division },
                     ].filter((r) => r.value).map((row) => (
                       <div key={row.label}>
                         <dt className="text-[10px] text-muted uppercase tracking-[0.12em]">{row.label}</dt>
@@ -143,7 +145,7 @@ export function RecruitingTemplate({ article, athlete, relatedArticles = [] }: P
           )}
 
           <AdSlot slot="article-footer" className="my-6" />
-          <RelatedArticles articles={relatedArticles} title="Mere om rekruttering" />
+          <RelatedArticles articles={relatedArticles} title={t("tpl.more_recruiting", lang)} />
         </div>
       </article>
     </>

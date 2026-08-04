@@ -14,6 +14,12 @@ export interface LanguagePack {
   sportLabel: Record<SportKey, string>;
   /** Sportens URL-slug på dette sprog (del af sitets offentlige flade). */
   sportSlug: Record<SportKey, string>;
+  /**
+   * Artikeltype som vist for læseren. Lå før som én dansk tabel i
+   * `src/lib/types.ts` og sivede derfor uoversat ud på kort og i skabeloner.
+   * Admin bruger stadig den danske tabel — den har én bruger.
+   */
+  articleTypeLabel: Record<string, string>;
   /** Position-begreb → formulering. Manglende begreb = brug id'et som det er. */
   positionPhrase: Record<string, string>;
   /** Tegn der skal skrives om i slugs (æ→ae, ü→ue, …). */
@@ -90,7 +96,40 @@ export type UiKey =
   | "carousel.go_to"
   | "carousel.empty_kicker"
   | "carousel.empty_title"
-  | "carousel.empty_body";
+  | "carousel.empty_body"
+  // Brødkrummer og skabeloner
+  | "crumb.home"
+  | "tpl.news_plural"
+  | "tpl.features"
+  | "tpl.season_updates"
+  | "tpl.recruiting"
+  | "tpl.read_also"
+  | "tpl.related"
+  | "tpl.more_recruiting"
+  | "tpl.previous_updates"
+  | "tpl.student_athlete_tag"
+  | "tpl.official"
+  // Faktaetiketter (atlet- og skoleprofiler, skabelonernes fakta-bokse)
+  | "fact.name"
+  | "fact.sport"
+  | "fact.university"
+  | "fact.position"
+  | "fact.division"
+  | "fact.hometown"
+  | "fact.home_country"
+  | "fact.state"
+  | "fact.conference"
+  | "fact.class_year"
+  | "fact.enrolled"
+  | "fact.expected_graduation"
+  | "fact.status"
+  | "status.active"
+  | "status.alumni"
+  | "status.graduated"
+  // Profilsider
+  | "profile.no_articles"
+  | "school.athletes"
+  | "school.no_athletes";
 
 /**
  * Grammatikken til basis-profilteksten ligger BEVIDST ikke i denne grænseflade,

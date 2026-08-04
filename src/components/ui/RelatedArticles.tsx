@@ -2,9 +2,10 @@ import type { Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { formatDateShort, getArticleUrl } from "@/lib/seo";
 
-export function RelatedArticles({ articles, title = "Relaterede artikler" }: {
+// Titlen sendes ALTID ind: komponenten kender ikke sitets sprog.
+export function RelatedArticles({ articles, title }: {
   articles: Article[];
-  title?: string;
+  title: string;
 }) {
   if (!articles.length) return null;
   return (

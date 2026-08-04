@@ -1,34 +1,35 @@
 import type { Athlete, Article } from "@/lib/types";
-import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 interface Props { athlete: Athlete; articles: Article[]; events?: AthleteEventRow[] }
 
-const STAT_ROWS = (a: Athlete) => [
-  { label: "Sport",     value: sportLabel(a.sport) },
-  { label: "Position",  value: a.position },
-  { label: "Hjemby",   value: a.hometown },
-  { label: "Universitet", value: a.university },
-  { label: "Stat",     value: a.university_state },
-  { label: "Division", value: a.division },
-  { label: "Årgang",   value: a.class_year },
-  { label: "Forventet dimission", value: a.expected_graduation?.toString() },
-  { label: "Optaget",  value: a.year_enrolled?.toString() },
+const STAT_ROWS = (a: Athlete, lang: string) => [
+  { label: t("fact.sport", lang),     value: sportLabel(a.sport, lang) },
+  { label: t("fact.position", lang),  value: a.position },
+  { label: t("fact.hometown", lang),   value: a.hometown },
+  { label: t("fact.university", lang), value: a.university },
+  { label: t("fact.state", lang),     value: a.university_state },
+  { label: t("fact.division", lang), value: a.division },
+  { label: t("fact.class_year", lang),   value: a.class_year },
+  { label: t("fact.expected_graduation", lang), value: a.expected_graduation?.toString() },
+  { label: t("fact.enrolled", lang),  value: a.year_enrolled?.toString() },
   {
-    label: "Status",
+    label: t("fact.status", lang),
     value: graduationBadgeYear(a.expected_graduation)
-      ? `🎓 Færdiguddannet ${graduationBadgeYear(a.expected_graduation)}`
+      ? `🎓 ${t("status.graduated", lang, { year: graduationBadgeYear(a.expected_graduation) ?? "" })}`
       : a.active
-        ? "Aktiv"
-        : "Tidligere atlet",
+        ? t("status.active", lang)
+        : t("status.alumni", lang),
   },
 ].filter((r) => r.value);
 
-export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
+export async function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
+  const lang = await currentLanguage();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -76,14 +77,14 @@ export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
             <div className="flex items-center gap-3 mb-3">
               <span className="text-[10px] font-black tracking-[0.2em] uppercase text-white px-2.5 py-1.5"
                 style={{ backgroundColor: "#BF0A30" }}>
-                {sportLabel(athlete.sport)}
+                {sportLabel(athlete.sport, lang)}
               </span>
               {graduationBadgeYear(athlete.expected_graduation) ? (
                 <span
                   className="text-[10px] font-black tracking-[0.15em] uppercase px-2.5 py-1.5"
                   style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "#f5d061" }}
                 >
-                  🎓 Færdiguddannet {graduationBadgeYear(athlete.expected_graduation)}
+                  🎓 {t("status.graduated", lang, { year: graduationBadgeYear(athlete.expected_graduation) ?? "" })}
                 </span>
               ) : !athlete.active ? (
                 <span className="text-[10px] tracking-[0.15em] uppercase text-white/40">
@@ -111,8 +112,8 @@ export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
       {/* ── Indhold ────────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 md:px-8 py-10">
         <Breadcrumb crumbs={[
-          { label: "Forside", href: "/" },
-          { label: "Atleter", href: "/atleter" },
+          { label: t("crumb.home", lang), href: "/" },
+          { label: t("nav.athletes", lang), href: "/atleter" },
           { label: athlete.name },
         ]} />
 
@@ -124,7 +125,7 @@ export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
               Fakta
             </p>
             <dl className="divide-y" style={{ borderTop: "1px solid #E2E0DC", borderBottom: "1px solid #E2E0DC" }}>
-              {STAT_ROWS(athlete).map((row) => (
+              {STAT_ROWS(athlete, lang).map((row) => (
                 <div key={row.label} className="flex justify-between items-baseline py-3 px-1 gap-4">
                   <dt className="text-xs text-muted tracking-wide flex-shrink-0">{row.label}</dt>
                   <dd className="text-sm font-semibold text-ink text-right">{row.value}</dd>
@@ -195,7 +196,7 @@ export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
                       <div className="flex-1 min-w-0">
                         <span className="text-[10px] font-bold tracking-[0.15em] uppercase"
                           style={{ color: "#BF0A30" }}>
-                          {ARTICLE_TYPE_LABELS[a.article_type] ?? a.article_type}
+                          {articleTypeLabel(a.article_type, lang)}
                         </span>
                         <p className="text-sm font-bold text-ink leading-snug mt-1
                                       group-hover:underline"
@@ -211,7 +212,7 @@ export function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
                 </div>
               </section>
             ) : (
-              <p className="text-muted text-sm">Ingen artikler endnu.</p>
+              <p className="text-muted text-sm">{t("profile.no_articles", lang)}</p>
             )}
           </div>
         </div>

@@ -8,14 +8,16 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
   relatedArticles?: Article[];
 }
 
-export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Props) {
+export async function FeatureTemplate({ article, athlete, relatedArticles = [] }: Props) {
+  const lang = await currentLanguage();
   const readTime = getReadingTime(article.content);
 
   return (
@@ -52,7 +54,7 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
               </span>
               {article.sport && (
                 <span className="text-[10px] tracking-[0.2em] uppercase text-white/50 font-medium">
-                  {sportLabel(article.sport)}
+                  {sportLabel(article.sport, lang)}
                 </span>
               )}
               <span className="text-white/30 text-[10px] tracking-[0.15em]">
@@ -98,8 +100,8 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
         {/* ── Brødkrumme ─────────────────────────────────────────── */}
         <div className="max-w-3xl mx-auto px-6 md:px-8 pt-8">
           <Breadcrumb crumbs={[
-            { label: "Hjem", href: "/" },
-            { label: "Features", href: "/?article_type=feature" },
+            { label: t("crumb.home", lang), href: "/" },
+            { label: t("tpl.features", lang), href: "/?article_type=feature" },
             { label: article.title },
           ]} />
         </div>
@@ -115,7 +117,7 @@ export function FeatureTemplate({ article, athlete, relatedArticles = [] }: Prop
             <AdSlot slot="article-footer" className="my-6" />
 
             <div className="mt-12 pt-8 border-t border-border">
-              <RelatedArticles articles={relatedArticles} title="Læs også" />
+              <RelatedArticles articles={relatedArticles} title={t("tpl.read_also", lang)} />
             </div>
           </div>
 

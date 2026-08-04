@@ -8,7 +8,8 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -21,7 +22,8 @@ function getSeason(dateStr: string | null): string {
   return `${year - 1}–${String(year).slice(2)}`;
 }
 
-export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }: Props) {
+export async function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }: Props) {
+  const lang = await currentLanguage();
   const readTime = getReadingTime(article.content);
   const season = getSeason(article.published_at);
 
@@ -33,8 +35,8 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
 
       <article className="max-w-2xl mx-auto px-5 md:px-0 py-10">
         <Breadcrumb crumbs={[
-          { label: "Hjem", href: "/" },
-          { label: "Sæsonopdateringer", href: "/?article_type=season_update" },
+          { label: t("crumb.home", lang), href: "/" },
+          { label: t("tpl.season_updates", lang), href: "/?article_type=season_update" },
           { label: article.title },
         ]} />
 
@@ -48,7 +50,7 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
           )}
           {article.sport && (
             <span className="text-[10px] tracking-[0.15em] uppercase text-muted font-medium">
-              {sportLabel(article.sport)}
+              {sportLabel(article.sport, lang)}
             </span>
           )}
         </div>
@@ -123,9 +125,9 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
             <div className="grid grid-cols-3 divide-x"
               style={{ borderTop: "1px solid #E2E0DC" }}>
               {[
-                { label: "Sport", value: sportLabel(athlete.sport) },
-                { label: "Position", value: athlete.position ?? "–" },
-                { label: "Division", value: athlete.division },
+                { label: t("fact.sport", lang), value: sportLabel(athlete.sport, lang) },
+                { label: t("fact.position", lang), value: athlete.position ?? "–" },
+                { label: t("fact.division", lang), value: athlete.division },
               ].map((stat) => (
                 <div key={stat.label} className="px-4 py-4 text-center">
                   <dt className="text-[10px] text-muted uppercase tracking-[0.12em]">{stat.label}</dt>
@@ -140,7 +142,7 @@ export function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }:
         )}
 
         <AdSlot slot="article-footer" className="my-6" />
-        <RelatedArticles articles={relatedArticles} title="Tidligere opdateringer" />
+        <RelatedArticles articles={relatedArticles} title={t("tpl.previous_updates", lang)} />
       </article>
     </>
   );

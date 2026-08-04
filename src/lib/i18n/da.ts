@@ -258,6 +258,48 @@ const ui: LanguagePack["ui"] = {
   "carousel.empty_kicker": "StudentAthlete.dk",
   "carousel.empty_title": "Dansk dækning af student athletes i USA",
   "carousel.empty_body": "Artikler er på vej — kom tilbage snart.",
+
+  "crumb.home": "Hjem",
+  "tpl.news_plural": "Nyheder",
+  "tpl.features": "Features",
+  "tpl.season_updates": "Sæsonopdateringer",
+  "tpl.recruiting": "Rekruttering",
+  "tpl.read_also": "Læs også",
+  "tpl.related": "Relaterede artikler",
+  "tpl.more_recruiting": "Mere om rekruttering",
+  "tpl.previous_updates": "Tidligere opdateringer",
+  "tpl.student_athlete_tag": "Student athlete",
+  "tpl.official": "Officielt",
+
+  "fact.name": "Navn",
+  "fact.sport": "Sport",
+  "fact.university": "Universitet",
+  "fact.position": "Position",
+  "fact.division": "Division",
+  "fact.hometown": "Hjemby",
+  "fact.home_country": "Danmark",
+  "fact.state": "Stat",
+  "fact.conference": "Conference",
+  "fact.class_year": "Årgang",
+  "fact.enrolled": "Optaget",
+  "fact.expected_graduation": "Forventet dimission",
+  "fact.status": "Status",
+  "status.active": "Aktiv",
+  "status.alumni": "Tidligere atlet",
+  "status.graduated": "Færdiguddannet {year}",
+
+  "profile.no_articles": "Ingen artikler endnu.",
+  "school.athletes": "Danske atleter",
+  "school.no_athletes": "Ingen registrerede atleter endnu.",
+};
+
+/** Artikeltype som vist for læseren. */
+const articleTypeLabel: Record<string, string> = {
+  profile: "Spillerprofil",
+  news: "Nyhed",
+  feature: "Feature",
+  season_update: "Sæsonopdatering",
+  recruiting: "Rekruttering",
 };
 
 export const da: LanguagePack = {
@@ -265,6 +307,7 @@ export const da: LanguagePack = {
   locale: "da-DK",
   sportLabel,
   sportSlug,
+  articleTypeLabel,
   positionPhrase,
   transliterate,
   ui,

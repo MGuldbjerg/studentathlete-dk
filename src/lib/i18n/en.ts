@@ -251,6 +251,50 @@ const ui: LanguagePack["ui"] = {
   "carousel.empty_kicker": "Student-Athlete.co.uk",
   "carousel.empty_title": "British student athletes in the United States",
   "carousel.empty_body": "Articles are on the way — check back soon.",
+
+  "crumb.home": "Home",
+  "tpl.news_plural": "News",
+  "tpl.features": "Features",
+  "tpl.season_updates": "Season updates",
+  "tpl.recruiting": "Recruitment",
+  "tpl.read_also": "Read next",
+  "tpl.related": "Related articles",
+  "tpl.more_recruiting": "More on recruitment",
+  "tpl.previous_updates": "Earlier updates",
+  "tpl.student_athlete_tag": "Student athlete",
+  "tpl.official": "Official",
+
+  "fact.name": "Name",
+  "fact.sport": "Sport",
+  "fact.university": "University",
+  "fact.position": "Position",
+  "fact.division": "Division",
+  "fact.hometown": "Hometown",
+  // Fallback når hjembyen er ukendt. Sproget dækker i dag kun UK; lander et
+  // andet engelsksproget site (AU/IE), skal det her flyttes til landeprofilen.
+  "fact.home_country": "United Kingdom",
+  "fact.state": "State",
+  "fact.conference": "Conference",
+  "fact.class_year": "Class",
+  "fact.enrolled": "Enrolled",
+  "fact.expected_graduation": "Expected graduation",
+  "fact.status": "Status",
+  "status.active": "Active",
+  "status.alumni": "Former athlete",
+  "status.graduated": "Graduated {year}",
+
+  "profile.no_articles": "No articles yet.",
+  "school.athletes": "Athletes",
+  "school.no_athletes": "No athletes registered yet.",
+};
+
+/** Artikeltype som vist for læseren. */
+const articleTypeLabel: Record<string, string> = {
+  profile: "Player profile",
+  news: "News",
+  feature: "Feature",
+  season_update: "Season update",
+  recruiting: "Recruitment",
 };
 
 export const en: LanguagePack = {
@@ -258,6 +302,7 @@ export const en: LanguagePack = {
   locale: "en-GB",
   sportLabel,
   sportSlug,
+  articleTypeLabel,
   positionPhrase,
   transliterate,
   ui,

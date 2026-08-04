@@ -1,8 +1,8 @@
 import type { Article } from "@/lib/types";
-import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
+import { getSportColor } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
 
-import { sportLabel, t } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
 import { currentLanguage } from "@/lib/site-server";
 
 /**
@@ -27,7 +27,7 @@ interface ArticleCardProps {
 
 export async function ArticleCard({ article, variant = "default", reverse = false }: ArticleCardProps) {
   const lang = await currentLanguage();
-  const typeLabel = ARTICLE_TYPE_LABELS[article.article_type] ?? article.article_type;
+  const typeLabel = articleTypeLabel(article.article_type, lang);
   const sportColor = getSportColor(article.sport);
   const readingTime = getReadingTime(article.content);
   const relTime = formatRelativeTime(article.published_at);
