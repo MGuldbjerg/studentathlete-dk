@@ -14,10 +14,11 @@ import {
   countAthletesBySport,
 } from "@/lib/db";
 import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 import { BASE_URL, getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl } from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, t } from "@/lib/i18n";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
@@ -32,7 +33,9 @@ type Params = Promise<{ segments: string[] }>;
 
 // Sport-landingsindhold: D1-override (redigerbar i admin) over kode-default.
 async function resolveSportContent(slug: string): Promise<SportContent | null> {
-  const base = getSportContent(slug);
+  // Kode-default på sitets SPROG, D1-override på sitets LAND — samme mønster
+  // som resten af motoren (jf. ARKITEKTUR-motor.md).
+  const base = getSportContent(slug, await currentLanguage());
   if (!base) return null;
   const db = await getPublishedSportBySlug(slug);
   if (!db) return base;
@@ -46,6 +49,11 @@ async function resolveSportContent(slug: string): Promise<SportContent | null> {
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { segments } = await params;
+  // Brand og sprog følger værten — titler er læservendte og må ikke være
+  // hardkodet til .dk-sitet.
+  const site = await currentSite();
+  const brand = site.brand;
+  const lang = site.language;
 
   // ── 1 segment: /{sport} → sport-landingsside ────────────────────────────
   if (segments.length === 1) {
@@ -61,19 +69,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         type: "sport",
       });
       return {
-        title: `${sportContent.title} – danske atleter i NCAA | StudentAthlete.dk`,
+        title: `${t("meta.sport_title", lang, { sport: sportContent.title })} | ${brand}`,
         description: sportContent.metaDescription,
         openGraph: {
-          title: `${sportContent.title} | StudentAthlete.dk`,
+          title: `${sportContent.title} | ${brand}`,
           description: sportContent.metaDescription,
           images: [{ url: ogImage, width: 1200, height: 630, alt: sportContent.title }],
           type: "website",
-          siteName: "StudentAthlete.dk",
+          siteName: brand,
           url: canonicalUrl,
         },
         twitter: {
           card: "summary_large_image",
-          title: `${sportContent.title} | StudentAthlete.dk`,
+          title: `${sportContent.title} | ${brand}`,
           description: sportContent.metaDescription,
           images: [ogImage],
         },
@@ -86,7 +94,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     const page = await getPublishedPageBySlug(slug);
     if (page) {
       return {
-        title: `${page.title} | StudentAthlete.dk`,
+        title: `${page.title} | ${brand}`,
         description: page.meta_description ?? undefined,
         alternates: { canonical: `${BASE_URL}/${slug}` },
         robots: { index: true, follow: true },
@@ -108,28 +116,28 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       if (athlete) {
         const description =
           athlete.profile_summary ??
-          `${athlete.name} spiller ${sportLabel(athlete.sport).toLowerCase()} for ${athlete.university}. Følg den danske student athlete på StudentAthlete.dk.`;
+          t("meta.athlete_description", lang, { name: athlete.name, sport: sportLabel(athlete.sport, lang).toLowerCase(), university: athlete.university, brand });
         const ogImage = athlete.photo_url
           ?? getOgImageUrl({
                title: athlete.name,
-               subtitle: `${athlete.university} · ${sportLabel(athlete.sport)}`,
+               subtitle: `${athlete.university} · ${sportLabel(athlete.sport, lang)}`,
                sport: athlete.sport,
                type: "athlete",
              });
         return {
-          title: `${athlete.name} – ${sportLabel(athlete.sport)} | StudentAthlete.dk`,
+          title: `${athlete.name} – ${sportLabel(athlete.sport, lang)} | ${brand}`,
           description,
           openGraph: {
-            title: `${athlete.name} | StudentAthlete.dk`,
+            title: `${athlete.name} | ${brand}`,
             description,
             images: [{ url: ogImage, width: 1200, height: 630, alt: athlete.name }],
             type: "profile",
-            siteName: "StudentAthlete.dk",
+            siteName: brand,
             url: `${BASE_URL}${getAthleteUrl(slug)}`,
           },
           twitter: {
             card: "summary_large_image",
-            title: `${athlete.name} | StudentAthlete.dk`,
+            title: `${athlete.name} | ${brand}`,
             description,
             images: [ogImage],
           },
@@ -143,15 +151,16 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     if (prefix === "skoler") {
       const school = await getSchoolBySlug(slug);
       if (school) {
-        const description = `Oversigt over danske student athletes ved ${school.name}${school.state ? `, ${school.state}` : ""} – ${school.division}${school.conference ? `, ${school.conference}` : ""}.`;
+        const where = `${school.name}${school.state ? `, ${school.state}` : ""}`;
+        const description = `${t("meta.school_description", lang, { school: where })} ${school.division}${school.conference ? `, ${school.conference}` : ""}.`;
         return {
-          title: `${school.name} | StudentAthlete.dk`,
+          title: `${school.name} | ${brand}`,
           description,
           openGraph: {
-            title: `${school.name} | StudentAthlete.dk`,
+            title: `${school.name} | ${brand}`,
             description,
             type: "website",
-            siteName: "StudentAthlete.dk",
+            siteName: brand,
             url: `${BASE_URL}${getSchoolUrl(slug)}`,
           },
           alternates: { canonical: `${BASE_URL}${getSchoolUrl(slug)}` },
@@ -170,8 +179,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       const ogImage = `${BASE_URL}${getArticleCoverUrl(article)}`;
 
       return {
-        title: `${article.title} | StudentAthlete.dk`,
-        description: article.summary ?? `Læs om ${article.athlete_name ?? "studenter-atleten"} på StudentAthlete.dk`,
+        title: `${article.title} | ${brand}`,
+        description:
+          article.summary ??
+          t("meta.article_description", lang, { who: article.athlete_name ?? "", brand }),
         openGraph: {
           title: article.title,
           description: article.summary ?? undefined,
@@ -179,9 +190,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           type: "article",
           publishedTime: article.published_at ?? undefined,
           modifiedTime: article.updated_at,
-          tags: [article.sport ? sportLabel(article.sport) : null, article.article_type, "student athlete", "dansk"]
+          tags: [article.sport ? sportLabel(article.sport, lang) : null, article.article_type, "student athlete", "dansk"]
             .filter(Boolean) as string[],
-          siteName: "StudentAthlete.dk",
+          siteName: brand,
           url: canonicalUrl,
         },
         twitter: {

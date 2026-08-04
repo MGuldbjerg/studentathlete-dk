@@ -129,7 +129,12 @@ export type UiKey =
   // Profilsider
   | "profile.no_articles"
   | "school.athletes"
-  | "school.no_athletes";
+  | "school.no_athletes"
+  // Metadata-skabeloner ([...segments])
+  | "meta.sport_title"
+  | "meta.athlete_description"
+  | "meta.school_description"
+  | "meta.article_description";
 
 /**
  * Grammatikken til basis-profilteksten ligger BEVIDST ikke i denne grænseflade,

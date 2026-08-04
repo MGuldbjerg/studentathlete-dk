@@ -54,7 +54,7 @@ export default async function RootLayout({
         <link
           rel="alternate"
           type="application/rss+xml"
-          title="StudentAthlete.dk"
+          title={settings["site.title"]}
           href="/feed.xml"
         />
         {/* AdSense-ejerskabsverifikation. Kun et navneskilt — indlæser INTET

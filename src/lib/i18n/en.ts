@@ -286,6 +286,11 @@ const ui: LanguagePack["ui"] = {
   "profile.no_articles": "No articles yet.",
   "school.athletes": "Athletes",
   "school.no_athletes": "No athletes registered yet.",
+  "meta.sport_title": "{sport} – British athletes in the NCAA",
+  "meta.athlete_description":
+    "{name} plays {sport} for {university}. Follow the British student athlete on {brand}.",
+  "meta.school_description": "British student athletes at {school}.",
+  "meta.article_description": "Read about {who} on {brand}",
 };
 
 /** Artikeltype som vist for læseren. */

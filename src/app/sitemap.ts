@@ -5,6 +5,7 @@ import { getSportSlugs } from "@/lib/sport-content";
 import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
 import { ARCHIVE_PATH } from "@/lib/routes";
+import { currentLanguage } from "@/lib/site-server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, athletes, schools] = await Promise.all([
@@ -63,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // Sport-landingssider (pillar pages)
-  const sportPages: MetadataRoute.Sitemap = getSportSlugs().map((slug) => ({
+  const sportPages: MetadataRoute.Sitemap = getSportSlugs(await currentLanguage()).map((slug) => ({
     url: `${BASE_URL}/${slug}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,

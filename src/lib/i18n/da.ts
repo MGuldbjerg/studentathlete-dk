@@ -291,6 +291,11 @@ const ui: LanguagePack["ui"] = {
   "profile.no_articles": "Ingen artikler endnu.",
   "school.athletes": "Danske atleter",
   "school.no_athletes": "Ingen registrerede atleter endnu.",
+  "meta.sport_title": "{sport} – danske atleter i NCAA",
+  "meta.athlete_description":
+    "{name} spiller {sport} for {university}. Følg den danske student athlete på {brand}.",
+  "meta.school_description": "Oversigt over danske student athletes ved {school}.",
+  "meta.article_description": "Læs om {who} på {brand}",
 };
 
 /** Artikeltype som vist for læseren. */

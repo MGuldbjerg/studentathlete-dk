@@ -3,6 +3,8 @@
  * Intro vises i hero-banneret, pillar er evergreen SEO-tekst i bunden.
  */
 
+import { SPORT_CONTENT_EN } from "./sport-content-en";
+
 export interface SportContent {
   /** Visningsnavn */
   title: string;
@@ -371,11 +373,19 @@ Flere af NCAAʼs mindre sportsgrene har færre ansøgere til stipendierne, hvilk
 };
 
 /** Hent indhold for en sport — returnerer undefined hvis sporten ikke findes */
-export function getSportContent(sport: string): SportContent | undefined {
-  return SPORT_CONTENT[sport.toLowerCase()];
+/**
+ * Pillartekst for en sport-slug PÅ ET SPROG.
+ *
+ * Nøglerne er slugs, og slugs er sprogafhængige: `/football` er amerikansk
+ * fodbold på dansk og almindelig fodbold på engelsk. Derfor slås der op i
+ * sprogets egen tabel frem for at oversætte værdier — se `sport-content-en.ts`.
+ */
+export function getSportContent(sport: string, lang?: string): SportContent | undefined {
+  const table = (lang ?? "").toLowerCase() === "en" ? SPORT_CONTENT_EN : SPORT_CONTENT;
+  return table[sport.toLowerCase()];
 }
 
-/** Alle sport-slugs der har en landingsside */
-export function getSportSlugs(): string[] {
-  return Object.keys(SPORT_CONTENT);
+/** Alle sport-slugs der har en landingsside på et givet sprog. */
+export function getSportSlugs(lang?: string): string[] {
+  return Object.keys((lang ?? "").toLowerCase() === "en" ? SPORT_CONTENT_EN : SPORT_CONTENT);
 }

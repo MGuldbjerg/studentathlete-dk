@@ -8,6 +8,7 @@
  */
 import { LANGUAGES, t } from "./i18n";
 import type { UiKey } from "./i18n";
+import { getSportContent } from "./sport-content";
 
 let passed = 0;
 let failed = 0;
@@ -78,6 +79,25 @@ ok(t("home.latest") === t("home.latest", "da"), "intet sprog → standardsprog")
 // Manglende variabel skal efterlade pladsholderen synlig frem for "undefined":
 // en synlig {n} i UI'et er en fejl man opdager, "undefined" ligner en tekst.
 ok(t("band.athletes_count", "en", {}).includes("{n}"), "manglende variabel efterlader {n}");
+
+// ── Sport-pillartekster: én pr. slug, på begge sprog ────────────────────────
+// Mangler en, falder sitet tilbage til den ANDEN sprogs tekst (eller ingenting)
+// — og det opdages først når nogen åbner /athletics og læser dansk.
+for (const lang of langs) {
+  const pack = LANGUAGES[lang];
+  for (const key of Object.keys(pack.sportSlug) as (keyof typeof pack.sportSlug)[]) {
+    const slug = pack.sportSlug[key];
+    const content = getSportContent(slug, lang);
+    ok(!!content, `${lang}: sport-slug "${slug}" (${String(key)}) har en pillartekst`);
+    if (content) {
+      ok(content.pillar.trim().length > 200, `${lang}: "${slug}" har reelt indhold`);
+      ok(
+        lang !== "en" || !/[æøåÆØÅ]/.test(content.title + content.intro + content.pillar),
+        `${lang}: "${slug}" indeholder ikke dansk tekst`,
+      );
+    }
+  }
+}
 
 console.log(`\nui-strings: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);
