@@ -1,6 +1,15 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-04 (forside med tæthedsbånd + arkivside + kildemåling, commit c727b0f — IKKE deployet endnu)
+**Sidst opdateret**: 2026-08-04 (forside med tæthedsbånd + arkiv + kildemåling + AdSense-verifikation — **DEPLOYET**, Worker-version 12b14628)
+
+## 👉 AdSense-verifikation (2026-08-04, commit 5df760d — LIVE, mangler kun Mikkels ID)
+**Valget:** IKKE AdSense-kodestumpen. Den indlæser Googles annonce-JavaScript, som sætter cookies/tilgår enheden og derfor kræver forudgående samtykke — sitet er cookieløst indtil `consent.enabled` slås til. Verifikation sker i stedet med to INERTE metoder:
+- **`/ads.txt`** (primær) — `src/app/ads.txt/route.ts`, `force-dynamic` (som statisk rute ville ID'et blive bagt ind ved build). Er også dét annoncekøbere slår op for at se hvem der må sælge vores plads, så den skal bruges alligevel.
+- **Metatag** `google-adsense-account` i `layout.tsx` — én linje, giver ejerskabs-scanningen en vej mere.
+
+**Begge styres af ÉT felt: admin → Tekster → «AdSense publisher-ID»** (`adsense.publisher_id`). `adsenseIds()` i `site-content.ts` normaliserer de to nødvendige former (`ca-pub-…` til metatagget, `pub-…` til ads.txt) og afviser vrøvl — en forkert ads.txt er værre end ingen. Tomt felt = 404 + intet tag (verificeret live).
+
+**👉 MIKKELS ENESTE SKRIDT:** indsæt ID'et fra AdSense i admin → Tekster. Virker med det samme, intet deploy. Derefter kan du trykke «verificér» i AdSense.
 
 ## 👉 Seneste arbejde (2026-08-04) — forsidens rytme, arkiv, kildemåling
 **Baggrund:** forsiden var en væg af næsten ens blokke, fordi ALLE covers er det GENEREREDE kampkort (rigtige fotos findes kun på atletprofiler + inde i artikler). Mikkel spurgte om 3-5 korttyper; konklusionen blev **nej** — flere skabeloner ville lægge et valg oven i hver redigering uden at fjerne ensartetheden. I stedet: **rytme bestemt af pladsen på siden**. Mockup: `https://claude.ai/code/artifact/3f4d7a99-dbbf-455a-a3e8-019926001c85`.
@@ -12,7 +21,7 @@
 5. **Kildemåling**: `migration-036` → `events.source`, fanget fra `?kilde=`/`utm_source` på landings-sidevisningen, vist i admin → Analytics. **Bonus-fix**: `classify()` regnede ETHVERT ét-segments-navn for en sportsgren → `/viden` blev logget som sporten "viden", `/viden/[slug]` som en ARTIKEL, og `/ig` som sporten "ig". Sport-slugs slås nu op i sprogpakken (`/fodbold` → `soccer`). Gamle rækker beholder deres værdier — tal er først sammenlignelige fremadrettet.
 6. **Verificeret mod PROD D1** (`wrangler dev --remote`): båndene renderer (118 danskere · 91 universiteter · 11 sportsgrene · 0 nye denne uge), 14 unikke artikler uden gengangere, arkiv "Viser 1–18 af 18", `?side=99` giver pæn besked (ikke "Viser 25–18"), `/ig` → 301. Migration 036 KØRT mod remote (nødvendig FØR deploy, ellers fejler track-INSERT lydløst).
 
-**Bemærk**: annoncerne renderer intet i dag (`NEXT_PUBLIC_ADS_ENABLED` er ikke sat) — båndene står tættere indtil ads slås til. Datastribens 4. celle viser "0 nye" i off-season. **Ikke deployet** — kør `npm run deploy` når du er klar.
+**Bemærk**: annoncerne renderer intet i dag (`NEXT_PUBLIC_ADS_ENABLED` er ikke sat) — båndene står tættere indtil ads slås til. Datastribens 4. celle viser "0 nye" i off-season. **Deployet 2026-08-04** (Worker 12b14628); verificeret live: forsidens bånd, `/artikler` "Viser 1–18 af 18", `?side=99` pæn besked, `/ig` → 301, `/ads.txt` → 404 (afventer ID).
 
 ## 👉 Seneste arbejde (2026-08-03 #2) — UK-forberedelse (funktioner klar, IKKE aktiveret)
 **Mikkels beslutninger (denne session):** UK er første ekspansion · Mikkel self-editer UK ved launch (ingen redaktør-gate) · domæne LÅST til student-athlete.co.uk (studentathlete.co.uk er taget) · prep nu, launch FØRST efter DK's in-season-validering.
