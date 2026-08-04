@@ -175,6 +175,18 @@ export default async function AnalyticsPage({
           </section>
         </div>
 
+        {/* Trafikkilde — kun ankomster med ?kilde= eller utm_source */}
+        <section>
+          <h2 className="text-base font-bold text-ink mb-1">Kilder</h2>
+          <p className="text-xs text-muted mb-3">
+            Ankomster på mærkede links, fx Instagram-bio&apos;en (<code>?kilde=ig</code>). Besøg uden
+            mærke tælles ikke med her.
+          </p>
+          <div className="bg-paper rounded-lg border border-border divide-y divide-border">
+            <Table rows={data.bySource} keyCol="source" valCol="views" />
+          </div>
+        </section>
+
         {/* Klik */}
         <section>
           <h2 className="text-base font-bold text-ink mb-3">

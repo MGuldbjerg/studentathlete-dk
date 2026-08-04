@@ -158,6 +158,177 @@ export async function getArticles({
   } catch { return []; }
 }
 
+/**
+ * Antal artikler der matcher SAMME filtre som `getArticles`. Bruges til
+ * paginering på arkivsiden — derfor skal WHERE-delen holdes identisk med
+ * getArticles ovenfor, ellers viser sidetallet noget andet end listen.
+ */
+export async function countArticles({
+  q = "", sport = "",
+}: { q?: string; sport?: string } = {}): Promise<number> {
+  const db = await getDB();
+  if (!db) {
+    let filtered = MOCK_ARTICLES.filter((a) => a.published === 1);
+    if (q) {
+      const lq = q.toLowerCase();
+      filtered = filtered.filter(
+        (a) =>
+          a.title.toLowerCase().includes(lq) ||
+          (a.summary ?? "").toLowerCase().includes(lq) ||
+          (a.athlete_name ?? "").toLowerCase().includes(lq),
+      );
+    }
+    if (sport) filtered = filtered.filter((a) => a.sport === sport);
+    return filtered.length;
+  }
+  try {
+    const conditions: string[] = ["a.published = 1"];
+    const params: (string | number)[] = [];
+    if (q) {
+      conditions.push("(a.title LIKE ? OR a.summary LIKE ? OR at.name LIKE ?)");
+      params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+    }
+    if (sport) { conditions.push("at.sport = ?"); params.push(sport); }
+    const r = await db
+      .prepare(
+        `SELECT COUNT(*) AS n
+         FROM articles a
+         LEFT JOIN athletes at ON a.athlete_id = at.id
+         WHERE ${conditions.join(" AND ")}`
+      )
+      .bind(...params)
+      .all();
+    return Number((r.results?.[0] as { n?: number } | undefined)?.n ?? 0);
+  } catch { return 0; }
+}
+
+export interface SiteCounts {
+  athletes: number;
+  universities: number;
+  sports: number;
+  newThisWeek: number;
+}
+
+/**
+ * Tallene til forsidens datastribe. Kun størrelser vi FAKTISK har i basen —
+ * ingen personlige rekorder eller ranglister (se mockup-noten): antal aktive
+ * atleter, hvor mange universiteter de går på, hvor mange sportsgrene de
+ * fordeler sig over, og hvor mange artikler der er udkommet de sidste syv dage.
+ */
+export async function getSiteCounts(country?: string): Promise<SiteCounts> {
+  const db = await getDB();
+  const code = siteCountry(country);
+  if (!db) {
+    const active = MOCK_ATHLETES.filter((a) => a.active === 1);
+    return {
+      athletes: active.length,
+      universities: new Set(active.map((a) => a.university)).size,
+      sports: new Set(active.map((a) => a.sport)).size,
+      newThisWeek: 0,
+    };
+  }
+  try {
+    const [who, fresh] = await Promise.all([
+      db
+        .prepare(
+          `SELECT COUNT(*) AS athletes,
+                  COUNT(DISTINCT university) AS universities,
+                  COUNT(DISTINCT sport) AS sports
+           FROM athletes WHERE active = 1 AND home_country = ?`
+        )
+        .bind(code)
+        .first(),
+      db
+        .prepare(
+          `SELECT COUNT(*) AS n FROM articles
+           WHERE published = 1 AND country = ?
+             AND published_at >= datetime('now', '-7 days')`
+        )
+        .bind(code)
+        .first(),
+    ]);
+    return {
+      athletes: Number((who as { athletes?: number } | null)?.athletes ?? 0),
+      universities: Number((who as { universities?: number } | null)?.universities ?? 0),
+      sports: Number((who as { sports?: number } | null)?.sports ?? 0),
+      newThisWeek: Number((fresh as { n?: number } | null)?.n ?? 0),
+    };
+  } catch {
+    return { athletes: 0, universities: 0, sports: 0, newThisWeek: 0 };
+  }
+}
+
+export interface SportGroup {
+  sport: string;
+  athleteCount: number;
+  articles: Article[];
+}
+
+/**
+ * Artikler grupperet efter sport til forsidens tekstbånd. Ét opslag henter de
+ * seneste artikler bredt, ét henter atlet-antal pr. sport — grupperingen sker
+ * i JS, så vi undgår et opslag pr. sportsgren.
+ *
+ * `excludeIds` holder båndet fri af de artikler forsiden allerede har vist
+ * længere oppe; sportsgrene sorteres efter nyeste artikel.
+ */
+export async function getArticlesGroupedBySport({
+  sports = 4, perSport = 2, excludeIds = [], country,
+}: {
+  sports?: number; perSport?: number; excludeIds?: number[]; country?: string;
+} = {}): Promise<SportGroup[]> {
+  const db = await getDB();
+  const code = siteCountry(country);
+  if (!db) return [];
+  try {
+    const [recent, counts] = await Promise.all([
+      db
+        .prepare(
+          `SELECT ${ARTICLE_SELECT}
+           FROM articles a
+           LEFT JOIN athletes at ON a.athlete_id = at.id
+           WHERE a.published = 1 AND a.country = ? AND at.sport IS NOT NULL
+           ORDER BY a.published_at DESC LIMIT 60`
+        )
+        .bind(code)
+        .all(),
+      db
+        .prepare(
+          `SELECT sport, COUNT(*) AS n FROM athletes
+           WHERE active = 1 AND home_country = ? AND sport IS NOT NULL
+           GROUP BY sport`
+        )
+        .bind(code)
+        .all(),
+    ]);
+
+    const perSportCount = new Map<string, number>();
+    for (const row of (counts.results ?? []) as { sport: string; n: number }[]) {
+      perSportCount.set(row.sport, row.n);
+    }
+
+    const skip = new Set(excludeIds);
+    const grouped = new Map<string, Article[]>();
+    for (const a of (recent.results ?? []) as Article[]) {
+      if (!a.sport || skip.has(a.id)) continue;
+      const bucket = grouped.get(a.sport) ?? [];
+      if (bucket.length >= perSport) continue;
+      bucket.push(a);
+      grouped.set(a.sport, bucket);
+    }
+
+    // Rækkefølgen fra SQL er nyeste først, så Map'ens indsættelsesorden er
+    // allerede "sport med den friskeste artikel først".
+    return [...grouped.entries()]
+      .slice(0, sports)
+      .map(([sport, articles]) => ({
+        sport,
+        athleteCount: perSportCount.get(sport) ?? 0,
+        articles,
+      }));
+  } catch { return []; }
+}
+
 export async function getArticlesByAthleteId(
   athleteId: number, limit = 6
 ): Promise<Article[]> {

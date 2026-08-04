@@ -2,7 +2,7 @@
  * Unit-tests for analytics-hjælpere. Kør: npx tsx src/lib/_analytics-test.ts
  * (Ingen test-runner — bare asserts, exit 1 ved fejl.)
  */
-import { classify, deviceFromUA, isClickKind, hashVisitor } from "./analytics";
+import { classify, deviceFromUA, isClickKind, hashVisitor, normalizeSource } from "./analytics";
 
 let failed = 0;
 function ok(cond: boolean, msg: string) {
@@ -22,6 +22,36 @@ eq(classify("/skoler/foo"), { pageType: "school", sport: null }, "skole");
 eq(classify("/golf"), { pageType: "sport", sport: "golf" }, "sport-landing");
 eq(classify("/golf/rasmus-vinder"), { pageType: "article", sport: "golf" }, "artikel");
 eq(classify("/a/b/c"), { pageType: "other", sport: null }, "andet");
+
+// Sektioner må ALDRIG blive til opfundne sportsgrene (fejlen der loggede
+// /viden som sporten "viden" og den nedlagte /ig som sporten "ig").
+eq(classify("/viden"), { pageType: "guide", sport: null }, "viden-hub er ikke en sport");
+eq(classify("/viden/hvad-er-ncaa"), { pageType: "guide", sport: null }, "guide er ikke en artikel");
+eq(classify("/artikler"), { pageType: "archive", sport: null }, "arkivet");
+eq(classify("/atleter"), { pageType: "athlete", sport: null }, "atlet-oversigt");
+eq(classify("/ig"), { pageType: "other", sport: null }, "ukendt ét-segment → other, ikke sport");
+eq(classify("/noget-vrøvl"), { pageType: "other", sport: null }, "ukendt navn opfinder ingen sport");
+eq(classify("/noget/vrøvl"), { pageType: "other", sport: null }, "ukendt sport → ikke artikel");
+
+// Læser-slug oversættes til den kanoniske nøgle, så analytics taler samme
+// sprog som databasen (/fodbold er soccer, ikke "fodbold").
+eq(classify("/fodbold"), { pageType: "sport", sport: "soccer" }, "dansk slug → kanonisk nøgle");
+eq(
+  classify("/fodbold/emil-bak-scorer"),
+  { pageType: "article", sport: "soccer" },
+  "artikel under dansk sport-slug",
+);
+eq(classify("/svoemning"), { pageType: "sport", sport: "swimming-and-diving" }, "svømning");
+
+// normalizeSource
+eq(normalizeSource("ig"), "ig", "simpel kilde");
+eq(normalizeSource("IG"), "ig", "små bogstaver");
+eq(normalizeSource("news letter!"), "newsletter", "tegn uden for [a-z0-9_-] fjernes");
+eq(normalizeSource("utm_source-1"), "utm_source-1", "understreg og bindestreg beholdes");
+eq(normalizeSource("!!!"), null, "kun ugyldige tegn → null");
+eq(normalizeSource(""), null, "tom streng → null");
+eq(normalizeSource(null), null, "null → null");
+eq(normalizeSource("x".repeat(80)), "x".repeat(40), "afkortes til 40 tegn");
 
 // deviceFromUA
 eq(deviceFromUA("Mozilla/5.0 (iPhone)"), "mobile", "iphone=mobile");

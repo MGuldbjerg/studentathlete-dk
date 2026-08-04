@@ -52,7 +52,27 @@ async function athleteAliasRedirect(req: NextRequest): Promise<URL | null> {
   }
 }
 
+/**
+ * Nedlagte stier der skal føre et sted hen permanent. Samme begrundelse som
+ * atlet-aliasserne ovenfor: et redirect() inde i siden når aldrig at sætte
+ * statuskoden, fordi loading.tsx allerede har streamet en 200 — Next falder da
+ * tilbage til et `<meta http-equiv="refresh">`, som crawlere behandler langt
+ * svagere end en 301.
+ *
+ * `/ig` var Instagram-bio'ens egen landingsside; arkivet gør nu det samme,
+ * responsivt og indekserbart. Kilden bevares som ?kilde=, så et gammelt
+ * bio-link stadig kan tælles.
+ */
+const GONE_PATHS: Record<string, string> = {
+  "/ig": "/artikler?kilde=ig",
+};
+
 export async function middleware(req: NextRequest) {
+  const gone = GONE_PATHS[req.nextUrl.pathname.replace(/\/+$/, "") || "/"];
+  if (gone) {
+    return NextResponse.redirect(new URL(gone, req.nextUrl.origin), 301);
+  }
+
   const host = (req.headers.get("host") ?? "").toLowerCase();
 
   // Lokal udvikling (next dev / wrangler dev) røres ikke.

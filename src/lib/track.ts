@@ -5,7 +5,7 @@
  */
 
 export type TrackPayload =
-  | { type: "pageview"; path: string; referrer?: string }
+  | { type: "pageview"; path: string; referrer?: string; source?: string }
   | { type: "click"; path: string; clickKind: string; clickTarget?: string };
 
 export function track(payload: TrackPayload): void {

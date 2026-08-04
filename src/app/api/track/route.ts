@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isbot } from "isbot";
 import { getDB, getEnv } from "@/lib/db";
-import { classify, deviceFromUA, hashVisitor, isClickKind } from "@/lib/analytics";
+import { classify, deviceFromUA, hashVisitor, isClickKind, normalizeSource } from "@/lib/analytics";
 import { isKnownHost } from "@/lib/site";
 
 // Værterne kommer fra landeprofilerne (src/lib/site.ts) — ikke en konstant her.
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       referrer?: string;
       clickKind?: string;
       clickTarget?: string;
+      source?: string;
     } | null;
     if (!body || typeof body.path !== "string") return ack();
 
@@ -88,13 +89,17 @@ export async function POST(req: NextRequest) {
         ? body.clickTarget.slice(0, 300)
         : null;
 
+    // Trafikkilde (?kilde=/utm_source) — kun på landings-sidevisningen, og kun
+    // som saniteret kanalnavn, aldrig rå tekst fra URL'en.
+    const source = type === "pageview" ? normalizeSource(body.source) : null;
+
     await db
       .prepare(
         `INSERT INTO events
-           (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+           (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(type, path, pageType, sport, referrer, country, device, visitorHash, clickKind, clickTarget)
+      .bind(type, path, pageType, sport, referrer, country, device, visitorHash, clickKind, clickTarget, source)
       .run();
 
     return ack();

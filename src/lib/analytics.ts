@@ -6,22 +6,57 @@
  * besøgende kan tælles som unik pr. dag uden at kunne identificeres eller
  * spores på tværs af dage.
  */
+import { sportKeyFromSlug } from "./i18n";
 
 // ── Sidetype-klassificering (flyttet fra middleware.ts) ──────────────────────
-/** Afgør sidetype og sport ud fra URL-sti. */
+
+/** Faste sektioner. Alt andet med ét segment PRØVES som en sportsgren. */
+const SECTIONS: Record<string, string> = {
+  atleter: "athlete",
+  skoler: "school",
+  viden: "guide",
+  artikler: "archive",
+};
+
+/**
+ * Afgør sidetype og sport ud fra URL-sti.
+ *
+ * Tidligere blev ETHVERT ét-segments-navn regnet for en sportsgren, så /viden
+ * og den nu nedlagte /ig blev logget som sportsgrene ved navn "viden" og "ig"
+ * — og /viden/[slug] som en ARTIKEL i sporten "viden". Sport-nøglen slås derfor
+ * nu op i sprogpakkens slug-tabel (/fodbold → soccer), og ukendte navne bliver
+ * "other" i stedet for at opfinde en sportsgren.
+ *
+ * NB: gamle rækker beholder deres oprindelige værdier — tallene er først
+ * sammenlignelige fremadrettet.
+ */
 export function classify(path: string): { pageType: string; sport: string | null } {
   if (path === "/") return { pageType: "home", sport: null };
   const parts = path.split("/").filter(Boolean);
   if (parts.length === 0) return { pageType: "home", sport: null };
 
-  if (parts[0] === "atleter") return { pageType: "athlete", sport: null };
-  if (parts[0] === "skoler") return { pageType: "school", sport: null };
+  const section = SECTIONS[parts[0]];
+  if (section) return { pageType: section, sport: null };
+
+  // Sport-slugs er læservendte (/fodbold), nøglen i basen er kanonisk (soccer).
+  const sport = sportKeyFromSlug(parts[0]);
 
   // /[sport]/[slug] → artikel   /[sport] → sport-landingsside
-  if (parts.length === 2) return { pageType: "article", sport: parts[0] };
-  if (parts.length === 1) return { pageType: "sport", sport: parts[0] };
+  if (parts.length === 2 && sport) return { pageType: "article", sport };
+  if (parts.length === 1 && sport) return { pageType: "sport", sport };
 
   return { pageType: "other", sport: null };
+}
+
+/**
+ * Saniteret trafikkilde fra `?kilde=` (eller `utm_source`). Vi gemmer et
+ * kanalnavn, ikke fri tekst: små bogstaver, kun [a-z0-9_-], maks 40 tegn.
+ * Returnerer null når der intet brugbart er.
+ */
+export function normalizeSource(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const clean = raw.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+  return clean.length > 0 ? clean : null;
 }
 
 /** Udled enhedstype fra User-Agent. */
@@ -75,6 +110,7 @@ export interface AnalyticsData {
   bySport: Row[];
   byDevice: Row[];
   byCountry: Row[];
+  bySource: Row[];
   clicksByKind: Row[];
   topClickTargets: Row[];
 }
@@ -85,7 +121,7 @@ const PV = "FROM events WHERE event_type='pageview' AND DATE(created_at) BETWEEN
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getAnalytics(db: any, from: string, to: string): Promise<AnalyticsData> {
   const p: [string, string] = [from, to];
-  const [totals, uniques, topPages, byType, bySport, byDevice, byCountry, clicksByKind, topClickTargets] =
+  const [totals, uniques, topPages, byType, bySport, byDevice, byCountry, bySource, clicksByKind, topClickTargets] =
     await Promise.all([
       rows(db, `SELECT COUNT(*) AS total, COUNT(DISTINCT DATE(created_at)) AS days ${PV}`, p),
       // Daglig salt ⇒ unik pr. dag; et interval = summen af daglige unikke.
@@ -109,6 +145,14 @@ export async function getAnalytics(db: any, from: string, to: string): Promise<A
       rows(
         db,
         `SELECT COALESCE(country, 'Ukendt') AS country, COUNT(*) AS views ${PV} GROUP BY country ORDER BY views DESC LIMIT 5`,
+        p
+      ),
+      // Kun ankomster med en eksplicit ?kilde=/utm_source. Alt andet er
+      // "direkte eller ukendt" og tælles ikke med her.
+      rows(
+        db,
+        `SELECT source, COUNT(*) AS views ${PV} AND source IS NOT NULL
+         GROUP BY source ORDER BY views DESC LIMIT 10`,
         p
       ),
       rows(
@@ -136,6 +180,7 @@ export async function getAnalytics(db: any, from: string, to: string): Promise<A
     bySport,
     byDevice,
     byCountry,
+    bySource,
     clicksByKind,
     topClickTargets,
   };

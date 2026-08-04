@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSiteSettings } from "@/lib/admin";
 
 import { sportNav } from "@/lib/i18n";
+import { ARCHIVE_PATH } from "@/lib/routes";
 export async function Footer() {
   const settings = await getSiteSettings();
   return (
@@ -47,6 +48,11 @@ export async function Footer() {
             Om os
           </h5>
           <ul className="space-y-1.5">
+            <li>
+              <Link href={ARCHIVE_PATH} className="text-white/60 text-sm hover:text-white transition-colors">
+                Alle artikler
+              </Link>
+            </li>
             <li>
               <Link href="/atleter" className="text-white/60 text-sm hover:text-white transition-colors">
                 Alle atleter

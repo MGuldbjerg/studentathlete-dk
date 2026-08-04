@@ -1,6 +1,27 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-07-08 (atletprofil-tekster udkast→godkend + juridisk vurdering; UNCOMMITTET ved skrivning)
+**Sidst opdateret**: 2026-08-03 (UK-forberedelse: sprogpakke + landeprofil, commit fa24ea1)
+
+## 👉 Seneste arbejde (2026-08-03 #2) — UK-forberedelse (funktioner klar, IKKE aktiveret)
+**Mikkels beslutninger (denne session):** UK er første ekspansion · Mikkel self-editer UK ved launch (ingen redaktør-gate) · domæne LÅST til student-athlete.co.uk (studentathlete.co.uk er taget) · prep nu, launch FØRST efter DK's in-season-validering.
+
+**Bygget (commit fa24ea1, alle tests grønne, tsc ren, INGEN adfærdsændring på live-sitet):**
+1. **`src/lib/i18n/en.ts`** — engelsk (britisk) sprogpakke: soccer→"Football" på slugget `/football`, amerikansk fodbold→`/american-football`, atletik→"Athletics", britiske stavemåder (centre-back, defenceman, metre). Registreret i `LANGUAGES`.
+2. **`src/lib/countries/uk.ts`** — UK-landeprofil, **BEVIDST IKKE registreret i `COUNTRIES`** (én linje = næste scrape indsætter ~1.000 UK-atleter i live `athletes`; aktiverings-checkliste står i filens header). Klassifikation er markers-først ("X, England"-formater — verificeret mod 40 rigtige katalog-rækker); byliste kun navne UDEN US/CA-navnebror (bar "London" klassificeres bevidst ikke); guards mod New South Wales/New England/canadiske provinser/nations-highschools. `code: "UK"` (matcher katalogets vokabular, ikke ISO's GB).
+3. **`src/lib/profile-baseline-en.ts`** — engelsk profil-grammatik (registreret i `PROFILE_BUILDERS`): a/an-artikler, rolle-normalisering ("as a freestyle swimmer", "vault specialist"), "American football" m. stort A, "California" (ikke "Californien"), UK-nationssuffiks strippes fra hjemby.
+4. **Tests**: `pipeline/lib/_hometown-uk-test.ts` (57) + `src/lib/_profile-baseline-en-test.ts` (32); `_positions-test.ts` håndhæver nu positionPhrase-completeness for ALLE registrerede sprog. Begge nye suiter i `ci.yml`.
+
+**Research-fund inden Mikkel afbrød domæne-sporet (gem til launch):** `studentathlete.co.uk` er registreret (2021, fornyet til feb 2027, registrant redacted) men DØD — nameservers (thundercloud.uk) svarer ikke, intet hostet siden ~2016 → ingen aktiv konkurrent; evt. opkøbelig. **Katalog-tal**: UK = 972 rå rækker (DK = 62 rå vs 138 kuraterede → reel UK-pulje snarere 1.200–2.000 = 10–15× DK's review-load, IKKE de gamle ~760). Sport-split: soccer ~476 (D2-tung!), golf ~132, tennis ~105, atletik ~95. Ireland = 111, ALDRIG poolet under UK-brand.
+
+**Mangler før UK-aktivering** (jf. `ARKITEKTUR-motor.md` + header i `countries/uk.ts`):
+- [ ] Domæne købt + CF-zone + wrangler-route
+- [ ] Engelske genererings-prompts (`pipeline/generate/prompts/` er hardcodet "Skriv ALTID på dansk")
+- [ ] ~400 danske UI-strenge i JSX + danske route-mapper (`/atleter`, `/viden`, `/skoler`) + sprog-pr-request-context
+- [ ] Throttle-strategi for review-load (10–15× DK — fx D1-only eller top-sports ved launch)
+- [ ] DK in-season-validering bestået + Mikkels go
+
+## 👉 Seneste arbejde (2026-08-03 #1) — motor-refaktor (kerne/sprog/land)
+Migration 034+035 kørt mod prod + deployet. **`ARKITEKTUR-motor.md` i repo-roden er den autoritative reference** (tre lag; databasen taler ikke dansk; nationalitet er en kolonne; ingen vært som konstant; alt læservendt gennem `sportLabel()`).
 
 ## 👉 Seneste arbejde (2026-07-08) — profiltekster (udkast→godkend) + juridisk vurdering
 **Mikkels krav:** kort profiltekst pr. atlet, bygget af VORES egen hårde information (roster-fakta + kildebelagte athlete_events) — freshman får "startede på X"-linje, sommer-job udvider til karriere-resumé sæson for sæson. **ALT går gennem udkast→godkendelse — "mennesker læser alt der publiceres" gælder OGSÅ regelbaseret skabelon-tekst** (Mikkel 2026-07-08; profile_summary skrives KUN af admin-godkendelsen).

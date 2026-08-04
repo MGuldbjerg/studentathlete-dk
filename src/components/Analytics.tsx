@@ -14,10 +14,26 @@ import { track } from "@/lib/track";
 export function Analytics() {
   const pathname = usePathname();
 
-  // Sidevisning pr. sti
+  // Sidevisning pr. sti.
+  // Kilden (?kilde=ig fra fx Instagram-bio'en, eller utm_source fra en
+  // kampagne) sendes med den sidevisning hvor parameteren rent faktisk står i
+  // URL'en — altså landingen. Efterfølgende klik rundt på sitet er "direkte",
+  // og det er med vilje: vi tæller ankomster, ikke sessioner.
   useEffect(() => {
     if (pathname.startsWith("/admin")) return;
-    track({ type: "pageview", path: pathname, referrer: document.referrer || undefined });
+    let source: string | undefined;
+    try {
+      const qs = new URLSearchParams(window.location.search);
+      source = qs.get("kilde") ?? qs.get("utm_source") ?? undefined;
+    } catch {
+      /* ignorér */
+    }
+    track({
+      type: "pageview",
+      path: pathname,
+      referrer: document.referrer || undefined,
+      source,
+    });
   }, [pathname]);
 
   // Klik-tracking (delegeret, monteres én gang)
