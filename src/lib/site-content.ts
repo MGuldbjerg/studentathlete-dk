@@ -58,9 +58,38 @@ export const SITE_CONTENT: SettingDef[] = [
     help: "Slå TIL når annoncer/tracking-cookies aktiveres. Banneret vises kun når dette er slået til (sitet er ellers cookieløst).",
     default: "false",
   },
+  {
+    key: "adsense.publisher_id",
+    group: "Annoncer",
+    label: "AdSense publisher-ID",
+    type: "text",
+    help:
+      "Fra AdSense (ca-pub-…). Udfylder BÅDE /ads.txt og verifikations-metatagget. " +
+      "Tom = intet af delene udsendes. NB: dette viser IKKE annoncer — det beviser kun " +
+      "at sitet er dit. Annoncer kræver NEXT_PUBLIC_ADS_ENABLED + samtykkeboksen slået til.",
+    default: "",
+  },
 ];
 
 export const SETTING_KEYS = new Set(SITE_CONTENT.map((s) => s.key));
+
+/**
+ * AdSense-ID'et skrives forskelligt de to steder det bruges:
+ *  · metatagget vil have kontoformen  `ca-pub-123…`
+ *  · ads.txt vil have sælger-formen   `pub-123…`  (uden ca-)
+ * Mikkel skal kunne indsætte ID'et præcis som AdSense viser det, så
+ * normaliseringen sker her i stedet for at være en regel han skal huske.
+ */
+export function adsenseIds(raw: string | undefined | null): {
+  account: string;
+  seller: string;
+} | null {
+  const v = (raw ?? "").trim();
+  if (!v) return null;
+  const digits = v.replace(/^ca-/i, "").replace(/^pub-/i, "");
+  if (!/^\d{10,25}$/.test(digits)) return null;
+  return { account: `ca-pub-${digits}`, seller: `pub-${digits}` };
+}
 
 export function siteDefaults(): Record<string, string> {
   return Object.fromEntries(SITE_CONTENT.map((s) => [s.key, s.default]));

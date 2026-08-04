@@ -9,6 +9,7 @@ import { Analytics } from "@/components/Analytics";
 import { CookieConsent } from "@/components/CookieConsent";
 import { BASE_URL } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/admin";
+import { adsenseIds } from "@/lib/site-content";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,6 +44,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getSiteSettings();
+  const adsense = adsenseIds(settings["adsense.publisher_id"]);
   return (
     <html lang="da">
       <head>
@@ -52,6 +54,11 @@ export default async function RootLayout({
           title="StudentAthlete.dk"
           href="/feed.xml"
         />
+        {/* AdSense-ejerskabsverifikation. Kun et navneskilt — indlæser INTET
+            script og sætter ingen cookies, så sitet forbliver cookieløst indtil
+            annoncer reelt slås til. Udfyldes i admin → Tekster; tomt felt =
+            intet tag. Se også /ads.txt, som bærer samme ID. */}
+        {adsense && <meta name="google-adsense-account" content={adsense.account} />}
         {/* Cloudflare Web Analytics (klient-side backup til D1-tracking)
             Token hentes i: CF Dashboard → Analytics → Web Analytics → Add site
             Aktiver ved at uncommente linjen nedenfor og indsætte din token: */}
