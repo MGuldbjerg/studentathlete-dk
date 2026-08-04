@@ -48,6 +48,13 @@ eq(
   "nøglen findes præcis én gang",
 );
 eq(new Set(SITE_CONTENT.map((s) => s.key)).size, SITE_CONTENT.length, "ingen dublet-nøgler i registret");
+eq(SETTING_KEYS.has("adsense.enabled"), true, "script-kontakten er i SETTING_KEYS");
+eq(siteDefaults()["adsense.enabled"], "false", "scriptet er slukket som standard — det indlæser tredjeparts-JS");
+eq(
+  SITE_CONTENT.find((s) => s.key === "adsense.enabled")?.type,
+  "bool",
+  "script-kontakten er en bool (afkrydsning i admin)",
+);
 
 console.log(`\nsite-content: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

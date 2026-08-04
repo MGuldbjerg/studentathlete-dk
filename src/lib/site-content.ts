@@ -69,6 +69,17 @@ export const SITE_CONTENT: SettingDef[] = [
       "at sitet er dit. Annoncer kræver NEXT_PUBLIC_ADS_ENABLED + samtykkeboksen slået til.",
     default: "",
   },
+  {
+    key: "adsense.enabled",
+    group: "Annoncer",
+    label: "Indlæs AdSense-scriptet",
+    type: "bool",
+    help:
+      "TÆNDER annoncer (auto ads) OG Googles samtykkeboks — begge dele kommer med samme script. " +
+      "Kræver at publisher-ID'et ovenfor er udfyldt. Sitet holder op med at være cookieløst når " +
+      "denne slås til. Slå den fra igen for at fjerne alt Google-JS uden et deploy.",
+    default: "false",
+  },
 ];
 
 export const SETTING_KEYS = new Set(SITE_CONTENT.map((s) => s.key));

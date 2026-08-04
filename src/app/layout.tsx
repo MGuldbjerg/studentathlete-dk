@@ -45,6 +45,7 @@ export default async function RootLayout({
 }>) {
   const settings = await getSiteSettings();
   const adsense = adsenseIds(settings["adsense.publisher_id"]);
+  const adsScript = settings["adsense.enabled"] === "true";
   return (
     <html lang="da">
       <head>
@@ -59,6 +60,24 @@ export default async function RootLayout({
             annoncer reelt slås til. Udfyldes i admin → Tekster; tomt felt =
             intet tag. Se også /ads.txt, som bærer samme ID. */}
         {adsense && <meta name="google-adsense-account" content={adsense.account} />}
+
+        {/* AdSense-scriptet. Ét tag leverer TRE ting: auto ads, Googles
+            certificerede CMP (samtykkeboksen serveres af auto-ads-scriptet —
+            der skal ikke tilføjes CMP-kode), og ejerskabsverifikation.
+
+            Derfor er vores egen CookieConsent slået fra: to samtykkedialoger er
+            værre end én, og kun Googles er TCF-certificeret (krav i EØS/UK for
+            personligt tilpassede annoncer).
+
+            Styres af admin → Tekster (`adsense.enabled`) og ikke af en env-var,
+            så det kan slukkes igen uden deploy hvis noget går galt. */}
+        {adsense && adsScript && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsense.account}`}
+            crossOrigin="anonymous"
+          />
+        )}
         {/* Cloudflare Web Analytics (klient-side backup til D1-tracking)
             Token hentes i: CF Dashboard → Analytics → Web Analytics → Add site
             Aktiver ved at uncommente linjen nedenfor og indsætte din token: */}
