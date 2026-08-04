@@ -5,6 +5,7 @@ import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminEditButton } from "@/components/AdminEditButton";
 import { BASE_URL, getOgImageUrl, breadcrumbStructuredData, formatDate } from "@/lib/seo";
 import { getPublishedGuideBySlug } from "@/lib/admin";
+import { currentSite } from "@/lib/site-server";
 import {
   getGuide,
   guideToMarkdown,
@@ -36,7 +37,8 @@ async function resolveGuide(slug: string): Promise<ResolvedGuide | null> {
       updated: new Date().toISOString().slice(0, 10),
     };
   }
-  const code = getGuide(slug);
+  const site = await currentSite();
+  const code = getGuide(slug, site.language);
   if (code) {
     return {
       title: code.title,
@@ -50,13 +52,14 @@ async function resolveGuide(slug: string): Promise<ResolvedGuide | null> {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const site = await currentSite();
   const { slug } = await params;
   const g = await resolveGuide(slug);
   if (!g) return { title: "Side ikke fundet" };
   const canonical = `${BASE_URL}/viden/${slug}`;
-  const ogImage = getOgImageUrl({ title: g.title, subtitle: "StudentAthlete.dk · Viden", type: "article" });
+  const ogImage = getOgImageUrl({ title: g.title, subtitle: site.brand, type: "article" });
   return {
-    title: `${g.title} | StudentAthlete.dk`,
+    title: `${g.title} | ${site.brand}`,
     description: g.description || undefined,
     alternates: { canonical },
     openGraph: {
@@ -64,7 +67,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       description: g.description || undefined,
       images: [{ url: ogImage, width: 1200, height: 630, alt: g.title }],
       type: "article",
-      siteName: "StudentAthlete.dk",
+      siteName: site.brand,
       url: canonical,
     },
     twitter: { card: "summary_large_image", title: g.title, description: g.description || undefined, images: [ogImage] },
@@ -73,6 +76,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function GuidePage({ params }: { params: Params }) {
+  const site = await currentSite();
   const { slug } = await params;
   const g = await resolveGuide(slug);
   if (!g) notFound();
@@ -93,8 +97,8 @@ export default async function GuidePage({ params }: { params: Params }) {
       dateModified: g.updated,
       mainEntityOfPage: url,
       url,
-      publisher: { "@type": "Organization", name: "StudentAthlete.dk", url: BASE_URL },
-      author: { "@type": "Organization", name: "StudentAthlete.dk" },
+      publisher: { "@type": "Organization", name: site.brand, url: BASE_URL },
+      author: { "@type": "Organization", name: site.brand },
     },
     breadcrumbStructuredData([
       { name: "Forside", url: BASE_URL },

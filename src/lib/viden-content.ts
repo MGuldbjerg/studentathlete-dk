@@ -15,6 +15,8 @@
  * ved ændringer.
  */
 
+import { VIDEN_GUIDES_EN, CATEGORY_LABELS_EN } from "./viden-content-en";
+
 export type GuideCategory = "system" | "begreber" | "saeson";
 
 export interface GuideSection {
@@ -742,10 +744,33 @@ export function guideToMarkdown(g: VidenGuide): string {
   return parts.join("\n\n");
 }
 
-export function getGuide(slug: string): VidenGuide | undefined {
+/**
+ * Guide på et givet sprog. Slugs er sprogafhængige (`hvad-er-ncaa` vs
+ * `what-is-the-ncaa`), så der slås op i sprogets egen liste — samme mønster
+ * som `getSportContent`.
+ */
+export function guidesFor(lang?: string): VidenGuide[] {
+  return (lang ?? "").toLowerCase() === "en" ? VIDEN_GUIDES_EN : VIDEN_GUIDES;
+}
+
+export function categoryLabels(lang?: string): Record<GuideCategory, string> {
+  return (lang ?? "").toLowerCase() === "en" ? CATEGORY_LABELS_EN : CATEGORY_LABELS;
+}
+
+export function getGuide(slug: string, lang?: string): VidenGuide | undefined {
+  const hit = guidesFor(lang).find((g) => g.slug === slug);
+  if (hit) return hit;
+  return legacyGetGuide(slug);
+}
+
+function legacyGetGuide(slug: string): VidenGuide | undefined {
   return VIDEN_GUIDES.find((g) => g.slug === slug);
 }
 
-export function getGuideSlugs(): string[] {
+export function getGuideSlugs(lang?: string): string[] {
+  return guidesFor(lang).map((g) => g.slug);
+}
+
+export function legacyGuideSlugs(): string[] {
   return VIDEN_GUIDES.map((g) => g.slug);
 }

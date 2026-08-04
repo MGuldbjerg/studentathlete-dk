@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSportColor } from "@/lib/types";
 import { SPORT_CONTENT } from "@/lib/sport-content";
-import { VIDEN_GUIDES, CATEGORY_LABELS, type GuideCategory } from "@/lib/viden-content";
+import { guidesFor, categoryLabels, type GuideCategory } from "@/lib/viden-content";
+import { currentLanguage } from "@/lib/site-server";
 import { getPublishedGuides } from "@/lib/admin";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
@@ -26,17 +27,18 @@ interface HubGuide {
 
 export default async function VidenPage() {
   // D1 (redigerbar) som primær; kode-guides som fallback.
+  const lang = await currentLanguage();
   const dbGuides = await getPublishedGuides();
   const guides: HubGuide[] = dbGuides.length
     ? dbGuides.map((g) => ({
         slug: g.slug,
         title: g.title,
         description: g.meta_description ?? "",
-        category: (g.category && g.category in CATEGORY_LABELS
+        category: (g.category && g.category in categoryLabels(lang)
           ? g.category
           : "system") as GuideCategory,
       }))
-    : VIDEN_GUIDES.map((g) => ({
+    : guidesFor(lang).map((g) => ({
         slug: g.slug,
         title: g.title,
         description: g.description,
@@ -64,7 +66,7 @@ export default async function VidenPage() {
         return (
           <section key={cat} className="mb-12">
             <h2 className="text-xl font-bold text-ink mb-5" style={{ fontFamily: "var(--font-serif)" }}>
-              {CATEGORY_LABELS[cat]}
+              {categoryLabels(lang)[cat]}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {inCat.map((guide) => (

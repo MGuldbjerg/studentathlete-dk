@@ -9,6 +9,7 @@
 import { LANGUAGES, t } from "./i18n";
 import type { UiKey } from "./i18n";
 import { getSportContent } from "./sport-content";
+import { guidesFor } from "./viden-content";
 
 let passed = 0;
 let failed = 0;
@@ -95,6 +96,26 @@ for (const lang of langs) {
         lang !== "en" || !/[æøåÆØÅ]/.test(content.title + content.intro + content.pillar),
         `${lang}: "${slug}" indeholder ikke dansk tekst`,
       );
+    }
+  }
+}
+
+// ── Viden-guider: samme antal på begge sprog, og intet dansk i den engelske ──
+{
+  const da = guidesFor("da");
+  const en = guidesFor("en");
+  ok(en.length === da.length, `lige mange guider på begge sprog (da ${da.length}, en ${en.length})`);
+  const enSlugs = new Set(en.map((g) => g.slug));
+  ok(enSlugs.size === en.length, "ingen dublet-slugs blandt de engelske guider");
+  for (const g of en) {
+    const text = [g.title, g.metaTitle, g.description, g.intro].join(" ");
+    ok(!/[æøåÆØÅ]/.test(text), `engelsk guide "${g.slug}" er ikke dansk`);
+    ok(g.sections.length >= 2, `engelsk guide "${g.slug}" har mindst to afsnit`);
+    ok((g.sources ?? []).length >= 1, `engelsk guide "${g.slug}" har mindst én kilde`);
+    // Interne henvisninger skal pege på guider der FINDES på samme sprog.
+    for (const r of g.related) {
+      const m = /^\/viden\/(.+)$/.exec(r.href);
+      if (m) ok(enSlugs.has(m[1]), `"${g.slug}" henviser til en engelsk guide der findes (${m[1]})`);
     }
   }
 }

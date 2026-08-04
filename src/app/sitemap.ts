@@ -55,7 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Viden-guider — D1 (redigerbar) som primær, kode-slugs som fallback
   const dbGuides = await getPublishedGuides();
-  const guideSlugs = dbGuides.length ? dbGuides.map((g) => g.slug) : getGuideSlugs();
+  const guideSlugs = dbGuides.length ? dbGuides.map((g) => g.slug) : getGuideSlugs(await currentLanguage());
   const guidePages: MetadataRoute.Sitemap = guideSlugs.map((slug) => ({
     url: `${BASE_URL}/viden/${slug}`,
     lastModified: new Date(),
