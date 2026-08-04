@@ -14,6 +14,15 @@
 - metatag på hver side → `<meta name="google-adsense-account" content="ca-pub-6062052231600117"/>`
 → Klar til at trykke «verificér» i AdSense.
 
+### ⚠️ KRAV FØR ANNONCER: Google-certificeret TCF-CMP (opdaget 2026-08-04)
+Google kræver en **Google-certificeret CMP integreret med IAB TCF v2.2** for at vise **personligt tilpassede annoncer** til brugere i EØS/UK (gældende 16. jan. 2024) og Schweiz (31. juli 2024). Kilde: `support.google.com/adsense/answer/13554020`.
+
+- **Vores egen `CookieConsent` opfylder det IKKE og kan ikke komme til det.** Den er en håndbygget to-knaps-boks der skriver `sa_consent`; der er ingen TC-streng, intet `__tcfapi`, ingen certificering. Vejen til compliance er ikke at udbygge den — det ville kræve at BLIVE en certificeret CMP.
+- **Løsningen når annoncer tændes: Googles egen «Privacy & messaging» (tidl. Funding Choices)** — Googles eget certificerede TCF-CMP, gratis, sættes op i AdSense-dashboardet. Passer $0-princippet. Tredjeparts-CMP'er (Cookiebot, Usercentrics m.fl.) koster penge.
+- **Konsekvens for vores banner:** når Googles CMP tændes, skal `consent.enabled` slås FRA — ellers får læseren to samtykkedialoger. Vores banner bliver overflødigt, ikke suppleret.
+- **RETTELSE af tidligere note:** ad-scripts skal IKKE gates på `sa_consent.marketing` — gating sker i den certificerede CMP. Den plan var forkert.
+- Rammer os først når annoncer faktisk serveres (`NEXT_PUBLIC_ADS_ENABLED` er ikke sat). Men da læserne er danske, er ~al trafik EØS — det gælder altså reelt fra dag ét med annoncer.
+
 **`consent.enabled` SLÅET TIL** samme dag (Mikkels ønske). Konsekvens: banneret vises nu, og sitet sætter dermed sin første cookie (`sa_consent` — strengt nødvendig, lovlig uden samtykke). **NB: banneret gater endnu ingenting** — AdSense-verifikationen er bevidst inert (ingen Google-JS), og `NEXT_PUBLIC_ADS_ENABLED` er ikke sat, så der loades stadig ingen marketing-scripts. Når ads tændes: ad-scripts SKAL læse `sa_consent.marketing` før de indlæses. Banneret er client-renderet (SSR viser intet med vilje) → kan kun ses i en browser, ikke med curl; `enabled:true` er bekræftet i sidens payload.
 
 ## 👉 Seneste arbejde (2026-08-04) — forsidens rytme, arkiv, kildemåling
