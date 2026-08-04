@@ -9,7 +9,12 @@
 
 **Begge styres af ÉT felt: admin → Tekster → «AdSense publisher-ID»** (`adsense.publisher_id`). `adsenseIds()` i `site-content.ts` normaliserer de to nødvendige former (`ca-pub-…` til metatagget, `pub-…` til ads.txt) og afviser vrøvl — en forkert ads.txt er værre end ingen. Tomt felt = 404 + intet tag (verificeret live).
 
-**👉 MIKKELS ENESTE SKRIDT:** indsæt ID'et fra AdSense i admin → Tekster. Virker med det samme, intet deploy. Derefter kan du trykke «verificér» i AdSense.
+**STATUS: ID'ET ER SAT** (2026-08-04, `ca-pub-6062052231600117`, skrevet til `site_content`). Verificeret live:
+- `https://studentathlete.dk/ads.txt` → `google.com, pub-6062052231600117, DIRECT, f08c47fec0942fa0`
+- metatag på hver side → `<meta name="google-adsense-account" content="ca-pub-6062052231600117"/>`
+→ Klar til at trykke «verificér» i AdSense.
+
+**`consent.enabled` SLÅET TIL** samme dag (Mikkels ønske). Konsekvens: banneret vises nu, og sitet sætter dermed sin første cookie (`sa_consent` — strengt nødvendig, lovlig uden samtykke). **NB: banneret gater endnu ingenting** — AdSense-verifikationen er bevidst inert (ingen Google-JS), og `NEXT_PUBLIC_ADS_ENABLED` er ikke sat, så der loades stadig ingen marketing-scripts. Når ads tændes: ad-scripts SKAL læse `sa_consent.marketing` før de indlæses. Banneret er client-renderet (SSR viser intet med vilje) → kan kun ses i en browser, ikke med curl; `enabled:true` er bekræftet i sidens payload.
 
 ## 👉 Seneste arbejde (2026-08-04) — forsidens rytme, arkiv, kildemåling
 **Baggrund:** forsiden var en væg af næsten ens blokke, fordi ALLE covers er det GENEREREDE kampkort (rigtige fotos findes kun på atletprofiler + inde i artikler). Mikkel spurgte om 3-5 korttyper; konklusionen blev **nej** — flere skabeloner ville lægge et valg oven i hver redigering uden at fjerne ensartetheden. I stedet: **rytme bestemt af pladsen på siden**. Mockup: `https://claude.ai/code/artifact/3f4d7a99-dbbf-455a-a3e8-019926001c85`.
