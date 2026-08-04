@@ -4,8 +4,11 @@ import { getSiteSettings } from "@/lib/admin";
 import { sportNav } from "@/lib/i18n";
 import { ARCHIVE_PATH } from "@/lib/routes";
 import { ConsentSettingsLink } from "./ConsentSettingsLink";
+import { currentLanguage } from "@/lib/site-server";
+import { t } from "@/lib/i18n";
 export async function Footer() {
   const settings = await getSiteSettings();
+  const lang = await currentLanguage();
   return (
     <footer style={{ backgroundColor: "#00205B" }} className="mt-16">
       {/* Rød streg øverst i footer */}
@@ -28,10 +31,10 @@ export async function Footer() {
         {/* Sportsgrene */}
         <div>
           <h5 className="text-white/80 text-sm font-semibold uppercase tracking-wider mb-3">
-            Sportsgrene
+            {t("footer.sports", lang)}
           </h5>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-            {sportNav().filter((s) => s.key !== "other").map((sport) => (
+            {sportNav(lang).filter((s) => s.key !== "other").map((sport) => (
               <Link
                 key={sport.slug}
                 href={`/${sport.slug}`}
@@ -46,52 +49,52 @@ export async function Footer() {
         {/* Links */}
         <div>
           <h5 className="text-white/80 text-sm font-semibold uppercase tracking-wider mb-3">
-            Om os
+            {t("footer.about", lang)}
           </h5>
           <ul className="space-y-1.5">
             <li>
               <Link href={ARCHIVE_PATH} className="text-white/60 text-sm hover:text-white transition-colors">
-                Alle artikler
+                {t("footer.all_articles", lang)}
               </Link>
             </li>
             <li>
               <Link href="/atleter" className="text-white/60 text-sm hover:text-white transition-colors">
-                Alle atleter
+                {t("footer.all_athletes", lang)}
               </Link>
             </li>
             <li>
               <Link href="/skoler" className="text-white/60 text-sm hover:text-white transition-colors">
-                Universiteter
+                {t("footer.universities", lang)}
               </Link>
             </li>
             <li>
               <Link href="/viden" className="text-white/60 text-sm hover:text-white transition-colors">
-                Viden om NCAA
+                {t("footer.knowledge", lang)}
               </Link>
             </li>
             <li>
               <Link href="/om" className="text-white/60 text-sm hover:text-white transition-colors">
-                Om StudentAthlete.dk
+                {t("footer.about_site", lang)}
               </Link>
             </li>
             <li>
               <Link href="/kontakt" className="text-white/60 text-sm hover:text-white transition-colors">
-                Kontakt
+                {t("footer.contact", lang)}
               </Link>
             </li>
             <li>
               <Link href="/ai-brug" className="text-white/60 text-sm hover:text-white transition-colors">
-                Sådan bruger vi AI
+                {t("footer.ai_use", lang)}
               </Link>
             </li>
             <li>
               <Link href="/presseetik" className="text-white/60 text-sm hover:text-white transition-colors">
-                Presseetik &amp; henvendelser
+                {t("footer.press_ethics", lang)}
               </Link>
             </li>
             <li>
               <Link href="/cookies" className="text-white/60 text-sm hover:text-white transition-colors">
-                Cookies
+                {t("footer.cookies", lang)}
               </Link>
             </li>
             {/* Leverer selv sit <li> — vises kun når Googles CMP er indlæst. */}

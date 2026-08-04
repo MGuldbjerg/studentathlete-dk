@@ -2,7 +2,8 @@ import { getDB, ARTICLE_SELECT } from "./db";
 import { generateSlug } from "./slug";
 import { buildMergeStatements } from "./athlete-merge";
 import type { Article, Athlete } from "./types";
-import { siteDefaults, SETTING_KEYS } from "./site-content";
+import { siteDefaults, SETTING_KEYS, settingScope, GLOBAL_SCOPE } from "./site-content";
+import { currentSite } from "./site-server";
 import { extractEvents, seasonFromDate } from "./athlete-events";
 
 // ─── DB-queries til admin ───────────────────────────────────────────────────
@@ -505,12 +506,30 @@ export async function getPublishedSportBySlug(slug: string): Promise<PageRow | n
 }
 
 /** Site-tekster/indstillinger: kode-defaults flettet med D1-overrides. */
-export async function getSiteSettings(): Promise<Record<string, string>> {
+/**
+ * Indstillinger for ET site. Landet udledes af requestens vært, så de seks
+ * kaldesteder (layout, footer, ads.txt, disclaimer, admin) ikke skal vide noget
+ * — de får automatisk det rigtige sites tekster.
+ *
+ * To scopes flettes (migration 037): først de globale rækker (`country = '*'`,
+ * fx AdSense-kontoen der dækker begge domæner), derefter landets egne, som
+ * vinder. Kode-defaults i bunden, som før.
+ */
+export async function getSiteSettings(country?: string): Promise<Record<string, string>> {
   const resolved = siteDefaults();
   const db = await getDB();
   if (!db) return resolved;
+  const code = (country ?? (await currentSite()).code).toUpperCase();
   try {
-    const r = await db.prepare("SELECT key, value FROM site_content").all();
+    const r = await db
+      .prepare(
+        `SELECT key, value, country FROM site_content
+         WHERE country = ? OR country = ?
+         ORDER BY CASE WHEN country = ? THEN 0 ELSE 1 END`,
+      )
+      .bind(GLOBAL_SCOPE, code, GLOBAL_SCOPE)
+      .all();
+    // Sorteringen sætter '*' først, så landets egen række overskriver den.
     for (const row of (r.results ?? []) as { key: string; value: string }[]) {
       if (row.key in resolved) resolved[row.key] = row.value;
     }
@@ -520,17 +539,28 @@ export async function getSiteSettings(): Promise<Record<string, string>> {
   return resolved;
 }
 
-/** Gem én override (kun kendte nøgler). */
-export async function upsertSetting(key: string, value: string): Promise<void> {
+/**
+ * Gem én override (kun kendte nøgler).
+ *
+ * Globale nøgler lander under '*' og gælder alle sites; alt andet gemmes på
+ * det site admin tilgås fra. Redigerer du UK-teksterne, skal du altså åbne
+ * admin på den britiske vært — samme mekanik som resten af motoren.
+ */
+export async function upsertSetting(key: string, value: string, country?: string): Promise<void> {
   if (!SETTING_KEYS.has(key)) return;
   const db = await getDB();
   if (!db) return;
+  const scope =
+    settingScope(key) === "global"
+      ? GLOBAL_SCOPE
+      : (country ?? (await currentSite()).code).toUpperCase();
   await db
     .prepare(
-      `INSERT INTO site_content (key, value, updated_at) VALUES (?, ?, datetime('now'))
-       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+      `INSERT INTO site_content (key, country, value, updated_at)
+       VALUES (?, ?, ?, datetime('now'))
+       ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
     )
-    .bind(key, value)
+    .bind(key, scope, value)
     .run();
 }
 

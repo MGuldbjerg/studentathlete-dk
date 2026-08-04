@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import { SearchBar } from "./SearchBar";
 import { AdminBarLink } from "./AdminBarLink";
+import { currentLanguage } from "@/lib/site-server";
+import { t } from "@/lib/i18n";
 
-export function Header() {
+export async function Header() {
+  const lang = await currentLanguage();
   return (
     <header>
       {/* Tynd rød top-streg */}
@@ -33,11 +36,11 @@ export function Header() {
               href="/atleter"
               className="text-sm font-medium text-white/70 hover:text-white transition-colors whitespace-nowrap"
             >
-              Atleter
+              {t("nav.athletes", lang)}
             </a>
             <div className="w-full max-w-sm">
               <Suspense fallback={null}>
-                <SearchBar />
+                <SearchBar placeholder={t("nav.search_placeholder", lang)} />
               </Suspense>
             </div>
           </div>

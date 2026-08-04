@@ -59,14 +59,15 @@ function SportIcon({ icon, size = 16 }: { icon: string; size?: number }) {
   );
 }
 
-export function CategoryNav() {
+// Klientkomponent: sproget kommer som prop fra layoutet (ingen request-kontekst her).
+export function CategoryNav({ lang, allLabel }: { lang?: string; allLabel?: string }) {
   const searchParams = useSearchParams();
   const activeSport = searchParams.get("sport") ?? "";
 
   return (
     <nav className="w-full overflow-x-auto border-b border-border bg-white scrollbar-hide sticky top-0 z-40">
       <div className="flex items-center min-w-max px-4 md:px-8 gap-1">
-        {sportNav().map((sport) => {
+        {sportNav(lang).map((sport) => {
           const sportColor = sport.slug ? getSportColor(sport.slug) : "#00205B";
 
           // "Alle" filtrerer på forsiden

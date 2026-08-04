@@ -3,7 +3,8 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { getArticles, countArticles } from "@/lib/db";
 import { BASE_URL } from "@/lib/seo";
 import { ARCHIVE_PATH, PAGE_PARAM } from "@/lib/routes";
-import { sportLabel, sportSlug, sportKeyFromSlug, sportNav } from "@/lib/i18n";
+import { sportLabel, sportSlug, sportKeyFromSlug, sportNav, t } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 
 /**
  * ARKIVET — alle artikler, pagineret.
@@ -39,25 +40,25 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { side, sport } = await searchParams;
   const page = parsePage(side);
-  const key = sport ? sportKeyFromSlug(sport) : null;
-  const name = key ? sportLabel(key) : null;
+  const lang = await currentLanguage();
+  const key = sport ? sportKeyFromSlug(sport, lang) : null;
+  const name = key ? sportLabel(key, lang) : null;
 
-  const title = name
-    ? `${name} — alle artikler${page > 1 ? ` (side ${page})` : ""}`
-    : `Alle artikler${page > 1 ? ` (side ${page})` : ""}`;
+  const base = name
+    ? t("archive.meta_title_sport", lang, { sport: name })
+    : t("archive.title", lang);
+  const title = page > 1 ? `${base} (${t("archive.meta_page", lang, { page })})` : base;
 
   // Kanonisk: side 1 uden parametre, øvrige sider med deres egne — ellers
   // konkurrerer sider om samme URL i indekset.
   const params = new URLSearchParams();
-  if (key) params.set("sport", sportSlug(key));
+  if (key) params.set("sport", sportSlug(key, lang));
   if (page > 1) params.set(PAGE_PARAM, String(page));
   const qs = params.toString();
 
   return {
     title,
-    description: name
-      ? `Alle artikler om danske ${name.toLowerCase()}-atleter i amerikansk college-sport.`
-      : "Alle artikler fra StudentAthlete.dk — danske college-atleter i USA, nyeste først.",
+    description: t("archive.meta_description", lang, { sport: name ? name.toLowerCase() : "" }),
     alternates: { canonical: `${BASE_URL}${ARCHIVE_PATH}${qs ? `?${qs}` : ""}` },
   };
 }
@@ -69,7 +70,8 @@ export default async function ArchivePage({
 }) {
   const { side, sport } = await searchParams;
   const page = parsePage(side);
-  const sportKey = sport ? sportKeyFromSlug(sport) : null;
+  const lang = await currentLanguage();
+  const sportKey = sport ? sportKeyFromSlug(sport, lang) : null;
   const filter = sportKey ?? "";
 
   const [articles, total] = await Promise.all([
@@ -91,7 +93,7 @@ export default async function ArchivePage({
     return `${ARCHIVE_PATH}${qs ? `?${qs}` : ""}`;
   }
 
-  const currentSlug = sportKey ? sportSlug(sportKey) : null;
+  const currentSlug = sportKey ? sportSlug(sportKey, lang) : null;
 
   return (
     <main>
@@ -99,21 +101,21 @@ export default async function ArchivePage({
         <div className="flex items-center gap-3">
           <span className="w-1 h-6 rounded-full" style={{ backgroundColor: "#BF0A30" }} />
           <h1 className="text-2xl font-bold text-ink" style={{ fontFamily: "var(--font-serif)" }}>
-            {sportKey ? sportLabel(sportKey) : "Alle artikler"}
+            {sportKey ? sportLabel(sportKey, lang) : t("archive.title", lang)}
           </h1>
         </div>
         <p className="mt-2 text-sm text-muted">
           {total === 0
-            ? "Ingen artikler endnu."
+            ? t("archive.none_yet", lang)
             : articles.length === 0
-              ? `Side ${page} findes ikke — der er ${total} artikler i alt.`
-              : `Viser ${from}–${to} af ${total} artikler. Nyeste først.`}
+              ? t("archive.page_missing", lang, { page, total })
+              : t("archive.showing", lang, { from, to, total })}
         </p>
       </div>
 
       {/* Sportsfilter */}
       <nav
-        aria-label="Filtrér efter sport"
+        aria-label={t("archive.filter_by_sport", lang)}
         className="flex gap-2 overflow-x-auto px-4 md:px-8 py-3 border-b border-border"
       >
         <a
@@ -124,9 +126,9 @@ export default async function ArchivePage({
               : "border-[#00205B] bg-[#00205B] text-white"
           }`}
         >
-          Alle
+          {t("archive.all", lang)}
         </a>
-        {sportNav()
+        {sportNav(lang)
           .filter((s) => s.key !== "other")
           .map((s) => (
             <a
@@ -145,9 +147,9 @@ export default async function ArchivePage({
 
       {articles.length === 0 ? (
         <div className="text-center py-20 text-muted">
-          <p className="text-lg font-medium mb-2">Ingen artikler på denne side.</p>
+          <p className="text-lg font-medium mb-2">{t("archive.none_on_page", lang)}</p>
           <a href={hrefFor(1, currentSlug)} className="text-sm underline" style={{ color: "#BF0A30" }}>
-            Tilbage til første side
+            {t("archive.back_to_first", lang)}
           </a>
         </div>
       ) : (
@@ -160,7 +162,7 @@ export default async function ArchivePage({
 
       {lastPage > 1 && (
         <nav
-          aria-label="Sider"
+          aria-label={t("archive.pages", lang)}
           className="flex items-center justify-between gap-4 px-4 md:px-8 py-8 border-t border-border"
         >
           {page > 1 ? (
@@ -169,14 +171,14 @@ export default async function ArchivePage({
               rel="prev"
               className="px-4 py-2.5 text-sm font-semibold border border-[#00205B] text-[#00205B] hover:bg-[#00205B] hover:text-white transition-colors"
             >
-              ← Nyere
+              {t("archive.newer", lang)}
             </a>
           ) : (
             <span />
           )}
 
           <span className="text-sm text-muted tabular-nums">
-            Side {page} af {lastPage}
+            {t("archive.page_x_of_y", lang, { page, last: lastPage })}
           </span>
 
           {page < lastPage ? (
@@ -185,7 +187,7 @@ export default async function ArchivePage({
               rel="next"
               className="px-4 py-2.5 text-sm font-semibold border border-[#00205B] text-[#00205B] hover:bg-[#00205B] hover:text-white transition-colors"
             >
-              Ældre →
+              {t("archive.older", lang)}
             </a>
           ) : (
             <span />

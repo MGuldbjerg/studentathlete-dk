@@ -14,6 +14,8 @@ import {
   getArticlesGroupedBySport,
 } from "@/lib/db";
 import { ARCHIVE_PATH } from "@/lib/routes";
+import { currentLanguage } from "@/lib/site-server";
+import { t } from "@/lib/i18n";
 
 interface SearchParams {
   q?: string;
@@ -51,6 +53,7 @@ export default async function HomePage({
   const q = params.q ?? "";
   const sport = params.sport ?? "";
   const hasFilter = Boolean(q || sport);
+  const lang = await currentLanguage();
 
   const [featured, articles, counts] = await Promise.all([
     hasFilter ? Promise.resolve([]) : getFeaturedArticles(5),
@@ -66,18 +69,18 @@ export default async function HomePage({
         <div className="px-4 md:px-8 py-5 border-b border-border">
           <div className="md:hidden mb-4">
             <Suspense fallback={null}>
-              <SearchBar defaultValue={q} />
+              <SearchBar defaultValue={q} placeholder={t("nav.search_placeholder", lang)} />
             </Suspense>
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 rounded-full" style={{ backgroundColor: "#BF0A30" }} />
               <h2 className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-serif)" }}>
-                {q ? `Søgeresultater for "${q}"` : sport.charAt(0).toUpperCase() + sport.slice(1)}
+                {q ? t("home.search_results_for", lang, { q }) : sport.charAt(0).toUpperCase() + sport.slice(1)}
               </h2>
             </div>
             <a href="/" className="text-sm text-muted hover:text-ink transition-colors">
-              Nulstil filter &times;
+              {t("home.clear_filter", lang)} &times;
             </a>
           </div>
         </div>
@@ -85,9 +88,9 @@ export default async function HomePage({
         <div className="px-4 md:px-8 py-8">
           {articles.length === 0 ? (
             <div className="text-center py-20 text-muted">
-              <p className="text-lg font-medium mb-2">Ingen artikler matcher din søgning.</p>
+              <p className="text-lg font-medium mb-2">{t("home.no_matches", lang)}</p>
               <a href="/" className="text-sm underline" style={{ color: "#BF0A30" }}>
-                Se alle artikler
+                {t("home.see_all_articles", lang)}
               </a>
             </div>
           ) : (
@@ -133,30 +136,42 @@ export default async function HomePage({
   return (
     <main>
       {/* A — hero */}
-      <Carousel articles={carouselArticles} />
+      <Carousel
+        articles={carouselArticles}
+        lang={lang}
+        strings={{
+          previous: t("carousel.previous", lang),
+          next: t("carousel.next", lang),
+          goTo: t("carousel.go_to", lang),
+          readTime: t("card.read_time", lang),
+          emptyKicker: t("carousel.empty_kicker", lang),
+          emptyTitle: t("carousel.empty_title", lang),
+          emptyBody: t("carousel.empty_body", lang),
+        }}
+      />
 
       <div className="px-4 md:px-8 py-5 border-b border-border">
         <div className="md:hidden mb-4">
           <Suspense fallback={null}>
-            <SearchBar defaultValue="" />
+            <SearchBar defaultValue="" placeholder={t("nav.search_placeholder", lang)} />
           </Suspense>
         </div>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-1 h-6 rounded-full" style={{ backgroundColor: "#BF0A30" }} />
             <h2 className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-serif)" }}>
-              Seneste artikler
+              {t("home.latest", lang)}
             </h2>
           </div>
           <a href={ARCHIVE_PATH} className="text-sm text-muted hover:text-ink transition-colors">
-            Se alle →
+            {t("home.see_all", lang)} →
           </a>
         </div>
       </div>
 
       {isEmpty ? (
         <div className="text-center py-20 text-muted">
-          <p className="text-lg font-medium">Ingen artikler endnu.</p>
+          <p className="text-lg font-medium">{t("home.no_articles", lang)}</p>
         </div>
       ) : (
         <>
@@ -195,7 +210,7 @@ export default async function HomePage({
               data-track="internal"
               className="px-6 py-3 text-sm font-semibold border border-[#00205B] text-[#00205B] hover:bg-[#00205B] hover:text-white transition-colors"
             >
-              Se alle artikler
+              {t("home.see_all_articles", lang)}
             </a>
           </div>
         </>

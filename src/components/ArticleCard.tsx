@@ -2,7 +2,8 @@ import type { Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
 
-import { sportLabel } from "@/lib/i18n";
+import { sportLabel, t } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 
 /**
  * Kortets fire tætheder. Forsiden veksler mellem dem, så to blokke i træk
@@ -24,7 +25,8 @@ interface ArticleCardProps {
   reverse?: boolean;
 }
 
-export function ArticleCard({ article, variant = "default", reverse = false }: ArticleCardProps) {
+export async function ArticleCard({ article, variant = "default", reverse = false }: ArticleCardProps) {
+  const lang = await currentLanguage();
   const typeLabel = ARTICLE_TYPE_LABELS[article.article_type] ?? article.article_type;
   const sportColor = getSportColor(article.sport);
   const readingTime = getReadingTime(article.content);
@@ -49,7 +51,7 @@ export function ArticleCard({ article, variant = "default", reverse = false }: A
             {article.athlete_name ? (
               <span className="font-semibold text-ink">{article.athlete_name}</span>
             ) : article.sport ? (
-              <span className="font-semibold text-ink">{sportLabel(article.sport)}</span>
+              <span className="font-semibold text-ink">{sportLabel(article.sport, lang)}</span>
             ) : null}
             {relTime && <span aria-hidden="true">·</span>}
             {relTime && <span>{relTime}</span>}
@@ -86,7 +88,7 @@ export function ArticleCard({ article, variant = "default", reverse = false }: A
                 className="inline-block px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white rounded-sm"
                 style={{ backgroundColor: sportColor }}
               >
-                {sportLabel(article.sport)}
+                {sportLabel(article.sport, lang)}
               </span>
             )}
             <span className="text-xs text-muted">{typeLabel}</span>
@@ -114,7 +116,7 @@ export function ArticleCard({ article, variant = "default", reverse = false }: A
             )}
             <span>{relTime}</span>
             <span aria-hidden="true">·</span>
-            <span>{readingTime} min. læsning</span>
+            <span>{t("card.read_time", lang, { n: readingTime })}</span>
           </div>
         </div>
       </a>
@@ -154,7 +156,7 @@ export function ArticleCard({ article, variant = "default", reverse = false }: A
                 className="inline-block px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white rounded-sm"
                 style={{ backgroundColor: sportColor }}
               >
-                {sportLabel(article.sport)}
+                {sportLabel(article.sport, lang)}
               </span>
             )}
             <span className="text-xs text-muted">{typeLabel}</span>
@@ -183,7 +185,7 @@ export function ArticleCard({ article, variant = "default", reverse = false }: A
               </span>
             )}
             <span className="text-xs text-muted">{relTime}</span>
-            <span className="text-xs text-muted">{readingTime} min. læsning</span>
+            <span className="text-xs text-muted">{t("card.read_time", lang, { n: readingTime })}</span>
           </div>
         </div>
       </a>
@@ -221,7 +223,7 @@ export function ArticleCard({ article, variant = "default", reverse = false }: A
               className="inline-block px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-white rounded-sm"
               style={{ backgroundColor: sportColor }}
             >
-              {sportLabel(article.sport)}
+              {sportLabel(article.sport, lang)}
             </span>
           )}
           <span className="text-xs text-muted">{typeLabel}</span>
@@ -253,7 +255,7 @@ export function ArticleCard({ article, variant = "default", reverse = false }: A
             </>
           )}
           <span>{relTime}</span>
-          <span className="ml-auto">{readingTime} min.</span>
+          <span className="ml-auto">{t("card.read_time_short", lang, { n: readingTime })}</span>
         </div>
       </div>
     </a>

@@ -196,6 +196,70 @@ const transliterate: Record<string, string> = {
   Å: "aa",
 };
 
+/**
+ * Læservendte strenge. `{x}`-pladsholdere udfyldes af `t()`.
+ * Dansk konvention: kun stort begyndelsesbogstav i overskrifter.
+ */
+const ui: LanguagePack["ui"] = {
+  "nav.athletes": "Atleter",
+  "nav.search_placeholder": "Søg efter atlet, skole …",
+  "footer.sports": "Sportsgrene",
+  "footer.about": "Om os",
+  "footer.all_articles": "Alle artikler",
+  "footer.all_athletes": "Alle atleter",
+  "footer.universities": "Universiteter",
+  "footer.knowledge": "Viden om NCAA",
+  "footer.about_site": "Om os",
+  "footer.contact": "Kontakt",
+  "footer.ai_use": "Sådan bruger vi AI",
+  "footer.press_ethics": "Presseetik & henvendelser",
+  "footer.cookies": "Cookies",
+  "footer.cookie_settings": "Cookieindstillinger",
+
+  "home.latest": "Seneste artikler",
+  "home.see_all": "Se alle",
+  "home.see_all_articles": "Se alle artikler",
+  "home.no_articles": "Ingen artikler endnu.",
+  "home.no_matches": "Ingen artikler matcher din søgning.",
+  "home.search_results_for": "Søgeresultater for «{q}»",
+  "home.clear_filter": "Nulstil filter",
+  "band.stats_label": "Sitet i tal",
+  "band.athletes_tracked": "Danskere fulgt",
+  "band.universities": "Universiteter",
+  "band.sports": "Sportsgrene",
+  "band.this_week": "Denne uge",
+  "band.new": "nye",
+  "band.by_sport": "Efter sport",
+  "band.all_athletes": "Alle atleter",
+  "band.athletes_count": "{n} atleter",
+
+  "archive.title": "Alle artikler",
+  "archive.meta_title_sport": "{sport} — alle artikler",
+  "archive.meta_page": "side {page}",
+  "archive.meta_description":
+    "Alle artikler fra StudentAthlete.dk — danske college-atleter i USA, nyeste først.",
+  "archive.showing": "Viser {from}–{to} af {total} artikler. Nyeste først.",
+  "archive.page_missing": "Side {page} findes ikke — der er {total} artikler i alt.",
+  "archive.none_yet": "Ingen artikler endnu.",
+  "archive.none_on_page": "Ingen artikler på denne side.",
+  "archive.back_to_first": "Tilbage til første side",
+  "archive.filter_by_sport": "Filtrér efter sport",
+  "archive.all": "Alle",
+  "archive.pages": "Sider",
+  "archive.page_x_of_y": "Side {page} af {last}",
+  "archive.newer": "← Nyere",
+  "archive.older": "Ældre →",
+
+  "card.read_time": "{n} min. læsning",
+  "card.read_time_short": "{n} min.",
+  "carousel.previous": "Forrige artikel",
+  "carousel.next": "Næste artikel",
+  "carousel.go_to": "Gå til artikel {n}",
+  "carousel.empty_kicker": "StudentAthlete.dk",
+  "carousel.empty_title": "Dansk dækning af student athletes i USA",
+  "carousel.empty_body": "Artikler er på vej — kom tilbage snart.",
+};
+
 export const da: LanguagePack = {
   code: "da",
   locale: "da-DK",
@@ -203,4 +267,5 @@ export const da: LanguagePack = {
   sportSlug,
   positionPhrase,
   transliterate,
+  ui,
 };

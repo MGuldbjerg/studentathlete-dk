@@ -8,6 +8,17 @@
  */
 export type SettingType = "text" | "textarea" | "bool";
 
+/**
+ * `site`   = værdien hører til ÉT site (dansk titel ≠ britisk titel).
+ * `global` = samme værdi for alle sites (én AdSense-konto dækker begge domæner).
+ *
+ * Gemmes i `site_content` med henholdsvis landekoden og '*' (migration 037).
+ */
+export type SettingScope = "site" | "global";
+
+/** Landekoden globale indstillinger gemmes under. */
+export const GLOBAL_SCOPE = "*";
+
 export interface SettingDef {
   key: string;
   group: string;
@@ -15,6 +26,12 @@ export interface SettingDef {
   type: SettingType;
   default: string;
   help?: string;
+  /** Udeladt = "site". */
+  scope?: SettingScope;
+}
+
+export function settingScope(key: string): SettingScope {
+  return SITE_CONTENT.find((s) => s.key === key)?.scope ?? "site";
 }
 
 export const SITE_CONTENT: SettingDef[] = [
@@ -57,6 +74,7 @@ export const SITE_CONTENT: SettingDef[] = [
     type: "bool",
     help: "Slå TIL når annoncer/tracking-cookies aktiveres. Banneret vises kun når dette er slået til (sitet er ellers cookieløst).",
     default: "false",
+    scope: "global",
   },
   {
     key: "adsense.publisher_id",
@@ -68,6 +86,7 @@ export const SITE_CONTENT: SettingDef[] = [
       "Tom = intet af delene udsendes. NB: dette viser IKKE annoncer — det beviser kun " +
       "at sitet er dit. Annoncer kræver NEXT_PUBLIC_ADS_ENABLED + samtykkeboksen slået til.",
     default: "",
+    scope: "global",
   },
   {
     key: "adsense.enabled",
@@ -79,6 +98,7 @@ export const SITE_CONTENT: SettingDef[] = [
       "Kræver at publisher-ID'et ovenfor er udfyldt. Sitet holder op med at være cookieløst når " +
       "denne slås til. Slå den fra igen for at fjerne alt Google-JS uden et deploy.",
     default: "false",
+    scope: "global",
   },
 ];
 

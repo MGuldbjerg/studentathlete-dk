@@ -6,8 +6,23 @@ import { getSportColor, ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
 
 import { sportLabel } from "@/lib/i18n";
-function SportTag({ sport, type }: { sport?: string | null; type?: string }) {
-  const label = sport ? sportLabel(sport) : type ? ARTICLE_TYPE_LABELS[type] : null;
+
+/** Strenge sendes ind: klientkomponenter har ingen request-kontekst at slå sprog op i. */
+export interface CarouselStrings {
+  previous: string;
+  next: string;
+  goTo: string;
+  readTime: string;
+  emptyKicker: string;
+  emptyTitle: string;
+  emptyBody: string;
+}
+
+function fill(tpl: string, n: number): string {
+  return tpl.replace("{n}", String(n));
+}
+function SportTag({ sport, type, lang }: { sport?: string | null; type?: string; lang?: string }) {
+  const label = sport ? sportLabel(sport, lang) : type ? ARTICLE_TYPE_LABELS[type] : null;
   if (!label) return null;
   const color = getSportColor(sport);
   return (
@@ -22,9 +37,11 @@ function SportTag({ sport, type }: { sport?: string | null; type?: string }) {
 
 interface CarouselProps {
   articles: Article[];
+  strings: CarouselStrings;
+  lang: string;
 }
 
-export function Carousel({ articles }: CarouselProps) {
+export function Carousel({ articles, strings, lang }: CarouselProps) {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -54,16 +71,16 @@ export function Carousel({ articles }: CarouselProps) {
       >
         <div className="text-center text-white px-8">
           <p className="text-sm uppercase tracking-widest mb-3" style={{ color: "#BF0A30" }}>
-            StudentAthlete.dk
+            {strings.emptyKicker}
           </p>
           <h2
             className="text-3xl md:text-5xl font-bold mb-4"
             style={{ fontFamily: "var(--font-serif)" }}
           >
-            Dansk dækning af student athletes i USA
+            {strings.emptyTitle}
           </h2>
           <p className="text-white/70 text-lg">
-            Artikler er på vej — kom tilbage snart.
+            {strings.emptyBody}
           </p>
         </div>
       </div>
@@ -110,7 +127,7 @@ export function Carousel({ articles }: CarouselProps) {
       <div className="absolute inset-0 flex flex-col justify-end px-6 md:px-16 pb-12">
         <div className="max-w-3xl">
           <div className="flex items-center gap-3 mb-3">
-            <SportTag sport={slide.sport} type={slide.article_type} />
+            <SportTag sport={slide.sport} type={slide.article_type} lang={lang} />
             {slide.athlete_name && (
               <span className="text-white/80 text-sm font-medium">{slide.athlete_name}</span>
             )}
@@ -134,7 +151,7 @@ export function Carousel({ articles }: CarouselProps) {
           {/* Relativ tid + læsetid */}
           <div className="flex items-center gap-3 text-white/50 text-sm">
             {relTime && <span>{relTime}</span>}
-            <span>{readTime} min. læsning</span>
+            <span>{fill(strings.readTime, readTime)}</span>
           </div>
         </div>
       </div>
@@ -145,7 +162,7 @@ export function Carousel({ articles }: CarouselProps) {
           <button
             onClick={prev}
             className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
-            aria-label="Forrige artikel"
+            aria-label={strings.previous}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15 18 9 12 15 6" />
@@ -154,7 +171,7 @@ export function Carousel({ articles }: CarouselProps) {
           <button
             onClick={next}
             className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
-            aria-label="Næste artikel"
+            aria-label={strings.next}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="9 18 15 12 9 6" />
@@ -177,7 +194,7 @@ export function Carousel({ articles }: CarouselProps) {
                   : "rgba(255,255,255,0.4)",
                 width: i === current ? "24px" : "8px",
               }}
-              aria-label={`Gå til artikel ${i + 1}`}
+              aria-label={strings.goTo.replace("{n}", String(i + 1))}
             />
           ))}
         </div>

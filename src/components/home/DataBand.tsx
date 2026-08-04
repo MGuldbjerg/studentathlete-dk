@@ -1,4 +1,6 @@
 import type { SiteCounts } from "@/lib/db";
+import { currentLanguage } from "@/lib/site-server";
+import { t } from "@/lib/i18n";
 
 /**
  * BÅND C — datastribe.
@@ -9,17 +11,18 @@ import type { SiteCounts } from "@/lib/db";
  * sportsgrene, ugens artikler) — ingen rekorder eller ranglister, som basen
  * ikke fører.
  */
-export function DataBand({ counts }: { counts: SiteCounts }) {
+export async function DataBand({ counts }: { counts: SiteCounts }) {
+  const lang = await currentLanguage();
   const cells: { value: number; suffix?: string; label: string }[] = [
-    { value: counts.athletes, label: "Danskere fulgt" },
-    { value: counts.universities, label: "Universiteter" },
-    { value: counts.sports, label: "Sportsgrene" },
-    { value: counts.newThisWeek, suffix: "nye", label: "Denne uge" },
+    { value: counts.athletes, label: t("band.athletes_tracked", lang) },
+    { value: counts.universities, label: t("band.universities", lang) },
+    { value: counts.sports, label: t("band.sports", lang) },
+    { value: counts.newThisWeek, suffix: t("band.new", lang), label: t("band.this_week", lang) },
   ];
 
   return (
     <section
-      aria-label="Sitet i tal"
+      aria-label={t("band.stats_label", lang)}
       className="grid grid-cols-2 md:grid-cols-4 text-white"
       style={{ backgroundColor: "#00205B" }}
     >

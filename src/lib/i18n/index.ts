@@ -9,7 +9,8 @@ import { da } from "./da";
 import { en } from "./en";
 import { SPORT_KEYS, type SportKey, isSportKey } from "../sports";
 
-export type { LanguagePack } from "./types";
+export type { LanguagePack, UiKey } from "./types";
+import type { UiKey } from "./types";
 
 export const LANGUAGES: Record<string, LanguagePack> = { da, en };
 
@@ -18,6 +19,26 @@ export const DEFAULT_LANGUAGE = "da";
 
 export function languagePack(code: string = DEFAULT_LANGUAGE): LanguagePack {
   return LANGUAGES[code] ?? LANGUAGES[DEFAULT_LANGUAGE];
+}
+
+/**
+ * Læservendt streng på et givet sprog, med `{navn}`-pladsholdere udfyldt.
+ *
+ *   t("archive.showing", "en", { from: 1, to: 18, total: 18 })
+ *   → "Showing 1–18 of 18 articles. Newest first."
+ *
+ * Ukendt nøgle kan ikke ske: `UiKey` er en union, så typechecken fanger det.
+ */
+export function t(
+  key: UiKey,
+  lang?: string,
+  vars?: Record<string, string | number>,
+): string {
+  const raw = languagePack(lang).ui[key];
+  if (!vars) return raw;
+  return raw.replace(/\{(\w+)\}/g, (m, name: string) =>
+    name in vars ? String(vars[name]) : m,
+  );
 }
 
 // ── Sport-opslag på et givet sprog ───────────────────────────────────────────

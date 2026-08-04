@@ -43,12 +43,52 @@ glemme halvdelen.
 
 ## Sådan tilføjer du et land
 
-1. Kopiér `src/lib/countries/dk.ts` → `de.ts`: byer, markører, vært, brand.
-2. Én linje i `COUNTRIES` i `countries/index.ts`.
-3. Route i `wrangler.toml`.
+> ⚠️ **Denne liste stod tidligere som tre trin — og det var forkert.** Ved
+> UK-launch (2026-08-04) viste det sig, at linjen i `COUNTRIES` er det FARLIGSTE
+> trin, ikke det nemmeste: i samme sekund et land er registreret, begynder
+> scraperen at indsætte dets atleter, og alt nedstrøms der IKKE filtrerer på
+> land, begynder at behandle dem som om de var danske. Rækkefølgen nedenfor er
+> bindende.
 
-Scraperen indsamler derefter for begge lande i samme kørsel — skolerne er de
-samme, kun klassifikationen adskiller sig.
+**Registrér FØRST landet i `COUNTRIES`, når 1–4 er på plads.**
+
+1. **Landeprofil**: kopiér `src/lib/countries/dk.ts`. Byer, markører,
+   false positives, vært, brand, kontakt.
+2. **Sprogpakke** (hvis sproget er nyt): `src/lib/i18n/<kode>.ts` + profil-
+   grammatik i `profile-builders.ts` + linje i `LANGUAGES`.
+3. **Prompts på sproget**: `pipeline/generate/prompts/<kode>.ts` + linje i
+   `prompts/index.ts`. Uden dette skrives artikler om landets atleter på
+   standardsitets sprog.
+4. **Læservendte strenge**: sprogpakkens `ui`-tabel + `site_content` for det nye
+   land (sidetitel, meta-beskrivelse, footer-tekst er PR. LAND, ikke globale).
+5. **Så**: én linje i `COUNTRIES` i `countries/index.ts`.
+6. Zone + DNS + route i `wrangler.toml`, og deploy.
+
+### Tjeklisten der fangede fejlen
+
+Før du registrerer et land: **find alt der læser `athletes` eller `articles`
+uden at filtrere på land.** Det er dér lækagen sker.
+
+```bash
+grep -rn "FROM athletes\|FROM articles" pipeline/ src/ --include=*.ts \
+  | grep -v "home_country\|a.country\|articles.country"
+```
+
+Ved UK-launch fandt netop dén kommando `pipeline/discover/check-sources.ts`,
+som vælger atleter på `active = 1` uden landefilter. Havde vi registreret UK
+først, ville discovery have fundet historier om briter, og genereringen — der
+dengang havde dansk prompt hardkodet — ville have lagt DANSKE artikler om
+britiske atleter i den danske kladdekø.
+
+**Konklusionen blev ikke at filtrere discovery.** Den skal være landeagnostisk:
+den overvåger skolefeeds, og en skole er interessant så snart den har én aktiv
+atlet, uanset nationalitet. Det er GENERERINGEN der skal kende landet, fordi
+det er dér sproget og sitet vælges. Samme skelnen gælder næste land: spørg for
+hvert sted i pipelinen "skal det her vide hvilket land, eller er det ligegyldigt?"
+— og filtrér kun dér hvor svaret er ja.
+
+Scraperen indsamler derefter for alle registrerede lande i samme kørsel —
+skolerne er de samme, kun klassifikationen adskiller sig.
 
 ## Hvad der bevidst IKKE er gjort endnu
 

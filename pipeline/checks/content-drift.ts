@@ -20,7 +20,8 @@ import { sportContentHash, guidesContentHash, SEED_HASH_KEYS } from "../lib/cont
 async function main(): Promise<void> {
   const db = createD1Client();
   const r = await db.query<{ key: string; value: string }>(
-    `SELECT key, value FROM site_content WHERE key IN (?, ?)`,
+    // country = 'DK': stemplet hører til de danske seed-tekster (migration 037).
+    `SELECT key, value FROM site_content WHERE key IN (?, ?) AND country = 'DK'`,
     [SEED_HASH_KEYS.sport, SEED_HASH_KEYS.guides],
   );
   const stamped: Record<string, string> = {};

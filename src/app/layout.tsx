@@ -10,6 +10,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { BASE_URL } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/admin";
 import { adsenseIds } from "@/lib/site-content";
+import { currentLanguage } from "@/lib/site-server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,8 +47,9 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
   const adsense = adsenseIds(settings["adsense.publisher_id"]);
   const adsScript = settings["adsense.enabled"] === "true";
+  const lang = await currentLanguage();
   return (
-    <html lang="da">
+    <html lang={lang}>
       <head>
         <link
           rel="alternate"
@@ -96,7 +98,7 @@ export default async function RootLayout({
         />
         <Header />
         <Suspense fallback={null}>
-          <CategoryNav />
+          <CategoryNav lang={lang} />
         </Suspense>
         <AdSlot slot="header-leaderboard" className="my-3" />
         {children}

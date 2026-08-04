@@ -185,6 +185,74 @@ const positionPhrase: Record<string, string> = {
  */
 const transliterate: Record<string, string> = {};
 
+/**
+ * Læservendte strenge. `{x}`-pladsholdere udfyldes af `t()`.
+ *
+ * NB `band.athletes_tracked`: den danske streng siger "Danskere fulgt", men
+ * engelsk dækker flere lande (UK i dag, evt. AU/IE senere), så her står den
+ * nationalitetsfri "Athletes tracked". Ellers skulle nationalitetsordet ligge
+ * i landeprofilen — unødigt for én linje.
+ */
+const ui: LanguagePack["ui"] = {
+  "nav.athletes": "Athletes",
+  "nav.search_placeholder": "Search for an athlete or school …",
+  "footer.sports": "Sports",
+  "footer.about": "About",
+  "footer.all_articles": "All articles",
+  "footer.all_athletes": "All athletes",
+  "footer.universities": "Universities",
+  "footer.knowledge": "About the NCAA",
+  "footer.about_site": "About us",
+  "footer.contact": "Contact",
+  "footer.ai_use": "How we use AI",
+  "footer.press_ethics": "Editorial standards & complaints",
+  "footer.cookies": "Cookies",
+  "footer.cookie_settings": "Cookie settings",
+
+  "home.latest": "Latest articles",
+  "home.see_all": "See all",
+  "home.see_all_articles": "See all articles",
+  "home.no_articles": "No articles yet.",
+  "home.no_matches": "No articles match your search.",
+  "home.search_results_for": "Search results for “{q}”",
+  "home.clear_filter": "Clear filter",
+  "band.stats_label": "The site in numbers",
+  "band.athletes_tracked": "Athletes tracked",
+  "band.universities": "Universities",
+  "band.sports": "Sports",
+  "band.this_week": "This week",
+  "band.new": "new",
+  "band.by_sport": "By sport",
+  "band.all_athletes": "All athletes",
+  "band.athletes_count": "{n} athletes",
+
+  "archive.title": "All articles",
+  "archive.meta_title_sport": "{sport} — all articles",
+  "archive.meta_page": "page {page}",
+  "archive.meta_description":
+    "Every article from Student-Athlete.co.uk — British college athletes in the United States, newest first.",
+  "archive.showing": "Showing {from}–{to} of {total} articles. Newest first.",
+  "archive.page_missing": "Page {page} does not exist — there are {total} articles in total.",
+  "archive.none_yet": "No articles yet.",
+  "archive.none_on_page": "No articles on this page.",
+  "archive.back_to_first": "Back to the first page",
+  "archive.filter_by_sport": "Filter by sport",
+  "archive.all": "All",
+  "archive.pages": "Pages",
+  "archive.page_x_of_y": "Page {page} of {last}",
+  "archive.newer": "← Newer",
+  "archive.older": "Older →",
+
+  "card.read_time": "{n} min read",
+  "card.read_time_short": "{n} min",
+  "carousel.previous": "Previous article",
+  "carousel.next": "Next article",
+  "carousel.go_to": "Go to article {n}",
+  "carousel.empty_kicker": "Student-Athlete.co.uk",
+  "carousel.empty_title": "British student athletes in the United States",
+  "carousel.empty_body": "Articles are on the way — check back soon.",
+};
+
 export const en: LanguagePack = {
   code: "en",
   locale: "en-GB",
@@ -192,4 +260,5 @@ export const en: LanguagePack = {
   sportSlug,
   positionPhrase,
   transliterate,
+  ui,
 };

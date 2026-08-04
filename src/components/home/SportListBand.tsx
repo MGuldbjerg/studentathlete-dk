@@ -1,7 +1,8 @@
 import type { SportGroup } from "@/lib/db";
 import { ArticleCard } from "@/components/ArticleCard";
 import { getSportColor } from "@/lib/types";
-import { sportLabel, sportSlug } from "@/lib/i18n";
+import { sportLabel, sportSlug, t } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 
 /**
  * BÅND E — efter sport, ren tekst.
@@ -10,8 +11,9 @@ import { sportLabel, sportSlug } from "@/lib/i18n";
  * hver række) i stedet for et kampkort, så de genererede kort aldrig står
  * flere rækker i træk. To spalter på desktop, én på mobil.
  */
-export function SportListBand({ groups }: { groups: SportGroup[] }) {
+export async function SportListBand({ groups }: { groups: SportGroup[] }) {
   if (groups.length === 0) return null;
+  const lang = await currentLanguage();
 
   // Fordel sportsgrenene skiftevis, så spalterne bliver nogenlunde lige lange.
   const columns: SportGroup[][] = [[], []];
@@ -22,10 +24,10 @@ export function SportListBand({ groups }: { groups: SportGroup[] }) {
       <div className="flex items-center gap-3 px-4 md:px-8 py-5">
         <span className="w-1 h-6 rounded-full" style={{ backgroundColor: "#BF0A30" }} />
         <h2 className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-serif)" }}>
-          Efter sport
+          {t("band.by_sport", lang)}
         </h2>
         <a href="/atleter" className="ml-auto text-sm text-muted hover:text-ink transition-colors">
-          Alle atleter →
+          {t("band.all_athletes", lang)} →
         </a>
       </div>
 
@@ -35,7 +37,7 @@ export function SportListBand({ groups }: { groups: SportGroup[] }) {
             {col.map((g) => (
               <div key={g.sport}>
                 <a
-                  href={`/${sportSlug(g.sport)}`}
+                  href={`/${sportSlug(g.sport, lang)}`}
                   className="group flex items-center gap-2.5 px-4 md:px-8 pt-4 pb-2 border-t border-border"
                 >
                   <span
@@ -44,10 +46,10 @@ export function SportListBand({ groups }: { groups: SportGroup[] }) {
                     aria-hidden="true"
                   />
                   <span className="text-[11px] font-bold uppercase tracking-widest text-ink group-hover:underline">
-                    {sportLabel(g.sport)}
+                    {sportLabel(g.sport, lang)}
                   </span>
                   <span className="ml-auto text-[11px] text-muted tabular-nums">
-                    {g.athleteCount} atleter
+                    {t("band.athletes_count", lang, { n: g.athleteCount })}
                   </span>
                 </a>
                 {g.articles.map((a) => (

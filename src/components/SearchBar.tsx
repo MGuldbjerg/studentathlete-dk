@@ -4,7 +4,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { track } from "@/lib/track";
 
-export function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
+// Klientkomponent: kan ikke selv slå sproget op (ingen request-kontekst), så
+// teksten kommer som props fra den server-komponent der rendrer den.
+export function SearchBar({
+  defaultValue = "",
+  placeholder = "Søg efter atleter, sportsgrene eller artikler...",
+  submitLabel = "Søg",
+}: {
+  defaultValue?: string;
+  placeholder?: string;
+  submitLabel?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(defaultValue);
@@ -28,7 +38,7 @@ export function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Søg efter atleter, sportsgrene eller artikler..."
+        placeholder={placeholder}
         className="flex-1 px-4 py-3 text-sm border border-border bg-white text-ink placeholder-muted focus:outline-none focus:border-flag-blue"
         style={{ minWidth: 0 }}
       />
@@ -43,7 +53,7 @@ export function SearchBar({ defaultValue = "" }: { defaultValue?: string }) {
           ((e.target as HTMLButtonElement).style.backgroundColor = "#00205B")
         }
       >
-        Søg
+        {submitLabel}
       </button>
     </form>
   );
