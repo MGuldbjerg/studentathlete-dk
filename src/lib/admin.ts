@@ -460,8 +460,11 @@ export async function getAllPages(): Promise<Array<Omit<PageRow, "content"> & { 
   const db = await getDB();
   if (!db) return [];
   try {
+    // Admin viser siderne for DET site den tilgås fra (migration 038).
+    const country = (await currentSite()).code;
     const r = await db
-      .prepare("SELECT slug, title, meta_description, published, kind, updated_at FROM pages ORDER BY kind ASC, title ASC")
+      .prepare("SELECT slug, title, meta_description, published, kind, updated_at FROM pages WHERE country = ? ORDER BY kind ASC, title ASC")
+      .bind(country)
       .all();
     return (r.results ?? []) as Array<Omit<PageRow, "content"> & { updated_at: string | null }>;
   } catch {
@@ -469,13 +472,19 @@ export async function getAllPages(): Promise<Array<Omit<PageRow, "content"> & { 
   }
 }
 
-export async function getPageBySlug(slug: string): Promise<PageRow | null> {
+/**
+ * Én side. Landet udledes af værten, så alle fire offentlige opslag nedenfor
+ * (side, guide, sport, admin) automatisk rammer det rigtige sites indhold —
+ * uden at kalderne skal vide noget.
+ */
+export async function getPageBySlug(slug: string, country?: string): Promise<PageRow | null> {
   const db = await getDB();
   if (!db) return null;
   try {
+    const code = country ?? (await currentSite()).code;
     const r = await db
-      .prepare("SELECT slug, title, content, meta_description, published, kind, category FROM pages WHERE slug = ?")
-      .bind(slug)
+      .prepare("SELECT slug, title, content, meta_description, published, kind, category FROM pages WHERE slug = ? AND country = ?")
+      .bind(slug, code)
       .first();
     return (r as PageRow) ?? null;
   } catch {
@@ -610,8 +619,9 @@ export async function getPublishedGuides(): Promise<
   try {
     const r = await db
       .prepare(
-        "SELECT slug, title, meta_description, category FROM pages WHERE kind = 'guide' AND published = 1 ORDER BY title ASC",
+        "SELECT slug, title, meta_description, category FROM pages WHERE kind = 'guide' AND published = 1 AND country = ? ORDER BY title ASC",
       )
+      .bind((await currentSite()).code)
       .all();
     return (r.results ?? []) as {
       slug: string;
@@ -630,23 +640,28 @@ export async function upsertPage(
   content: string,
   metaDescription: string | null,
   published?: number,
+  country?: string,
 ): Promise<void> {
   const db = await getDB();
   if (!db) return;
   // published udeladt → bevar eksisterende værdi (0 for nye rækker)
   const pub = published ?? null;
+  const code = country ?? (await currentSite()).code;
   await db
     .prepare(
-      `INSERT INTO pages (slug, title, content, meta_description, published, updated_at)
-       VALUES (?, ?, ?, ?, COALESCE(?, 0), datetime('now'))
-       ON CONFLICT(slug) DO UPDATE SET
+      // ON CONFLICT(slug, country) — IKKE bare (slug). Efter migration 038 er
+      // den unikke nøgle sammensat, og en ON CONFLICT der ikke matcher en
+      // nøgle er en hård fejl i SQLite, ikke en no-op.
+      `INSERT INTO pages (slug, country, title, content, meta_description, published, updated_at)
+       VALUES (?, ?, ?, ?, ?, COALESCE(?, 0), datetime('now'))
+       ON CONFLICT(slug, country) DO UPDATE SET
          title = excluded.title,
          content = excluded.content,
          meta_description = excluded.meta_description,
          published = COALESCE(?, pages.published),
          updated_at = datetime('now')`
     )
-    .bind(slug, title, content, metaDescription, pub, pub)
+    .bind(slug, code, title, content, metaDescription, pub, pub)
     .run();
 }
 

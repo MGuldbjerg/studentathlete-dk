@@ -4,6 +4,13 @@ on:
   schedule:
     # Søndag kl. 04:00 UTC (05:00 dansk tid)
     - cron: '0 4 * * 0'
+    # MIDLERTIDIG natlig kørsel under UK-opstarten (2026-08-04 →).
+    # Scraperen roterer gennem ~1.700 skoler og fanger kun en del pr. kørsel;
+    # ugentligt ville tage måneder om at finde alle briter. 22:00 UTC ligger
+    # frit af de øvrige jobs (js-scrape 03:00, katalog 21:00, morgen-cluster).
+    # ⚠️ FJERN denne linje igen når UK-tallet flader ud — ellers scrapes der
+    # unødigt hver nat resten af sitets levetid.
+    - cron: '0 22 * * *'
   workflow_dispatch:
 
 jobs:
