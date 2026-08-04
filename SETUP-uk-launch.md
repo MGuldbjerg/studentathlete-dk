@@ -156,38 +156,73 @@ sprogstyrede (det ER de allerede) og tilføj engelske alias-ruter for
 `/atleter` → `/athletes`, `/viden` → `/guides`, `/skoler` → `/schools`,
 `/artikler` → `/articles`.
 
-## Trin 5 — Sæt domænet live  (dashboard + 1 linje, ~30 min)
+## ⬅️ Trin 5 — Sæt domænet live  (DIG, i morgen — ~30 min + ventetid)
 
-Det eneste her du ikke kan gøre fra kommandolinjen er DNS-delegeringen.
+**Forberedt 2026-08-04. Tjekket på forhånd, så der ikke er overraskelser:**
 
-1. **Cloudflare → Add site** → `student-athlete.co.uk` (Free plan).
-2. Cloudflare giver dig to nameservere. **Skift nameservere hos den registrar,
-   du købte domænet hos**, til dem. Vent på "Active" (typisk minutter–timer).
-3. Tilføj en **A-record** `student-athlete.co.uk` → `192.0.2.1` med **proxy
-   (orange sky) slået TIL**. Adressen er en pladsholder — Workers-routen
-   opfanger trafikken, men zonen skal have en proxied record for at rute.
-   Gentag for `www`.
-4. `wrangler.toml`:
+- ⚠️ **`CLOUDFLARE_API_TOKEN` kan IKKE oprette zoner** (afprøvet: mangler
+  `com.cloudflare.api.account.zone.create`). Zonen skal oprettes i
+  DASHBOARDET — det kan ikke scriptes med den nuværende token.
+- ⚠️ **Samme token skal bagefter kunne redigere Workers-routes på den NYE
+  zone.** Er den scoped til kun `studentathlete.dk`, fejler `npm run deploy`
+  med en autorisationsfejl i det øjeblik UK-routen tilføjes. Tilføj den nye
+  zone til tokenets zone-ressourcer (eller brug "All zones") samtidig med at
+  du opretter zonen — så opdager du det ikke først midt i et deploy.
+- ✅ Værten i `src/lib/countries/uk.ts` er præcis `student-athlete.co.uk` og
+  matcher routen nedenfor. Middlewaren sender `www` → apex af sig selv.
+
+### Rækkefølge
+
+1. **Cloudflare → Add a site** → `student-athlete.co.uk` → **Free**.
+   Noter de to nameservere Cloudflare giver dig.
+2. **Hos registraren** (hvor du købte domænet): skift nameservere til
+   Cloudflares to. Vent til zonen står **Active** — typisk minutter, men kan
+   tage timer. Alt nedenfor kan først virke derefter.
+3. **DNS-records i den nye zone** (Cloudflare → DNS):
+   | Type | Navn | Indhold | Proxy |
+   |---|---|---|---|
+   | A | `student-athlete.co.uk` | `192.0.2.1` | **Proxied (orange)** |
+   | A | `www` | `192.0.2.1` | **Proxied (orange)** |
+
+   `192.0.2.1` er en dokumentations-IP der bevidst ikke findes: Workers-routen
+   opfanger trafikken før den nogensinde slås op. Zonen skal blot HAVE en
+   proxied record for at route. **Grå sky = det virker ikke.**
+4. **API-token**: sørg for at tokenet dækker den nye zone (se advarslen ovenfor).
+5. **`wrangler.toml`** — tilføj de to linjer:
    ```toml
    routes = [
-     { pattern = "studentathlete.dk/*",      zone_name = "studentathlete.dk" },
-     { pattern = "www.studentathlete.dk/*",  zone_name = "studentathlete.dk" },
+     { pattern = "studentathlete.dk/*",         zone_name = "studentathlete.dk" },
+     { pattern = "www.studentathlete.dk/*",     zone_name = "studentathlete.dk" },
      { pattern = "student-athlete.co.uk/*",     zone_name = "student-athlete.co.uk" },
      { pattern = "www.student-athlete.co.uk/*", zone_name = "student-athlete.co.uk" },
    ]
    ```
-5. `npm run deploy`.
-6. Verificér:
+   **Tilføj dem FØRST når zonen er Active** — en route mod en ukendt zone får
+   `wrangler deploy` til at fejle, og så er også .dk-sitet udeployet indtil det
+   rettes.
+6. **Deploy**: `npm run deploy`
+7. **Verificér**:
    ```bash
    curl -sI https://student-athlete.co.uk/ | head -3
-   curl -s https://student-athlete.co.uk/ | grep -o "<title>[^<]*"
+   curl -s  https://student-athlete.co.uk/ | grep -o "<title>[^<]*"
+   curl -s  https://student-athlete.co.uk/ | grep -o '<html lang="[a-z]*"'
+   curl -sI https://www.student-athlete.co.uk/ | grep -i location   # → apex
+   curl -s  https://student-athlete.co.uk/om | grep -o "<title>[^<]*"
    ```
-   Middlewaren 301-redirecter `www` → apex af sig selv, fordi værten slås op i
-   landeprofilen.
+   Forventet: `lang="en"`, engelsk titel, `/om` viser den engelske "About".
 
-**Email**: Cloudflare Email Routing på den nye zone (samme opskrift som
-studentathlete.dk) → `info@student-athlete.co.uk` videresendes. Adressen står
-allerede i `countries/uk.ts`.
+8. **E-mail** (kan vente): Cloudflare Email Routing på den nye zone →
+   `info@student-athlete.co.uk` videresendt. Adressen står allerede i
+   landeprofilen og bruges i pipelinens user-agent.
+
+### Hvis noget går galt
+
+- **502/521 på UK-domænet**: record er ikke proxied (grå sky), eller routen
+  mangler i `wrangler.toml`.
+- **Dansk indhold på UK-domænet**: værten når ikke frem. Tjek at routen
+  matcher `student-athlete.co.uk/*` præcis, og at `uk.ts` har samme streng.
+- **`wrangler deploy` fejler på autorisation**: tokenet dækker ikke den nye
+  zone (se punkt 4).
 
 ## Trin 6 — Indhold før pushet  (din tid)
 
