@@ -3,6 +3,7 @@ import { getSiteSettings } from "@/lib/admin";
 
 import { sportNav } from "@/lib/i18n";
 import { ARCHIVE_PATH } from "@/lib/routes";
+import { ConsentSettingsLink } from "./ConsentSettingsLink";
 export async function Footer() {
   const settings = await getSiteSettings();
   return (
@@ -93,6 +94,8 @@ export async function Footer() {
                 Cookies
               </Link>
             </li>
+            {/* Leverer selv sit <li> — vises kun når Googles CMP er indlæst. */}
+            <ConsentSettingsLink enabled={settings["adsense.enabled"] === "true"} />
           </ul>
         </div>
       </div>
