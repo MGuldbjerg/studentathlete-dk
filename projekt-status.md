@@ -1,6 +1,18 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-03 (UK-forberedelse: sprogpakke + landeprofil, commit fa24ea1)
+**Sidst opdateret**: 2026-08-04 (forside med tæthedsbånd + arkivside + kildemåling, commit c727b0f — IKKE deployet endnu)
+
+## 👉 Seneste arbejde (2026-08-04) — forsidens rytme, arkiv, kildemåling
+**Baggrund:** forsiden var en væg af næsten ens blokke, fordi ALLE covers er det GENEREREDE kampkort (rigtige fotos findes kun på atletprofiler + inde i artikler). Mikkel spurgte om 3-5 korttyper; konklusionen blev **nej** — flere skabeloner ville lægge et valg oven i hver redigering uden at fjerne ensartetheden. I stedet: **rytme bestemt af pladsen på siden**. Mockup: `https://claude.ai/code/artifact/3f4d7a99-dbbf-455a-a3e8-019926001c85`.
+
+1. **Forsiden = seks bånd** (`src/app/page.tsx` + `src/components/home/`): A hero (karrusel, uændret) · B lead+skinne · annonce · C datastribe · D tre kort · annonce · E efter sport · F bredt feature (spejlvendt). Billedtunge og billedfri bånd skiftes, så kampkort aldrig står i samme størrelse to bånd i træk. **Søge-/filtervisning beholder det simple grid** (dér leder man efter noget bestemt).
+2. **`ArticleCard` har nu fire tætheder**: `featured` (m. `reverse` til bånd F) · `lead` · `default` · **`compact`** (INTET billede — sportsfarvet mærke; det er den der bryder mønsteret). Nye db-queries: `getSiteCounts()`, `getArticlesGroupedBySport()`, `countArticles()`.
+3. **`/artikler` — arkivet fandtes ikke.** `getArticles()` henter 18 uden paginering, så artikel nr. 19 kun kunne nås via søgning/sitemap. Nu pagineret (`?side=`) + sportsfilter, indekserbar, rel prev/next + canonical, i sitemap + footer.
+4. **`/ig` NEDLAGT → 301 til `/artikler?kilde=ig`** — lagt i **middleware, ikke i siden**: med `loading.tsx` streames en 200 før et side-redirect kan sætte status, og Next falder tilbage til `<meta refresh>` (middleware-filen dokumenterede allerede fælden for atlet-aliasser). Siden var forældreløs — intet på sitet linkede til den.
+5. **Kildemåling**: `migration-036` → `events.source`, fanget fra `?kilde=`/`utm_source` på landings-sidevisningen, vist i admin → Analytics. **Bonus-fix**: `classify()` regnede ETHVERT ét-segments-navn for en sportsgren → `/viden` blev logget som sporten "viden", `/viden/[slug]` som en ARTIKEL, og `/ig` som sporten "ig". Sport-slugs slås nu op i sprogpakken (`/fodbold` → `soccer`). Gamle rækker beholder deres værdier — tal er først sammenlignelige fremadrettet.
+6. **Verificeret mod PROD D1** (`wrangler dev --remote`): båndene renderer (118 danskere · 91 universiteter · 11 sportsgrene · 0 nye denne uge), 14 unikke artikler uden gengangere, arkiv "Viser 1–18 af 18", `?side=99` giver pæn besked (ikke "Viser 25–18"), `/ig` → 301. Migration 036 KØRT mod remote (nødvendig FØR deploy, ellers fejler track-INSERT lydløst).
+
+**Bemærk**: annoncerne renderer intet i dag (`NEXT_PUBLIC_ADS_ENABLED` er ikke sat) — båndene står tættere indtil ads slås til. Datastribens 4. celle viser "0 nye" i off-season. **Ikke deployet** — kør `npm run deploy` når du er klar.
 
 ## 👉 Seneste arbejde (2026-08-03 #2) — UK-forberedelse (funktioner klar, IKKE aktiveret)
 **Mikkels beslutninger (denne session):** UK er første ekspansion · Mikkel self-editer UK ved launch (ingen redaktør-gate) · domæne LÅST til student-athlete.co.uk (studentathlete.co.uk er taget) · prep nu, launch FØRST efter DK's in-season-validering.
