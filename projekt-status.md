@@ -61,7 +61,15 @@ Domænet **student-athlete.co.uk er købt**. Trin 1–3 af launch-planen er kør
     - **`[...segments]`-metadata lokaliseret**: sidetitler, atlet-/skolebeskrivelser og OG-siteName sagde stadig "danske atleter i NCAA | StudentAthlete.dk" på UK-værten. Sitemap'ets sport-slugs følger nu også sproget.
     - Verificeret: UK `/football` → "Football – British athletes in the NCAA | Student-Athlete.co.uk"; DK `/football` uændret amerikansk fodbold; DK 404'er korrekt det engelske `/american-football`.
 
-**TILBAGE — og det er stadig en redaktionel beslutning, ikke dovenskab:** de 13 viden-guider (29.706 tegn) er fulde af DANMARKS-specifikke fakta — gymnasiet, danske karakterer, danske NCAA-navne (gymnasiet, danske karakterer). En ordret oversættelse ville være direkte forkert for britiske læsere, som skal have A-levels/GCSE/UCAS. De skal **skrives om**, ikke oversættes — hver guide kræver britiske fakta, der skal verificeres. Indtil da har UK-sitet ingen /viden-guider (hub'en vil være tom på UK-værten — tjek før launch).
+12. **13 BRITISKE VIDEN-GUIDER SKREVET** (`src/lib/viden-content-en.ts`, Worker 296581e5). **KORREKTION af min egen tidligere vurdering**: jeg påstod at alle 13 var fulde af danmarks-specifikke fakta. Det holdt ikke — 11 forklarer det AMERIKANSKE system og er landeneutrale; kun 2 var reelt danske (akademiske krav + universitetssammenligning). Dem er der researchet britiske fakta til, web-verificeret og kildeangivet i guiderne:
+    - Mindst 5 akademiske GCSE-beståelser, gennemsnit E eller bedre (Skotland: Standard Grade 6), dækkende engelsk, matematik, naturfag og samfundsfag — NCAA's egen International Guide.
+    - **GCSE PE, media studies, ICT, D&T, musik, kunst, applied science/maths og short-course tæller IKKE** — fælden der fanger briter, som ellers opfylder UCAS fint.
+    - 16 core courses, min. 2,3 core-GPA til D1. **SAT/ACT permanent afskaffet som eligibility-krav (jan. 2023)** — men kan stadig kræves til OPTAGELSE og legater; den skelnen misforstås oftest.
+    - UK student finance dækker IKKE amerikanske grader.
+    - **Bevidst ikke påstået**: NIL-regler for internationale på F-1-visum (restriktive og omstridte — en forkert påstand kan koste læseren visummet). Guiden siger "søg rådgivning".
+    - Engelske slugs, sprogopslag som sport-teksterne. Guide-siderne henter nu brand fra sitet (titlerne sagde stadig "| StudentAthlete.dk" på UK-værten).
+
+**FORÆLDET AFSNIT (beholdt som note):** påstanden nedenfor om at guiderne var fulde af danske fakta — gymnasiet, danske karakterer, danske NCAA-navne (gymnasiet, danske karakterer). En ordret oversættelse ville være direkte forkert for britiske læsere, som skal have A-levels/GCSE/UCAS. De skal **skrives om**, ikke oversættes — hver guide kræver britiske fakta, der skal verificeres. Indtil da har UK-sitet ingen /viden-guider (hub'en vil være tom på UK-værten — tjek før launch).
 
 **Næste:** DNS + Cloudflare-zone (trin 5 i `SETUP-uk-launch.md` — nu med verificerede detaljer og to advarsler om API-tokenet) · `[...segments]`-metadata på engelsk · engelske kladder til gennemlæsning.
 
