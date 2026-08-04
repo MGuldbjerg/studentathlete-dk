@@ -19,7 +19,8 @@ Google kræver en **Google-certificeret CMP integreret med IAB TCF v2.2** for at
 
 - **Vores egen `CookieConsent` opfylder det IKKE og kan ikke komme til det.** Den er en håndbygget to-knaps-boks der skriver `sa_consent`; der er ingen TC-streng, intet `__tcfapi`, ingen certificering. Vejen til compliance er ikke at udbygge den — det ville kræve at BLIVE en certificeret CMP.
 - **Løsningen når annoncer tændes: Googles egen «Privacy & messaging» (tidl. Funding Choices)** — Googles eget certificerede TCF-CMP, gratis, sættes op i AdSense-dashboardet. Passer $0-princippet. Tredjeparts-CMP'er (Cookiebot, Usercentrics m.fl.) koster penge.
-- **Konsekvens for vores banner:** når Googles CMP tændes, skal `consent.enabled` slås FRA — ellers får læseren to samtykkedialoger. Vores banner bliver overflødigt, ikke suppleret.
+- **Mikkel har valgt en Google-CMP-mulighed (2026-08-04)** → AdSense-kravet er dækket. **Vores eget banner er slået FRA igen samme dag** (`consent.enabled=false`, verificeret live) for at undgå to samtykkedialoger.
+- **Googles CMP kræver INGEN ekstra kode** — beskeden serveres af auto-ads-scriptet, som er en del af selve AdSense-annoncekoden. Men den kommer derfor først på sitet sammen med AdSense-tagget: i dag indlæser vi INTET Google-script (verifikationen er ads.txt + metatag), så CMP'en vises endnu ikke.
 - **RETTELSE af tidligere note:** ad-scripts skal IKKE gates på `sa_consent.marketing` — gating sker i den certificerede CMP. Den plan var forkert.
 - Rammer os først når annoncer faktisk serveres (`NEXT_PUBLIC_ADS_ENABLED` er ikke sat). Men da læserne er danske, er ~al trafik EØS — det gælder altså reelt fra dag ét med annoncer.
 
