@@ -4,11 +4,16 @@
 "site med rigtige artikler". Læs `ARKITEKTUR-motor.md` først — motoren er ét
 kodebase, der serverer flere lande ud fra værten.
 
-> **STATUS 2026-08-04: trin 1, 2 og 3 er GENNEMFØRT** (commit efter `faa801f9`).
-> Pipelinen er landebevidst, de engelske prompts findes, UK er registreret, og
-> roster-scrapen er sat i gang manuelt. **Tilbage: trin 4 (engelsk UI) — og den
-> SKAL være færdig før domænet peger på sitet**, ellers møder britiske læsere
-> en dansk menu. Trin 5 (DNS/zone) kan forberedes parallelt.
+> **STATUS 2026-08-04: trin 1–3 GENNEMFØRT, trin 4 DELVIST** (Worker 20f4c188).
+> Pipelinen er landebevidst, de engelske prompts findes, UK er registreret,
+> roster-scrapen kører, og **sitets ramme taler nu engelsk på UK-værten**
+> (header, footer, nav, forside, arkiv, kort, karrusel + `<html lang>` +
+> engelske sport-slugs). `site_content` er blevet pr. land (migration 037).
+>
+> **Mangler stadig på dansk** — og det er derfor domænet endnu ikke bør pege
+> herpå: artikelskabelonerne, atlet- og skoleprofiler samt `/viden`. De er
+> ufarlige lige nu, fordi der ikke findes britisk indhold at vise i dem, men de
+> skal oversættes før launch. Se trin 4 nedenfor.
 
 ---
 
@@ -25,29 +30,28 @@ uden en linje ekstra:
 - `i18n/en.ts` (britisk sprogpakke), `profile-baseline-en.ts` (engelsk
   profilgrammatik), `countries/uk.ts` (UK-profil) — alle SKREVET og testet
 
-## Hvad UK IKKE arver
+## Hvad UK IKKE arver (opdateret 2026-08-04)
 
-1. **Genereringen taler dansk.** `pipeline/generate/prompts/` er hardkodet
-   ("Skriv ALTID på dansk"). ~230 linjer fordelt på 5 filer.
-2. **UI-strengene er danske.** ~100–200 strenge i JSX (Header, Footer, båndenes
-   overskrifter, arkivsiden, skabeloner). Mekanismen findes (sprogpakken), men
-   plumbingen er ikke lavet — se `ARKITEKTUR-motor.md`, "bevidst ikke gjort".
+1. ~~Genereringen taler dansk~~ **LØST** — promptsæt vælges efter atletens land.
+2. ~~UI-strengene er danske~~ **DELVIST LØST** — ramme, forside og arkiv er
+   oversat; skabeloner, profiler og `/viden` mangler (trin 4).
 3. **Rute-navnene er danske mapper**: `/atleter`, `/viden`, `/skoler`, `/artikler`.
+   Sport-sluggene er derimod sprogstyrede og virker allerede
+   (`/football`, `/american-football`, `/athletics` på UK-værten).
 4. **De statiske sider** (om, kontakt, ai-brug, presseetik, cookies) findes kun på
    dansk i `pages`-tabellen. De skal skrives på engelsk med `country='UK'`.
 
 ---
 
-## ⚠️ RÆKKEFØLGEN ER IKKE VALGFRI
+## ⚠️ RÆKKEFØLGEN VAR IKKE VALGFRI (og bliver det ikke ved land nr. 3)
 
-**Registrér IKKE `uk` i `COUNTRIES` endnu.**
+`pipeline/discover/check-sources.ts` vælger atleter med `active = 1` og
+**filtrerer ikke på land**. Var UK blevet registreret først, ville discovery
+have overvåget briternes skoler og genereret **DANSKE** artikler om dem — ned i
+den danske kladdekø. Derfor kom trin 1 og 2 før trin 3.
 
-`pipeline/discover/check-sources.ts` (linje ~53 og ~79) vælger atleter med
-`active = 1` og **filtrerer ikke på land**. I samme sekund UK-atleter lander i
-`athletes`, begynder discovery altså at overvåge deres skoler og generere
-**DANSKE** artikler om britiske atleter — direkte ned i din danske kladdekø.
-
-Derfor: gør trin 1 og 2 færdige, FØR du tænder for indsamlingen i trin 3.
+Samme fælde venter ved næste land. Tjeklisten står i `ARKITEKTUR-motor.md` →
+"Sådan tilføjer du et land".
 
 ---
 
@@ -116,20 +120,27 @@ npx wrangler d1 execute studentathlete-dk --remote \
   --command "SELECT home_country, COUNT(*) FROM athletes WHERE active=1 GROUP BY home_country"
 ```
 
-## ⬅️ Trin 4 — Engelsk UI  (NÆSTE — kode, ~1 dag, kedeligt men ligetil)
+## ⬅️ Trin 4 — Engelsk UI  (HALVT GJORT — resten er næste opgave)
 
-Flyt JSX-strengene til sprogpakken og slå sproget op fra værten
-(`siteFromHost()` → `countryProfile.language`). I server-komponenter hentes
-værten med `headers()`; klientkomponenter (Carousel, SearchBar,
-ConsentSettingsLink) skal have sproget som prop. Start med det læseren ser
-først: Header · Footer · forsidens bånd · arkivsiden · artikelskabelonerne.
-Admin kan forblive dansk — den har kun én bruger.
+**Gjort:** mekanismen (`LanguagePack.ui` + `t()` + `currentSite()`/`currentLanguage()`
+via `headers()`), og alt det læseren møder på forside og arkiv. En manglende
+oversættelse er nu en TYPEFEJL, ikke et hul på siden (`UiKey`-unionen), og
+`_ui-strings-test.ts` fanger manglende pladsholdere og dansk der er sluppet med
+over i den engelske pakke.
 
-**Fælde fundet undervejs**: `site_content` (sidetitel, meta-beskrivelse,
-footer-tekst, AI-disclaimer) har INGEN landekolonne — begge sites deler samme
-værdier. Enten skal tabellen have `country`, eller også skal disse felter flytte
-til landeprofilen. Bliver det glemt, får UK-sitet dansk sidetitel og dansk
-footer-tekst, uanset hvor mange JSX-strenge der er oversat.
+**Mangler:** `src/components/templates/` (4 artikelskabeloner) ·
+`src/components/profiles/` (atlet + skole) · `/viden` · `[...segments]`-metadata ·
+de statiske sider i `pages` (skal skrives på engelsk med `country='UK'`).
+Admin må gerne forblive dansk — den har én bruger.
+
+Fremgangsmåde er nu mekanisk: tilføj nøglen i `UiKey`, oversæt i `da.ts` og
+`en.ts` (typechecken tvinger begge), erstat strengen med `t(...)`. Server-
+komponenter henter selv sproget; klientkomponenter får det som prop.
+
+**Løst undervejs**: `site_content` havde ingen landekolonne, så begge sites delte
+sidetitel, meta-beskrivelse og footer-tekst. Migration 037 gjorde nøglen til
+(key, country); AdSense-felterne er markeret `global` og deles bevidst. Husk at
+udfylde UK-teksterne — admin redigerer det site, den tilgås FRA.
 
 Ruterne: enten engelske mapper med redirects, eller behold stierne og accepter
 danske URL'er på et engelsk site (grimt). Anbefaling: gør sport-sluggene
