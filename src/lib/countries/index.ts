@@ -4,10 +4,16 @@
  */
 import type { CountryProfile } from "./types";
 import { dk } from "./dk";
+import { uk } from "./uk";
 
 export type { CountryProfile } from "./types";
 
-export const COUNTRIES: Record<string, CountryProfile> = { DK: dk };
+/**
+ * Rækkefølgen betyder noget: `classifyHometown` tager FØRSTE match. DK står
+ * først, fordi de danske signaler er de mest specifikke (bynavne med æ/ø/å);
+ * UK genkendes primært på eksplicitte nationsmarkører ("X, England").
+ */
+export const COUNTRIES: Record<string, CountryProfile> = { DK: dk, UK: uk };
 
 /** Landet der driver sitet når værten ikke peger på noget andet. */
 export const DEFAULT_COUNTRY = "DK";

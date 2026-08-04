@@ -8,8 +8,9 @@
  * ("X, England") + kort byliste uden navnebrødre — disse tests låser den.
  * Formaterne i TRUE-sektionen er ægte strenge fra international_athletes.
  */
-import { matchesCountry } from "../../src/lib/hometown";
+import { matchesCountry, classifyHometown } from "../../src/lib/hometown";
 import { uk } from "../../src/lib/countries/uk";
+import { activeCountries } from "../../src/lib/countries";
 
 const isUkHometown = (h: string | null) => matchesCountry(h, uk);
 
@@ -88,6 +89,40 @@ expect("Victoria, British Columbia", false, "British Columbia (Canada-mønster)"
 // ── Edge cases ───────────────────────────────────────────────────────────────
 expect(null, false, "null hometown");
 expect("", false, "tom streng");
+
+// ── To lande i registret samtidig ────────────────────────────────────────────
+// Nu hvor både DK og UK er aktive, afgør `classifyHometown` hvilket site en
+// atlet havner på. Krydsforurening her ville sende en brite ind på det danske
+// site (eller omvendt) — værre end at misse atleten helt.
+function code(hometown: string | null): string | null {
+  return classifyHometown(hometown, activeCountries());
+}
+
+function expectCode(hometown: string | null, want: string | null, label: string): void {
+  const got = code(hometown);
+  if (got === want) passed++;
+  else {
+    failed++;
+    console.error(`  ✗ ${label}: classifyHometown(${JSON.stringify(hometown)}) = ${got}, forventede ${want}`);
+  }
+}
+
+expectCode("Aarhus, Denmark", "DK", "dansker forbliver dansk");
+expectCode("København, Danmark", "DK", "dansk stavemåde");
+expectCode("Helsingør", "DK", "dansk by uden landemarker");
+expectCode("London, England", "UK", "brite bliver britisk");
+expectCode("Falkirk, Scotland", "UK", "skotte");
+expectCode("Cardiff, Wales", "UK", "waliser");
+expectCode("Belfast, Northern Ireland", "UK", "nordirer");
+expectCode("Milton Keynes", "UK", "britisk by uden landemarker");
+expectCode("Stockholm, Sweden", null, "svensker hører til ingen af sitene");
+expectCode("Oslo, Norway", null, "nordmand");
+expectCode("Dublin, Ireland", null, "irer er IKKE britisk (eget marked)");
+expectCode("Sydney, New South Wales", null, "australier fanges ikke af Wales");
+expectCode("London, Ontario", null, "canadier fanges ikke af London");
+expectCode("Denmark, SC", null, "US-by ved navn Denmark");
+expectCode("Scotland, PA", null, "US-by ved navn Scotland");
+expectCode(null, null, "null");
 
 console.log(`\nisUkHometown: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

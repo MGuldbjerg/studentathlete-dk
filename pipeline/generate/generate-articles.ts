@@ -9,12 +9,9 @@
 import { createD1Client } from "../lib/d1-client";
 import { generateSlug } from "../../src/lib/slug";
 import { ProviderChain } from "../lib/llm/provider-chain";
-import { buildSystemPrompt } from "./prompts/system";
 import type { StyleCorrectionEntry } from "./prompts/system";
-import { newsPrompt } from "./prompts/news";
-import { featurePrompt } from "./prompts/feature";
-import { seasonUpdatePrompt } from "./prompts/season-update";
-import { recruitingPrompt } from "./prompts/recruiting";
+import { promptsFor, promptForType, type PromptSet } from "./prompts";
+import { countryProfile, DEFAULT_COUNTRY } from "../../src/lib/countries";
 import { parseArticleOutputSmart } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
@@ -34,6 +31,18 @@ interface StoryWithAthlete extends Story {
   expected_graduation: string | null;
   fact_sheet: string | null;
   sensitive: string | null;
+  /** Atletens nationalitet (migration 034). Bestemmer sprog OG artiklens site. */
+  home_country: string | null;
+}
+
+/**
+ * Hvilket sprog skal artiklen skrives på? Nationaliteten er data, så den
+ * afgør både promptsæt og hvilket site artiklen tilhører — ikke en antagelse
+ * om at alt i basen er dansk.
+ */
+function siteFor(story: StoryWithAthlete): { country: string; prompts: PromptSet } {
+  const country = (story.home_country ?? DEFAULT_COUNTRY).toUpperCase();
+  return { country, prompts: promptsFor(countryProfile(country).language) };
 }
 
 function selectArticleType(story: StoryWithAthlete): string {
@@ -59,6 +68,7 @@ function selectArticleType(story: StoryWithAthlete): string {
 function buildPrompt(
   story: StoryWithAthlete,
   articleType: string,
+  prompts: PromptSet,
   timeline = "",
 ): string {
   // KILDEINDHOLD = faktaarket (fase 1). Det er det ENESTE skrivefasen må bruge.
@@ -86,20 +96,7 @@ function buildPrompt(
     timeline,
   };
 
-  let prompt: string;
-  switch (articleType) {
-    case "feature":
-      prompt = featurePrompt(context);
-      break;
-    case "season_update":
-      prompt = seasonUpdatePrompt(context);
-      break;
-    case "recruiting":
-      prompt = recruitingPrompt(context);
-      break;
-    default:
-      prompt = newsPrompt(context);
-  }
+  let prompt = promptForType(prompts, articleType, context);
 
   // Følsom historie (anholdelse/disciplin/spilleberettigelse/personligt) →
   // nøgternheds-instruks. Kladden skal desuden altid gennem Mikkels skærpede
@@ -148,10 +145,9 @@ async function main(): Promise<void> {
     "SELECT wrong_phrase, correct_phrase, note, rule_type FROM style_corrections WHERE active = 1 LIMIT 50",
   );
   const corrections = corrResult.results;
-  // JSON-mode: providerens API håndhæver gyldig JSON → ingen fed-titel/tomme
-  // kladder fra gratis-modeller. parseArticleOutputSmart falder tilbage til
-  // linjeformatet hvis en provider alligevel svarer med rå markdown.
-  const systemPrompt = buildSystemPrompt(corrections, { jsonOutput: true });
+  // System-prompten bygges PR. HISTORIE nede i løkken, ikke her: sproget følger
+  // atletens nationalitet, så en dansk og en britisk historie i samme kørsel
+  // skal have hver sit promptsæt.
   console.log(`Stilguide: ${corrections.length} rettelse(r) loaded`);
 
   // Sikkerhedsnet 1: Tjek antal ventende kladder
@@ -217,7 +213,7 @@ async function main(): Promise<void> {
   // Sortering: foretrækker rigt indhold (content_raw > summary > headline).
   const result = await db.query<StoryWithAthlete>(
     `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown,
-            a.position, a.division, a.class_year, a.expected_graduation
+            a.position, a.division, a.class_year, a.expected_graduation, a.home_country
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
@@ -270,10 +266,17 @@ async function main(): Promise<void> {
     } catch {
       /* tidslinje må aldrig blokere generering */
     }
-    const prompt = buildPrompt(story, articleType, timeline);
+    const { country, prompts } = siteFor(story);
+    // JSON-mode: providerens API håndhæver gyldig JSON → ingen fed-titel/tomme
+    // kladder fra gratis-modeller. parseArticleOutputSmart falder tilbage til
+    // linjeformatet hvis en provider alligevel svarer med rå markdown.
+    const systemPrompt = prompts.buildSystemPrompt(corrections, { jsonOutput: true });
+    const prompt = buildPrompt(story, articleType, prompts, timeline);
 
     const contentSource = story.content_raw ? "content_raw" : story.summary ? "summary" : "headline only";
-    console.log(`  → Story ${story.id}: ${story.athlete_name} — kilde: ${contentSource}, type: ${articleType}`);
+    console.log(
+      `  → Story ${story.id}: ${story.athlete_name} — kilde: ${contentSource}, type: ${articleType}, land: ${country} (${prompts.language})`,
+    );
 
     // Marker som "drafting" så den ikke behandles igen
     await db.execute('UPDATE stories SET status = ? WHERE id = ?', [
@@ -301,11 +304,14 @@ async function main(): Promise<void> {
 
       // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering
       await db.execute(
+        // `country` afgør hvilket site artiklen hører til (migration 034), og
+        // `author` er sitets eget brand — ikke en konstant, nu hvor der er
+        // mere end ét site.
         `INSERT INTO articles
          (title, slug, content, summary, article_type, athlete_id,
           source_url, story_id, model_used, tokens_input, tokens_output,
-          published, author, llm_provider, original_content)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'StudentAthlete.dk', ?, ?)`,
+          published, author, llm_provider, original_content, country)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
         [
           parsed.title,
           slug,
@@ -318,8 +324,10 @@ async function main(): Promise<void> {
           response.model,
           response.tokens_input,
           response.tokens_output,
+          countryProfile(country).brand,
           response.provider,
           parsed.content,
+          country,
         ],
       );
 
