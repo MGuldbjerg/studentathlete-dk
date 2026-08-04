@@ -10,10 +10,14 @@ kodebase, der serverer flere lande ud fra værten.
 > (header, footer, nav, forside, arkiv, kort, karrusel + `<html lang>` +
 > engelske sport-slugs). `site_content` er blevet pr. land (migration 037).
 >
-> **Mangler stadig på dansk** — og det er derfor domænet endnu ikke bør pege
-> herpå: artikelskabelonerne, atlet- og skoleprofiler samt `/viden`. De er
-> ufarlige lige nu, fordi der ikke findes britisk indhold at vise i dem, men de
-> skal oversættes før launch. Se trin 4 nedenfor.
+> **Trin 4 er nu i praksis færdigt for alt der renderes fra kode**: ramme,
+> forside, arkiv, kort, karrusel, alle fire artikelskabeloner, atlet- og
+> skoleprofiler, brødkrummer, faktaetiketter og artikeltyper.
+>
+> **Tilbage før domænet må pege herpå — og det er nu INDHOLD, ikke kode:**
+> de statiske sider (om/kontakt/ai-brug/presseetik/cookies) findes kun på dansk
+> i `pages`, `/viden`-guiderne er danske, og `[...segments]`-metadata (meta-
+> beskrivelser for atlet- og artikelsider) har stadig danske sætninger.
 
 ---
 
@@ -128,10 +132,14 @@ oversættelse er nu en TYPEFEJL, ikke et hul på siden (`UiKey`-unionen), og
 `_ui-strings-test.ts` fanger manglende pladsholdere og dansk der er sluppet med
 over i den engelske pakke.
 
-**Mangler:** `src/components/templates/` (4 artikelskabeloner) ·
-`src/components/profiles/` (atlet + skole) · `/viden` · `[...segments]`-metadata ·
-de statiske sider i `pages` (skal skrives på engelsk med `country='UK'`).
-Admin må gerne forblive dansk — den har én bruger.
+**Også gjort:** de fire artikelskabeloner, atlet- og skoleprofiler, brødkrummer,
+faktaetiketter, statusværdier, dimissions-badge og artikeltyper
+(`ARTICLE_TYPE_LABELS` lå som ÉN dansk tabel i `lib/types.ts` og sivede ud på
+hvert kort — nu `articleTypeLabel()` i sprogpakken; admin bruger stadig den danske).
+
+**Mangler — men det er INDHOLD, ikke kode:** `/viden`-guiderne · de statiske
+sider i `pages` (skriv på engelsk med `country='UK'`) · `[...segments]`-metadata
+(danske meta-beskrivelser). Admin må gerne forblive dansk — den har én bruger.
 
 Fremgangsmåde er nu mekanisk: tilføj nøglen i `UiKey`, oversæt i `da.ts` og
 `en.ts` (typechecken tvinger begge), erstat strengen med `t(...)`. Server-
