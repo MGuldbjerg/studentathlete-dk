@@ -261,6 +261,70 @@ const ui: LanguagePack["ui"] = {
 
   "crumb.home": "Hjem",
   "crumb.aria": "Brødkrumme",
+
+  "nav.search_submit": "Søg",
+  "common.loading": "Indlæser...",
+  "notfound.title": "Siden blev ikke fundet",
+  "notfound.body": "Den side du leder efter eksisterer ikke eller er blevet flyttet.",
+  "notfound.cta": "Gå til forsiden",
+
+  "athletes.meta_title": "Alle atleter",
+  "athletes.meta_description":
+    "Oversigt over danske student athletes på amerikanske universiteter. Find din favorit og følg deres karriere.",
+  "athletes.h1": "Danske atleter i USA",
+  "athletes.active_count": "{n} aktive",
+  "athletes.alumni_count": "{n} alumni",
+  "athletes.none": "Ingen atleter registreret endnu.",
+  "athletes.sort_label": "Sortér:",
+  "athletes.sort_sport": "Sport",
+  "athletes.sort_name": "Navn",
+  "athletes.sort_school": "Skole",
+  "athletes.grad_help_before": "Hatten markerer atleter, der er ",
+  "athletes.grad_help_strong": "dimitteret inden for det seneste år",
+  "athletes.grad_help_after":
+    " — perioden, hvor vi stadig følger draft- og kontraktnyheder. Derefter flyttes de til ",
+  "athletes.active_heading": "Aktive atleter",
+  "athletes.none_active": "Ingen aktive atleter.",
+  "athletes.alumni_heading": "Tidligere atleter",
+  "athletes.show": "▼ Vis",
+  "athletes.hide": "▲ Skjul",
+  "athletes.unknown_school": "Ukendt skole",
+  "athletes.graduated_title": "Færdiguddannet {year}",
+
+  "schools.meta_title": "Universiteter med danske atleter",
+  "schools.meta_description":
+    "Overblik over de amerikanske universiteter, hvor danske student athletes går — sorteret efter NCAA-division med conference og antal danskere.",
+  "schools.crumb": "Universiteter",
+  "schools.intro_before":
+    "De amerikanske universiteter, hvor vi følger danske student athletes — grupperet efter NCAA-division. Læs mere om forskellene i vores guide til ",
+  "schools.intro_link": "divisioner i NCAA",
+  "schools.counts": "{schools} universiteter · {athletes} danske atleter",
+  "schools.none": "Ingen universiteter at vise endnu.",
+  "schools.athlete_count_title": "{n} danske atleter",
+
+  "guides.meta_title": "Viden om NCAA og college sport",
+  "guides.meta_description":
+    "Alt du skal vide om NCAA, college sport og danske atleter i USA. Guider til divisioner, conferences, eligibility, transfer portal og meget mere.",
+  "guides.crumb": "Viden",
+  "guides.intro":
+    "Forstå det amerikanske college sport-system og følg danske atleter i NCAA. Her samler vi baggrundsviden og guider — fra divisioner og conferences til eligibility, transfer portal og de store mesterskaber.",
+  "guides.read_more": "Læs mere →",
+  "guides.lookup_heading": "Slå op",
+  "guides.schools_card_title": "Universiteter med danske atleter",
+  "guides.schools_card_body":
+    "Overblik over de amerikanske universiteter, hvor danske student athletes går — sorteret efter division.",
+  "guides.athletes_card_title": "Alle danske atleter",
+  "guides.athletes_card_body":
+    "Find og følg de danske atleter, vi dækker — på tværs af sportsgrene.",
+  "guides.sports_heading": "Sportsgrene i NCAA",
+  "guides.divisions_slug": "ncaa-divisioner",
+
+  "sport.empty_note": "Atleter og nyheder tilføjes løbende.",
+  "sport.active_athletes_label": "aktive atleter",
+  "sport.articles_label": "artikler",
+  "sport.athletes_heading": "Danske {sport}-atleter i USA",
+  "sport.see_all_athletes": "Se alle atleter →",
+  "sport.no_content": "Vi har endnu ikke indhold om {sport}.",
   "tpl.news_plural": "Nyheder",
   "tpl.features": "Features",
   "tpl.season_updates": "Sæsonopdateringer",

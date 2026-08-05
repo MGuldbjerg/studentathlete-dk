@@ -8,12 +8,13 @@ import { track } from "@/lib/track";
 // teksten kommer som props fra den server-komponent der rendrer den.
 export function SearchBar({
   defaultValue = "",
-  placeholder = "Søg efter atleter, sportsgrene eller artikler...",
-  submitLabel = "Søg",
+  placeholder,
+  submitLabel,
 }: {
   defaultValue?: string;
-  placeholder?: string;
-  submitLabel?: string;
+  /** Oversat af kalderen — ingen dansk default her, den sivede ud på UK-sitet. */
+  placeholder: string;
+  submitLabel: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();

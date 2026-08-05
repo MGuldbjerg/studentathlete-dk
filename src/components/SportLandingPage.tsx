@@ -5,6 +5,8 @@ import { getAthleteUrl } from "@/lib/seo";
 import type { SportContent } from "@/lib/sport-content";
 import { ArticleCard } from "./ArticleCard";
 import { Breadcrumb } from "./ui/Breadcrumb";
+import { t } from "@/lib/i18n";
+import { currentLanguage } from "@/lib/site-server";
 
 interface Props {
   sport: string;
@@ -14,7 +16,8 @@ interface Props {
   counts: { active: number; alumni: number };
 }
 
-export function SportLandingPage({ sport, content, articles, athletes, counts }: Props) {
+export async function SportLandingPage({ sport, content, articles, athletes, counts }: Props) {
+  const lang = await currentLanguage();
   const color = getSportColor(sport);
   const [featured, ...rest] = articles;
   const total = counts.active + counts.alumni;
@@ -25,7 +28,7 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
       <div className="px-4 md:px-8 pt-6">
         <Breadcrumb
           crumbs={[
-            { label: "Forside", href: "/" },
+            { label: t("crumb.home", lang), href: "/" },
             { label: content.title },
           ]}
         />
@@ -51,7 +54,8 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
         <div className="flex items-center gap-4 text-sm text-muted">
           {counts.active > 0 && (
             <span>
-              <strong className="text-ink">{counts.active}</strong> aktive atleter
+              <strong className="text-ink">{counts.active}</strong>{" "}
+              {t("sport.active_athletes_label", lang)}
             </span>
           )}
           {counts.alumni > 0 && (
@@ -61,7 +65,8 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
           )}
           {articles.length > 0 && (
             <span>
-              <strong className="text-ink">{articles.length}</strong> artikler
+              <strong className="text-ink">{articles.length}</strong>{" "}
+              {t("sport.articles_label", lang)}
             </span>
           )}
         </div>
@@ -96,7 +101,7 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
         </section>
       )}
 
-      {/* ── Danske atleter ─────────────────────────────────────────── */}
+      {/* ── Atleter fra sitets land ─────────────────────────────────────────── */}
       {athletes.length > 0 && (
         <section className="px-4 md:px-8 py-10 border-t border-border">
           <div className="flex items-center gap-3 mb-6">
@@ -108,7 +113,7 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
               className="text-xl font-bold text-ink"
               style={{ fontFamily: "var(--font-serif)" }}
             >
-              Danske {content.title.toLowerCase()}-atleter i USA
+              {t("sport.athletes_heading", lang, { sport: content.title.toLowerCase() })}
             </h2>
             <span className="text-xs text-muted">({athletes.length})</span>
           </div>
@@ -157,7 +162,7 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
                 href="/atleter"
                 className="text-sm text-muted hover:text-ink transition-colors"
               >
-                Se alle atleter →
+                {t("sport.see_all_athletes", lang)}
               </Link>
             </div>
           )}
@@ -167,8 +172,10 @@ export function SportLandingPage({ sport, content, articles, athletes, counts }:
       {/* ── Intet indhold endnu ────────────────────────────────────── */}
       {articles.length === 0 && athletes.length === 0 && (
         <section className="px-4 md:px-8 py-16 text-center text-muted">
-          <p className="text-lg mb-2">Vi har endnu ikke indhold om {content.title.toLowerCase()}.</p>
-          <p className="text-sm">Atleter og nyheder tilføjes løbende.</p>
+          <p className="text-lg mb-2">
+            {t("sport.no_content", lang, { sport: content.title.toLowerCase() })}
+          </p>
+          <p className="text-sm">{t("sport.empty_note", lang)}</p>
         </section>
       )}
 

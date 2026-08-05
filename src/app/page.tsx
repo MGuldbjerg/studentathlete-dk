@@ -69,7 +69,11 @@ export default async function HomePage({
         <div className="px-4 md:px-8 py-5 border-b border-border">
           <div className="md:hidden mb-4">
             <Suspense fallback={null}>
-              <SearchBar defaultValue={q} placeholder={t("nav.search_placeholder", lang)} />
+              <SearchBar
+                defaultValue={q}
+                placeholder={t("nav.search_placeholder", lang)}
+                submitLabel={t("nav.search_submit", lang)}
+              />
             </Suspense>
           </div>
           <div className="flex items-center justify-between gap-4">
@@ -153,7 +157,11 @@ export default async function HomePage({
       <div className="px-4 md:px-8 py-5 border-b border-border">
         <div className="md:hidden mb-4">
           <Suspense fallback={null}>
-            <SearchBar defaultValue="" placeholder={t("nav.search_placeholder", lang)} />
+            <SearchBar
+              defaultValue=""
+              placeholder={t("nav.search_placeholder", lang)}
+              submitLabel={t("nav.search_submit", lang)}
+            />
           </Suspense>
         </div>
         <div className="flex items-center justify-between gap-4">

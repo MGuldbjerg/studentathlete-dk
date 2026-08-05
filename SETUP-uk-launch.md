@@ -4,48 +4,48 @@
 "site med rigtige artikler". Læs `ARKITEKTUR-motor.md` først — motoren er ét
 kodebase, der serverer flere lande ud fra værten.
 
-> **STATUS 2026-08-04: trin 1–3 GENNEMFØRT, trin 4 DELVIST** (Worker 20f4c188).
+> \*\*STATUS 2026-08-04: trin 1–3 GENNEMFØRT, trin 4 DELVIST\*\* (Worker 20f4c188).
 > Pipelinen er landebevidst, de engelske prompts findes, UK er registreret,
-> roster-scrapen kører, og **sitets ramme taler nu engelsk på UK-værten**
+> roster-scrapen kører, og \*\*sitets ramme taler nu engelsk på UK-værten\*\*
 > (header, footer, nav, forside, arkiv, kort, karrusel + `<html lang>` +
-> engelske sport-slugs). `site_content` er blevet pr. land (migration 037).
+> engelske sport-slugs). `site\_content` er blevet pr. land (migration 037).
 >
-> **Trin 4 er nu i praksis færdigt for alt der renderes fra kode**: ramme,
+> \*\*Trin 4 er nu i praksis færdigt for alt der renderes fra kode\*\*: ramme,
 > forside, arkiv, kort, karrusel, alle fire artikelskabeloner, atlet- og
 > skoleprofiler, brødkrummer, faktaetiketter og artikeltyper.
 >
-> **Tilbage før domænet må pege herpå — og det er nu INDHOLD, ikke kode:**
+> \*\*Tilbage før domænet må pege herpå — og det er nu INDHOLD, ikke kode:\*\*
 > de statiske sider (om/kontakt/ai-brug/presseetik/cookies) findes kun på dansk
-> i `pages`, `/viden`-guiderne er danske, og `[...segments]`-metadata (meta-
+> i `pages`, `/viden`-guiderne er danske, og `\[...segments]`-metadata (meta-
 > beskrivelser for atlet- og artikelsider) har stadig danske sætninger.
 
----
+\---
 
 ## Hvad UK arver GRATIS
 
 Alt der er bygget i dag er delt kode og gælder automatisk for site nummer to,
 uden en linje ekstra:
 
-- Forsidens seks tæthedsbånd · arkivet (`/artikler`) med paginering og sportsfilter
-- Kampkort, OG-billeder, RSS, sitemap, JSON-LD, analytics-beacon
-- AdSense: `/ads.txt` + metatag + scriptet (samme publisher-ID dækker flere sites —
-  men **tilføj student-athlete.co.uk som selvstændigt site i AdSense**)
-- Cookieindstillinger-linket, samtykkehåndtering, admin i det hele taget
-- `i18n/en.ts` (britisk sprogpakke), `profile-baseline-en.ts` (engelsk
-  profilgrammatik), `countries/uk.ts` (UK-profil) — alle SKREVET og testet
+* Forsidens seks tæthedsbånd · arkivet (`/artikler`) med paginering og sportsfilter
+* Kampkort, OG-billeder, RSS, sitemap, JSON-LD, analytics-beacon
+* AdSense: `/ads.txt` + metatag + scriptet (samme publisher-ID dækker flere sites —
+men **tilføj student-athlete.co.uk som selvstændigt site i AdSense**)
+* Cookieindstillinger-linket, samtykkehåndtering, admin i det hele taget
+* `i18n/en.ts` (britisk sprogpakke), `profile-baseline-en.ts` (engelsk
+profilgrammatik), `countries/uk.ts` (UK-profil) — alle SKREVET og testet
 
 ## Hvad UK IKKE arver (opdateret 2026-08-04)
 
 1. ~~Genereringen taler dansk~~ **LØST** — promptsæt vælges efter atletens land.
 2. ~~UI-strengene er danske~~ **DELVIST LØST** — ramme, forside og arkiv er
-   oversat; skabeloner, profiler og `/viden` mangler (trin 4).
+oversat; skabeloner, profiler og `/viden` mangler (trin 4).
 3. **Rute-navnene er danske mapper**: `/atleter`, `/viden`, `/skoler`, `/artikler`.
-   Sport-sluggene er derimod sprogstyrede og virker allerede
-   (`/football`, `/american-football`, `/athletics` på UK-værten).
+Sport-sluggene er derimod sprogstyrede og virker allerede
+(`/football`, `/american-football`, `/athletics` på UK-værten).
 4. **De statiske sider** (om, kontakt, ai-brug, presseetik, cookies) findes kun på
-   dansk i `pages`-tabellen. De skal skrives på engelsk med `country='UK'`.
+dansk i `pages`-tabellen. De skal skrives på engelsk med `country='UK'`.
 
----
+\---
 
 ## ⚠️ RÆKKEFØLGEN VAR IKKE VALGFRI (og bliver det ikke ved land nr. 3)
 
@@ -57,14 +57,14 @@ den danske kladdekø. Derfor kom trin 1 og 2 før trin 3.
 Samme fælde venter ved næste land. Tjeklisten står i `ARKITEKTUR-motor.md` →
 "Sådan tilføjer du et land".
 
----
+\---
 
 ## ✅ Trin 1 — Gør pipelinen landebevidst  (GJORT 2026-08-04)
 
 Løst anderledes end skitseret nedenfor, og bedre: **discovery filtreres IKKE**
 på land. Den overvåger skolefeeds, og en skole er interessant så snart den har
 en aktiv atlet — uanset nationalitet. Det er GENERERINGEN der er landebevidst:
-`generate-articles.ts` slår atletens `home_country` op → landeprofil → sprog →
+`generate-articles.ts` slår atletens `home\_country` op → landeprofil → sprog →
 promptsæt, pr. historie. `articles.country` og `author` (sitets brand) stemples
 fra atleten i stedet for at være hardkodet.
 
@@ -72,10 +72,10 @@ fra atleten i stedet for at være hardkodet.
 
 Mål: en artikel ved hvilket land — og dermed hvilket sprog — den tilhører.
 
-1. `check-sources.ts`: filtrér atleter på `home_country` (kør pr. land, eller
-   tag landet med i forespørgslen).
+1. `check-sources.ts`: filtrér atleter på `home\_country` (kør pr. land, eller
+tag landet med i forespørgslen).
 2. `stories`/`articles`: `articles.country` findes allerede (migration 034).
-   Sæt den fra atletens `home_country` ved generering i stedet for at hardkode 'DK'.
+Sæt den fra atletens `home\_country` ved generering i stedet for at hardkode 'DK'.
 3. `generate-articles.ts`: slå landeprofilen op → sprog → vælg promptsæt.
 
 </details>
@@ -95,13 +95,13 @@ Læs de første engelske kladder ekstra grundigt, før du sætter volumen på.
 
 Husk at oversætte REGLERNE, ikke kun sproget:
 
-- Regel 1 "Skriv ALTID på dansk" → engelsk, britisk stavemåde
-- Regel 5 dansk overskriftskonvention (kun stort begyndelsesbogstav) → engelsk
-  bruger ofte sentence case i moderne sportsmedier — vælg ÉN konvention og hold den
-- Regel 6 "skriv sportsgrene på dansk (fodbold, ikke soccer)" → britisk:
-  **football** for soccer, **American football** for football, **athletics** for
-  track (sprogpakken `i18n/en.ts` har allerede de rigtige ord — genbrug dem)
-- SEO-reglerne og presseetik-reglerne gælder uændret
+* Regel 1 "Skriv ALTID på dansk" → engelsk, britisk stavemåde
+* Regel 5 dansk overskriftskonvention (kun stort begyndelsesbogstav) → engelsk
+bruger ofte sentence case i moderne sportsmedier — vælg ÉN konvention og hold den
+* Regel 6 "skriv sportsgrene på dansk (fodbold, ikke soccer)" → britisk:
+**football** for soccer, **American football** for football, **athletics** for
+track (sprogpakken `i18n/en.ts` har allerede de rigtige ord — genbrug dem)
+* SEO-reglerne og presseetik-reglerne gælder uændret
 
 </details>
 
@@ -109,7 +109,7 @@ Husk at oversætte REGLERNE, ikke kun sproget:
 
 `uk` er registreret i `COUNTRIES`, og roster-scrapen er startet manuelt
 (`gh workflow run weekly-scrape.yml`) i stedet for at vente til søndag. Den tager
-typisk ~1t40m pr. kørsel og **uger at konvergere** over ~1.700 skoler.
+typisk \~1t40m pr. kørsel og **uger at konvergere** over \~1.700 skoler.
 Forventning: **1.200–2.000 briter** (kataloget siger 972 rå; DK-forholdet mellem
 råt og kurateret antyder omkring det dobbelte).
 
@@ -119,9 +119,10 @@ nordmænd, irere, australiere, canadiere og de amerikanske navnebrødre
 (Denmark SC, Scotland PA, London Ontario) rammer ingen af sitene.
 
 Følg med:
+
 ```bash
-npx wrangler d1 execute studentathlete-dk --remote \
-  --command "SELECT home_country, COUNT(*) FROM athletes WHERE active=1 GROUP BY home_country"
+npx wrangler d1 execute studentathlete-dk --remote \\
+  --command "SELECT home\_country, COUNT(\*) FROM athletes WHERE active=1 GROUP BY home\_country"
 ```
 
 ## ⬅️ Trin 4 — Engelsk UI  (HALVT GJORT — resten er næste opgave)
@@ -129,23 +130,23 @@ npx wrangler d1 execute studentathlete-dk --remote \
 **Gjort:** mekanismen (`LanguagePack.ui` + `t()` + `currentSite()`/`currentLanguage()`
 via `headers()`), og alt det læseren møder på forside og arkiv. En manglende
 oversættelse er nu en TYPEFEJL, ikke et hul på siden (`UiKey`-unionen), og
-`_ui-strings-test.ts` fanger manglende pladsholdere og dansk der er sluppet med
+`\_ui-strings-test.ts` fanger manglende pladsholdere og dansk der er sluppet med
 over i den engelske pakke.
 
 **Også gjort:** de fire artikelskabeloner, atlet- og skoleprofiler, brødkrummer,
 faktaetiketter, statusværdier, dimissions-badge og artikeltyper
-(`ARTICLE_TYPE_LABELS` lå som ÉN dansk tabel i `lib/types.ts` og sivede ud på
+(`ARTICLE\_TYPE\_LABELS` lå som ÉN dansk tabel i `lib/types.ts` og sivede ud på
 hvert kort — nu `articleTypeLabel()` i sprogpakken; admin bruger stadig den danske).
 
 **Mangler — men det er INDHOLD, ikke kode:** `/viden`-guiderne · de statiske
-sider i `pages` (skriv på engelsk med `country='UK'`) · `[...segments]`-metadata
+sider i `pages` (skriv på engelsk med `country='UK'`) · `\[...segments]`-metadata
 (danske meta-beskrivelser). Admin må gerne forblive dansk — den har én bruger.
 
 Fremgangsmåde er nu mekanisk: tilføj nøglen i `UiKey`, oversæt i `da.ts` og
 `en.ts` (typechecken tvinger begge), erstat strengen med `t(...)`. Server-
 komponenter henter selv sproget; klientkomponenter får det som prop.
 
-**Løst undervejs**: `site_content` havde ingen landekolonne, så begge sites delte
+**Løst undervejs**: `site\_content` havde ingen landekolonne, så begge sites delte
 sidetitel, meta-beskrivelse og footer-tekst. Migration 037 gjorde nøglen til
 (key, country); AdSense-felterne er markeret `global` og deles bevidst. Husk at
 udfylde UK-teksterne — admin redigerer det site, den tilgås FRA.
@@ -162,13 +163,13 @@ sprogstyrede (det ER de allerede) og tilføj engelske alias-ruter for
 
 1. Mikkel skiftede nameservere hos Simply → zonen stod **Active** af sig selv.
 2. **Ingen DNS-records oprettet manuelt.** Tokenet har Workers på kontoniveau,
-   men ingen DNS-rettighed, så `wrangler.toml` bruger `custom_domain = true`
-   for apex og `www` — Cloudflare opretter selv record + certifikat. Punkt 3 og
-   4 nedenfor er dermed overflødige for det næste land.
+men ingen DNS-rettighed, så `wrangler.toml` bruger `custom\_domain = true`
+for apex og `www` — Cloudflare opretter selv record + certifikat. Punkt 3 og
+4 nedenfor er dermed overflødige for det næste land.
 3. `npm run deploy` (efter `rm -rf .next .open-next`) → alle fire triggers.
-4. Verificeret live: `lang="en"`, engelsk titel/meta fra `site_content`,
-   canonical + sitemap + robots på .co.uk, `www` → apex 301, 16 ruter 200,
-   dansk site uændret (14 ruter 200).
+4. Verificeret live: `lang="en"`, engelsk titel/meta fra `site\_content`,
+canonical + sitemap + robots på .co.uk, `www` → apex 301, 16 ruter 200,
+dansk site uændret (14 ruter 200).
 
 **Sitet kører som DARK LAUNCH: `darkLaunch: true` i `src/lib/countries/uk.ts`.**
 Grunden er ikke kun manglende artikler — `src/lib/db.ts` filtrerer ikke på
@@ -183,69 +184,76 @@ den zone — dashboardet, eller et bredere token) · AdSense-site (trin 7).
 
 **Forberedt 2026-08-04. Tjekket på forhånd, så der ikke er overraskelser:**
 
-- ⚠️ **`CLOUDFLARE_API_TOKEN` kan IKKE oprette zoner** (afprøvet: mangler
-  `com.cloudflare.api.account.zone.create`). Zonen skal oprettes i
-  DASHBOARDET — det kan ikke scriptes med den nuværende token.
-- ⚠️ **Samme token skal bagefter kunne redigere Workers-routes på den NYE
-  zone.** Er den scoped til kun `studentathlete.dk`, fejler `npm run deploy`
-  med en autorisationsfejl i det øjeblik UK-routen tilføjes. Tilføj den nye
-  zone til tokenets zone-ressourcer (eller brug "All zones") samtidig med at
-  du opretter zonen — så opdager du det ikke først midt i et deploy.
-- ✅ Værten i `src/lib/countries/uk.ts` er præcis `student-athlete.co.uk` og
-  matcher routen nedenfor. Middlewaren sender `www` → apex af sig selv.
+* ⚠️ **`CLOUDFLARE\_API\_TOKEN` kan IKKE oprette zoner** (afprøvet: mangler
+`com.cloudflare.api.account.zone.create`). Zonen skal oprettes i
+DASHBOARDET — det kan ikke scriptes med den nuværende token.
+* ⚠️ **Samme token skal bagefter kunne redigere Workers-routes på den NYE
+zone.** Er den scoped til kun `studentathlete.dk`, fejler `npm run deploy`
+med en autorisationsfejl i det øjeblik UK-routen tilføjes. Tilføj den nye
+zone til tokenets zone-ressourcer (eller brug "All zones") samtidig med at
+du opretter zonen — så opdager du det ikke først midt i et deploy.
+* ✅ Værten i `src/lib/countries/uk.ts` er præcis `student-athlete.co.uk` og
+matcher routen nedenfor. Middlewaren sender `www` → apex af sig selv.
 
 ### Rækkefølge
 
 1. **Cloudflare → Add a site** → `student-athlete.co.uk` → **Free**.
-   Noter de to nameservere Cloudflare giver dig.
+Noter de to nameservere Cloudflare giver dig.
 2. **Hos registraren** (hvor du købte domænet): skift nameservere til
-   Cloudflares to. Vent til zonen står **Active** — typisk minutter, men kan
-   tage timer. Alt nedenfor kan først virke derefter.
+Cloudflares to. Vent til zonen står **Active** — typisk minutter, men kan
+tage timer. Alt nedenfor kan først virke derefter.
 3. **DNS-records i den nye zone** (Cloudflare → DNS):
-   | Type | Navn | Indhold | Proxy |
-   |---|---|---|---|
-   | A | `student-athlete.co.uk` | `192.0.2.1` | **Proxied (orange)** |
-   | A | `www` | `192.0.2.1` | **Proxied (orange)** |
+
+|Type|Navn|Indhold|Proxy|
+|-|-|-|-|
+|A|`student-athlete.co.uk`|`192.0.2.1`|**Proxied (orange)**|
+|A|`www`|`192.0.2.1`|**Proxied (orange)**|
 
    `192.0.2.1` er en dokumentations-IP der bevidst ikke findes: Workers-routen
-   opfanger trafikken før den nogensinde slås op. Zonen skal blot HAVE en
-   proxied record for at route. **Grå sky = det virker ikke.**
+opfanger trafikken før den nogensinde slås op. Zonen skal blot HAVE en
+proxied record for at route. **Grå sky = det virker ikke.**
+
 4. **API-token**: sørg for at tokenet dækker den nye zone (se advarslen ovenfor).
 5. **`wrangler.toml`** — tilføj de to linjer:
-   ```toml
-   routes = [
-     { pattern = "studentathlete.dk/*",         zone_name = "studentathlete.dk" },
-     { pattern = "www.studentathlete.dk/*",     zone_name = "studentathlete.dk" },
-     { pattern = "student-athlete.co.uk/*",     zone_name = "student-athlete.co.uk" },
-     { pattern = "www.student-athlete.co.uk/*", zone_name = "student-athlete.co.uk" },
+
+```toml
+   routes = \[
+     { pattern = "studentathlete.dk/\*",         zone\_name = "studentathlete.dk" },
+     { pattern = "www.studentathlete.dk/\*",     zone\_name = "studentathlete.dk" },
+     { pattern = "student-athlete.co.uk/\*",     zone\_name = "student-athlete.co.uk" },
+     { pattern = "www.student-athlete.co.uk/\*", zone\_name = "student-athlete.co.uk" },
    ]
    ```
+
    **Tilføj dem FØRST når zonen er Active** — en route mod en ukendt zone får
-   `wrangler deploy` til at fejle, og så er også .dk-sitet udeployet indtil det
-   rettes.
+`wrangler deploy` til at fejle, og så er også .dk-sitet udeployet indtil det
+rettes.
+
 6. **Deploy**: `npm run deploy`
 7. **Verificér**:
-   ```bash
+
+```bash
    curl -sI https://student-athlete.co.uk/ | head -3
-   curl -s  https://student-athlete.co.uk/ | grep -o "<title>[^<]*"
-   curl -s  https://student-athlete.co.uk/ | grep -o '<html lang="[a-z]*"'
+   curl -s  https://student-athlete.co.uk/ | grep -o "<title>\[^<]\*"
+   curl -s  https://student-athlete.co.uk/ | grep -o '<html lang="\[a-z]\*"'
    curl -sI https://www.student-athlete.co.uk/ | grep -i location   # → apex
-   curl -s  https://student-athlete.co.uk/om | grep -o "<title>[^<]*"
+   curl -s  https://student-athlete.co.uk/om | grep -o "<title>\[^<]\*"
    ```
+
    Forventet: `lang="en"`, engelsk titel, `/om` viser den engelske "About".
 
 8. **E-mail** (kan vente): Cloudflare Email Routing på den nye zone →
-   `info@student-athlete.co.uk` videresendt. Adressen står allerede i
-   landeprofilen og bruges i pipelinens user-agent.
+`info@student-athlete.co.uk` videresendt. Adressen står allerede i
+landeprofilen og bruges i pipelinens user-agent.
 
 ### Hvis noget går galt
 
-- **502/521 på UK-domænet**: record er ikke proxied (grå sky), eller routen
-  mangler i `wrangler.toml`.
-- **Dansk indhold på UK-domænet**: værten når ikke frem. Tjek at routen
-  matcher `student-athlete.co.uk/*` præcis, og at `uk.ts` har samme streng.
-- **`wrangler deploy` fejler på autorisation**: tokenet dækker ikke den nye
-  zone (se punkt 4).
+* **502/521 på UK-domænet**: record er ikke proxied (grå sky), eller routen
+mangler i `wrangler.toml`.
+* **Dansk indhold på UK-domænet**: værten når ikke frem. Tjek at routen
+matcher `student-athlete.co.uk/\*` præcis, og at `uk.ts` har samme streng.
+* **`wrangler deploy` fejler på autorisation**: tokenet dækker ikke den nye
+zone (se punkt 4).
 
 </details>
 
@@ -253,10 +261,10 @@ den zone — dashboardet, eller et bredere token) · AdSense-site (trin 7).
 
 1. Lad scrapen køre nogle uger (trin 3).
 2. Kør generering for UK og **læs hver kladde** — ingen auto-publicering, heller
-   ikke her.
+ikke her.
 3. Skriv de statiske sider på engelsk (om/kontakt/ai-brug/presseetik/cookies) og
-   seed dem med `country='UK'`.
-4. Først når der ligger ~15–20 publicerede artikler: begynd distribution.
+seed dem med `country='UK'`.
+4. Først når der ligger \~15–20 publicerede artikler: begynd distribution.
 
 ## Trin 7 — AdSense på det nye domæne
 
@@ -266,17 +274,18 @@ begge kommer fra samme felt i admin. Husk at publicere en European
 regulations-besked for sitet, ellers dukker Cookieindstillinger-linket ikke op
 (samme fælde som på .dk).
 
----
+\---
 
 ## Realistisk tidsforbrug
 
-| Trin | Hvad | Hvem |
-|---|---|---|
-| 1–2 | Landebevidst pipeline + engelske prompts | kode, ~1 dag |
-| 3 | Tænd indsamling | 1 linje, derefter uger |
-| 4 | Engelsk UI | kode, ~1 dag |
-| 5 | Domæne live | dig, ~30 min |
-| 6 | Indhold + gennemlæsning | dig, løbende |
+|Trin|Hvad|Hvem|
+|-|-|-|
+|1–2|Landebevidst pipeline + engelske prompts|kode, \~1 dag|
+|3|Tænd indsamling|1 linje, derefter uger|
+|4|Engelsk UI|kode, \~1 dag|
+|5|Domæne live|dig, \~30 min|
+|6|Indhold + gennemlæsning|dig, løbende|
 
 Rækkefølgen 1 → 2 → 3 er bindende. 4 og 5 kan køre parallelt med 3, mens
 scrapen konvergerer.
+

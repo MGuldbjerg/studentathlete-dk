@@ -13,6 +13,30 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  * værter (workers.dev, previews) falder tilbage til standardsitet som før.
  */
 import { siteFromHost } from "./lib/site";
+import { COUNTRIES, DEFAULT_COUNTRY, countryProfile } from "./lib/countries";
+
+/** Cookien admin-landevælgeren sætter, og headeren serverkoden læser. */
+const ADMIN_COUNTRY_COOKIE = "sa_country";
+const COUNTRY_HEADER = "x-sa-country";
+
+function isAdminPath(pathname: string): boolean {
+  return pathname === "/admin" || pathname.startsWith("/admin/") ||
+    pathname === "/api/admin" || pathname.startsWith("/api/admin/");
+}
+
+/**
+ * Admin arbejder på ÉT lands indhold ad gangen, valgt i landevælgeren.
+ *
+ * Headeren sættes ubetinget på admin-stier — også når der ikke er valgt noget
+ * (så falder den tilbage til værtens land). Dermed kan en klient ikke smugle
+ * sin egen `x-sa-country` ind: på admin-stier overskriver vi den altid, og
+ * alle andre steder læser serverkoden aldrig andet end værten.
+ */
+function adminCountry(req: NextRequest, host: string): string {
+  const chosen = req.cookies.get(ADMIN_COUNTRY_COOKIE)?.value?.toUpperCase();
+  if (chosen && COUNTRIES[chosen]) return chosen;
+  return siteFromHost(host).code;
+}
 
 /**
  * Nedlagte atlet-slugs (navneskift hos skolen, eller to rækker flettet til én)
@@ -74,10 +98,39 @@ export async function middleware(req: NextRequest) {
   }
 
   const host = (req.headers.get("host") ?? "").toLowerCase();
+  const adminPath = isAdminPath(req.nextUrl.pathname);
 
-  // Lokal udvikling (next dev / wrangler dev) røres ikke.
+  /** `NextResponse.next()` med landevalget vedhæftet på admin-stier. */
+  const proceed = () => {
+    if (!adminPath) return NextResponse.next();
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set(COUNTRY_HEADER, adminCountry(req, host));
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  };
+
+  // Lokal udvikling (next dev / wrangler dev) røres ikke — bortset fra
+  // landevalget, så admin kan testes uden Cloudflare foran.
   if (!host || host.startsWith("localhost") || host.startsWith("127.0.0.1")) {
-    return NextResponse.next();
+    return proceed();
+  }
+
+  /**
+   * Admin bor KUN på standardsitet.
+   *
+   * Cloudflare Access er bundet til ét værtsnavn, så /admin på et nyt
+   * landedomæne ville stå uden login foran (app-laget afviste stadig, men
+   * siden var der). Ét admin-domæne betyder også ét Access-app for al fremtid
+   * — landet vælges i stedet inde i admin.
+   */
+  if (adminPath && siteFromHost(host).code !== DEFAULT_COUNTRY) {
+    if (req.nextUrl.pathname.startsWith("/api/")) {
+      return new NextResponse("Not found", { status: 404 });
+    }
+    const adminHost = countryProfile(DEFAULT_COUNTRY).host;
+    return NextResponse.redirect(
+      new URL(req.nextUrl.pathname + req.nextUrl.search, `https://${adminHost}`),
+      302,
+    );
   }
 
   // Cloudflare sætter x-forwarded-proto; fald tilbage til URL-skemaet.
@@ -103,7 +156,7 @@ export async function middleware(req: NextRequest) {
   // Dark launch (se `darkLaunch` i landeprofilen): headeren gælder ALT hvad
   // sitet svarer med — også de sider der selv sætter `robots: index: true` i
   // deres metadata og derfor overskriver layoutets noindex.
-  const res = NextResponse.next();
+  const res = proceed();
   if (siteFromHost(host).darkLaunch) {
     res.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
@@ -112,6 +165,8 @@ export async function middleware(req: NextRequest) {
 
 // Kør ikke på API-ruter (track-beacon/OG bruger allerede https samme-origin),
 // Next-interne assets, sitemap/robots/feed eller statiske filer med endelse.
+// UNDTAGEN /api/admin: de ruter skal have landevalget med, og de må ikke
+// kunne rammes fra et landedomæne.
 export const config = {
-  matcher: ["/((?!api/|_next/|.*\\..*).*)"],
+  matcher: ["/((?!api/|_next/|.*\\..*).*)", "/api/admin/:path*"],
 };

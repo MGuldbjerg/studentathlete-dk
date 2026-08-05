@@ -1,6 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { DEFAULT_COUNTRY } from "./countries";
-import { currentSite } from "./site-server";
+import { contentCountry } from "./site-server";
 import type { Article, Athlete, School } from "./types";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
@@ -28,7 +28,7 @@ export async function getEnv(): Promise<Record<string, any>> {
 }
 
 /**
- * Hvilket sites indhold hentes der? Nationalitet er DATA (migration 034), så
+ * Hvilket lands indhold hentes der? Nationalitet er DATA (migration 034), så
  * listerne filtrerer eksplicit i stedet for at antage at "alle rækker" er danske.
  *
  * **Uden argument afgøres landet af VÆRTEN**, ikke af en konstant. Det var
@@ -37,13 +37,14 @@ export async function getEnv(): Promise<Record<string, any>> {
  * sitemap identisk med .dk's, altså en dublet. Ingen side kaldte forkert; det
  * var defaulten der var forkert.
  *
- * Uden request-kontekst (byggetid, scripts, tests) falder `currentSite()`
- * tilbage til standardsitet, præcis som før.
+ * Uden request-kontekst (byggetid, scripts, tests) falder `contentCountry()`
+ * tilbage til standardsitet, præcis som før. I admin er svaret landevælgerens
+ * land, ikke værtens — se `contentCountry()`.
  */
 export async function siteCountry(country?: string): Promise<string> {
   if (country) return country.toUpperCase();
   try {
-    return (await currentSite()).code.toUpperCase();
+    return (await contentCountry()).toUpperCase();
   } catch {
     return DEFAULT_COUNTRY.toUpperCase();
   }

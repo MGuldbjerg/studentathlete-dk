@@ -3,11 +3,17 @@ import { generateSlug } from "./slug";
 import { buildMergeStatements } from "./athlete-merge";
 import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS, settingScope, GLOBAL_SCOPE } from "./site-content";
-import { currentSite } from "./site-server";
+import { contentCountry } from "./site-server";
 import { extractEvents, seasonFromDate } from "./athlete-events";
 
 // ─── DB-queries til admin ───────────────────────────────────────────────────
 
+/**
+ * Kladdekøen for det land landevælgeren peger på (`contentCountry()`).
+ *
+ * Admin bor kun på standardsitet, men redigerer ét land ad gangen — ellers
+ * ville britiske og danske kladder ligge i samme kø og skulle skelnes i hovedet.
+ */
 export async function getDraftArticles(): Promise<Article[]> {
   const db = await getDB();
   if (!db) return [];
@@ -20,7 +26,7 @@ export async function getDraftArticles(): Promise<Article[]> {
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          LEFT JOIN stories s ON a.story_id = s.id
-         WHERE a.published = 0
+         WHERE a.published = 0 AND a.country = ?
          ORDER BY CASE WHEN s.sensitive IS NOT NULL THEN 0 ELSE 1 END ASC,
          CASE a.fabrication_risk
            WHEN 'low' THEN 0
@@ -29,6 +35,7 @@ export async function getDraftArticles(): Promise<Article[]> {
            ELSE 1
          END ASC, a.created_at ASC`
       )
+      .bind(await contentCountry())
       .all();
     return (r.results ?? []) as Article[];
   } catch {
@@ -248,8 +255,10 @@ export async function getAllArticles(): Promise<Article[]> {
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
+         WHERE a.country = ?
          ORDER BY a.updated_at DESC`
       )
+      .bind(await contentCountry())
       .all();
     return (r.results ?? []) as Article[];
   } catch {
@@ -322,10 +331,12 @@ export async function createArticle(fields: {
 
   await db
     .prepare(
-      `INSERT INTO articles (title, slug, summary, content, article_type, author, athlete_id, published)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 0)`
+      // country stemples fra landevælgeren. Uden den falder rækken tilbage på
+      // kolonnens DEFAULT 'DK' og ville forsvinde ud af den kø den blev skabt i.
+      `INSERT INTO articles (title, slug, summary, content, article_type, author, athlete_id, country, published)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`
     )
-    .bind(fields.title, slug, fields.summary, fields.content, fields.article_type, fields.author, fields.athlete_id)
+    .bind(fields.title, slug, fields.summary, fields.content, fields.article_type, fields.author, fields.athlete_id, await contentCountry())
     .run();
 
   // Hent ID på den nye artikel
@@ -461,7 +472,7 @@ export async function getAllPages(): Promise<Array<Omit<PageRow, "content"> & { 
   if (!db) return [];
   try {
     // Admin viser siderne for DET site den tilgås fra (migration 038).
-    const country = (await currentSite()).code;
+    const country = (await contentCountry());
     const r = await db
       .prepare("SELECT slug, title, meta_description, published, kind, updated_at FROM pages WHERE country = ? ORDER BY kind ASC, title ASC")
       .bind(country)
@@ -481,7 +492,7 @@ export async function getPageBySlug(slug: string, country?: string): Promise<Pag
   const db = await getDB();
   if (!db) return null;
   try {
-    const code = country ?? (await currentSite()).code;
+    const code = country ?? (await contentCountry());
     const r = await db
       .prepare("SELECT slug, title, content, meta_description, published, kind, category FROM pages WHERE slug = ? AND country = ?")
       .bind(slug, code)
@@ -528,7 +539,7 @@ export async function getSiteSettings(country?: string): Promise<Record<string, 
   const resolved = siteDefaults();
   const db = await getDB();
   if (!db) return resolved;
-  const code = (country ?? (await currentSite()).code).toUpperCase();
+  const code = (country ?? (await contentCountry())).toUpperCase();
   try {
     const r = await db
       .prepare(
@@ -562,7 +573,7 @@ export async function upsertSetting(key: string, value: string, country?: string
   const scope =
     settingScope(key) === "global"
       ? GLOBAL_SCOPE
-      : (country ?? (await currentSite()).code).toUpperCase();
+      : (country ?? (await contentCountry())).toUpperCase();
   await db
     .prepare(
       `INSERT INTO site_content (key, country, value, updated_at)
@@ -621,7 +632,7 @@ export async function getPublishedGuides(): Promise<
       .prepare(
         "SELECT slug, title, meta_description, category FROM pages WHERE kind = 'guide' AND published = 1 AND country = ? ORDER BY title ASC",
       )
-      .bind((await currentSite()).code)
+      .bind((await contentCountry()))
       .all();
     return (r.results ?? []) as {
       slug: string;
@@ -646,7 +657,7 @@ export async function upsertPage(
   if (!db) return;
   // published udeladt → bevar eksisterende værdi (0 for nye rækker)
   const pub = published ?? null;
-  const code = country ?? (await currentSite()).code;
+  const code = country ?? (await contentCountry());
   await db
     .prepare(
       // ON CONFLICT(slug, country) — IKKE bare (slug). Efter migration 038 er
@@ -687,9 +698,11 @@ export async function getSchoolsWithAthletes(): Promise<AdminSchool[]> {
                 COUNT(a.id) as athlete_count
          FROM schools s
          JOIN athletes a ON a.university = s.name AND a.active = 1
+           AND a.home_country = ?
          GROUP BY s.id
          ORDER BY s.name ASC`
       )
+      .bind(await contentCountry())
       .all();
     return (r.results ?? []) as AdminSchool[];
   } catch {
@@ -736,9 +749,10 @@ export async function getPendingPhotoSuggestions(): Promise<PhotoSuggestion[]> {
                 a.name as athlete_name, a.university, a.sport
          FROM photo_suggestions ps
          JOIN athletes a ON ps.athlete_id = a.id
-         WHERE ps.status = 'pending'
+         WHERE ps.status = 'pending' AND a.home_country = ?
          ORDER BY ps.created_at ASC`
       )
+      .bind(await contentCountry())
       .all();
     return (r.results ?? []) as PhotoSuggestion[];
   } catch {
@@ -751,7 +765,12 @@ export async function getPendingPhotoSuggestionCount(): Promise<number> {
   if (!db) return 0;
   try {
     const r = await db
-      .prepare("SELECT COUNT(*) as cnt FROM photo_suggestions WHERE status = 'pending'")
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM photo_suggestions ps
+         JOIN athletes a ON ps.athlete_id = a.id
+         WHERE ps.status = 'pending' AND a.home_country = ?`,
+      )
+      .bind(await contentCountry())
       .first();
     return (r as { cnt: number })?.cnt ?? 0;
   } catch {
@@ -824,11 +843,11 @@ export async function getPendingProfileDrafts(limit = 50): Promise<ProfileDraft[
         `SELECT id, name, slug, university, sport,
                 profile_summary, profile_draft, profile_draft_at
          FROM athletes
-         WHERE profile_draft IS NOT NULL
+         WHERE profile_draft IS NOT NULL AND home_country = ?
          ORDER BY profile_draft_at ASC
          LIMIT ?`
       )
-      .bind(limit)
+      .bind(await contentCountry(), limit)
       .all();
     return (r.results ?? []) as unknown as ProfileDraft[];
   } catch {
@@ -841,7 +860,8 @@ export async function getPendingProfileDraftCount(): Promise<number> {
   if (!db) return 0;
   try {
     const r = await db
-      .prepare("SELECT COUNT(*) as cnt FROM athletes WHERE profile_draft IS NOT NULL")
+      .prepare("SELECT COUNT(*) as cnt FROM athletes WHERE profile_draft IS NOT NULL AND home_country = ?")
+      .bind(await contentCountry())
       .first();
     return (r as { cnt: number })?.cnt ?? 0;
   } catch {
@@ -935,8 +955,9 @@ export async function createAthlete(fields: {
 
   await db
     .prepare(
-      `INSERT INTO athletes (name, slug, sport, university, position, hometown, division, year_enrolled, active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
+      // home_country fra landevælgeren — samme grund som i createArticle.
+      `INSERT INTO athletes (name, slug, sport, university, position, hometown, division, year_enrolled, home_country, active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
     )
     .bind(
       fields.name,
@@ -947,6 +968,7 @@ export async function createAthlete(fields: {
       fields.hometown ?? null,
       fields.division ?? "NCAA D1",
       fields.year_enrolled ?? null,
+      await contentCountry(),
     )
     .run();
 
@@ -1096,11 +1118,11 @@ export async function getMergeCandidates(limit = 50): Promise<MergeCandidate[]> 
          FROM merge_candidates mc
          JOIN athletes k ON k.id = mc.athlete_id_keep
          JOIN athletes m ON m.id = mc.athlete_id_merge
-         WHERE mc.status = 'pending'
+         WHERE mc.status = 'pending' AND k.home_country = ?
          ORDER BY mc.score DESC, mc.created_at ASC
          LIMIT ?`,
       )
-      .bind(limit)
+      .bind(await contentCountry(), limit)
       .all();
     const rows = (r.results ?? []) as unknown as Array<{
       id: number; score: number; reason: string; created_at: string;
@@ -1127,7 +1149,12 @@ export async function getMergeCandidateCount(): Promise<number> {
   if (!db) return 0;
   try {
     const r = await db
-      .prepare("SELECT COUNT(*) as cnt FROM merge_candidates WHERE status = 'pending'")
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM merge_candidates mc
+         JOIN athletes k ON k.id = mc.athlete_id_keep
+         WHERE mc.status = 'pending' AND k.home_country = ?`,
+      )
+      .bind(await contentCountry())
       .first();
     return (r as { cnt: number })?.cnt ?? 0;
   } catch {

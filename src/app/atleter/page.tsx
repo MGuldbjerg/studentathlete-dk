@@ -6,21 +6,25 @@ import { getSportColor } from "@/lib/types";
 import { getAthleteUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { AlumniToggle } from "./AlumniToggle";
+import { t } from "@/lib/i18n";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Alle atleter | StudentAthlete.dk",
-  description:
-    "Oversigt over danske student athletes på amerikanske universiteter. Find din favorit og følg deres karriere.",
-  alternates: { canonical: "/atleter" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [lang, site] = await Promise.all([currentLanguage(), currentSite()]);
+  return {
+    title: `${t("athletes.meta_title", lang)} | ${site.brand}`,
+    description: t("athletes.meta_description", lang),
+    alternates: { canonical: "/atleter" },
+  };
+}
 
 type SortMode = "sport" | "name" | "school";
-const SORT_OPTIONS: { key: SortMode; label: string }[] = [
-  { key: "sport", label: "Sport" },
-  { key: "name", label: "Navn" },
-  { key: "school", label: "Skole" },
+const SORT_OPTIONS: { key: SortMode; labelKey: "athletes.sort_sport" | "athletes.sort_name" | "athletes.sort_school" }[] = [
+  { key: "sport", labelKey: "athletes.sort_sport" },
+  { key: "name", labelKey: "athletes.sort_name" },
+  { key: "school", labelKey: "athletes.sort_school" },
 ];
 
 function parseSort(v: string | undefined): SortMode {
@@ -38,10 +42,10 @@ function groupBy(athletes: Athlete[], key: (a: Athlete) => string) {
   return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], "da"));
 }
 
-function SortTabs({ sort }: { sort: SortMode }) {
+function SortTabs({ sort, lang }: { sort: SortMode; lang: string }) {
   return (
     <div className="flex items-center gap-2 mb-8">
-      <span className="text-xs text-muted mr-1">Sortér:</span>
+      <span className="text-xs text-muted mr-1">{t("athletes.sort_label", lang)}</span>
       {SORT_OPTIONS.map((o) => {
         const active = o.key === sort;
         return (
@@ -57,7 +61,7 @@ function SortTabs({ sort }: { sort: SortMode }) {
             }`}
             style={active ? { backgroundColor: "#00205B" } : undefined}
           >
-            {o.label}
+            {t(o.labelKey, lang)}
           </Link>
         );
       })}
@@ -65,7 +69,7 @@ function SortTabs({ sort }: { sort: SortMode }) {
   );
 }
 
-function AthleteCard({ athlete, faded }: { athlete: Athlete; faded?: boolean }) {
+function AthleteCard({ athlete, faded, lang }: { athlete: Athlete; faded?: boolean; lang: string }) {
   return (
     <Link
       href={getAthleteUrl(athlete.slug)}
@@ -95,7 +99,9 @@ function AthleteCard({ athlete, faded }: { athlete: Athlete; faded?: boolean }) 
           {graduationBadgeYear(athlete.expected_graduation) && (
             <span
               className="ml-1.5"
-              title={`Færdiguddannet ${graduationBadgeYear(athlete.expected_graduation)}`}
+              title={t("athletes.graduated_title", lang, {
+                year: String(graduationBadgeYear(athlete.expected_graduation)),
+              })}
             >
               🎓
             </span>
@@ -111,11 +117,11 @@ function AthleteCard({ athlete, faded }: { athlete: Athlete; faded?: boolean }) 
   );
 }
 
-function CardGrid({ athletes, faded }: { athletes: Athlete[]; faded?: boolean }) {
+function CardGrid({ athletes, faded, lang }: { athletes: Athlete[]; faded?: boolean; lang: string }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {athletes.map((a) => (
-        <AthleteCard key={a.id} athlete={a} faded={faded} />
+        <AthleteCard key={a.id} athlete={a} faded={faded} lang={lang} />
       ))}
     </div>
   );
@@ -125,21 +131,23 @@ function AthleteGrid({
   athletes,
   sort,
   faded = false,
+  lang,
 }: {
   athletes: Athlete[];
   sort: SortMode;
   faded?: boolean;
+  lang: string;
 }) {
   // Flad liste sorteret efter navn
   if (sort === "name") {
-    const sorted = [...athletes].sort((a, b) => a.name.localeCompare(b.name, "da"));
-    return <CardGrid athletes={sorted} faded={faded} />;
+    const sorted = [...athletes].sort((a, b) => a.name.localeCompare(b.name, lang));
+    return <CardGrid athletes={sorted} faded={faded} lang={lang} />;
   }
 
   // Grupperet efter sport eller skole
   const groups =
     sort === "school"
-      ? groupBy(athletes, (a) => a.university?.trim() || "Ukendt skole")
+      ? groupBy(athletes, (a) => a.university?.trim() || t("athletes.unknown_school", lang))
       : groupBy(athletes, (a) => a.sport);
 
   return (
@@ -154,7 +162,7 @@ function AthleteGrid({
             <h3 className="text-lg font-bold text-ink capitalize">{groupKey}</h3>
             <span className="text-xs text-muted">({group.length})</span>
           </div>
-          <CardGrid athletes={group} faded={faded} />
+          <CardGrid athletes={group} faded={faded} lang={lang} />
         </section>
       ))}
     </div>
@@ -169,9 +177,10 @@ export default async function AtleterPage({
   const { sort: rawSort } = await searchParams;
   const sort = parseSort(rawSort);
 
-  const [active, alumni] = await Promise.all([
+  const [active, alumni, lang] = await Promise.all([
     getAllAthletes(),
     getAlumniAthletes(),
+    currentLanguage(),
   ]);
 
   return (
@@ -180,28 +189,29 @@ export default async function AtleterPage({
         className="text-3xl font-bold text-ink mb-2"
         style={{ fontFamily: "var(--font-serif)" }}
       >
-        Danske atleter i USA
+        {t("athletes.h1", lang)}
       </h1>
       <p className="text-muted text-sm mb-8">
-        {active.length} aktive{alumni.length > 0 ? ` · ${alumni.length} alumni` : ""}
+        {t("athletes.active_count", lang, { n: String(active.length) })}
+        {alumni.length > 0
+          ? ` · ${t("athletes.alumni_count", lang, { n: String(alumni.length) })}`
+          : ""}
       </p>
 
       {active.length === 0 && alumni.length === 0 ? (
-        <p className="text-muted py-20 text-center">
-          Ingen atleter registreret endnu.
-        </p>
+        <p className="text-muted py-20 text-center">{t("athletes.none", lang)}</p>
       ) : (
         <>
-          <SortTabs sort={sort} />
+          <SortTabs sort={sort} lang={lang} />
 
           {/* Forklaring af dimissions-badge */}
           <div className="mb-8 flex items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-muted">
             <span aria-hidden className="leading-none">🎓</span>
             <p>
-              Hatten markerer atleter, der er{" "}
-              <strong className="text-ink">dimitteret inden for det seneste år</strong> — perioden,
-              hvor vi stadig følger draft- og kontraktnyheder. Derefter flyttes de til{" "}
-              <em>Tidligere atleter</em>.
+              {t("athletes.grad_help_before", lang)}
+              <strong className="text-ink">{t("athletes.grad_help_strong", lang)}</strong>
+              {t("athletes.grad_help_after", lang)}
+              <em>{t("athletes.alumni_heading", lang)}</em>.
             </p>
           </div>
 
@@ -210,19 +220,24 @@ export default async function AtleterPage({
             className="text-xl font-bold text-ink mb-6"
             style={{ fontFamily: "var(--font-serif)" }}
           >
-            Aktive atleter
+            {t("athletes.active_heading", lang)}
           </h2>
           {active.length > 0 ? (
-            <AthleteGrid athletes={active} sort={sort} />
+            <AthleteGrid athletes={active} sort={sort} lang={lang} />
           ) : (
-            <p className="text-muted text-sm mb-10">Ingen aktive atleter.</p>
+            <p className="text-muted text-sm mb-10">{t("athletes.none_active", lang)}</p>
           )}
 
           {/* Alumni — sammenklappet */}
           {alumni.length > 0 && (
             <div className="mt-14 pt-10 border-t border-border">
-              <AlumniToggle count={alumni.length}>
-                <AthleteGrid athletes={alumni} sort={sort} faded />
+              <AlumniToggle
+                count={alumni.length}
+                heading={t("athletes.alumni_heading", lang)}
+                showLabel={t("athletes.show", lang)}
+                hideLabel={t("athletes.hide", lang)}
+              >
+                <AthleteGrid athletes={alumni} sort={sort} faded lang={lang} />
               </AlumniToggle>
             </div>
           )}

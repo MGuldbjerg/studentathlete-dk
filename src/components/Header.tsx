@@ -40,7 +40,10 @@ export async function Header() {
             </a>
             <div className="w-full max-w-sm">
               <Suspense fallback={null}>
-                <SearchBar placeholder={t("nav.search_placeholder", lang)} />
+                <SearchBar
+                  placeholder={t("nav.search_placeholder", lang)}
+                  submitLabel={t("nav.search_submit", lang)}
+                />
               </Suspense>
             </div>
           </div>

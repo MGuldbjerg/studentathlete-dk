@@ -2,19 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSchoolsWithAthletes } from "@/lib/db";
 import { getSchoolUrl, breadcrumbStructuredData } from "@/lib/seo";
-import { currentBaseUrl } from "@/lib/site-server";
+import { currentBaseUrl, currentLanguage, currentSite } from "@/lib/site-server";
+import { t } from "@/lib/i18n";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Universiteter med danske atleter | StudentAthlete.dk",
-  description:
-    "Overblik over de amerikanske universiteter, hvor danske student athletes går — sorteret efter NCAA-division med conference og antal danskere.",
-  alternates: { canonical: "/skoler" },
-  // Bevidst intet `robots`-felt: statisk metadata kan ikke kende værten, og et
-  // hårdkodet `index: true` ville overskrive layoutets dark launch-noindex.
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [lang, site] = await Promise.all([currentLanguage(), currentSite()]);
+  return {
+    title: `${t("schools.meta_title", lang)} | ${site.brand}`,
+    description: t("schools.meta_description", lang),
+    alternates: { canonical: "/skoler" },
+    // Bevidst intet `robots`-felt: layoutets dark launch-noindex skal vinde.
+  };
+}
 
 // Rangér divisioner i logisk rækkefølge; ukendte sidst.
 function divisionRank(div: string): number {
@@ -28,12 +30,12 @@ function divisionRank(div: string): number {
 }
 
 export default async function SkolerPage() {
-  const schools = await getSchoolsWithAthletes();
+  const [schools, lang] = await Promise.all([getSchoolsWithAthletes(), currentLanguage()]);
 
   // Gruppér efter division
   const groups = new Map<string, typeof schools>();
   for (const s of schools) {
-    const key = s.division || "Andet";
+    const key = s.division || "NCAA";
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(s);
   }
@@ -46,8 +48,8 @@ export default async function SkolerPage() {
 
   const siteBase = await currentBaseUrl();
   const jsonLd = breadcrumbStructuredData([
-    { name: "Forside", url: siteBase },
-    { name: "Universiteter", url: `${siteBase}/skoler` },
+    { name: t("crumb.home", lang), url: siteBase },
+    { name: t("schools.crumb", lang), url: `${siteBase}/skoler` },
   ]);
 
   return (
@@ -59,8 +61,8 @@ export default async function SkolerPage() {
 
       <Breadcrumb
         crumbs={[
-          { label: "Forside", href: "/" },
-          { label: "Universiteter" },
+          { label: t("crumb.home", lang), href: "/" },
+          { label: t("schools.crumb", lang) },
         ]}
       />
 
@@ -68,24 +70,30 @@ export default async function SkolerPage() {
         className="text-3xl font-bold text-ink mt-6 mb-3"
         style={{ fontFamily: "var(--font-serif)" }}
       >
-        Universiteter med danske atleter
+        {t("schools.meta_title", lang)}
       </h1>
       <p className="text-muted text-base mb-3 max-w-2xl">
-        De amerikanske universiteter, hvor vi følger danske student athletes —
-        grupperet efter NCAA-division. Læs mere om forskellene i vores guide til{" "}
-        <Link href="/viden/ncaa-divisioner" className="underline" style={{ color: "#BF0A30" }}>
-          divisioner i NCAA
+        {t("schools.intro_before", lang)}
+        <Link
+          href={`/viden/${t("guides.divisions_slug", lang)}`}
+          className="underline"
+          style={{ color: "#BF0A30" }}
+        >
+          {t("schools.intro_link", lang)}
         </Link>
         .
       </p>
       {totalSchools > 0 && (
         <p className="text-sm text-muted mb-10">
-          {totalSchools} universiteter · {totalAthletes} danske atleter
+          {t("schools.counts", lang, {
+            schools: String(totalSchools),
+            athletes: String(totalAthletes),
+          })}
         </p>
       )}
 
       {totalSchools === 0 && (
-        <p className="text-muted">Ingen universiteter at vise endnu.</p>
+        <p className="text-muted">{t("schools.none", lang)}</p>
       )}
 
       {orderedDivisions.map((division) => {
@@ -119,7 +127,9 @@ export default async function SkolerPage() {
                   <span
                     className="flex-shrink-0 text-xs font-bold rounded-full px-2 py-0.5 text-white"
                     style={{ backgroundColor: "#00205B" }}
-                    title={`${s.athlete_count} danske atleter`}
+                    title={t("schools.athlete_count_title", lang, {
+                      n: String(s.athlete_count),
+                    })}
                   >
                     {s.athlete_count}
                   </span>

@@ -254,6 +254,70 @@ const ui: LanguagePack["ui"] = {
 
   "crumb.home": "Home",
   "crumb.aria": "Breadcrumb",
+
+  "nav.search_submit": "Search",
+  "common.loading": "Loading…",
+  "notfound.title": "Page not found",
+  "notfound.body": "The page you are looking for does not exist, or it has moved.",
+  "notfound.cta": "Go to the front page",
+
+  "athletes.meta_title": "All athletes",
+  "athletes.meta_description":
+    "Every British student athlete we cover at American universities. Browse by sport, university or name and follow their careers.",
+  "athletes.h1": "British athletes in the United States",
+  "athletes.active_count": "{n} active",
+  "athletes.alumni_count": "{n} alumni",
+  "athletes.none": "No athletes on the site yet.",
+  "athletes.sort_label": "Sort by:",
+  "athletes.sort_sport": "Sport",
+  "athletes.sort_name": "Name",
+  "athletes.sort_school": "University",
+  "athletes.grad_help_before": "The cap marks athletes who ",
+  "athletes.grad_help_strong": "graduated within the past year",
+  "athletes.grad_help_after":
+    " — the window where we still follow draft and contract news. After that they move to ",
+  "athletes.active_heading": "Current athletes",
+  "athletes.none_active": "No current athletes.",
+  "athletes.alumni_heading": "Former athletes",
+  "athletes.show": "▼ Show",
+  "athletes.hide": "▲ Hide",
+  "athletes.unknown_school": "University unknown",
+  "athletes.graduated_title": "Graduated {year}",
+
+  "schools.meta_title": "Universities with British athletes",
+  "schools.meta_description":
+    "The American universities where the British student athletes we cover study — grouped by NCAA division, with conference and headcount.",
+  "schools.crumb": "Universities",
+  "schools.intro_before":
+    "The American universities where we follow British student athletes — grouped by NCAA division. Read more about the differences in our guide to ",
+  "schools.intro_link": "the NCAA divisions",
+  "schools.counts": "{schools} universities · {athletes} British athletes",
+  "schools.none": "No universities to show yet.",
+  "schools.athlete_count_title": "{n} British athletes",
+
+  "guides.meta_title": "Guides to the NCAA and college sport",
+  "guides.meta_description":
+    "What British student athletes and their families need to know about the NCAA and college sport: divisions, conferences, eligibility, the transfer portal and more.",
+  "guides.crumb": "Guides",
+  "guides.intro":
+    "Understand how American college sport works, and follow the British athletes competing in the NCAA. This is where we collect the background — from divisions and conferences to eligibility, the transfer portal and the championships that matter.",
+  "guides.read_more": "Read more →",
+  "guides.lookup_heading": "Look up",
+  "guides.schools_card_title": "Universities with British athletes",
+  "guides.schools_card_body":
+    "The American universities where the British student athletes we cover study — sorted by division.",
+  "guides.athletes_card_title": "All British athletes",
+  "guides.athletes_card_body":
+    "Find and follow the British athletes we cover, across every sport.",
+  "guides.sports_heading": "NCAA sports",
+  "guides.divisions_slug": "ncaa-divisions",
+
+  "sport.empty_note": "Athletes and news are added as we find them.",
+  "sport.active_athletes_label": "current athletes",
+  "sport.articles_label": "articles",
+  "sport.athletes_heading": "British {sport} athletes in the United States",
+  "sport.see_all_athletes": "See all athletes →",
+  "sport.no_content": "We do not cover {sport} yet.",
   "tpl.news_plural": "News",
   "tpl.features": "Features",
   "tpl.season_updates": "Season updates",

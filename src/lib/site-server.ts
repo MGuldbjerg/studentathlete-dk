@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { countryProfile, type CountryProfile } from "./countries";
+import { COUNTRIES, countryProfile, type CountryProfile } from "./countries";
 import { siteFromHost, siteBaseUrl } from "./site";
 
 /**
@@ -18,6 +18,30 @@ export async function currentSite(): Promise<CountryProfile> {
     return siteFromHost(h.get("host"));
   } catch {
     return countryProfile();
+  }
+}
+
+/**
+ * HVILKET LANDS INDHOLD arbejder vi med i denne request?
+ *
+ * På de offentlige sider er svaret altid værtens land. I admin er det ikke:
+ * admin bor kun på standardsitet (ét Cloudflare Access-app), men skal kunne
+ * redigere ALLE landes indhold. Middlewaren sætter derfor `x-sa-country` på
+ * admin-requests ud fra `sa_country`-cookien, og den header vinder her.
+ *
+ * Headeren kan kun komme fra vores egen middleware — den fjernes ikke af
+ * Cloudflare, men middlewaren sætter den ubetinget på admin-stier og lader den
+ * være urørt alle andre steder, så en klient kan ikke bruge den til at ændre
+ * det offentlige sites indhold.
+ */
+export async function contentCountry(): Promise<string> {
+  try {
+    const h = await headers();
+    const override = h.get("x-sa-country");
+    if (override && COUNTRIES[override.toUpperCase()]) return override.toUpperCase();
+    return siteFromHost(h.get("host")).code;
+  } catch {
+    return countryProfile().code;
   }
 }
 

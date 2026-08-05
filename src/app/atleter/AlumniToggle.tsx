@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 
+// Klientkomponent: kan ikke selv slå sproget op (ingen request-kontekst), så
+// teksterne kommer som props fra siden — samme mønster som SearchBar.
 export function AlumniToggle({
   count,
+  heading,
+  showLabel,
+  hideLabel,
   children,
 }: {
   count: number;
+  heading: string;
+  showLabel: string;
+  hideLabel: string;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -21,11 +29,11 @@ export function AlumniToggle({
           className="text-xl font-bold text-ink"
           style={{ fontFamily: "var(--font-serif)" }}
         >
-          Tidligere atleter
+          {heading}
         </h2>
         <span className="text-xs text-muted">({count})</span>
         <span className="text-muted text-sm group-hover:text-ink transition-colors">
-          {open ? "▲ Skjul" : "▼ Vis"}
+          {open ? hideLabel : showLabel}
         </span>
       </button>
       {open && children}
