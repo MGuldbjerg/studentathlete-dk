@@ -74,8 +74,32 @@ async function deleteFacebook(url: string): Promise<void> {
   if (!res.ok) throw new Error(`Facebook sletning fejlede (${res.status}): ${await res.text()}`);
 }
 
+/**
+ * Hvad ER det for et token vi har? Facebook svarer med samme fejl (100/33)
+ * både når objektet ikke findes, og når tokenet mangler rettigheder — så det
+ * spørgsmål skal stilles direkte i stedet for at gætte.
+ */
+async function diagnoseFacebook(postUrl: string | null): Promise<void> {
+  const token = process.env.FB_PAGE_ACCESS_TOKEN;
+  if (!token) return console.log("  FB: intet token i miljøet");
+  const t = encodeURIComponent(token);
+
+  const me = await fetch(`${GRAPH}/me?fields=id,name&access_token=${t}`);
+  console.log(`  FB /me → ${me.status} ${(await me.text()).slice(0, 200)}`);
+
+  const perms = await fetch(`${GRAPH}/me/permissions?access_token=${t}`);
+  console.log(`  FB /me/permissions → ${(await perms.text()).slice(0, 400)}`);
+
+  if (postUrl) {
+    const id = postUrl.split("/").pop();
+    const obj = await fetch(`${GRAPH}/${id}?fields=id,created_time,permalink_url&access_token=${t}`);
+    console.log(`  FB GET opslag → ${obj.status} ${(await obj.text()).slice(0, 300)}`);
+  }
+}
+
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const diagnose = process.argv.includes("--diagnose");
   const countryArg = process.argv.find((a) => a.startsWith("--country="))?.split("=")[1]?.toUpperCase();
   const ids = process.argv.slice(2).filter((a) => /^\d+$/.test(a)).map(Number);
 
@@ -99,6 +123,12 @@ async function main() {
 
   if (rows.results.length === 0) {
     console.log("Ingen postede opslag matcher.");
+    return;
+  }
+
+  if (diagnose) {
+    const fb = rows.results.find((r) => r.channel === "facebook");
+    await diagnoseFacebook(fb?.post_url ?? null);
     return;
   }
 
