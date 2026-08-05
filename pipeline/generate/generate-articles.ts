@@ -34,6 +34,8 @@ interface StoryWithAthlete extends Story {
   sensitive: string | null;
   /** Atletens nationalitet (migration 034). Bestemmer sprog OG artiklens site. */
   home_country: string | null;
+  /** "f" | "m" | null (migration 039). Stedord er fakta, ikke et gæt fra kilden. */
+  gender: string | null;
 }
 
 /**
@@ -91,6 +93,7 @@ function buildPrompt(
     division: story.division,
     classYear: story.class_year,
     expectedGraduation: story.expected_graduation,
+    gender: story.gender,
     sourceUrl: story.source_url,
     headline: story.headline ?? "",
     content: factsBlock || story.content_raw?.slice(0, 4000) || story.summary?.slice(0, 2000) || "",
@@ -214,7 +217,8 @@ async function main(): Promise<void> {
   // Sortering: foretrækker rigt indhold (content_raw > summary > headline).
   const result = await db.query<StoryWithAthlete>(
     `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown,
-            a.position, a.division, a.class_year, a.expected_graduation, a.home_country
+            a.position, a.division, a.class_year, a.expected_graduation, a.home_country,
+            a.gender
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'

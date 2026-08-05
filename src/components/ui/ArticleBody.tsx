@@ -3,6 +3,7 @@
 import React from "react";
 import { AdSlot } from "./AdSlot";
 import { youtubeIdFromUrl, youtubeEmbedUrl } from "@/lib/youtube";
+import { splitArticleBlocks } from "@/lib/article-blocks";
 
 /** Parse inline markdown: **fed**, *kursiv*, [tekst](url) */
 function parseInline(text: string): React.ReactNode[] {
@@ -51,7 +52,9 @@ function parseInline(text: string): React.ReactNode[] {
 }
 
 export function ArticleBody({ content }: { content: string }) {
-  const blocks = content.split(/\n\n+/).filter((b) => b.trim());
+  // Deler også ved overskriftslinjer — ikke kun ved tomme linjer, som før.
+  // Se `article-blocks.ts`: uden det åd et `##` hele afsnittet under sig.
+  const blocks = splitArticleBlocks(content);
 
   // Track character count and ad insertions for in-article ads
   let charsSinceLastAd = 0;
@@ -129,7 +132,12 @@ export function ArticleBody({ content }: { content: string }) {
           className="my-8 pl-5 border-l-4 text-lg italic text-ink/80"
           style={{ borderColor: "#BF0A30" }}
         >
-          {parseInline(trimmed.slice(2))}
+          {parseInline(
+            trimmed
+              .split("\n")
+              .map((l) => l.replace(/^\s{0,3}>\s?/, ""))
+              .join(" "),
+          )}
         </blockquote>
       );
     }

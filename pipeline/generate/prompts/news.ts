@@ -3,6 +3,8 @@
  * Bruges med Haiku-modellen for omkostningseffektivitet.
  */
 
+import { pronounHint } from "../../../src/lib/gender";
+
 export interface ArticleContext {
   athleteName: string;
   preferredName: string | null;
@@ -13,6 +15,8 @@ export interface ArticleContext {
   division?: string | null;
   classYear?: string | null;
   expectedGraduation?: string | null;
+  /** "f" | "m" | null — udledt af holdets URL, se src/lib/gender.ts. */
+  gender?: string | null;
   sourceUrl: string;
   headline: string;
   content: string;
@@ -32,6 +36,14 @@ export function athleteFactsBlock(context: ArticleContext): string {
     lines.push(`FORETRUKKET NAVN (brug i overskrift og efter første omtale): ${context.preferredName}`);
   }
   lines.push(`HJEMBY: ${context.hometown ?? "Ukendt"}`);
+  // Stedord er FAKTA fra rosteren, ikke noget modellen skal udlede af kilden:
+  // kildeartiklen kan handle om skolens andet hold (jf. regel 24).
+  const pronouns = pronounHint(context.gender, "da");
+  lines.push(
+    pronouns
+      ? `STEDORD: ${pronouns}`
+      : "STEDORD: UKENDT — undgå stedord helt; gentag navnet eller skriv \"atleten\"",
+  );
   if (context.classYear || context.expectedGraduation) {
     lines.push(
       `ÅRGANG: ${context.classYear ?? "ukendt"}${context.expectedGraduation ? ` — forventet afgang ${context.expectedGraduation}` : ""}`,

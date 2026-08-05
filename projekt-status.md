@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-05 (UK live som dark launch · landefiltrering · ét admin m. landevælger · engelsk UI · ægte 404'er · Discord pr. land — Worker bfdac353)
+**Sidst opdateret**: 2026-08-05 (UK live som dark launch · landefiltrering · ét admin m. landevælger · engelsk UI · ægte 404'er · Discord pr. land · køn som data + markdown-fix — Worker cd1a8da6)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -99,6 +99,12 @@ Domænet **student-athlete.co.uk er købt**. Trin 1–3 af launch-planen er kør
 17. **ALLE DANSKE FLADER PÅ .co.uk ER VÆK** (54 nye UI-nøgler): atletoversigt, universitetsoversigt, viden-hub, sport-landingssider, 404 og indlæsningsskærm. **`SearchBar`s `submitLabel` havde "Søg" som DEFAULT** og sivede derfor ud på hver eneste side — defaults i klientkomponenter er den type fælde `UiKey`-unionen ikke fanger. Verificeret: alle otte testede UK-ruter er nu rent engelske, .dk uændret dansk.
 18. **SOFT 404 LØST.** `loading.tsx` gør sin rute til en Suspense-grænse → Next streamer skallen med 200, FØR siden kan nå at kalde `notFound()`. Spinneren ligger nu kun på de tre ruter der ikke kan 404'e (**ikke** `/viden`, som er forælder til `/viden/[slug]`). Ukendte stier, ukendte guider og det andet lands URL'er svarer nu ægte 404.
 19. **DISCORD PR. LAND** (`pipeline/lib/notify.ts`, 9 tests): webhook slås op som `DISCORD_WEBHOOK_<LAND>` med fald tilbage til fælleskanalen, så en manglende kanal aldrig taber en besked. Kladdebeskeder og genereringsfejl sendes pr. land efter kørslen (aldrig undervejs — en webhook-fejl må ikke vælte genereringen), og den ugentlige rapport sendes nu **én gang pr. land** med "venter på dig"-tal og et link der SÆTTER landevælgeren og åbner køen. **Mikkel mangler kun at oprette kanalerne + secrets — se `SETUP-discord-kanaler.md`.**
+
+20. **TO FEJL FUNDET PÅ DEN FØRSTE BRITISKE KLADDE** (Mikkels gennemlæsning — begge rettet ved roden, Worker cd1a8da6):
+    - **Hele afsnit blev vist som overskrifter.** `ArticleBody` delte kun indholdet ved TOMME LINJER, så `## Overskrift` uden en tom linje under sig slugte afsnittet ind i sit eget `<h2>`. Vi kan ikke kræve at en gratis model altid husker den tomme linje — renderen skal læse markdown som markdown. Ny `src/lib/article-blocks.ts` (`splitArticleBlocks`) deler også ved overskriftslinjer; 12 tests, heriblandt den faktiske kladdetekst. Flerlinjede citater strippes nu korrekt pr. linje.
+    - **Modellen kendte ikke atletens køn.** Kladden om Almi Nerurkar (kvinde) skrev "he" hele vejen og placerede hende på Georgetowns HERREhold — fordi kildeartiklen lå i skolens herre-sektion (`/news/…/mens-xc-track-…`) og basen intet sagde. Oplysningen ER kendt: hendes egen bio-URL er `/sports/womens-track-and-field/`. **Køn er nu data, ikke gæt**: `src/lib/gender.ts` (`genderFromTeamUrl`, 20 tests — kvinde-mønstre testes FØRST, da "womens" indeholder "mens"), migration 039 `athletes.gender`, scraperen sætter feltet, `backfill-gender.ts` kørt mod prod (**321 atleter udfyldt**, 80 aktive mangler bio-URL endnu). Prompten får `STEDORD:`/`PRONOUNS:` — og står der intet, beder den modellen undgå stedord helt frem for at gætte.
+    - **Regel 24 og 25** (identisk nummereret i `system.ts` og `en.ts`): stedord + hold må aldrig udledes af kilden, og en atlet med ÅRGANG Sr./Gr. må ikke få fremskrevet næste sæson ("poised to play a central role" om en dimitterende graduate student).
+    - **De 5 britiske kladder er skrevet FØR alt dette** og bør regenereres frem for redigeres (2 af de 5 atleter havde ukendt køn, 2 er Sr./Gr.).
 
 ### ⚠️ 2026-08-05: standardsitet var nede i ca. 40 minutter (min fejl)
 `custom_domain = true` i `wrangler.toml` er en **fuldstændig liste**: wrangler afkoblede den custom domain-tilknytning `studentathlete.dk` (apex) havde haft længe, fordi den ikke stod i filen — og Cloudflare slettede den DNS-record tilknytningen ejede. Resultat: NXDOMAIN på apex. Genoprettet som en **manuel** proxied placeholder-record (AAAA `100::`), som wrangler ikke ejer; verificeret at den overlever et deploy. `www` manglede i øvrigt også en record og er nu oprettet.

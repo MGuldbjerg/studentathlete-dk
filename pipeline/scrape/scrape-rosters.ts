@@ -19,6 +19,7 @@ import { pipelineUserAgent } from "../../src/lib/site";
 import { sportKeyFromSource } from "../../src/lib/sports";
 import { generateSlug } from "../../src/lib/slug";
 import { samePerson, rosterKey } from "../lib/athlete-identity";
+import { genderFromTeamUrl } from "../../src/lib/gender";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { cleanPosition } from "../../src/lib/roster-clean";
 import { seasonFromDate } from "../../src/lib/athlete-events";
@@ -483,6 +484,7 @@ async function main(): Promise<void> {
                    year_enrolled = COALESCE(year_enrolled, ?),
                    hometown = COALESCE(hometown, ?),
                    bio_url = COALESCE(?, bio_url),
+                   gender = COALESCE(gender, ?),
                    active = 1, updated_at = datetime('now')
                WHERE id = ?`,
               [
@@ -490,7 +492,9 @@ async function main(): Promise<void> {
                 athlete.name, rosterKey(bioUrl), homeCountry,
                 check.name, check.state, check.division,
                 classYear, expectedGraduation, yearEnrolled,
-                athlete.hometown, bioUrl, existing.id,
+                athlete.hometown, bioUrl,
+                genderFromTeamUrl(bioUrl, check.roster_url),
+                existing.id,
               ],
             );
 
@@ -538,8 +542,8 @@ async function main(): Promise<void> {
             `INSERT OR IGNORE INTO athletes
              (name, slug, roster_name, roster_key, home_country, sport, position, hometown,
               university, university_state, division,
-              class_year, expected_graduation, year_enrolled, bio_url)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              class_year, expected_graduation, year_enrolled, bio_url, gender)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               athlete.name,
               slug,
@@ -558,6 +562,9 @@ async function main(): Promise<void> {
               expectedGraduation,
               yearEnrolled,
               bioUrl,
+              // Holdets URL siger selv hvilket hold atleten går på; bio-URL'en
+              // er mest præcis, roster-URL'en er faldback.
+              genderFromTeamUrl(bioUrl, check.roster_url),
             ],
           );
 

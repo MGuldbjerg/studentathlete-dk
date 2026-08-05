@@ -47,6 +47,7 @@ MIGRATIONS=(
   db/migration-036-event-source.sql
   db/migration-037-site-content-country.sql
   db/migration-038-pages-country.sql
+  db/migration-039-athlete-gender.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do
