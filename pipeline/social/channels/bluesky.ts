@@ -56,6 +56,8 @@ async function uploadThumb(session: Session, imageUrl: string): Promise<unknown 
 
 export const bluesky: SocialChannel = {
   name: "bluesky",
+  // Kontoen er dansk: @studentathlete.dk / den danske side.
+  country: "DK",
 
   isConfigured(): boolean {
     return Boolean(process.env.BLUESKY_HANDLE && process.env.BLUESKY_APP_PASSWORD);

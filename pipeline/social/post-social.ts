@@ -18,7 +18,9 @@
  */
 
 import { createD1Client, type D1Client } from "../lib/d1-client";
-import { BASE_URL, getArticleCoverUrl, getArticleUrl } from "../../src/lib/seo";
+import { getArticleCoverUrl, getArticleUrl } from "../../src/lib/seo";
+import { countryProfile } from "../../src/lib/countries";
+import { siteBaseUrl } from "../../src/lib/site";
 import { DEFAULT_PACING, computeGapMinutes, shouldPostNow } from "./pacing";
 import { buildPostText } from "./copy";
 import type { PostContent, SocialChannel } from "./types";
@@ -30,6 +32,17 @@ import { bluesky } from "./channels/bluesky";
 import { facebook } from "./channels/facebook";
 
 const ALL_CHANNELS: SocialChannel[] = [bluesky, facebook];
+
+/**
+ * Må dette lands artikler distribueres overhovedet?
+ *
+ * Dark launch betyder "domænet peger på sitet, men ingen distribution" — også
+ * på sociale medier. Spærren ligger HER og ikke kun i kanalens landefilter,
+ * fordi den skal gælde selv hvis nogen senere opretter en konto for landet.
+ */
+export function distributionAllowed(country: string): boolean {
+  return countryProfile(country).darkLaunch !== true;
+}
 const MAX_ATTEMPTS = 3;
 
 interface QueuedRow {
@@ -41,18 +54,27 @@ interface QueuedRow {
   slug: string;
   sport: string | null;
   cover_image_url: string | null;
+  country: string;
 }
 
 async function enqueue(db: D1Client, channels: SocialChannel[]): Promise<number> {
   let added = 0;
   for (const ch of channels) {
+    if (!distributionAllowed(ch.country)) {
+      console.log(`  ${ch.name}: ${ch.country} er dark launch — intet distribueres`);
+      continue;
+    }
+    // `a.country = ch.country` er hele pointen: en kanal er en KONTO i ét land.
+    // Uden det led postede den danske Facebook-side og Bluesky-konto en
+    // britisk artikel (2026-08-05), midt i UK-sitets dark launch.
     const res = await db.execute(
       `INSERT OR IGNORE INTO social_posts (article_id, channel)
        SELECT a.id, ?
        FROM articles a
        WHERE a.published = 1
+         AND a.country = ?
          AND a.published_at >= datetime('now', ?)`,
-      [ch.name, `-${DEFAULT_PACING.expiryMinutes} minutes`],
+      [ch.name, ch.country, `-${DEFAULT_PACING.expiryMinutes} minutes`],
     );
     added += res.meta.changes;
   }
@@ -70,8 +92,11 @@ async function expireStale(db: D1Client): Promise<number> {
 }
 
 function buildContent(row: QueuedRow, channel: SocialChannel["name"]): PostContent {
-  const url = BASE_URL + getArticleUrl({ slug: row.slug, sport: row.sport });
-  const imageUrl = BASE_URL + getArticleCoverUrl({ id: row.article_id });
+  // Artiklens EGET site — ikke modul-konstanten. Den britiske artikel blev
+  // postet med et .dk-link, som ikke engang findes på det site.
+  const base = siteBaseUrl(countryProfile(row.country));
+  const url = base + getArticleUrl({ slug: row.slug, sport: row.sport });
+  const imageUrl = base + getArticleCoverUrl({ id: row.article_id });
   return {
     text: buildPostText({ title: row.title, summary: row.summary, url }, channel),
     url,
@@ -110,18 +135,27 @@ async function drainChannel(
   const [row] = (
     await db.query<QueuedRow>(
       `SELECT sp.id, sp.article_id, sp.attempts,
-              a.title, a.summary, a.slug, a.cover_image_url,
+              a.title, a.summary, a.slug, a.cover_image_url, a.country,
               ath.sport
        FROM social_posts sp
        JOIN articles a ON a.id = sp.article_id
        LEFT JOIN athletes ath ON ath.id = a.athlete_id
        WHERE sp.channel = ? AND sp.status = 'queued'
+         AND a.country = ?
        ORDER BY sp.created_at ASC, sp.id ASC
        LIMIT 1`,
-      [ch.name],
+      [ch.name, ch.country],
     )
   ).results;
   if (!row) return { posted: false, error: null };
+
+  // Sidste kontrol før noget forlader huset. En kø-række kan være oprettet af
+  // en ældre version af koden — den må ikke kunne poste alligevel.
+  if (row.country !== ch.country || !distributionAllowed(row.country)) {
+    console.log(`  ${ch.name}: springer ${row.country}-artikel over (kanalen er ${ch.country})`);
+    await db.execute("UPDATE social_posts SET status = 'expired' WHERE id = ?", [row.id]);
+    return { posted: false, error: null };
+  }
 
   const content = buildContent(row, ch.name);
 
@@ -184,7 +218,18 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+/**
+ * Kør KUN når filen er startet direkte.
+ *
+ * Uden vagten kørte et `import` af denne fil hele posteringen — en test der
+ * blot ville tjekke en konstant, ville med secrets i miljøet kunne POSTE.
+ * Præcis den slags utilsigtede udsendelse er grunden til at filen findes i
+ * denne form i dag.
+ */
+const runDirectly = process.argv[1]?.endsWith("post-social.ts") ?? false;
+if (runDirectly) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

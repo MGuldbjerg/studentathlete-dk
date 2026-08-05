@@ -17,6 +17,8 @@ const GRAPH = "https://graph.facebook.com/v26.0";
 
 export const facebook: SocialChannel = {
   name: "facebook",
+  // Kontoen er dansk: @studentathlete.dk / den danske side.
+  country: "DK",
 
   isConfigured(): boolean {
     return Boolean(process.env.FB_PAGE_ID && process.env.FB_PAGE_ACCESS_TOKEN);

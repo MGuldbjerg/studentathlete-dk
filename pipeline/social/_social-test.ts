@@ -2,6 +2,9 @@
  * Unit-tests for social-modulets rene logik (pacing + copy).
  * Kør: npx tsx pipeline/social/_social-test.ts
  */
+import { distributionAllowed } from "./post-social";
+import { bluesky } from "./channels/bluesky";
+import { facebook } from "./channels/facebook";
 import {
   DEFAULT_PACING,
   computeGapMinutes,
@@ -119,6 +122,17 @@ expect(
 // ── DEFAULT_PACING sanity ────────────────────────────────────────────────────
 expect("config: hård grænse er 1/time", DEFAULT_PACING.minGapMinutes, 60);
 expect("config: expiry 48t", DEFAULT_PACING.expiryMinutes, 48 * 60);
+
+
+// ── Distribution pr. land (hændelsen 2026-08-05) ─────────────────────────────
+// Den danske Facebook-side og Bluesky-konto postede en BRITISK artikel, midt i
+// UK-sitets dark launch. To ting manglede: kanalen kendte ikke sit land, og
+// dark launch spærrede kun for søgemaskiner — ikke for distribution.
+expect("kanal: bluesky er en dansk konto", bluesky.country, "DK");
+expect("kanal: facebook er en dansk konto", facebook.country, "DK");
+expect("distribution: DK er tilladt", distributionAllowed("DK"), true);
+expect("distribution: UK er dark launch → spærret", distributionAllowed("UK"), false);
+expect("distribution: ukendt land falder tilbage på standardsitet", distributionAllowed("ZZ"), true);
 
 console.log(`\n${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);
