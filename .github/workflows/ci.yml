@@ -42,6 +42,7 @@ jobs:
             pipeline/lib/_hometown-test.ts \
             pipeline/lib/_hometown-uk-test.ts \
             pipeline/lib/_athlete-identity-test.ts \
+            pipeline/lib/_notify-test.ts \
             pipeline/social/_social-test.ts \
             pipeline/profiles/_profile-drafts-test.ts \
             src/lib/_analytics-test.ts \

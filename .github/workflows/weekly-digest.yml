@@ -27,7 +27,11 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          # Kanal pr. land — ét ekstra land = én ekstra linje her.
+          # Mangler et lands secret, falder notify.ts tilbage til fælleskanalen.
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_DK: ${{ secrets.DISCORD_WEBHOOK_DK }}
+          DISCORD_WEBHOOK_UK: ${{ secrets.DISCORD_WEBHOOK_UK }}
 
       # Succes poster digesten selv (scriptet ovenfor). Her dækkes KUN fejl-tilfældet,
       # så et brudt digest-job ikke fejler tavst (jf. SQLITE-fejlen 2026-06-02).

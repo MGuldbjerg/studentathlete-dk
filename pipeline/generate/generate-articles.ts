@@ -18,6 +18,7 @@ import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
 import { timelineForGeneration, currentSeasonStart, type AthleteEvent } from "./timeline";
 import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
+import { notifyDraftsReady, notifyFailure } from "../lib/notify";
 
 interface StoryWithAthlete extends Story {
   athlete_name: string;
@@ -241,6 +242,10 @@ async function main(): Promise<void> {
 
   let generated = 0;
   let totalTokens = 0;
+  // Kladder pr. land: hvert site har sin egen kø og sin egen Discord-kanal, så
+  // beskeden "n kladder klar" skal kunne sendes ét sted pr. land.
+  const draftsByCountry = new Map<string, string[]>();
+  const failuresByCountry = new Map<string, string[]>();
 
   for (const story of stories) {
     // Sikkerhedsnet 3: Tjek om der allerede findes en artikel for denne story
@@ -339,11 +344,16 @@ async function main(): Promise<void> {
 
       generated++;
       totalTokens += response.tokens_input + response.tokens_output;
+      draftsByCountry.set(country, [...(draftsByCountry.get(country) ?? []), parsed.title]);
       console.log(
         `  ✓ "${parsed.title}" (${response.provider}/${response.model}, ${response.tokens_input}+${response.tokens_output} tokens)`,
       );
     } catch (err) {
       console.error(`  ✗ Fejl ved story ${story.id}: ${err}`);
+      failuresByCountry.set(country, [
+        ...(failuresByCountry.get(country) ?? []),
+        `Story ${story.id} (${story.athlete_name}): ${err}`,
+      ]);
       // Sæt tilbage til "new" så den kan prøves igen
       await db.execute('UPDATE stories SET status = ? WHERE id = ?', [
         "new",
@@ -353,6 +363,19 @@ async function main(): Promise<void> {
   }
 
   console.log(`\nFærdig. Genereret ${generated} artikeludkast. Token-forbrug: ~${totalTokens}.`);
+
+  // Notifikationer til sidst: én besked pr. land frem for én pr. kladde, og
+  // efter løkken så en webhook-fejl aldrig kan afbryde genereringen.
+  for (const [country, titles] of draftsByCountry) {
+    await notifyDraftsReady(country, titles.length, titles);
+  }
+  for (const [country, errors] of failuresByCountry) {
+    await notifyFailure(
+      country,
+      `Generering fejlede for ${errors.length} historie(r)`,
+      errors.join("\n"),
+    );
+  }
 }
 
 main().catch((err) => {

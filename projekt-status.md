@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-05 (**student-athlete.co.uk ER LIVE** som dark launch — noindex, Worker 3016df29)
+**Sidst opdateret**: 2026-08-05 (UK live som dark launch · landefiltrering · ét admin m. landevælger · engelsk UI · ægte 404'er · Discord pr. land — Worker bfdac353)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -91,6 +91,18 @@ Domænet **student-athlete.co.uk er købt**. Trin 1–3 af launch-planen er kør
     - **Admin følger værten** (`getAllAthletes` m.fl. er nu vært-afhængige) — britiske atleter redigeres altså fra UK-værtens admin. Det er samme model som `site_content` og `pages`.
     - **Uløst, ældre fejl fundet undervejs**: ukendte stier svarer **200 med "Side ikke fundet"** (soft 404) — også på .dk, også før i dag. Årsagen er den kendte: `loading.tsx` streamer 200 før `notFound()` når at sætte status. Det gør nu mere ondt, fordi hver af det andet lands URL'er er en soft 404 på det forkerte domæne. Rigtig løsning: slå op i middlewaren (som atlet-aliasserne) og svar 301 til det rigtige site — eller 404.
 15. **`www.studentathlete.dk` VIRKER NU.** Værtsnavnet har aldrig haft en DNS-record (kun en Workers-route), så det gav NXDOMAIN. Proxied AAAA `100::` oprettet på .dk-zonen → routen rammer, middlewaren 301'er til apex.
+
+16. **ADMIN ER FLYTTET TIL STANDARDSITET — MED LANDEVÆLGER** (Worker bfdac353). Cloudflare Access er bundet til ÉT værtsnavn, så `/admin` på .co.uk stod **uden login foran** (app-laget afviste stadig: 401 fra API'et, tom skal på siden). To muligheder: et Access-app pr. land, eller ét admin for alle lande. Mikkel valgte det sidste.
+    - Middlewaren sender `/admin` på et landedomæne til admin-værten (302) og 404'er `/api/admin` dér. Landet vælges i stedet i admin: cookie → `x-sa-country`-header (sat af middlewaren, kun på admin-stier, så en klient ikke kan smugle den ind) → `contentCountry()`.
+    - **Den header driver ALT**: kladdekø, artikler, atleter, foto- og profilkø, dubletkandidater, sider og sitetekster. `createArticle`/`createAthlete` stempler nu også landet — uden det ville en britisk kladde falde tilbage på kolonnens DEFAULT 'DK' og forsvinde ud af den kø den blev skabt i.
+    - Vælgeren ligger øverst i admin (`CountryPicker`), og et nyt land dukker op af sig selv, fordi den læser `COUNTRIES`.
+17. **ALLE DANSKE FLADER PÅ .co.uk ER VÆK** (54 nye UI-nøgler): atletoversigt, universitetsoversigt, viden-hub, sport-landingssider, 404 og indlæsningsskærm. **`SearchBar`s `submitLabel` havde "Søg" som DEFAULT** og sivede derfor ud på hver eneste side — defaults i klientkomponenter er den type fælde `UiKey`-unionen ikke fanger. Verificeret: alle otte testede UK-ruter er nu rent engelske, .dk uændret dansk.
+18. **SOFT 404 LØST.** `loading.tsx` gør sin rute til en Suspense-grænse → Next streamer skallen med 200, FØR siden kan nå at kalde `notFound()`. Spinneren ligger nu kun på de tre ruter der ikke kan 404'e (**ikke** `/viden`, som er forælder til `/viden/[slug]`). Ukendte stier, ukendte guider og det andet lands URL'er svarer nu ægte 404.
+19. **DISCORD PR. LAND** (`pipeline/lib/notify.ts`, 9 tests): webhook slås op som `DISCORD_WEBHOOK_<LAND>` med fald tilbage til fælleskanalen, så en manglende kanal aldrig taber en besked. Kladdebeskeder og genereringsfejl sendes pr. land efter kørslen (aldrig undervejs — en webhook-fejl må ikke vælte genereringen), og den ugentlige rapport sendes nu **én gang pr. land** med "venter på dig"-tal og et link der SÆTTER landevælgeren og åbner køen. **Mikkel mangler kun at oprette kanalerne + secrets — se `SETUP-discord-kanaler.md`.**
+
+### ⚠️ 2026-08-05: standardsitet var nede i ca. 40 minutter (min fejl)
+`custom_domain = true` i `wrangler.toml` er en **fuldstændig liste**: wrangler afkoblede den custom domain-tilknytning `studentathlete.dk` (apex) havde haft længe, fordi den ikke stod i filen — og Cloudflare slettede den DNS-record tilknytningen ejede. Resultat: NXDOMAIN på apex. Genoprettet som en **manuel** proxied placeholder-record (AAAA `100::`), som wrangler ikke ejer; verificeret at den overlever et deploy. `www` manglede i øvrigt også en record og er nu oprettet.
+**Hvorfor jeg ikke opdagede det**: jeg verificerede med `curl --resolve VÆRT:443:IP`, som springer DNS over — den beviser at Workeren svarer, ikke at domænet kan slås op. Begge dele står nu i `PLAYBOOK-nyt-land.md`.
 
 **Næste (blokerende før UK må pushes offentligt):** `darkLaunch: false` når der er indhold · UK-artikler skrives + gennemlæses · resterende danske flader på UK (`/atleter`- og `/skoler`-metadata, `/viden`-hub, admin) · AdSense-site for .co.uk · e-mail routing på .co.uk (kræver et token med DNS/Email på den zone — det nuværende har det ikke) · fjern den midlertidige natlige scrape-cron.
 
