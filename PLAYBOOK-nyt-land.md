@@ -143,9 +143,10 @@ for rigtige D1-data, og så uden vært-antagelser.
 
 ---
 
-## 5. Dark launch — det anbefalede mønster
+## 5. Dark launch — Mikkels valgte mønster (gør det samme igen)
 
-Mikkel valgte dark launch ved UK, og det er den rigtige rækkefølge:
+Mikkel bekræftede dark launch som fremgangsmåden ved UK. Antag det samme næste
+gang, medmindre han siger andet:
 
 1. Domænet peger på sitet, men der er **ingen artikler endnu** og intet push.
 2. Scrapen har kørt i uger, så atleterne findes.
