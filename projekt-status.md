@@ -2,6 +2,11 @@
 
 **Sidst opdateret**: 2026-08-04 (forside med tæthedsbånd + arkiv + kildemåling + AdSense-verifikation — **DEPLOYET**, Worker-version 12b14628)
 
+
+> 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
+> med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
+> resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
 ## 👉 AdSense-verifikation (2026-08-04, commit 5df760d — LIVE, mangler kun Mikkels ID)
 **Valget:** IKKE AdSense-kodestumpen. Den indlæser Googles annonce-JavaScript, som sætter cookies/tilgår enheden og derfor kræver forudgående samtykke — sitet er cookieløst indtil `consent.enabled` slås til. Verifikation sker i stedet med to INERTE metoder:
 - **`/ads.txt`** (primær) — `src/app/ads.txt/route.ts`, `force-dynamic` (som statisk rute ville ID'et blive bagt ind ved build). Er også dét annoncekøbere slår op for at se hvem der må sælge vores plads, så den skal bruges alligevel.
