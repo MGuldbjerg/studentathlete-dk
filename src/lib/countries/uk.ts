@@ -127,6 +127,10 @@ export const uk: CountryProfile = {
   code: "UK",
   language: "en",
   host: "student-athlete.co.uk",
+  // Dark launch fra 2026-08-05: domænet er live, men sitet har endnu ingen
+  // britiske artikler, og de læservendte forespørgsler filtrerer endnu ikke på
+  // land — uden dette ville .co.uk blive indekseret som en dublet af .dk.
+  darkLaunch: true,
   brand: "Student-Athlete.co.uk",
   contactEmail: "info@student-athlete.co.uk",
   cities,

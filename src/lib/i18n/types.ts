@@ -99,6 +99,7 @@ export type UiKey =
   | "carousel.empty_body"
   // Brødkrummer og skabeloner
   | "crumb.home"
+  | "crumb.aria"
   | "tpl.news_plural"
   | "tpl.features"
   | "tpl.season_updates"

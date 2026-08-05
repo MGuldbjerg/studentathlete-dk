@@ -156,7 +156,30 @@ sprogstyrede (det ER de allerede) og tilføj engelske alias-ruter for
 `/atleter` → `/athletes`, `/viden` → `/guides`, `/skoler` → `/schools`,
 `/artikler` → `/articles`.
 
-## ⬅️ Trin 5 — Sæt domænet live  (DIG, i morgen — ~30 min + ventetid)
+## ✅ Trin 5 — Domænet er live  (GJORT 2026-08-05, Worker 3016df29)
+
+**Sådan blev det faktisk gjort** (planen nedenfor er bevaret som baggrund):
+
+1. Mikkel skiftede nameservere hos Simply → zonen stod **Active** af sig selv.
+2. **Ingen DNS-records oprettet manuelt.** Tokenet har Workers på kontoniveau,
+   men ingen DNS-rettighed, så `wrangler.toml` bruger `custom_domain = true`
+   for apex og `www` — Cloudflare opretter selv record + certifikat. Punkt 3 og
+   4 nedenfor er dermed overflødige for det næste land.
+3. `npm run deploy` (efter `rm -rf .next .open-next`) → alle fire triggers.
+4. Verificeret live: `lang="en"`, engelsk titel/meta fra `site_content`,
+   canonical + sitemap + robots på .co.uk, `www` → apex 301, 16 ruter 200,
+   dansk site uændret (14 ruter 200).
+
+**Sitet kører som DARK LAUNCH: `darkLaunch: true` i `src/lib/countries/uk.ts`.**
+Grunden er ikke kun manglende artikler — `src/lib/db.ts` filtrerer ikke på
+land, så .co.uk viser i dag de 126 DANSKE atleter og et sitemap identisk med
+.dk's. Slå `darkLaunch` fra i samme ombæring som landefiltreringen.
+
+Stadig ikke gjort: e-mail routing på .co.uk (intet token dækker DNS/Email på
+den zone — dashboardet, eller et bredere token) · AdSense-site (trin 7).
+
+<details>
+<summary>Den oprindelige plan fra 2026-08-04</summary>
 
 **Forberedt 2026-08-04. Tjekket på forhånd, så der ikke er overraskelser:**
 
@@ -223,6 +246,8 @@ sprogstyrede (det ER de allerede) og tilføj engelske alias-ruter for
   matcher `student-athlete.co.uk/*` præcis, og at `uk.ts` har samme streng.
 - **`wrangler deploy` fejler på autorisation**: tokenet dækker ikke den nye
   zone (se punkt 4).
+
+</details>
 
 ## Trin 6 — Indhold før pushet  (din tid)
 

@@ -46,7 +46,7 @@ interessant så snart den har én aktiv atlet). Genereringen SKAL kende landet
 | 5 | **Registrér i `COUNTRIES`** | — | **uger at konvergere** |
 | 6 | UI-strenge + `site_content`/`pages` pr. land | FØR 8 | 1 dag |
 | 7 | Indhold: statiske sider, sport-tekster, guider | FØR 9 | 1-2 dage |
-| 8 | Zone + DNS + route + deploy (dark launch) | — | timer (NS-propagering) |
+| 8 | Zone + DNS + route + deploy (dark launch, §5) | — | timer (NS-propagering) |
 | 9 | Generér + gennemlæs artikler | — | uger |
 | 10 | AdSense-site, e-mail routing | — | timer |
 | 11 | Offentligt push | — | — |
@@ -75,6 +75,9 @@ ser først.
 | Sprogtest på ny vært giver standardsproget | **`wrangler dev` videresender IKKE Host-headeren** (hverken lokal eller `--remote`) | Test med `next dev` — se §4 |
 | Alt ser tomt ud i dev | `next dev` har TOM lokal D1 | Brug `wrangler dev --remote` når du skal se rigtige data |
 | Nyt site indekseres ikke af Google | `BASE_URL` er en modul-konstant → canonical/sitemap/robots/feed peger på standardsitet. **Fejler LYDLØST — siderne renderer perfekt** | `currentBaseUrl()` i alt der udsender absolutte URL'er |
+| Det nye site viser standardsitets atleter, og de to sitemaps har PRÆCIS samme antal URL'er | **De læservendte queries i `src/lib/db.ts` filtrerer ikke på land** — `articles.country`/`athletes.home_country` findes, men bruges ikke | Filtrér på `(await currentSite()).code`. Indtil da: `darkLaunch` (se nedenfor) |
+| Sitet er noindex overalt — undtagen på de sider der har mest indhold | Enkelte sider hårdkoder `robots: { index: true }` i deres metadata og **overskriver layoutet** | `siteRobots()` fra `site-server.ts`; statisk `metadata` må slet ikke sætte `robots` |
+| Nyt site sender standardsitets sprog i `<title>`, meta og footer | `site_content` har ingen rækker for landet, og **kode-defaults i `site-content.ts` er skrevet på standardsitets sprog** | Seed `site_content` for landet FØR domænet peger på sitet |
 | Danske ord på kort/skabeloner på det nye site | Enkelt dansk tabel (fx `ARTICLE_TYPE_LABELS`) uden for sprogpakken | Flyt til `LanguagePack` |
 | Ny route rammer catch-all'en efter deploy | Forældet route-manifest i buildet | `rm -rf .next .open-next` før `npm run deploy` |
 | Redirect giver 200 med `<meta refresh>` i stedet for 301 | `loading.tsx` streamer 200 før siden kan sætte status | Redirects hører i `src/middleware.ts`, ALDRIG i en side |
@@ -157,8 +160,26 @@ gang, medmindre han siger andet:
 Under dark launch er det i orden at sitet er tyndt. Det er IKKE i orden at
 canonical/sitemap peger forkert (§3) — indekseringsskaden sker med det samme.
 
-**Overvej `noindex` under dark launch**, hvis der går mere end et par uger, så
-Google ikke indekserer en tom side og lærer den at kende som tynd.
+**`noindex` under dark launch er IKKE valgfrit** (rettet efter UK 2026-08-05).
+Så længe motoren ikke filtrerer indholdet på land, viser det nye site
+standardsitets atleter — altså en ægte dublet, ikke bare en tynd side. Sæt
+`darkLaunch: true` i landeprofilen. Den slår tre ting til på én gang:
+
+- `robots.txt` → `Disallow: /` (`src/app/robots.ts`)
+- `X-Robots-Tag: noindex, nofollow` på hvert svar (`src/middleware.ts`) — den
+  dækker også de sider der sætter deres egen `robots`-metadata
+- `robots: { index: false }` i layoutets metadata + `siteRobots()` på siderne
+
+Verificér ALLE TRE, og verificér samtidig at standardsitet stadig er indekserbart:
+
+```bash
+curl -s https://NYT.DOMÆNE/robots.txt | tail -3          # → Disallow: /
+curl -sI https://NYT.DOMÆNE/ | grep -i x-robots-tag      # → noindex, nofollow
+curl -s https://NYT.DOMÆNE/EN-SIDE | grep -o '<meta name="robots"[^>]*'
+curl -sI https://STANDARDSITE/ | grep -i x-robots-tag    # → INTET output
+```
+
+Slå `darkLaunch` fra igen i samme ombæring som landefiltreringen — ikke før.
 
 ---
 
@@ -191,7 +212,12 @@ En opdigtet national NCAA-stjerne er præcis den fejl sitet er bygget for at und
 - [ ] Standardsitet regressionstestet efter HVER deploy (mindst 10 ruter)
 - [ ] Sprogpakke komplet — `_ui-strings-test.ts` grøn
 - [ ] Statiske sider, sport-tekster og guider findes på det nye sprog
-- [ ] API-token dækker den nye zone
+- [ ] API-token dækker den nye zone — **eller** brug `custom_domain = true` i
+      `wrangler.toml` (Cloudflare opretter så selv DNS-record + certifikat gennem
+      Workers-API'et; tokenet behøver ingen DNS-rettighed på zonen)
+- [ ] `site_content` seedet for landet (ellers falder sitet tilbage på
+      standardsitets sprog i titel, meta og footer)
+- [ ] `darkLaunch: true` i landeprofilen, og alle tre spærringer verificeret (§5)
 - [ ] Migrationer kørt mod remote FØR deploy af kode der bruger dem
 - [ ] Midlertidig natlig cron noteret til senere fjernelse
 
@@ -206,3 +232,11 @@ En opdigtet national NCAA-stjerne er præcis den fejl sitet er bygget for at und
   (én bruger), men det betyder at UK-tekster kun kan redigeres på UK-værten.
 - **`/viden`-hub'en falder tilbage til kode-defaults** hvis D1 er tom for landet.
   Tjek at hub'en ikke er tom på det nye site før launch.
+- **Landefiltrering af de læservendte queries** (`src/lib/db.ts` + `sitemap.ts`).
+  Så længe den mangler, kan et nyt land kun være dark launch. Det er den ENE
+  ting der skal løses, før land nr. 2 kan være rigtigt live — og den løses én
+  gang for alle lande.
+- **Kun `.dk`-tokenet kan røre DNS.** `CLOUDFLARE_API_TOKEN` = Workers på
+  kontoniveau, ingen DNS. `CLOUDFLARE_EMAIL_TOKEN` = DNS + Email Routing, men
+  kun på zonen `studentathlete.dk`. Email routing på et nyt domæne kræver
+  derfor enten dashboardet eller et bredere token.

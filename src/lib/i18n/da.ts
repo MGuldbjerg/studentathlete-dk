@@ -260,6 +260,7 @@ const ui: LanguagePack["ui"] = {
   "carousel.empty_body": "Artikler er på vej — kom tilbage snart.",
 
   "crumb.home": "Hjem",
+  "crumb.aria": "Brødkrumme",
   "tpl.news_plural": "Nyheder",
   "tpl.features": "Features",
   "tpl.season_updates": "Sæsonopdateringer",

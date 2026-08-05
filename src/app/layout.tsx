@@ -10,7 +10,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { BASE_URL } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/admin";
 import { adsenseIds } from "@/lib/site-content";
-import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
+import { currentLanguage, currentBaseUrl, currentSite } from "@/lib/site-server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +36,12 @@ export async function generateMetadata(): Promise<Metadata> {
     title: settings["site.title"],
     description: settings["site.description"],
     alternates: { canonical: "/" },
+    // Dark launch — se `darkLaunch` i landeprofilen. Enkelte sider sætter selv
+    // `robots: { index: true }` og ville overskrive den her, så middlewaren
+    // sender DESUDEN en X-Robots-Tag-header. Denne er bæltet, den er selerne.
+    ...((await currentSite()).darkLaunch
+      ? { robots: { index: false, follow: false } }
+      : {}),
   };
 }
 

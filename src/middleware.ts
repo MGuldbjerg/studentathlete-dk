@@ -100,7 +100,14 @@ export async function middleware(req: NextRequest) {
   const alias = await athleteAliasRedirect(req);
   if (alias) return NextResponse.redirect(alias, 301);
 
-  return NextResponse.next();
+  // Dark launch (se `darkLaunch` i landeprofilen): headeren gælder ALT hvad
+  // sitet svarer med — også de sider der selv sætter `robots: index: true` i
+  // deres metadata og derfor overskriver layoutets noindex.
+  const res = NextResponse.next();
+  if (siteFromHost(host).darkLaunch) {
+    res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+  return res;
 }
 
 // Kør ikke på API-ruter (track-beacon/OG bruger allerede https samme-origin),

@@ -1,10 +1,16 @@
-import { BASE_URL, breadcrumbStructuredData } from "@/lib/seo";
+import { breadcrumbStructuredData } from "@/lib/seo";
+import { currentBaseUrl, currentLanguage } from "@/lib/site-server";
+import { t } from "@/lib/i18n";
 
 interface Crumb { label: string; href?: string }
 
-export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
+export async function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
+  // Absolut URL pr. vært: med modul-konstanten pegede brødkrumme-JSON-LD'en
+  // på standardsitet fra ALLE sites (samme fælde som canonical/sitemap).
+  const base = await currentBaseUrl();
+  const lang = await currentLanguage();
   const schemaData = breadcrumbStructuredData(
-    crumbs.map((c) => ({ name: c.label, url: c.href ? `${BASE_URL}${c.href}` : BASE_URL }))
+    crumbs.map((c) => ({ name: c.label, url: c.href ? `${base}${c.href}` : base }))
   );
   return (
     <>
@@ -12,7 +18,7 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
       />
-      <nav aria-label="Brødkrumme" className="text-sm text-muted flex items-center gap-1.5 flex-wrap">
+      <nav aria-label={t("crumb.aria", lang)} className="text-sm text-muted flex items-center gap-1.5 flex-wrap">
         {crumbs.map((crumb, i) => (
           <span key={i} className="flex items-center gap-1.5">
             {i > 0 && <span className="text-border">›</span>}

@@ -5,9 +5,15 @@ compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
+# UK bruger `custom_domain` frem for et route-mønster: så opretter Cloudflare
+# selv den proxied DNS-record + certifikatet. Tokenet har Workers-adgang på
+# kontoniveau, men INGEN DNS-rettighed på .co.uk-zonen — med et rent
+# route-mønster ville domænet derfor kræve manuelle DNS-records i dashboardet.
 routes = [
   { pattern = "studentathlete.dk/*", zone_name = "studentathlete.dk" },
-  { pattern = "www.studentathlete.dk/*", zone_name = "studentathlete.dk" }
+  { pattern = "www.studentathlete.dk/*", zone_name = "studentathlete.dk" },
+  { pattern = "student-athlete.co.uk", custom_domain = true },
+  { pattern = "www.student-athlete.co.uk", custom_domain = true }
 ]
 
 [[d1_databases]]

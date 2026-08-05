@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-04 (forside med tæthedsbånd + arkiv + kildemåling + AdSense-verifikation — **DEPLOYET**, Worker-version 12b14628)
+**Sidst opdateret**: 2026-08-05 (**student-athlete.co.uk ER LIVE** som dark launch — noindex, Worker 3016df29)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -76,7 +76,15 @@ Domænet **student-athlete.co.uk er købt**. Trin 1–3 af launch-planen er kør
 
 **FORÆLDET AFSNIT (beholdt som note):** påstanden nedenfor om at guiderne var fulde af danske fakta — gymnasiet, danske karakterer, danske NCAA-navne (gymnasiet, danske karakterer). En ordret oversættelse ville være direkte forkert for britiske læsere, som skal have A-levels/GCSE/UCAS. De skal **skrives om**, ikke oversættes — hver guide kræver britiske fakta, der skal verificeres. Indtil da har UK-sitet ingen /viden-guider (hub'en vil være tom på UK-værten — tjek før launch).
 
-**Næste:** DNS + Cloudflare-zone (trin 5 i `SETUP-uk-launch.md` — nu med verificerede detaljer og to advarsler om API-tokenet) · `[...segments]`-metadata på engelsk · engelske kladder til gennemlæsning.
+13. **DOMÆNET ER LIVE (2026-08-05, Worker 3016df29) — DARK LAUNCH.** Mikkel skiftede nameservere hos Simply; zonen `student-athlete.co.uk` stod Active. Resten kørte herfra:
+    - **DNS uden dashboard**: `CLOUDFLARE_API_TOKEN` har Workers-adgang på KONTO-niveau, men **ingen DNS-rettighed på nogen zone** (`CLOUDFLARE_EMAIL_TOKEN` har DNS, men kun på .dk). Derfor er UK sat op med `custom_domain = true` i `wrangler.toml` i stedet for et route-mønster: så opretter Cloudflare selv den proxied record + certifikatet gennem Workers-API'et. Ingen manuelle records. (Apex på .dk har i øvrigt altid været en custom domain — det er derfor `www.studentathlete.dk` **slet ikke resolver** i dag: route-mønsteret findes, men ingen DNS-record. Ufarligt, men en dag værd at rette.)
+    - Live-verificeret: `lang="en"`, engelsk titel/meta, canonical + sitemap + robots peger på .co.uk, `www` → apex 301, alle 16 ruter 200 (`/football`, `/american-football`, `/athletics`, de 5 engelske sider). Dansk site regressionstestet: 14 ruter 200, uændret titel/canonical.
+    - **`site_content` havde ingen UK-rækker** → kode-defaults er danske og landeblinde, så UK-sitet sendte dansk `<title>`, meta-beskrivelse, footer og ai-disclaimer. 4 engelske rækker (`country='UK'`) skrevet til D1. **Ny regel: seed `site_content` for landet FØR domænet peger på sitet.**
+    - **Absolut-URL-auditten var ikke helt færdig**: `Breadcrumb.tsx` og `/skoler` byggede brødkrumme-JSON-LD på modul-konstanten `BASE_URL` → strukturerede data på UK-sitet pegede på .dk. Begge bruger nu `currentBaseUrl()`. (`crumb.aria` tilføjet til sprogpakken; `aria-label` sagde "Brødkrumme" på engelsk.)
+    - **DEN STORE: de læservendte forespørgsler filtrerer IKKE på land.** UK-sitet viste de **126 danske** atleter og **nul** briter, og dets sitemap var .dk's 1.968 URL'er med britisk værtsnavn. To domæner med samme indhold = dublet.
+    - **Derfor `darkLaunch: true` i landeprofilen** (`src/lib/countries/uk.ts`): robots.txt spærrer alt · middlewaren sender `X-Robots-Tag: noindex, nofollow` på hvert svar · layoutets metadata sætter noindex. **Fælde fanget undervejs**: fem sider hårdkodede `robots: { index: true }` og overskrev layoutet — de bruger nu `siteRobots()`. Verificeret live: alle UK-sider noindex, alle DK-sider uændret index.
+
+**Næste (blokerende før UK må pushes offentligt):** landefiltrér de læservendte queries (`src/lib/db.ts` — artikler på `articles.country`, atleter/skoler på `home_country`) og sitemap'et · derefter `darkLaunch: false` · UK-artikler skrives + gennemlæses · resterende danske flader på UK (`/atleter`- og `/skoler`-metadata, `/viden`-hub, admin) · AdSense-site for .co.uk · e-mail routing på .co.uk (kræver et token med DNS/Email på den zone — det nuværende har det ikke) · fjern den midlertidige natlige scrape-cron.
 
 ## 👉 Seneste arbejde (2026-08-04) — forsidens rytme, arkiv, kildemåling
 **Baggrund:** forsiden var en væg af næsten ens blokke, fordi ALLE covers er det GENEREREDE kampkort (rigtige fotos findes kun på atletprofiler + inde i artikler). Mikkel spurgte om 3-5 korttyper; konklusionen blev **nej** — flere skabeloner ville lægge et valg oven i hver redigering uden at fjerne ensartetheden. I stedet: **rytme bestemt af pladsen på siden**. Mockup: `https://claude.ai/code/artifact/3f4d7a99-dbbf-455a-a3e8-019926001c85`.

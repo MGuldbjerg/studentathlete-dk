@@ -14,7 +14,7 @@ import {
   countAthletesBySport,
 } from "@/lib/db";
 import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
-import { currentLanguage, currentSite, currentBaseUrl } from "@/lib/site-server";
+import { currentLanguage, currentSite, currentBaseUrl, siteRobots } from "@/lib/site-server";
 import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl} from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
@@ -87,7 +87,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           images: [ogImage],
         },
         alternates: { canonical: canonicalUrl },
-        robots: { index: true, follow: true },
+        robots: await siteRobots(),
       };
     }
 
@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         title: `${page.title} | ${brand}`,
         description: page.meta_description ?? undefined,
         alternates: { canonical: `${base}/${slug}` },
-        robots: { index: true, follow: true },
+        robots: await siteRobots(),
       };
     }
 
@@ -143,7 +143,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [ogImage],
           },
           alternates: { canonical: `${base}${getAthleteUrl(slug)}` },
-          robots: { index: true, follow: true },
+          robots: await siteRobots(),
         };
       }
     }
@@ -165,7 +165,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             url: `${base}${getSchoolUrl(slug)}`,
           },
           alternates: { canonical: `${base}${getSchoolUrl(slug)}` },
-          robots: { index: true, follow: true },
+          robots: await siteRobots(),
         };
       }
     }
@@ -203,7 +203,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           images: [ogImage],
         },
         alternates: { canonical: canonicalUrl },
-        robots: { index: true, follow: true },
+        robots: await siteRobots(),
       };
     }
   }

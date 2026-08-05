@@ -18,4 +18,13 @@ export interface CountryProfile {
   countryMarkers: string[];
   /** Kendte US-steder der ligner landet og skal afvises. */
   falsePositivePatterns: RegExp[];
+  /**
+   * Dark launch: domænet peger på sitet, men søgemaskiner holdes ude.
+   *
+   * Et nyt land er live længe før det har sit eget indhold. Bliver det crawlet
+   * i mellemtiden, lærer Google det at kende som tyndt — eller som en dublet af
+   * standardsitet, hvis motoren endnu ikke filtrerer indholdet på land.
+   * Slå fra når sitet har sit eget indhold; det er ét ord og et deploy.
+   */
+  darkLaunch?: boolean;
 }

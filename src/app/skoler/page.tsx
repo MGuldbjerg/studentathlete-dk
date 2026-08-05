@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getSchoolsWithAthletes } from "@/lib/db";
-import { BASE_URL, getSchoolUrl, breadcrumbStructuredData } from "@/lib/seo";
+import { getSchoolUrl, breadcrumbStructuredData } from "@/lib/seo";
+import { currentBaseUrl } from "@/lib/site-server";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,8 @@ export const metadata: Metadata = {
   description:
     "Overblik over de amerikanske universiteter, hvor danske student athletes går — sorteret efter NCAA-division med conference og antal danskere.",
   alternates: { canonical: "/skoler" },
-  robots: { index: true, follow: true },
+  // Bevidst intet `robots`-felt: statisk metadata kan ikke kende værten, og et
+  // hårdkodet `index: true` ville overskrive layoutets dark launch-noindex.
 };
 
 // Rangér divisioner i logisk rækkefølge; ukendte sidst.
@@ -42,9 +44,10 @@ export default async function SkolerPage() {
   const totalSchools = schools.length;
   const totalAthletes = schools.reduce((n, s) => n + s.athlete_count, 0);
 
+  const siteBase = await currentBaseUrl();
   const jsonLd = breadcrumbStructuredData([
-    { name: "Forside", url: BASE_URL },
-    { name: "Universiteter", url: `${BASE_URL}/skoler` },
+    { name: "Forside", url: siteBase },
+    { name: "Universiteter", url: `${siteBase}/skoler` },
   ]);
 
   return (

@@ -253,6 +253,7 @@ const ui: LanguagePack["ui"] = {
   "carousel.empty_body": "Articles are on the way — check back soon.",
 
   "crumb.home": "Home",
+  "crumb.aria": "Breadcrumb",
   "tpl.news_plural": "News",
   "tpl.features": "Features",
   "tpl.season_updates": "Season updates",

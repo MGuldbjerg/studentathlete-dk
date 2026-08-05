@@ -38,3 +38,16 @@ export async function currentLanguage(): Promise<string> {
 export async function currentBaseUrl(): Promise<string> {
   return siteBaseUrl(await currentSite());
 }
+
+/**
+ * `robots`-feltet til en sides metadata.
+ *
+ * Sider der selv sætter `robots: { index: true }` overskriver layoutets
+ * noindex — og et dark launch-site ville så alligevel invitere crawlere ind på
+ * netop de sider der har mest indhold. Brug denne i stedet: den siger stadig
+ * "indeksér mig", men adlyder landeprofilens `darkLaunch`.
+ */
+export async function siteRobots(): Promise<{ index: boolean; follow: boolean }> {
+  const dark = (await currentSite()).darkLaunch === true;
+  return { index: !dark, follow: !dark };
+}

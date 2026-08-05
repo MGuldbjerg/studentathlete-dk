@@ -5,7 +5,7 @@ import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminEditButton } from "@/components/AdminEditButton";
 import { getOgImageUrl, breadcrumbStructuredData, formatDate} from "@/lib/seo";
 import { getPublishedGuideBySlug } from "@/lib/admin";
-import { currentSite, currentBaseUrl } from "@/lib/site-server";
+import { currentSite, currentBaseUrl, siteRobots } from "@/lib/site-server";
 import {
   getGuide,
   guideToMarkdown,
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       url: canonical,
     },
     twitter: { card: "summary_large_image", title: g.title, description: g.description || undefined, images: [ogImage] },
-    robots: { index: true, follow: true },
+    robots: await siteRobots(),
   };
 }
 
