@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { DEFAULT_COUNTRY } from "./countries";
+import { currentSite } from "./site-server";
 import type { Article, Athlete, School } from "./types";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
@@ -27,15 +28,25 @@ export async function getEnv(): Promise<Record<string, any>> {
 }
 
 /**
- * Hvilket sites indhold hentes der? Nationalitet er DATA nu (migration 034), så
+ * Hvilket sites indhold hentes der? Nationalitet er DATA (migration 034), så
  * listerne filtrerer eksplicit i stedet for at antage at "alle rækker" er danske.
  *
- * Med ét site er værdien altid "DK", og filtrene ændrer intet. Pointen er at
- * site nummer to ikke kræver en gennemgang af hver eneste query — kun at
- * kaldere begynder at sende deres egen landekode med.
+ * **Uden argument afgøres landet af VÆRTEN**, ikke af en konstant. Det var
+ * fejlen ved UK-launchen: filtrene fandtes, men ingen kalder sendte et land med,
+ * så hvert site fik standardlandets indhold — .co.uk viste danske atleter og et
+ * sitemap identisk med .dk's, altså en dublet. Ingen side kaldte forkert; det
+ * var defaulten der var forkert.
+ *
+ * Uden request-kontekst (byggetid, scripts, tests) falder `currentSite()`
+ * tilbage til standardsitet, præcis som før.
  */
-export function siteCountry(country?: string): string {
-  return (country ?? DEFAULT_COUNTRY).toUpperCase();
+export async function siteCountry(country?: string): Promise<string> {
+  if (country) return country.toUpperCase();
+  try {
+    return (await currentSite()).code.toUpperCase();
+  } catch {
+    return DEFAULT_COUNTRY.toUpperCase();
+  }
 }
 
 export const ARTICLE_SELECT = `
@@ -50,7 +61,7 @@ export const ARTICLE_SELECT = `
 
 // ─── Artikler ────────────────────────────────────────────────────────────────
 
-export async function getLatestArticles(limit = 5): Promise<Article[]> {
+export async function getLatestArticles(limit = 5, country?: string): Promise<Article[]> {
   const db = await getDB();
   if (!db) {
     return MOCK_ARTICLES
@@ -64,17 +75,17 @@ export async function getLatestArticles(limit = 5): Promise<Article[]> {
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.published = 1
+         WHERE a.published = 1 AND a.country = ?
          ORDER BY a.published_at DESC LIMIT ?`
       )
-      .bind(limit)
+      .bind(await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Article[];
   } catch { return []; }
 }
 
 /** Fastgjorte artikler til forsidens karrusel (nyeste først). */
-export async function getFeaturedArticles(limit = 5): Promise<Article[]> {
+export async function getFeaturedArticles(limit = 5, country?: string): Promise<Article[]> {
   const db = await getDB();
   if (!db) return [];
   try {
@@ -83,10 +94,10 @@ export async function getFeaturedArticles(limit = 5): Promise<Article[]> {
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.published = 1 AND a.featured = 1
+         WHERE a.published = 1 AND a.featured = 1 AND a.country = ?
          ORDER BY a.published_at DESC LIMIT ?`,
       )
-      .bind(limit)
+      .bind(await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Article[];
   } catch {
@@ -94,7 +105,11 @@ export async function getFeaturedArticles(limit = 5): Promise<Article[]> {
   }
 }
 
-export async function getArticleBySlug(slug: string): Promise<Article | null> {
+/**
+ * Artiklen med den slug — PÅ DETTE SITE. Et andet lands artikel giver `null`
+ * (altså 404), i stedet for at ligge på begge domæner som en dublet.
+ */
+export async function getArticleBySlug(slug: string, country?: string): Promise<Article | null> {
   const db = await getDB();
   if (!db) {
     return MOCK_ARTICLES.find((a) => a.slug === slug && a.published === 1) ?? null;
@@ -105,17 +120,17 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.slug = ? AND a.published = 1`
+         WHERE a.slug = ? AND a.published = 1 AND a.country = ?`
       )
-      .bind(slug)
+      .bind(slug, await siteCountry(country))
       .first();
     return (r as Article) ?? null;
   } catch { return null; }
 }
 
 export async function getArticles({
-  q = "", sport = "", limit = 18, offset = 0,
-}: { q?: string; sport?: string; limit?: number; offset?: number } = {}): Promise<Article[]> {
+  q = "", sport = "", limit = 18, offset = 0, country,
+}: { q?: string; sport?: string; limit?: number; offset?: number; country?: string } = {}): Promise<Article[]> {
   const db = await getDB();
   if (!db) {
     let filtered = MOCK_ARTICLES.filter((a) => a.published === 1);
@@ -136,8 +151,8 @@ export async function getArticles({
       .slice(offset, offset + limit);
   }
   try {
-    const conditions: string[] = ["a.published = 1"];
-    const params: (string | number)[] = [];
+    const conditions: string[] = ["a.published = 1", "a.country = ?"];
+    const params: (string | number)[] = [await siteCountry(country)];
     if (q) {
       conditions.push("(a.title LIKE ? OR a.summary LIKE ? OR at.name LIKE ?)");
       params.push(`%${q}%`, `%${q}%`, `%${q}%`);
@@ -164,8 +179,8 @@ export async function getArticles({
  * getArticles ovenfor, ellers viser sidetallet noget andet end listen.
  */
 export async function countArticles({
-  q = "", sport = "",
-}: { q?: string; sport?: string } = {}): Promise<number> {
+  q = "", sport = "", country,
+}: { q?: string; sport?: string; country?: string } = {}): Promise<number> {
   const db = await getDB();
   if (!db) {
     let filtered = MOCK_ARTICLES.filter((a) => a.published === 1);
@@ -182,8 +197,8 @@ export async function countArticles({
     return filtered.length;
   }
   try {
-    const conditions: string[] = ["a.published = 1"];
-    const params: (string | number)[] = [];
+    const conditions: string[] = ["a.published = 1", "a.country = ?"];
+    const params: (string | number)[] = [await siteCountry(country)];
     if (q) {
       conditions.push("(a.title LIKE ? OR a.summary LIKE ? OR at.name LIKE ?)");
       params.push(`%${q}%`, `%${q}%`, `%${q}%`);
@@ -217,7 +232,7 @@ export interface SiteCounts {
  */
 export async function getSiteCounts(country?: string): Promise<SiteCounts> {
   const db = await getDB();
-  const code = siteCountry(country);
+  const code = await siteCountry(country);
   if (!db) {
     const active = MOCK_ATHLETES.filter((a) => a.active === 1);
     return {
@@ -278,7 +293,7 @@ export async function getArticlesGroupedBySport({
   sports?: number; perSport?: number; excludeIds?: number[]; country?: string;
 } = {}): Promise<SportGroup[]> {
   const db = await getDB();
-  const code = siteCountry(country);
+  const code = await siteCountry(country);
   if (!db) return [];
   try {
     const [recent, counts] = await Promise.all([
@@ -330,7 +345,7 @@ export async function getArticlesGroupedBySport({
 }
 
 export async function getArticlesByAthleteId(
-  athleteId: number, limit = 6
+  athleteId: number, limit = 6, country?: string
 ): Promise<Article[]> {
   const db = await getDB();
   if (!db) {
@@ -345,17 +360,17 @@ export async function getArticlesByAthleteId(
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.athlete_id = ? AND a.published = 1
+         WHERE a.athlete_id = ? AND a.published = 1 AND a.country = ?
          ORDER BY a.published_at DESC LIMIT ?`
       )
-      .bind(athleteId, limit)
+      .bind(athleteId, await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Article[];
   } catch { return []; }
 }
 
 export async function getArticlesByUniversity(
-  university: string, limit = 4
+  university: string, limit = 4, country?: string
 ): Promise<Article[]> {
   const db = await getDB();
   if (!db) {
@@ -373,10 +388,10 @@ export async function getArticlesByUniversity(
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE at.university = ? AND a.published = 1
+         WHERE at.university = ? AND a.published = 1 AND a.country = ?
          ORDER BY a.published_at DESC LIMIT ?`
       )
-      .bind(university, limit)
+      .bind(university, await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Article[];
   } catch { return []; }
@@ -384,15 +399,19 @@ export async function getArticlesByUniversity(
 
 // ─── Atleter ─────────────────────────────────────────────────────────────────
 
-export async function getAthleteBySlug(slug: string): Promise<Athlete | null> {
+/**
+ * Atleten med den slug — PÅ DETTE SITE. Et andet lands atlet giver `null`, så
+ * profilen kun findes ét sted (samme grund som `getArticleBySlug`).
+ */
+export async function getAthleteBySlug(slug: string, country?: string): Promise<Athlete | null> {
   const db = await getDB();
   if (!db) {
     return MOCK_ATHLETES.find((a) => a.slug === slug) ?? null;
   }
   try {
     const r = await db
-      .prepare("SELECT * FROM athletes WHERE slug = ?")
-      .bind(slug)
+      .prepare("SELECT * FROM athletes WHERE slug = ? AND home_country = ?")
+      .bind(slug, await siteCountry(country))
       .first();
     return (r as Athlete) ?? null;
   } catch { return null; }
@@ -442,7 +461,7 @@ export async function getAthletesByUniversity(
       .prepare(
         "SELECT * FROM athletes WHERE university = ? AND home_country = ? AND active = 1 ORDER BY name LIMIT ?"
       )
-      .bind(university, siteCountry(country), limit)
+      .bind(university, await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
@@ -458,7 +477,7 @@ export async function getAllAthletes(country?: string): Promise<Athlete[]> {
   try {
     const r = await db
       .prepare("SELECT * FROM athletes WHERE home_country = ? AND active = 1 ORDER BY sport, name")
-      .bind(siteCountry(country))
+      .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
@@ -474,7 +493,7 @@ export async function getAlumniAthletes(country?: string): Promise<Athlete[]> {
   try {
     const r = await db
       .prepare("SELECT * FROM athletes WHERE home_country = ? AND active = 0 ORDER BY sport, name")
-      .bind(siteCountry(country))
+      .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
@@ -493,7 +512,7 @@ export async function getAthletesBySport(
   try {
     const r = await db
       .prepare("SELECT * FROM athletes WHERE sport = ? AND home_country = ? AND active = 1 ORDER BY name LIMIT ?")
-      .bind(sport, siteCountry(country), limit)
+      .bind(sport, await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Athlete[];
   } catch { return []; }
@@ -518,7 +537,7 @@ export async function getArticlesBySport(
          WHERE at.sport = ? AND a.country = ? AND a.published = 1
          ORDER BY a.published_at DESC LIMIT ?`
       )
-      .bind(sport, siteCountry(country), limit)
+      .bind(sport, await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as Article[];
   } catch { return []; }
@@ -534,7 +553,7 @@ export async function countAthletesBySport(sport: string, country?: string): Pro
   try {
     const r = await db
       .prepare("SELECT active, COUNT(*) as cnt FROM athletes WHERE sport = ? AND home_country = ? GROUP BY active")
-      .bind(sport, siteCountry(country))
+      .bind(sport, await siteCountry(country))
       .all();
     let active = 0, alumni = 0;
     for (const row of (r.results ?? []) as { active: number; cnt: number }[]) {
@@ -561,8 +580,8 @@ export async function getSchoolBySlug(slug: string): Promise<School | null> {
   } catch { return null; }
 }
 
-/** Skoler der har mindst én aktiv dansk atlet, med antal — til /skoler-hubben. */
-export async function getSchoolsWithAthletes(): Promise<
+/** Skoler med mindst én aktiv atlet FRA DETTE SITES LAND, med antal — /skoler-hubben. */
+export async function getSchoolsWithAthletes(country?: string): Promise<
   (School & { athlete_count: number })[]
 > {
   const db = await getDB();
@@ -573,10 +592,12 @@ export async function getSchoolsWithAthletes(): Promise<
         `SELECT s.*, COUNT(a.id) AS athlete_count
          FROM schools s
          JOIN athletes a ON a.university = s.name AND a.active = 1
+           AND a.home_country = ?
          GROUP BY s.id
          HAVING athlete_count > 0
          ORDER BY s.division ASC, athlete_count DESC, s.name ASC`,
       )
+      .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as (School & { athlete_count: number })[];
   } catch {
@@ -605,7 +626,7 @@ export async function getAthleteEvents(athleteId: number): Promise<AthleteEventR
 
 // ─── Sitemap / Feed hjælpere ────────────────────────────────────────────────
 
-export async function getAllArticleSlugs(): Promise<
+export async function getAllArticleSlugs(country?: string): Promise<
   { slug: string; sport: string | null; updated_at: string }[]
 > {
   const db = await getDB();
@@ -621,9 +642,10 @@ export async function getAllArticleSlugs(): Promise<
         `SELECT a.slug, at.sport, a.updated_at
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.published = 1
+         WHERE a.published = 1 AND a.country = ?
          ORDER BY a.published_at DESC`
       )
+      .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as { slug: string; sport: string | null; updated_at: string }[];
   } catch { return []; }
@@ -641,13 +663,18 @@ export async function getAllAthleteSlugs(country?: string): Promise<
   try {
     const r = await db
       .prepare("SELECT slug, updated_at FROM athletes WHERE home_country = ? ORDER BY name")
-      .bind(siteCountry(country))
+      .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as { slug: string; updated_at: string }[];
   } catch { return []; }
 }
 
-export async function getAllSchoolSlugs(): Promise<{ slug: string }[]> {
+/**
+ * Kun skoler sitet FAKTISK har atleter på. Uden landefiltret listede begge
+ * sitemaps alle 91 skoler — også dem uden en eneste atlet fra landet, hvis
+ * skoleside derfor er tom.
+ */
+export async function getAllSchoolSlugs(country?: string): Promise<{ slug: string }[]> {
   const db = await getDB();
   if (!db) {
     return MOCK_SCHOOLS
@@ -656,7 +683,13 @@ export async function getAllSchoolSlugs(): Promise<{ slug: string }[]> {
   }
   try {
     const r = await db
-      .prepare("SELECT slug FROM schools ORDER BY name")
+      .prepare(
+        `SELECT DISTINCT s.slug FROM schools s
+         JOIN athletes a ON a.university = s.name AND a.active = 1
+           AND a.home_country = ?
+         ORDER BY s.name`,
+      )
+      .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as { slug: string }[];
   } catch { return []; }

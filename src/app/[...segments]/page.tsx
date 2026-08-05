@@ -307,6 +307,10 @@ export default async function DynamicPage({ params }: { params: Params }) {
           getAthletesByUniversity(school.name),
           getArticlesByUniversity(school.name, 6),
         ]);
+        // Skolerne er fælles for alle sites, atleterne er ikke. Har sitet ingen
+        // atleter dér, er siden tom — og en tom side skal 404'e, ikke findes på
+        // hvert domæne.
+        if (athletes.length === 0 && articles.length === 0) notFound();
         return (
           <>
             <SchoolProfilePage school={school} athletes={athletes} articles={articles} />

@@ -75,7 +75,8 @@ ser først.
 | Sprogtest på ny vært giver standardsproget | **`wrangler dev` videresender IKKE Host-headeren** (hverken lokal eller `--remote`) | Test med `next dev` — se §4 |
 | Alt ser tomt ud i dev | `next dev` har TOM lokal D1 | Brug `wrangler dev --remote` når du skal se rigtige data |
 | Nyt site indekseres ikke af Google | `BASE_URL` er en modul-konstant → canonical/sitemap/robots/feed peger på standardsitet. **Fejler LYDLØST — siderne renderer perfekt** | `currentBaseUrl()` i alt der udsender absolutte URL'er |
-| Det nye site viser standardsitets atleter, og de to sitemaps har PRÆCIS samme antal URL'er | **De læservendte queries i `src/lib/db.ts` filtrerer ikke på land** — `articles.country`/`athletes.home_country` findes, men bruges ikke | Filtrér på `(await currentSite()).code`. Indtil da: `darkLaunch` (se nedenfor) |
+| Det nye site viser standardsitets atleter, og de to sitemaps har PRÆCIS samme antal URL'er | **`siteCountry()`s default var en KONSTANT, ikke værten** — filtrene fandtes, men ingen kalder sendte et land med (LØST 2026-08-05) | Defaulten slår nu landet op via `currentSite()`. Sender du et land eksplicit, vinder det |
+| Det andet lands URL'er svarer 200 med "Side ikke fundet" | Soft 404: `loading.tsx` streamer 200, før `notFound()` når at sætte status. **Gælder også helt ukendte stier på standardsitet — ældre fejl, ikke ny** | Ikke løst. Rigtig vej: slå op i middlewaren (som atlet-aliasserne) og svar 301 til det rigtige site |
 | Sitet er noindex overalt — undtagen på de sider der har mest indhold | Enkelte sider hårdkoder `robots: { index: true }` i deres metadata og **overskriver layoutet** | `siteRobots()` fra `site-server.ts`; statisk `metadata` må slet ikke sætte `robots` |
 | Nyt site sender standardsitets sprog i `<title>`, meta og footer | `site_content` har ingen rækker for landet, og **kode-defaults i `site-content.ts` er skrevet på standardsitets sprog** | Seed `site_content` for landet FØR domænet peger på sitet |
 | Danske ord på kort/skabeloner på det nye site | Enkelt dansk tabel (fx `ARTICLE_TYPE_LABELS`) uden for sprogpakken | Flyt til `LanguagePack` |
@@ -232,10 +233,12 @@ En opdigtet national NCAA-stjerne er præcis den fejl sitet er bygget for at und
   (én bruger), men det betyder at UK-tekster kun kan redigeres på UK-værten.
 - **`/viden`-hub'en falder tilbage til kode-defaults** hvis D1 er tom for landet.
   Tjek at hub'en ikke er tom på det nye site før launch.
-- **Landefiltrering af de læservendte queries** (`src/lib/db.ts` + `sitemap.ts`).
-  Så længe den mangler, kan et nyt land kun være dark launch. Det er den ENE
-  ting der skal løses, før land nr. 2 kan være rigtigt live — og den løses én
-  gang for alle lande.
+- ~~Landefiltrering af de læservendte queries~~ **LØST 2026-08-05** og gælder
+  alle fremtidige lande: `siteCountry()` i `src/lib/db.ts` afgør landet ud fra
+  værten. Nye queries skal stadig selv tilføje `AND a.country = ?` /
+  `AND home_country = ?` — helper'en giver koden, ikke filtret.
+- **Soft 404**: det andet lands URL'er (og alle ukendte stier) svarer 200 med
+  "Side ikke fundet". Se fældetabellen.
 - **Kun `.dk`-tokenet kan røre DNS.** `CLOUDFLARE_API_TOKEN` = Workers på
   kontoniveau, ingen DNS. `CLOUDFLARE_EMAIL_TOKEN` = DNS + Email Routing, men
   kun på zonen `studentathlete.dk`. Email routing på et nyt domæne kræver
