@@ -82,6 +82,7 @@ ser først.
 | Danske ord på kort/skabeloner på det nye site | Enkelt dansk tabel (fx `ARTICLE_TYPE_LABELS`) uden for sprogpakken | Flyt til `LanguagePack` |
 | Ny route rammer catch-all'en efter deploy | Forældet route-manifest i buildet | `rm -rf .next .open-next` før `npm run deploy` |
 | **STANDARDSITET NXDOMAIN'er efter et deploy** (DNS_PROBE_FINISHED_NXDOMAIN) | **`custom_domain = true` i `wrangler.toml` er en FULDSTÆNDIG liste.** Wrangler afkobler hver custom domain der ikke står i den — og Cloudflare sletter den DNS-record tilknytningen ejede. Standardsitets apex lå som custom domain uden at stå i filen, så den forsvandt ved næste deploy | Enten: erklær ALLE værter som custom domains. Eller (valgt her): brug route-mønstre + **manuelle** proxied placeholder-records, som wrangler ikke ejer og derfor ikke rører |
+| **Standardsitets sociale konti poster en artikel fra det nye land** | Kanalerne kendte ikke deres eget land: kø-forespørgslen tog ENHVER publiceret artikel. En kanal er en KONTO i ét land, ikke en platform | `country` på `SocialChannel` + `a.country = ch.country` i enqueue, og `distributionAllowed()` spærrer for lande med `darkLaunch` |
 | Verifikationen siger 200, men brugeren får NXDOMAIN | `curl --resolve VÆRT:443:IP` springer DNS over. Den beviser at Workeren svarer — ikke at domænet kan slås op | Tjek ALTID opslaget separat: `curl -s "https://dns.google/resolve?name=VÆRT&type=A"` skal give svar for både A og AAAA |
 | Redirect giver 200 med `<meta refresh>` i stedet for 301 | `loading.tsx` streamer 200 før siden kan sætte status | Redirects hører i `src/middleware.ts`, ALDRIG i en side |
 | Track-POST giver 204 men ingen række | `ANALYTICS_EXCLUDE_IPS` dropper Mikkels eget net | Test INSERT direkte mod D1 i stedet |
@@ -162,6 +163,12 @@ gang, medmindre han siger andet:
 
 Under dark launch er det i orden at sitet er tyndt. Det er IKKE i orden at
 canonical/sitemap peger forkert (§3) — indekseringsskaden sker med det samme.
+
+**Dark launch spærrer to ting, ikke én: indeksering OG distribution.** Det blev
+lært den hårde vej 2026-08-05 — de danske sociale konti nåede at poste en
+britisk artikel, fordi `darkLaunch` kun var kendt af `robots`/metadata. Spærren
+ligger nu også i social-køen (`distributionAllowed()`), og den gælder uanset om
+nogen senere opretter en konto for landet.
 
 **`noindex` under dark launch er IKKE valgfrit** (rettet efter UK 2026-08-05).
 Så længe motoren ikke filtrerer indholdet på land, viser det nye site

@@ -106,6 +106,15 @@ Domænet **student-athlete.co.uk er købt**. Trin 1–3 af launch-planen er kør
     - **Regel 24 og 25** (identisk nummereret i `system.ts` og `en.ts`): stedord + hold må aldrig udledes af kilden, og en atlet med ÅRGANG Sr./Gr. må ikke få fremskrevet næste sæson ("poised to play a central role" om en dimitterende graduate student).
     - **De 5 britiske kladder er skrevet FØR alt dette** og bør regenereres frem for redigeres (2 af de 5 atleter havde ukendt køn, 2 er Sr./Gr.).
 
+### 🚨 2026-08-05: de danske konti postede en BRITISK artikel (dark launch brudt)
+Mikkel publicerede tre britiske artikler i admin. Den timevise social-kø samlede dem op, og **den danske Facebook-side + Bluesky-konto postede en britisk artikel**. Fire yderligere opslag lå i kø til næste kørsel.
+- **Årsag 1**: enqueue-forespørgslen tog ENHVER publiceret artikel — kanalerne kendte ikke deres eget land. En kanal er en **konto** (dansk Bluesky-handle, dansk FB-side), ikke en platform. Nu: `country` på `SocialChannel` + `a.country = ch.country`, plus en sidste kontrol lige før udsendelse (en kø-række skrevet af ældre kode må ikke slippe ud alligevel).
+- **Årsag 2**: `darkLaunch` spærrede kun for søgemaskiner. Nu spærrer `distributionAllowed()` også for distribution — uanset om nogen senere opretter en konto for landet.
+- **Sidefund**: opslaget linkede til et **.dk-link** for en britisk artikel (`buildContent` brugte modul-konstanten `BASE_URL`), altså et link der ikke findes på det site. Rettet til artiklens eget site.
+- **Sidefund 2**: `import` af `post-social.ts` kørte hele posteringen — en test kunne have publiceret med de rigtige env-variabler. `main()` er nu bag en entrypoint-vagt.
+- **Oprydning**: 4 køede opslag stoppet · **Bluesky-opslaget slettet** (verificeret væk via det offentlige API) · **Facebook-opslaget skal fjernes i hånden**: tokenet kan poste, men hverken læse eller slette (`/me` = siden "StudentAthlete.dk", men opslaget kræver `pages_read_engagement`/`pages_manage_posts`). Link: https://www.facebook.com/106455735664643_1111566981822624
+- **Nyt værktøj**: `pipeline/social/delete-post.ts` + workflowet **Slet social-opslag** (kun manuel, dry-run som default, `--diagnose` til token-spørgsmål). Fortrydelsen skal være lige så scriptbar som udsendelsen. Rækker markeres `deleted` (migration 040) — "nåede aldrig ud" og "var ude og blev trukket tilbage" må ikke se ens ud bagefter.
+
 ### ⚠️ 2026-08-05: standardsitet var nede i ca. 40 minutter (min fejl)
 `custom_domain = true` i `wrangler.toml` er en **fuldstændig liste**: wrangler afkoblede den custom domain-tilknytning `studentathlete.dk` (apex) havde haft længe, fordi den ikke stod i filen — og Cloudflare slettede den DNS-record tilknytningen ejede. Resultat: NXDOMAIN på apex. Genoprettet som en **manuel** proxied placeholder-record (AAAA `100::`), som wrangler ikke ejer; verificeret at den overlever et deploy. `www` manglede i øvrigt også en record og er nu oprettet.
 **Hvorfor jeg ikke opdagede det**: jeg verificerede med `curl --resolve VÆRT:443:IP`, som springer DNS over — den beviser at Workeren svarer, ikke at domænet kan slås op. Begge dele står nu i `PLAYBOOK-nyt-land.md`.
