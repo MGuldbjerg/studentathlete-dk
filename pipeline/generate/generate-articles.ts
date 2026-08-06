@@ -18,6 +18,8 @@ import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
 import { timelineForGeneration, currentSeasonStart, type AthleteEvent } from "./timeline";
 import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
+import { checkStoryIdentity, hasUnsourcedQuote } from "./identity-guard";
+import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
 
 interface StoryWithAthlete extends Story {
@@ -223,12 +225,15 @@ async function main(): Promise<void> {
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
      AND s.fact_status = 'built'
+     -- Et efternavns-match (35) er nok til at OVERVÅGE en historie, men ikke
+     -- til at skrive om et navngivent menneske. Se MIN_RELEVANCE_GENERATE.
+     AND s.relevance_score >= ?
      AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
      ORDER BY
        CASE WHEN s.content_raw IS NOT NULL THEN 0 WHEN s.summary IS NOT NULL THEN 1 ELSE 2 END,
        s.relevance_score DESC
      LIMIT ?`,
-    [maxAgeDays, MAX_ARTICLES_PER_RUN],
+    [MIN_RELEVANCE_GENERATE, maxAgeDays, MAX_ARTICLES_PER_RUN],
   );
 
   const stories = result.results;
@@ -250,6 +255,7 @@ async function main(): Promise<void> {
   // beskeden "n kladder klar" skal kunne sendes ét sted pr. land.
   const draftsByCountry = new Map<string, string[]>();
   const failuresByCountry = new Map<string, string[]>();
+  let blockedByGuard = 0;
 
   for (const story of stories) {
     // Sikkerhedsnet 3: Tjek om der allerede findes en artikel for denne story
@@ -260,6 +266,32 @@ async function main(): Promise<void> {
     if ((existing.results[0]?.cnt ?? 0) > 0) {
       console.log(`  ⊘ Story ${story.id} har allerede en artikel — springer over.`);
       await db.execute('UPDATE stories SET status = ? WHERE id = ?', ["drafted", story.id]);
+      continue;
+    }
+
+    /**
+     * IDENTITETSVAGT — før modellen overhovedet kaldes.
+     *
+     * Handler kilden om DEN atlet vi har koblet den til? To af de fem første
+     * britiske kladder handlede om et andet menneske med samme efternavn
+     * (2026-08-06). Ingen promptregel kan redde det: modellen får en atlet-blok
+     * om ét menneske og et faktaark om et andet.
+     */
+    const identity = checkStoryIdentity({
+      athleteName: story.athlete_name,
+      gender: story.gender,
+      sport: story.sport,
+      sourceText: [story.headline, story.summary, story.content_raw, story.fact_sheet]
+        .filter(Boolean)
+        .join("\n"),
+    });
+    if (!identity.ok) {
+      console.log(`  ⛔ Story ${story.id} (${story.athlete_name}): ${identity.reason}`);
+      await db.execute(
+        "UPDATE stories SET status = 'rejected', processed_at = datetime('now') WHERE id = ?",
+        [story.id],
+      );
+      blockedByGuard++;
       continue;
     }
 
@@ -309,6 +341,32 @@ async function main(): Promise<void> {
       });
 
       const parsed = parseArticleOutputSmart(response.text, articleType);
+
+      /**
+       * CITATVAGT: ord lagt i munden på et navngivent menneske er den værste
+       * fejl sitet kan lave. Har faktaarket ingen citater, må kladden ikke
+       * indeholde ét — den skrives ikke til basen, så den kan ikke godkendes
+       * ved et uheld. Kladde #99 (2026-08-06) tillagde en cheftræner to
+       * sætninger han aldrig har sagt.
+       */
+      let sheetQuoteCount = 0;
+      try {
+        sheetQuoteCount = story.fact_sheet
+          ? ((JSON.parse(story.fact_sheet) as FactSheet).quotes ?? []).length
+          : 0;
+      } catch {
+        sheetQuoteCount = 0;
+      }
+      if (hasUnsourcedQuote(`${parsed.title}\n${parsed.content}`, sheetQuoteCount)) {
+        console.log(`  ⛔ Story ${story.id}: kladden indeholder et citat, men faktaarket har ingen — kasseret`);
+        await db.execute(
+          "UPDATE stories SET status = 'rejected', processed_at = datetime('now') WHERE id = ?",
+          [story.id],
+        );
+        blockedByGuard++;
+        continue;
+      }
+
       const slug = generateSlug(parsed.title);
 
       // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering
@@ -367,6 +425,9 @@ async function main(): Promise<void> {
   }
 
   console.log(`\nFærdig. Genereret ${generated} artikeludkast. Token-forbrug: ~${totalTokens}.`);
+  if (blockedByGuard > 0) {
+    console.log(`${blockedByGuard} historie(r) afvist af identitets-/citatvagten — se ⛔ ovenfor.`);
+  }
 
   // Notifikationer til sidst: én besked pr. land frem for én pr. kladde, og
   // efter løkken så en webhook-fejl aldrig kan afbryde genereringen.

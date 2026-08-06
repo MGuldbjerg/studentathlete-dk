@@ -106,6 +106,17 @@ Domænet **student-athlete.co.uk er købt**. Trin 1–3 af launch-planen er kør
     - **Regel 24 og 25** (identisk nummereret i `system.ts` og `en.ts`): stedord + hold må aldrig udledes af kilden, og en atlet med ÅRGANG Sr./Gr. må ikke få fremskrevet næste sæson ("poised to play a central role" om en dimitterende graduate student).
     - **De 5 britiske kladder er skrevet FØR alt dette** og bør regenereres frem for redigeres (2 af de 5 atleter havde ukendt køn, 2 er Sr./Gr.).
 
+### 🚨 2026-08-06: to af fem kladder handlede om DET FORKERTE MENNESKE
+Gennemlæsning af de fem britiske kladder (karakterer: 2× F for forkert person, 1× F for opdigtet citat, 1× D, 1× C−):
+- **#102**: kilden handlede om **Bella Murray**, kvindelig volleyball-alumne ansat som assistenttræner. Kladden tillagde hendes 3.135 assists, hendes hæder og hendes ansættelse til **Josh Murray**, mandlig fodboldforsvarer — og gengav træneres citater om "Bella" og "hun" som om de handlede om ham.
+- **#101**: kilden var Northeastowns Hall of Fame-klasse om **Paul Grant** (stangspringer i 1970'erne). Kladden skrev at **Iolo Grant** (1. år) "har forpligtet sig til Northeastern" og opfandt at Paul er **hans far**.
+- **#99**: opdigtet citat fra cheftræner Merritt — faktaarkets `quotes` var tom.
+- **Årsag**: `matchAthletes()` gav et match på KUN EFTERNAVN 35 point, og `MIN_RELEVANCE` var 30. Begge historier scorede 35. Modellen fik en atlet-blok om ét menneske og et faktaark om et andet og flettede dem — som den skal.
+- **Sidefund**: `SPORT_KEYWORDS` havde stadig DANSKE nøgler ("fodbold", "atletik") efter motor-refaktoren, så sport-tieren (60 point) var død for 264 af 487 aktive atleter. Rettet til kanoniske slugs.
+- **Rettet**: `MIN_RELEVANCE_GENERATE = 60` (efternavn alene må overvåges, aldrig skrives om) · `identity-guard.ts` kører FØR modellen (fornavn skal stå i kilden; entydigt modsatte stedord eller en anden sportsgren blokerer) · citatvagt EFTER parsing (citat i kladde + tomt faktaark = kladden skrives aldrig til basen) · 12 tests, heraf de to virkelige sager. Kladde 99/101/102 slettet, historie 2622/2623 sat til `rejected`.
+- **Vigtigt for vurderingen af motoren**: regel 24 og 25 var i kraft (deployet 2026-08-05 12:51), og kladderne blev genereret 2026-08-06 10:09 — **reglerne blev overtrådt alligevel**. Gratis-modellen følger ikke pålidelige negative instrukser. Denne fejlklasse kræver mekaniske spærrer, ikke bedre promptformuleringer.
+- **Verifikatoren er ikke et sikkerhedsnet**: #101 (forkert menneske) fik risiko `low`; #98 (korrekt, men fyldt med floskler) fik `high`. Den måler ukildebelagte FORMULERINGER, ikke identitet.
+
 ### 🚨 2026-08-05: de danske konti postede en BRITISK artikel (dark launch brudt)
 Mikkel publicerede tre britiske artikler i admin. Den timevise social-kø samlede dem op, og **den danske Facebook-side + Bluesky-konto postede en britisk artikel**. Fire yderligere opslag lå i kø til næste kørsel.
 - **Årsag 1**: enqueue-forespørgslen tog ENHVER publiceret artikel — kanalerne kendte ikke deres eget land. En kanal er en **konto** (dansk Bluesky-handle, dansk FB-side), ikke en platform. Nu: `country` på `SocialChannel` + `a.country = ch.country`, plus en sidste kontrol lige før udsendelse (en kø-række skrevet af ældre kode må ikke slippe ud alligevel).

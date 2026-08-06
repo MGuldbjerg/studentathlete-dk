@@ -279,6 +279,21 @@ interface AthleteRef {
 export const MIN_RELEVANCE = 30;
 
 /**
+ * Tærsklen for at en historie må GENERERES — højere end tærsklen for at blive
+ * fundet.
+ *
+ * 35 = kun efternavnet stod i teksten. Det er fint til overvågning, men det er
+ * ikke identifikation: 2026-08-06 blev en Hall of Fame-artikel om Paul Grant
+ * (1970'erne) skrevet som en nyhed om førsteårsstuderende Iolo Grant, og en
+ * ansættelse af volleyballspilleren Bella Murray blev til en nyhed om
+ * fodboldspilleren Josh Murray. Begge scorede 35.
+ *
+ * 60 kræver enten fornavn, fuldt navn eller efternavn + sportskontekst — altså
+ * mindst ét holdepunkt ud over et efternavn to mennesker kan dele.
+ */
+export const MIN_RELEVANCE_GENERATE = 60;
+
+/**
  * Meget almindelige danske efternavne. Et match på KUN efternavnet er her
  * for usikkert (kan være en anden person, træner el. lign.) — kræv fornavn/fuldt navn.
  */
@@ -291,20 +306,35 @@ const COMMON_SURNAMES = new Set([
 ]);
 
 /** Sport (dansk label i db) → engelske nøgleord der bekræfter konteksten i et US-feed. */
+/**
+ * Sportsord i kildeteksten → bekræftelse af et efternavns-match.
+ *
+ * Nøglerne SKAL være de kanoniske NCAA-slugs (`athletes.sport`, se
+ * src/lib/sports.ts). De var danske ("fodbold", "atletik") og matchede derfor
+ * INGENTING efter motor-refaktoren 2026-08-03 — sport-tieren var død for
+ * fodbold, atletik, svømning, roning, ishockey og gymnastik, altså over
+ * halvdelen af atleterne.
+ */
 const SPORT_KEYWORDS: Record<string, string[]> = {
-  fodbold: ["soccer"],
+  soccer: ["soccer"],
   football: ["football", "gridiron"],
   basketball: ["basketball", "hoops"],
-  svømning: ["swim", "diving", "natation"],
+  "swimming-and-diving": ["swim", "diving", "natation"],
   tennis: ["tennis"],
   golf: ["golf"],
-  roning: ["rowing", "crew"],
-  atletik: ["track", "cross country", "athletics", "distance"],
-  ishockey: ["hockey"],
+  rowing: ["rowing", "crew"],
+  "track-and-field": ["track", "cross country", "athletics", "distance", "field"],
+  "ice-hockey": ["hockey"],
   volleyball: ["volleyball"],
   baseball: ["baseball"],
-  gymnastik: ["gymnastics"],
+  gymnastics: ["gymnastics"],
+  other: [],
 };
+
+/** Sportsord slået op pr. sport — bruges også af identitetsvagten. */
+export function sportKeywords(sport: string | null | undefined): string[] {
+  return SPORT_KEYWORDS[(sport ?? "").toLowerCase()] ?? [];
+}
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
