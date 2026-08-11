@@ -5,6 +5,7 @@
 import { eventsBlock, buildExpandPrompt, extractProfileText, verifyDraft, excludeHealthEvents, composeBaselineDraft, expandSystem, languageFor, type EventRow } from "./build-profile-drafts";
 import { transferSentence } from "../../src/lib/i18n/profile-builders";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
+import { localizeCityNames } from "./refresh-hometown-drafts";
 
 let passed = 0;
 let failed = 0;
@@ -128,6 +129,29 @@ check(
 check(
   transferSentence("da")("Furman University", "Clemson") === "Skiftede fra Furman University til Clemson.",
   "transferSentence: dansk",
+);
+
+// ── localizeCityNames (kirurgisk rettelse i godkendt tekst) ──────────────────
+const aliases = { copenhagen: "København", vaerloese: "Værløse" };
+check(
+  localizeCityNames("Paul kommer fra Copenhagen.", aliases) === "Paul kommer fra København.",
+  "localizeCityNames: byen rettes, resten står",
+);
+check(
+  localizeCityNames("Fra copenhagen, ikke COPENHAGEN.", aliases) === "Fra København, ikke København.",
+  "localizeCityNames: ufølsom for store bogstaver",
+);
+check(
+  localizeCityNames("Han bor i Vaerloese ved Værløse.", aliases) === "Han bor i Værløse ved Værløse.",
+  "localizeCityNames: ø/æ/å brydes korrekt som ordgrænse",
+);
+check(
+  localizeCityNames("Copenhagenske forhold.", aliases) === "Copenhagenske forhold.",
+  "localizeCityNames: kun hele ord — ingen delstrenge",
+);
+check(
+  localizeCityNames("Intet at rette her.", aliases) === "Intet at rette her.",
+  "localizeCityNames: uændret tekst forbliver identisk",
 );
 
 console.log(`\nprofile-drafts: ${passed} bestået, ${failed} fejlet`);
