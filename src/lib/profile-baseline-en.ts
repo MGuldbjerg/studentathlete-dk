@@ -19,6 +19,8 @@ import {
   currentSeasonStart,
   type BaselineAthlete,
 } from "./profile-baseline";
+import { localizeHometown } from "./hometown";
+import { countryProfile } from "./countries";
 
 // Delstatstabellen er engelsk i forvejen — kun det danske eksonym afviger.
 const STATE_NAMES_EN: Record<string, string> = { ...STATE_NAMES, CA: "California" };
@@ -38,10 +40,8 @@ function sportNoun(sport: string): string {
  * ", England"/", Scotland"/… siger ikke læseren noget (samme princip som
  * ", Denmark"-strip på DK-sitet).
  */
-function cleanHometown(hometown: string): string {
-  return hometown
-    .replace(/,\s*(United Kingdom|Great Britain|Northern Ireland|England|Scotland|Wales|Britain|U\.K\.|UK)\s*$/i, "")
-    .trim();
+function cleanHometown(hometown: string, homeCountry?: string | null): string {
+  return localizeHometown(hometown, countryProfile(homeCountry ?? "UK"));
 }
 
 /** "a"/"an" — med undtagelse for u-ord der udtales "ju" (a utility player). */
@@ -193,7 +193,7 @@ export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): s
 
   const parts = [main];
   if (a.hometown) {
-    const home = cleanHometown(a.hometown);
+    const home = cleanHometown(a.hometown, a.home_country);
     if (home) parts.push(`${firstName} is from ${home}.`);
   }
   return parts.join(" ");

@@ -14,6 +14,8 @@ import { cleanPosition } from "./roster-clean";
 import { expandPosition } from "./positions";
 import { BALL_SPORT_KEYS } from "./sports";
 import { sportLabel } from "./i18n";
+import { localizeHometown } from "./hometown";
+import { countryProfile } from "./countries";
 
 // Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
 // forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
@@ -47,6 +49,8 @@ export interface BaselineAthlete {
   year_enrolled: number | null;
   expected_graduation: number | null;
   active: number;
+  /** Atletens land (athletes.home_country) — styrer bystavemåde og landestrip. */
+  home_country?: string | null;
 }
 
 /** Aktuel akademisk sæsons startår (US college-år løber aug–jul). */
@@ -62,8 +66,14 @@ function sportNoun(sport: string): string {
 }
 
 /** Fjern redundant landesuffiks fra roster-hjembyer ("Aarhus, Denmark" → "Aarhus"). */
-function cleanHometown(hometown: string): string {
-  return hometown.replace(/,\s*(Denmark|Danmark)\s*$/i, "").trim();
+/**
+ * Hjembyen på dansk: skolens stavemåde ("Copenhagen", "Vaerloese") slås op i
+ * landeprofilen, og ", Denmark" ryger — se `localizeHometown` i hometown.ts.
+ * Landet kommer fra atleten selv; uden det er DK den rigtige antagelse for en
+ * dansk profiltekst.
+ */
+function cleanHometown(hometown: string, homeCountry?: string | null): string {
+  return localizeHometown(hometown, countryProfile(homeCountry ?? "DK"));
 }
 
 // ── Sportsspecifikke verber ───────────────────────────────────────────────────
@@ -209,7 +219,7 @@ export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): str
 
   const parts = [main];
   if (a.hometown) {
-    const home = cleanHometown(a.hometown);
+    const home = cleanHometown(a.hometown, a.home_country);
     if (home) parts.push(`${firstName} kommer fra ${home}.`);
   }
   return parts.join(" ");

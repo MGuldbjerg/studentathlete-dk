@@ -2,6 +2,7 @@
  * Unit-tests for profile-baseline.ts. Kør: npx tsx src/lib/_profile-baseline-test.ts
  */
 import { baselineProfile, currentSeasonStart, type BaselineAthlete } from "./profile-baseline";
+import { dk } from "./countries/dk";
 
 let passed = 0;
 let failed = 0;
@@ -78,8 +79,8 @@ expectText({ ...base, preferred_name: "Mikki" }, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikki kommer fra Aarhus.",
   "preferred_name i hjemby-sætning");
 expectText({ ...base, hometown: "Copenhagen, Denmark" }, fall25,
-  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra Copenhagen.",
-  "landesuffiks strippes");
+  "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra København.",
+  "landesuffiks strippes og byen får sit danske navn");
 expectText({ ...base, hometown: "Aarhus" }, fall25,
   "Mikkel Jensen startede på Ohio State University i efteråret 2025 og spiller fodbold som midtbanespiller. Mikkel kommer fra Aarhus.",
   "hjemby uden suffiks bruges råt");
@@ -200,6 +201,51 @@ expectText({ ...base, sport: "volleyball", position: null }, fall26,
 expectText({ ...base, sport: "andet", position: null }, fall26,
   "Mikkel Jensen har siden 2025 dyrket andet for Ohio State University i Ohio. Mikkel kommer fra Aarhus.",
   "'andet' (diverse-kategori i DB) rammer dyrke-fallback, ikke spille");
+
+// ── Bynavne: skolens stavemåde → dansk ───────────────────────────────────────
+// Rosters skriver enten eksonymet ("Copenhagen") eller en ASCII-foldning
+// ("Vaerloese"); en dansk profiltekst skal bruge det danske navn.
+function expectHome(hometown: string, want: string, label: string): void {
+  const got = baselineProfile({ ...base, hometown }, fall26);
+  const suffix = `Mikkel kommer fra ${want}.`;
+  if (got.endsWith(suffix)) {
+    passed++;
+  } else {
+    failed++;
+    console.error(`  ✗ ${label}:\n    fik:       ${got}\n    forventede slutning: ${suffix}`);
+  }
+}
+
+expectHome("Copenhagen, Denmark", "København", "eksonym → København");
+expectHome("copenhagen, denmark", "København", "eksonym er ufølsom for store bogstaver");
+expectHome("København, Danmark", "København", "korrekt dansk stavemåde rører vi ikke");
+expectHome("Vaerloese, Denmark", "Værløse", "ASCII-foldning → Værløse");
+expectHome("Helsingor, Denmark", "Helsingør", "ASCII-foldning → Helsingør");
+expectHome("Soenderborg, Denmark", "Sønderborg", "oe-foldning → Sønderborg");
+expectHome("Rosekilde, Denmark", "Roskilde", "kendt stavefejl rettes");
+// De tre byer med officielt dobbelt-a må ALDRIG blive til Å — en generisk
+// foldningsregel ville have ødelagt dem, tabellen gør det ikke.
+expectHome("Aalborg, Denmark", "Aalborg", "Aalborg forbliver Aalborg");
+expectHome("Aarhus, Denmark", "Aarhus", "Aarhus forbliver Aarhus");
+expectHome("Aabenraa, Denmark", "Aabenraa", "Aabenraa forbliver Aabenraa");
+// Ukendte steder skal overleve uændret — teksten må aldrig tabe information.
+expectHome("Kongens Lyngby, Denmark", "Kongens Lyngby", "flerords-by uændret");
+expectHome("Farose, Denmark", "Farose", "ukendt/tvetydig stavemåde står urørt");
+expectHome("Klarup, Danmark", "Klarup", "by uden alias uændret");
+
+// Tabellen skal være idempotent: et navn den selv har rettet til, må aldrig
+// være nøgle for en ny omskrivning. (Bylisten `cities` duer IKKE som facit —
+// den er en DETEKTIONS-liste og indeholder med vilje både "Copenhagen" og
+// "København", "Århus" og "Aarhus".)
+for (const [key, value] of Object.entries(dk.cityAliases ?? {})) {
+  const chained = dk.cityAliases?.[value.toLowerCase()];
+  if (chained) {
+    failed++;
+    console.error(`  ✗ alias "${key}" → "${value}" → "${chained}": kæden er ikke stabil`);
+  } else {
+    passed++;
+  }
+}
 
 console.log(`\nprofile-baseline: ${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

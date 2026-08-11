@@ -5,13 +5,17 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { localizeHometown } from "@/lib/hometown";
+import { countryProfile } from "@/lib/countries";
 import { currentLanguage } from "@/lib/site-server";
 interface Props { athlete: Athlete; articles: Article[]; events?: AthleteEventRow[] }
 
 const STAT_ROWS = (a: Athlete, lang: string) => [
   { label: t("fact.sport", lang),     value: sportLabel(a.sport, lang) },
   { label: t("fact.position", lang),  value: a.position },
-  { label: t("fact.hometown", lang),   value: a.hometown },
+  // Skolens stavemåde ("Copenhagen, Denmark") er data; læseren skal se byen
+  // som den hedder på sitets sprog ("København").
+  { label: t("fact.hometown", lang),   value: localizeHometown(a.hometown, countryProfile(a.home_country ?? undefined)) },
   { label: t("fact.university", lang), value: a.university },
   { label: t("fact.state", lang),     value: a.university_state },
   { label: t("fact.division", lang), value: a.division },

@@ -41,6 +41,8 @@ export interface Athlete {
   sport: string;
   position: string | null;
   hometown: string | null;
+  /** Atletens land (migration-034). Styrer også bystavemåden i visningen. */
+  home_country?: string | null;
   university: string;
   university_state: string | null;
   division: string;

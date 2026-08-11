@@ -87,6 +87,34 @@ export function matchesCountry(hometown: string | null, profile: CountryProfile)
 }
 
 /**
+ * Hjembyen som den skal LÆSES af sitets læsere.
+ *
+ * To ting sker: skolens stavemåde slås op i landeprofilens `cityAliases`
+ * ("Copenhagen" → "København", "Vaerloese" → "Værløse"), og landesuffikset
+ * fjernes, fordi hvert nationalt site kun viser sit eget lands atleter —
+ * ", Denmark" på det danske site er ren støj. Skolens rå tekst bliver stående
+ * i `athletes.hometown`: den er dokumentationen for hvad kilden faktisk skrev.
+ *
+ * Segmenter der hverken er marker eller alias går uændret videre, så
+ * "Kongens Lyngby" og ukendte forstæder aldrig forsvinder.
+ */
+export function localizeHometown(
+  hometown: string | null | undefined,
+  profile: CountryProfile,
+): string {
+  if (!hometown) return "";
+  const markers = new Set(profile.countryMarkers.map((m) => m.toLowerCase()));
+  const aliases = profile.cityAliases ?? {};
+
+  return hometown
+    .split(",")
+    .map((seg) => seg.trim())
+    .filter((seg) => seg.length > 0 && !markers.has(seg.toLowerCase()))
+    .map((seg) => aliases[seg.toLowerCase()] ?? seg)
+    .join(", ");
+}
+
+/**
  * Hvilket af de aktive lande hører atleten til? Returnerer landekoden til
  * `athletes.home_country`, eller null hvis ingen matcher.
  *

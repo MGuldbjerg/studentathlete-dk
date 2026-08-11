@@ -119,6 +119,48 @@ const cities: string[] = [
   "Rødovre",
 ];
 
+/**
+ * Roster-stavemåde → dansk bynavn. Se `cityAliases` i countries/types.ts for
+ * hvorfor tabellen er håndholdt. Alle nøgler her er observeret i live-data.
+ *
+ * Aalborg, Aarhus og Aabenraa står med VILJE ikke her: de hedder officielt
+ * netop sådan, og de står allerede i `cities` ovenfor.
+ */
+const cityAliases: Record<string, string> = {
+  // Engelske eksonymer
+  copenhagen: "København",
+  // "Elsinore" er fjernet fra `cities` (det matcher Lake Elsinore, CA som falsk
+  // positiv). Her er det ufarligt: opslaget sker først EFTER en atlet er
+  // klassificeret som dansk, så navnet kan ikke smugle nogen ind.
+  elsinore: "Helsingør",
+
+  // ASCII-foldninger fra amerikanske rosters
+  bagsvaerd: "Bagsværd",
+  brondby: "Brøndby",
+  broendby: "Brøndby",
+  espergaerde: "Espergærde",
+  helsingor: "Helsingør",
+  helsingoer: "Helsingør",
+  hjoerring: "Hjørring",
+  hoersholm: "Hørsholm",
+  holbaek: "Holbæk",
+  koege: "Køge",
+  naestved: "Næstved",
+  roedovre: "Rødovre",
+  skorping: "Skørping",
+  soenderborg: "Sønderborg",
+  stenlose: "Stenløse",
+  stenloese: "Stenløse",
+  stjaer: "Stjær",
+  vaerloese: "Værløse",
+  vedbaek: "Vedbæk",
+
+  // Rene stavefejl hos skolen (rettes kun når byen er entydig)
+  fredriksberg: "Frederiksberg",
+  rosekilde: "Roskilde",
+  taarmby: "Tårnby",
+};
+
 export const dk: CountryProfile = {
   code: "DK",
   language: "da",
@@ -126,6 +168,7 @@ export const dk: CountryProfile = {
   brand: "StudentAthlete.dk",
   contactEmail: "info@studentathlete.dk",
   cities,
+  cityAliases,
   countryMarkers: ["Denmark", "Danmark"],
   falsePositivePatterns: [
     /denmark,?\s*(sc|wi|me|ms|tn|ga|al)\b/i,

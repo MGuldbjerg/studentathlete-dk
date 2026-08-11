@@ -9,6 +9,8 @@ import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { localizeHometown } from "@/lib/hometown";
+import { countryProfile } from "@/lib/countries";
 import { currentLanguage } from "@/lib/site-server";
 interface Props {
   article: Article;
@@ -66,7 +68,7 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
               <div className="flex-1">
                 {athlete && (
                   <p className="text-white/50 text-xs tracking-[0.2em] uppercase mb-2 font-medium">
-                    {athlete.hometown ?? t("fact.home_country", lang)} · {sportLabel(athlete.sport, lang)}
+                    {localizeHometown(athlete.hometown, countryProfile(athlete.home_country ?? undefined)) || t("fact.home_country", lang)} · {sportLabel(athlete.sport, lang)}
                   </p>
                 )}
                 <h1 style={{ fontFamily: "var(--font-serif)" }}
@@ -124,7 +126,7 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
                       { label: t("fact.name", lang), value: athlete.name },
                       { label: t("fact.sport", lang), value: sportLabel(athlete.sport, lang) },
                       { label: t("fact.position", lang), value: athlete.position },
-                      { label: t("fact.hometown", lang), value: athlete.hometown },
+                      { label: t("fact.hometown", lang), value: localizeHometown(athlete.hometown, countryProfile(athlete.home_country ?? undefined)) },
                       { label: t("fact.university", lang), value: athlete.university },
                       { label: t("fact.division", lang), value: athlete.division },
                     ].filter((r) => r.value).map((row) => (

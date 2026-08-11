@@ -14,6 +14,21 @@ export interface CountryProfile {
   contactEmail: string;
   /** Byer der udpeger en atlet som hjemmehørende (hele ord, med lokale tegn). */
   cities: string[];
+  /**
+   * Skolens stavemåde → byens rigtige navn på landets eget sprog.
+   *
+   * Amerikanske rosters skriver enten det engelske eksonym ("Copenhagen") eller
+   * en ASCII-foldning af de lokale tegn ("Vaerloese", "Helsingor"). Rå
+   * roster-tekst er sand som DATA — den bliver stående i `athletes.hometown` —
+   * men den må ikke stå i en dansk sætning på sitet. Nøglen matches uden
+   * hensyn til store/små bogstaver.
+   *
+   * Tabellen er bevidst EKSPLICIT frem for regelbaseret: en generisk
+   * "oe→ø, aa→å"-regel ville skrive Aalborg om til Ålborg og Aarhus til Århus,
+   * som begge er de FORKERTE former (byerne hedder officielt Aalborg og
+   * Aarhus). Dukker en ny foldet stavemåde op i data, tilføjes den her.
+   */
+  cityAliases?: Record<string, string>;
   /** Eksplicitte landenavne i roster-data, fx "Denmark"/"Danmark". */
   countryMarkers: string[];
   /** Kendte US-steder der ligner landet og skal afvises. */
