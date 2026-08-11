@@ -2,7 +2,9 @@
  * Unit-tests for build-profile-drafts.ts (rene funktioner — ingen netværk/DB).
  * Kør: npx tsx pipeline/profiles/_profile-drafts-test.ts
  */
-import { eventsBlock, buildExpandPrompt, extractProfileText, verifyDraft, excludeHealthEvents, composeBaselineDraft, type EventRow } from "./build-profile-drafts";
+import { eventsBlock, buildExpandPrompt, extractProfileText, verifyDraft, excludeHealthEvents, composeBaselineDraft, expandSystem, languageFor, type EventRow } from "./build-profile-drafts";
+import { transferSentence } from "../../src/lib/i18n/profile-builders";
+import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 
 let passed = 0;
 let failed = 0;
@@ -83,6 +85,49 @@ check(
   composeBaselineDraft("Mikkel spiller fodbold for Z.", ["Skiftede fra X til Y.", "Skiftede fra Y til Z."]) ===
     "Mikkel spiller fodbold for Z. Skiftede fra X til Y. Skiftede fra Y til Z.",
   "composeBaselineDraft: flere skift i kronologisk rækkefølge",
+);
+
+// ── Sprog følger atleten, ikke kørslen ───────────────────────────────────────
+// Regressionen der gav 398 britiske atleter danske udkast: sproget blev valgt
+// én gang ud fra standardlandet i stedet for pr. række.
+check(languageFor({ home_country: "DK" }) === "da", "languageFor: DK → dansk");
+check(languageFor({ home_country: "UK" }) === "en", "languageFor: UK → engelsk");
+check(languageFor({ home_country: null }) === "da", "languageFor: ukendt land → standardsproget");
+
+const ukAthlete = {
+  name: "Ben Boxall",
+  preferred_name: null,
+  university: "Furman University",
+  university_state: "SC",
+  sport: "soccer",
+  position: "Midfielder",
+  hometown: "Cobham, England",
+  year_enrolled: 2023,
+  expected_graduation: null,
+  active: 1,
+  home_country: "UK",
+};
+const ukDraft = profileBuilder(languageFor(ukAthlete))(ukAthlete, new Date("2026-08-11"));
+check(/\bhas played football for\b/.test(ukDraft), "UK-atlet: engelsk basis-tekst", ukDraft);
+check(!/spiller|kommer fra|siden/.test(ukDraft), "UK-atlet: ingen danske rester", ukDraft);
+check(!/England/.test(ukDraft), "UK-atlet: redundant landesuffiks strippet", ukDraft);
+
+check(
+  eventsBlock([{ season: null, kind: "transfer", award_name: null, summary: "Transferred", significance: "notable", occurred_on: null }], "en")[0].includes("unknown season"),
+  "eventsBlock: engelsk null-sæson",
+);
+check(buildExpandPrompt("x", [], "en").includes("BASE FACTS"), "buildExpandPrompt: engelske blokke");
+check(expandSystem("en").includes("British English"), "expandSystem: engelsk systemprompt");
+check(expandSystem("da").includes("på dansk"), "expandSystem: dansk uændret");
+check(expandSystem("de").includes("på dansk"), "expandSystem: ukendt sprog → standardsproget");
+
+check(
+  transferSentence("en")("Furman University", "Clemson") === "Transferred from Furman University to Clemson.",
+  "transferSentence: engelsk",
+);
+check(
+  transferSentence("da")("Furman University", "Clemson") === "Skiftede fra Furman University til Clemson.",
+  "transferSentence: dansk",
 );
 
 console.log(`\nprofile-drafts: ${passed} bestået, ${failed} fejlet`);

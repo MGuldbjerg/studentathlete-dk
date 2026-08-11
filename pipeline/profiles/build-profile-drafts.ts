@@ -29,12 +29,22 @@ import { type BaselineAthlete } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { countryProfile } from "../../src/lib/countries";
 
-// Grammatikken vælges af sitets sprog, ikke hardkodet. Med ét site er det
-// stadig dansk — men et tysk site henter sin egen bygger samme vej.
-const baselineProfile = profileBuilder(countryProfile().language);
+/**
+ * Sproget følger ATLETEN, ikke processen. Kørslen er landeagnostisk (samme
+ * cron dækker alle lande), så en modul-konstant valgt ud fra standardlandet
+ * gav danske udkast til britiske atleter — teksten skal vælges pr. række.
+ */
+export function languageFor(a: { home_country: string | null }): string {
+  return countryProfile(a.home_country ?? undefined).language;
+}
+
+function baselineFor(a: AthleteRow): string {
+  return profileBuilder(languageFor(a))(a);
+}
 
 export interface AthleteRow extends BaselineAthlete {
   id: number;
+  home_country: string | null;
   profile_summary: string | null;
 }
 
@@ -49,7 +59,7 @@ export interface EventRow {
 
 const ATHLETE_COLS =
   "id, name, preferred_name, university, university_state, sport, position, " +
-  "hometown, year_enrolled, expected_graduation, active, profile_summary";
+  "hometown, year_enrolled, expected_graduation, active, home_country, profile_summary";
 
 // ── Prompt-input (eksporteret til test) ──────────────────────────────────────
 
@@ -67,7 +77,8 @@ export function excludeHealthEvents(events: EventRow[]): EventRow[] {
 }
 
 /** Kronologiske fakta-linjer fra athlete_events (sæson, derefter dato). */
-export function eventsBlock(events: EventRow[]): string[] {
+export function eventsBlock(events: EventRow[], lang: string = "da"): string[] {
+  const unknownSeason = lang === "da" ? "ukendt sæson" : "unknown season";
   const sorted = [...events].sort((a, b) => {
     const s = (a.season ?? "9999").localeCompare(b.season ?? "9999");
     if (s !== 0) return s;
@@ -75,7 +86,7 @@ export function eventsBlock(events: EventRow[]): string[] {
   });
   return sorted.map((e) => {
     const label = e.award_name && e.award_name !== e.summary ? `${e.award_name}: ${e.summary}` : e.summary;
-    return `- [${e.season ?? "ukendt sæson"}] ${label}`;
+    return `- [${e.season ?? unknownSeason}] ${label}`;
   });
 }
 
@@ -89,28 +100,57 @@ export function composeBaselineDraft(baseline: string, transferSummaries: string
   return [baseline, ...transferSummaries].filter(Boolean).join(" ");
 }
 
-export function buildExpandPrompt(baseline: string, eventLines: string[]): string {
-  return [
-    "GRUNDFAKTA (roster):",
-    baseline,
-    "",
-    "KILDEBELAGTE BEGIVENHEDER (fra vores egne artikler, kronologisk):",
-    ...eventLines,
-    "",
-    'Svar KUN med JSON: {"profil": "<resuméet>"}',
-  ].join("\n");
+export function buildExpandPrompt(
+  baseline: string,
+  eventLines: string[],
+  lang: string = "da",
+): string {
+  const t =
+    lang === "da"
+      ? {
+          facts: "GRUNDFAKTA (roster):",
+          events: "KILDEBELAGTE BEGIVENHEDER (fra vores egne artikler, kronologisk):",
+          answer: 'Svar KUN med JSON: {"profil": "<resuméet>"}',
+        }
+      : {
+          facts: "BASE FACTS (roster):",
+          events: "SOURCED EVENTS (from our own articles, in chronological order):",
+          answer: 'Answer with JSON ONLY: {"profil": "<the summary>"}',
+        };
+  return [t.facts, baseline, "", t.events, ...eventLines, "", t.answer].join("\n");
 }
 
-export const EXPAND_SYSTEM = [
-  "Du skriver et kort karriere-resumé på dansk til en atletprofil på StudentAthlete.dk.",
-  "Ufravigelige regler:",
-  "1. Brug UDELUKKENDE de leverede grundfakta og begivenheder. Find ALDRIG selv på fakta, tal, priser eller klubber.",
-  "2. Udelad hellere en begivenhed end at gætte på detaljer.",
-  "3. Kronologisk fortælling i frit format: start med studiestart, derpå sæson for sæson.",
-  "4. 60-140 ord, neutral nyhedstone, ingen citater, ingen superlativer uden belæg.",
-  "5. Nævn sæsoner som i inputtet (fx 2025-26).",
-  'Svar KUN med JSON-objektet {"profil": "..."} — ingen anden tekst.',
-].join("\n");
+/**
+ * Systemprompten skal skrives PÅ målsproget — en dansk instruktion med engelske
+ * fakta får de gratis modeller til at svare på dansk. JSON-nøglen `profil` er
+ * bevidst den samme på alle sprog (den er kode, ikke tekst).
+ */
+const EXPAND_SYSTEMS: Record<string, string> = {
+  da: [
+    "Du skriver et kort karriere-resumé på dansk til en atletprofil på StudentAthlete.dk.",
+    "Ufravigelige regler:",
+    "1. Brug UDELUKKENDE de leverede grundfakta og begivenheder. Find ALDRIG selv på fakta, tal, priser eller klubber.",
+    "2. Udelad hellere en begivenhed end at gætte på detaljer.",
+    "3. Kronologisk fortælling i frit format: start med studiestart, derpå sæson for sæson.",
+    "4. 60-140 ord, neutral nyhedstone, ingen citater, ingen superlativer uden belæg.",
+    "5. Nævn sæsoner som i inputtet (fx 2025-26).",
+    'Svar KUN med JSON-objektet {"profil": "..."} — ingen anden tekst.',
+  ].join("\n"),
+  en: [
+    "You write a short career summary in British English for an athlete profile on student-athlete.co.uk.",
+    "Absolute rules:",
+    "1. Use ONLY the base facts and events provided. NEVER invent facts, numbers, awards or clubs.",
+    "2. Leave an event out rather than guessing at the details.",
+    "3. Free-form chronological account: start with enrolment, then season by season.",
+    "4. 60-140 words, neutral news tone, no quotes, no superlatives without evidence.",
+    "5. Refer to seasons exactly as they appear in the input (e.g. 2025-26).",
+    'Answer with the JSON object {"profil": "..."} ONLY — no other text.',
+  ].join("\n"),
+};
+
+export function expandSystem(lang: string = "da"): string {
+  return EXPAND_SYSTEMS[lang] ?? EXPAND_SYSTEMS.da;
+}
 
 // ── Parse + deterministisk verifikation (eksporteret til test) ───────────────
 
@@ -177,7 +217,7 @@ async function runBaseline(db: D1Client, dryRun: boolean, onlyAthlete: number | 
       [a.id],
     );
     const draft = composeBaselineDraft(
-      baselineProfile(a),
+      baselineFor(a),
       (transferRows.results ?? []).map((row) => row.summary),
     );
     if (dryRun) {
@@ -220,13 +260,14 @@ async function runExpand(
     const events = excludeHealthEvents(ev.results ?? []);
     if (events.length === 0) continue;
 
-    const baseline = baselineProfile(a);
-    const lines = eventsBlock(events);
-    const prompt = buildExpandPrompt(baseline, lines);
+    const lang = languageFor(a);
+    const baseline = baselineFor(a);
+    const lines = eventsBlock(events, lang);
+    const prompt = buildExpandPrompt(baseline, lines, lang);
 
     try {
       const response = await chain.generate({
-        system: EXPAND_SYSTEM,
+        system: expandSystem(lang),
         prompt,
         max_tokens: 600,
         json: true,

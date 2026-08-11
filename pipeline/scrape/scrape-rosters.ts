@@ -14,7 +14,8 @@ import {
   BrowserRenderError,
 } from "../lib/browser-render";
 import { classifyHometown } from "../../src/lib/hometown";
-import { activeCountries } from "../../src/lib/countries";
+import { activeCountries, countryProfile } from "../../src/lib/countries";
+import { transferSentence } from "../../src/lib/i18n/profile-builders";
 import { pipelineUserAgent } from "../../src/lib/site";
 import { sportKeyFromSource } from "../../src/lib/sports";
 import { generateSlug } from "../../src/lib/slug";
@@ -528,7 +529,10 @@ async function main(): Promise<void> {
                 [
                   existing.id,
                   seasonFromDate(null),
-                  `Skiftede fra ${existing.university} til ${check.name}.`,
+                  transferSentence(countryProfile(homeCountry).language)(
+                    existing.university,
+                    check.name,
+                  ),
                   bioUrl ?? null,
                 ],
               );

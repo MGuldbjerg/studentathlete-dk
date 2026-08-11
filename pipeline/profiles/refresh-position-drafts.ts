@@ -23,11 +23,16 @@ import { countryProfile } from "../../src/lib/countries";
 import { expandPosition } from "../../src/lib/positions";
 import { cleanPosition } from "../../src/lib/roster-clean";
 
-const baselineProfile = profileBuilder(countryProfile().language);
+// Sproget følger atleten (home_country), ikke kørslen — ellers får britiske
+// profiler dansk tekst når scriptet køres fra det danske standardland.
+function baselineFor(row: Row): string {
+  return profileBuilder(countryProfile(row.home_country ?? undefined).language)(row);
+}
 
 interface Row extends BaselineAthlete {
   id: number;
   slug: string;
+  home_country: string | null;
   profile_summary: string | null;
   profile_draft: string | null;
 }
@@ -44,7 +49,7 @@ async function main() {
   const r = await db.query<Row>(
     `SELECT id, slug, name, preferred_name, university, university_state, sport,
             position, hometown, year_enrolled, expected_graduation, active,
-            profile_summary, profile_draft
+            home_country, profile_summary, profile_draft
      FROM athletes
      WHERE profile_summary IS NOT NULL AND profile_draft IS NULL`,
   );
@@ -53,12 +58,13 @@ async function main() {
   for (const row of r.results) {
     const raw = cleanPosition(row.position);
     if (!raw) continue;
-    const expanded = expandPosition(row.sport, raw);
+    const lang = countryProfile(row.home_country ?? undefined).language;
+    const expanded = expandPosition(row.sport, raw, lang);
     // Ordbogen kender ikke koden, eller den ændrer intet → intet at gøre.
     if (!expanded || expanded.toLowerCase() === raw.toLowerCase()) continue;
     if (!row.profile_summary || !containsRawPosition(row.profile_summary, raw)) continue;
 
-    const draft = baselineProfile(row);
+    const draft = baselineFor(row);
     if (draft === row.profile_summary) continue;
     stale.push({ row, raw, expanded, draft });
   }
