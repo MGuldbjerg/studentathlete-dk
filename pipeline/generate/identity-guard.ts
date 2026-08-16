@@ -21,7 +21,7 @@
  * modsigelse, ikke når noget blot mangler. Falsk blokering koster en artikel;
  * falsk godkendelse koster en påstand om et navngivent menneske.
  */
-import { sportKeywords } from "../discover/extract-story";
+import { sportKeywords, stripMarkup } from "../discover/extract-story";
 
 export interface IdentityInput {
   /** Atletens fulde navn som det står i basen. */
@@ -70,7 +70,10 @@ const MALE_PRONOUNS = ["he", "him", "his"];
  *  3. Handler teksten entydigt om en ANDEN sportsgren?
  */
 export function checkStoryIdentity(input: IdentityInput): IdentityVerdict {
-  const text = input.sourceText ?? "";
+  // Markup væk FØR alt andet: kladde #107 (2026-08-16) slap igennem fordi
+  // fornavnet kun stod i en `<img alt="...">` i RSS-beskrivelsen. Vagten må
+  // ikke stole på at kalderen har renset teksten — den renser selv.
+  const text = stripMarkup(input.sourceText);
   if (!text.trim()) return { ok: false, reason: "kilden har ingen tekst at kontrollere" };
 
   const parts = input.athleteName.trim().split(/\s+/);

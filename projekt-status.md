@@ -1,11 +1,50 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-05 (UK live som dark launch · landefiltrering · ét admin m. landevælger · engelsk UI · ægte 404'er · Discord pr. land · køn som data + markdown-fix — Worker cd1a8da6)
+**Sidst opdateret**: 2026-08-16 (kladdegennemgang: to nye mekaniske spærrer — markup-fjernelse før navne-matchning + forhåndsomtale-vagt)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🛑 Kladdegennemgang 2026-08-16 — to nye spærrer
+
+Begge kladder i køen blev læst mod deres kilder. Kladde **#105** (Amtrup) var
+solidt forankret og er rettet i basen (fem fejl: opdigtet alder «23-årige»,
+opdigtet kamptal «18 kampe», «fuld tillid fra trænerstaben» og «markerer et
+vigtigt skridt» tillagt kilden, «finaletunering», samt en manchet der blandede
+«startede alle kampe» sammen med «eneste tilbagevendende på backlinjen»).
+
+Kladde **#107** (Mackreth, UK) kunne ikke reddes og bør AFVISES i /admin.
+Kilden — en kampannoncering fra goislanders.com — nævner hende **nul gange**.
+Navnet stod udelukkende i `<img alt="Mackenzie Mackreth">` i RSS-beskrivelsen.
+Artiklen opfandt hendes rolle, opfandt cheftræneren («Mark Carr»; han hedder
+Daniel Clitnovici og står nævnt på kildens egen side), gjorde hende til
+«England international», og beskrev kampen i **datid 16 timer før kickoff**.
+
+**To huller, to mekaniske spærrer** (promptregler duer ikke — samme lære som
+2026-08-06):
+1. **Markup før matchning** — `stripMarkup()` i `extract-story.ts`, brugt i
+   `matchAthletes()` OG i `checkStoryIdentity()` (vagten renser selv, uanset
+   kalder). Et navn i en alt-tekst betyder «hun er på billedet», ikke «nyheden
+   handler om hende». Uden den gav alt-teksten fuldt navn = 90 point.
+2. **Forhåndsomtale-vagt** — ny `pipeline/generate/event-timing.ts`, kaldt lige
+   efter identitetsvagten. Blokerer KUN ved sammenfald: begivenhedens dato er
+   ikke entydigt overstået (dagen selv tæller som ikke-overstået — US-aftenkampe
+   ligger efter midnat UTC) OG faktaarket har hverken score, udfald, placering
+   eller tal. Hædersbevisninger (har `placement`) og samme-dags-referater (har
+   tal) slipper igennem. Historien afvises permanent: skolens referat udgives
+   som en selvstændig nyhed med sit eget faktaark.
+
+Tests: `_event-timing-test.ts` (17) + 5 nye i `_identity-guard-test.ts` +
+`_extract-story-test.ts` (16, ny). Alle 24 suiter grønne, tsc ren, begge nye
+suiter tilføjet i `ci.yml`.
+
+**Bemærk om verifikatoren**: begge kladder fik `fabrication_risk='medium'`.
+For #107 flagede den kun datoformulering og en implicit ekstra kamp — den så
+hverken den opfundne træner, den opfundne rolle eller at atleten manglede i
+kilden. `verify-article` måler FORMULERINGER, ikke identitet eller virkelighed,
+og må ikke bruges som gate.
 
 ## 👉 AdSense-verifikation (2026-08-04, commit 5df760d — LIVE, mangler kun Mikkels ID)
 **Valget:** IKKE AdSense-kodestumpen. Den indlæser Googles annonce-JavaScript, som sætter cookies/tilgår enheden og derfor kræver forudgående samtykke — sitet er cookieløst indtil `consent.enabled` slås til. Verifikation sker i stedet med to INERTE metoder:

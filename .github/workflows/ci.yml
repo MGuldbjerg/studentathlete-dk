@@ -37,6 +37,8 @@ jobs:
             pipeline/generate/_parse-output-test.ts \
             pipeline/generate/_boxscore-test.ts \
             pipeline/generate/_identity-guard-test.ts \
+            pipeline/generate/_event-timing-test.ts \
+            pipeline/discover/_extract-story-test.ts \
             pipeline/discover/_sensitive-test.ts \
             pipeline/discover/_honors-test.ts \
             pipeline/learn/_mine-edits-test.ts \

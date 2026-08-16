@@ -19,6 +19,7 @@ import type { Story } from "../lib/types";
 import { timelineForGeneration, currentSeasonStart, type AthleteEvent } from "./timeline";
 import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
 import { checkStoryIdentity, hasUnsourcedQuote } from "./identity-guard";
+import { checkEventTiming } from "./event-timing";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
 
@@ -287,6 +288,28 @@ async function main(): Promise<void> {
     });
     if (!identity.ok) {
       console.log(`  ⛔ Story ${story.id} (${story.athlete_name}): ${identity.reason}`);
+      await db.execute(
+        "UPDATE stories SET status = 'rejected', processed_at = datetime('now') WHERE id = ?",
+        [story.id],
+      );
+      blockedByGuard++;
+      continue;
+    }
+
+    /**
+     * FORHÅNDSOMTALE-VAGT — også før modellen kaldes.
+     *
+     * En kampannoncering har en dato og ingenting andet. Får modellen den, skriver
+     * den referatet alligevel og finder på indholdet (kladde #107, 2026-08-16).
+     *
+     * Afvises permanent, ikke sat i kø: annonceringen bliver aldrig til et referat
+     * — skolen udgiver referatet som en SELVSTÆNDIG nyhed, som discovery finder
+     * som sin egen historie med sit eget faktaark. Ventede vi i stedet på at
+     * datoen passerede, ville præcis den samme tomme mappe gå videre til modellen.
+     */
+    const timing = checkEventTiming({ factSheet: story.fact_sheet, now: new Date() });
+    if (!timing.ok) {
+      console.log(`  ⏳ Story ${story.id} (${story.athlete_name}): ${timing.reason}`);
       await db.execute(
         "UPDATE stories SET status = 'rejected', processed_at = datetime('now') WHERE id = ?",
         [story.id],

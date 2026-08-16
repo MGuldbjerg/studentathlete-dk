@@ -147,5 +147,65 @@ eq(
 );
 eq(hasUnsourcedQuote("Ingen anførselstegn overhovedet.", 0), false, "ingen citater");
 
+// ── Navne i markup tæller ikke som omtale (kladde #107, 2026-08-16) ─────────
+// RSS-beskrivelsen fra goislanders.com begynder med atletens foto. Navnet stod
+// i billedets alt-tekst og INTET andet sted — hverken i overskrift eller
+// brødtekst. Alligevel blev der skrevet en hel artikel om hende.
+blocked(
+  {
+    athleteName: "Mackenzie Mackreth",
+    gender: "f",
+    sport: "soccer",
+    sourceText:
+      'Soccer Hosts A&M-International on Sunday Night\n' +
+      '<img alt="Mackenzie Mackreth" src="https://goislanders.com/common/controls/image_handler.aspx?image_path=/images/2026/8/15/DSC00297__1_.jpg" /><br /><br />' +
+      "CORPUS CHRISTI, Texas – The Texas A&M-Corpus Christi soccer team gets right back on the pitch after a thrilling season opener during the week, " +
+      "heading into action on its home turf against Texas A&M International on Sunday at 7 p.m. The Islanders will be looking to build off of the momentum " +
+      "they earned in the back half of their first match against Tarleton State.",
+  },
+  "kladde #107: fornavnet står KUN i en alt-tekst",
+);
+
+// Samme historie, men navnet står også i brødteksten → skal skrives.
+allowed(
+  {
+    athleteName: "Mackenzie Mackreth",
+    gender: "f",
+    sport: "soccer",
+    sourceText:
+      '<img alt="Mackenzie Mackreth" src="/images/DSC00297.jpg" />' +
+      "CORPUS CHRISTI, Texas – Mackenzie Mackreth played all 90 minutes at centre-back as the Islanders drew 2-2 with Tarleton State.",
+  },
+  "navnet står også i brødteksten",
+);
+
+// Markup må ikke kunne skjule en modsigelse: stedordene i teksten er stadig
+// afgørende, når attributterne er væk.
+blocked(
+  {
+    athleteName: "Josh Murray",
+    gender: "m",
+    sport: "soccer",
+    sourceText:
+      '<div class="card" title="Josh Murray photo gallery">' +
+      "Bella Murray has been named assistant volleyball coach. Josh returns to the programme where she recorded 3,135 assists, " +
+      "and her former coach praised her leadership. She begins in the autumn.</div>",
+  },
+  "attributter fjernet, men hunkønsstedordene i teksten blokerer stadig",
+);
+
+// stripMarkup må ikke ødelægge almindelig tekst med < og > eller HTML-entiteter.
+allowed(
+  {
+    athleteName: "Toke Amtrup",
+    gender: "m",
+    sport: "soccer",
+    sourceText:
+      "Utah Valley senior defender Toke Amtrup has been named to the Big West Preseason Coaches&#39; Team. " +
+      "He played all but 77 minutes in 2025 &amp; started every game.",
+  },
+  "HTML-entiteter afkodes, teksten overlever",
+);
+
 console.log(`\nidentity-guard: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

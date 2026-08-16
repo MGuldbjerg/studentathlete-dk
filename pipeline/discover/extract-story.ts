@@ -246,6 +246,35 @@ export function extractMainText(html: string): string | null {
 }
 
 /**
+ * Fjern HTML-markup, så tekst inde i ATTRIBUTTER ikke tæller som omtale.
+ *
+ * Baggrund (2026-08-16, kladde #107): RSS-feedets `description` starter med
+ * `<img alt="Mackenzie Mackreth" ...>`. Atletens navn stod IKKE ét eneste sted
+ * i selve nyheden — kun i billedets alt-tekst. Alligevel gav matcheren fuldt
+ * navn = 90 point, og identitetsvagten fandt fornavnet og lod historien passere.
+ * Resultatet var en artikel om en spiller kilden aldrig nævner: opfundet rolle,
+ * opfundet cheftræner, en kamp beskrevet i datid 16 timer før den blev spillet.
+ *
+ * Et navn i en alt-tekst betyder "hun er på billedet", ikke "nyheden handler om
+ * hende" — feltet fyldes af skolens CMS ud fra det vedhæftede foto. Markup skal
+ * derfor væk FØR enhver navne-matchning.
+ */
+export function stripMarkup(input: string | null | undefined): string {
+  if (!input) return "";
+  return input
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#0?39;|&apos;/gi, "'")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * Hovedfunktion: udtræk historier fra en kilde (per-atlet).
  */
 export async function extractStories(
@@ -357,12 +386,14 @@ function containsWord(haystackLower: string, needleLower: string): boolean {
  * Match en tekst mod en liste af atleter med bekræftelse for at undgå navnedobbeltgængere.
  * Score: fuldt navn 90 · fornavn+efternavn 80 · efternavn+sport-kontekst 60 · kun efternavn 35.
  * Almindelige efternavne kræver fornavn/fuldt navn (ellers droppes de).
+ *
+ * Markup fjernes først: et navn i en alt-tekst er ikke en omtale (se stripMarkup).
  */
 export function matchAthletes(
   text: string,
   athletes: AthleteRef[],
 ): Array<{ athlete: AthleteRef; relevance_score: number }> {
-  const lowerText = text.toLowerCase();
+  const lowerText = stripMarkup(text).toLowerCase();
   const matches: Array<{ athlete: AthleteRef; relevance_score: number }> = [];
 
   for (const athlete of athletes) {
