@@ -68,6 +68,17 @@ eq(sportFromTeamSlug("mens-crew"), "rowing", "crew → roning");
 eq(sportFromTeamSlug("baseball"), "baseball", "baseball");
 // Sportsgrene UDEN kanonisk nøgle må ikke få en forkert etiket.
 eq(sportFromTeamSlug("womens-lacrosse"), "other", "lacrosse → other, ikke et gæt");
+// Landhockey blev en kanonisk sportsgren 2026-08-18 — den må IKKE falde i other.
+eq(sportFromTeamSlug("field-hockey"), "field-hockey", "landhockey er sin egen sportsgren");
+eq(sportFromTeamSlug("womens-field-hockey"), "field-hockey", "kønsprefiks foran landhockey");
+eq(genderFromTeamSlug("womens-field-hockey"), "f", "kvindehold");
+// Louisvilles rigtige holdslug (Chloe Plumbs bio ligger her).
+eq(
+  teamFromRosterUrl("https://gocards.com/sports/field-hockey/roster/chloe-plumb/18115")?.sport,
+  "field-hockey",
+  "spiller-bio på et landhockey-hold",
+);
+
 eq(sportFromTeamSlug("mens-water-polo"), "other", "water polo → other");
 eq(sportFromTeamSlug("softball"), "other", "softball er IKKE baseball");
 eq(sportFromTeamSlug("wrestling"), "other", "wrestling → other");

@@ -1,11 +1,51 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-18 (scraperen: sport-inventar pr. hold, JSON-API-parser, negativt register — kvindeholdene var usynlige)
+**Sidst opdateret**: 2026-08-18 (landhockey som sportsgren + sport-inventar pr. hold, JSON-API-parser, negativt register)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🏑 Landhockey er en sportsgren nu (2026-08-18)
+
+Mikkel: «Add field hockey as a sport, at least for UK — there's one athlete in that
+sport in Chloe Plumb». Der var **29**: alle briter, alle fundet i dag gennem det nye
+JSON-API, alle parkeret i `other`, hvor sporten forsvandt sammen med lacrosse og
+water polo.
+
+**Kanonisk nøgle**: `field-hockey`. DK-slug `/landhockey` (label «Landhockey»),
+UK-slug `/field-hockey` («Field Hockey»). Farve `#2F6E63`, emoji 🏑, eget
+Tabler-lignende ikon (stav + bold), boldsport → profilteksten siger «spiller
+landhockey». Positions-begreberne er fodboldens (målmand/forsvar/midtbane/angriber),
+så begge sprogpakker havde dem — kun `sweeper` var ny.
+
+**Faktatjekket pillartekst på begge sprog** (webverificeret 2026-08-18):
+NCAA-landhockey er en **kvindesport** — intet herremesterskab, ingen herrelegater,
+så for britiske/danske drenge findes vejen ikke · efterårssæson, start sidst i
+august, NCAA-turnering midt/sidst i november · **fire kvarterer à 15 min**, sudden
+victory, derefter straffekonkurrence · D1 godt 80 programmer / ~33 conferences, op
+til 12 legater; D2 6,3; D3 ingen sportslegater · over 10% internationale allerede i
+2015 · Northwestern vandt 2025 (3. titel) over North Carolina i semifinalen.
+Kilder står i teksten (NCAA.org, USA Field Hockey, ScholarshipStats).
+
+**Data rettet i prod**: 29 atleter `other` → `field-hockey` (17 fik samtidig
+`gender='f'` — det er DATA her, ikke et gæt: NCAA-landhockey har kun kvindehold) ·
+84 `roster_checks`-rækker · 0 katalogrækker (katalog-scriptet kender kun de tolv
+gamle sportsgrene — en oplagt næste oprydning).
+
+**⚠️ Fælde for næste gang en sportsgren tilføjes**: ret ALTID `athletes.sport` i
+samme greb. `findExistingAthleteByIdentity()` slår op med `WHERE sport = ?`, så en
+atlet der stadig står som `other`, mens hendes `roster_checks`-række er blevet
+`field-hockey`, bliver ikke fundet ved næste scrape — og `INSERT OR IGNORE` på
+slug'en gør så INTET. Rækken ville stille og roligt holde op med at blive opdateret.
+
+**Sidefund, rettet**: `ICON_PATHS` i `CategoryNav.tsx` havde stadig DANSKE nøgler
+efter motor-refaktoren («fodbold», «roning», «ishockey», «andet» …), mens
+`SPORT_ICONS` slår op med den kanoniske nøgle — **syv af tretten sportsgrene viste
+fallback-ikonet** (cirkel med plus). Samme fælde som `SPORT_KEYWORDS` 2026-08-06.
+
+**Kræver deploy** for at være synligt (nav, /landhockey, /field-hockey, sitemap).
 
 ## 🔧 Scraperen ser nu ALLE hold (2026-08-17/18) — inventar + JSON-API + negativt register
 

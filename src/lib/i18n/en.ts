@@ -27,6 +27,7 @@ const sportLabel: Record<SportKey, string> = {
   gymnastics: "Gymnastics",
   "ice-hockey": "Ice Hockey",
   volleyball: "Volleyball",
+  "field-hockey": "Field Hockey",
   other: "Other",
 };
 
@@ -47,6 +48,7 @@ const sportSlug: Record<SportKey, string> = {
   gymnastics: "gymnastics",
   "ice-hockey": "ice-hockey",
   volleyball: "volleyball",
+  "field-hockey": "field-hockey",
   other: "other",
 };
 
@@ -64,6 +66,7 @@ const positionPhrase: Record<string, string> = {
   left_back: "left-back",
   right_back: "right-back",
   fullback: "full-back",
+  sweeper: "sweeper",
   midfielder: "midfielder",
   central_midfielder: "central midfielder",
   defensive_midfielder: "defensive midfielder",

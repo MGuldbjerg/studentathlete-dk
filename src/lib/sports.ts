@@ -30,6 +30,7 @@ export const SPORT_KEYS = [
   "gymnastics",
   "ice-hockey",
   "volleyball",
+  "field-hockey",
   "other",
 ] as const;
 
@@ -83,9 +84,15 @@ const SOURCE_ALIASES: Record<string, SportKey> = {
   "lightweight-rowing": "rowing",
   "ice-hockey-men": "ice-hockey",
   "basketball-men": "basketball",
-  // Softball, lacrosse, water polo, wrestling, field hockey m.fl. har BEVIDST
-  // ingen alias: de er ikke baseball/volleyball/andet-i-forklædning, og en
-  // forkert etiket er værre end "other" (jf. regel 5 i ARKITEKTUR-motor.md).
+  // Landhockey blev en kanonisk nøgle 2026-08-18 (Mikkel): NCAA-landhockey er
+  // en KVINDESPORT — der findes intet herremesterskab og ingen herrelegater — og
+  // den er en af de stærkeste britiske veje ind i NCAA. Den lå indtil da i
+  // "other", hvor sporten forsvandt sammen med lacrosse og water polo.
+  fieldhockey: "field-hockey",
+  "field-hockey-women": "field-hockey",
+  // Softball, lacrosse, water polo og wrestling har fortsat BEVIDST ingen alias:
+  // de er ikke baseball/volleyball/andet-i-forklædning, og en forkert etiket er
+  // værre end "other" (jf. regel 5 i ARKITEKTUR-motor.md).
 };
 
 export function sportKeyFromSource(raw: string | null | undefined): SportKey {
@@ -109,6 +116,7 @@ export const SPORT_ICONS: Record<SportKey, string> = {
   gymnastics: "gymnastics",
   "ice-hockey": "ice-hockey",
   volleyball: "volleyball",
+  "field-hockey": "field-hockey",
   other: "other",
 };
 
@@ -125,6 +133,7 @@ export const SPORT_COLORS: Record<SportKey, string> = {
   gymnastics: "#8B3A62",
   "ice-hockey": "#2C3E6B",
   volleyball: "#A0522D",
+  "field-hockey": "#2F6E63",
   other: "#6B6B6B",
 };
 
@@ -142,6 +151,7 @@ export const SPORT_EMOJI: Record<SportKey, string> = {
   gymnastics: "🤸",
   "ice-hockey": "🏒",
   volleyball: "🏐",
+  "field-hockey": "🏑",
   other: "🏅",
 };
 
@@ -168,4 +178,5 @@ export const BALL_SPORT_KEYS = new Set<SportKey>([
   "tennis",
   "ice-hockey",
   "volleyball",
+  "field-hockey",
 ]);
