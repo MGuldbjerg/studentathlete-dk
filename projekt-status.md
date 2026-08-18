@@ -7,21 +7,23 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
-## 🏑 Landhockey er en sportsgren nu (2026-08-18)
+## 🏑 Field hockey er en sportsgren nu (2026-08-18)
 
 Mikkel: «Add field hockey as a sport, at least for UK — there's one athlete in that
 sport in Chloe Plumb». Der var **29**: alle briter, alle fundet i dag gennem det nye
 JSON-API, alle parkeret i `other`, hvor sporten forsvandt sammen med lacrosse og
 water polo.
 
-**Kanonisk nøgle**: `field-hockey`. DK-slug `/landhockey` (label «Landhockey»),
-UK-slug `/field-hockey` («Field Hockey»). Farve `#2F6E63`, emoji 🏑, eget
+**Kanonisk nøgle**: `field-hockey`. **Samme slug på begge sites: `/field-hockey`.**
+Label «Field hockey» på dansk (Mikkel 2026-08-18: sporten hedder field hockey på
+dansk, ikke landhockey — dansk kapitalisering, altså kun stort F), «Field Hockey»
+på engelsk. Farve `#2F6E63`, emoji 🏑, eget
 Tabler-lignende ikon (stav + bold), boldsport → profilteksten siger «spiller
-landhockey». Positions-begreberne er fodboldens (målmand/forsvar/midtbane/angriber),
+field hockey». Positions-begreberne er fodboldens (målmand/forsvar/midtbane/angriber),
 så begge sprogpakker havde dem — kun `sweeper` var ny.
 
 **Faktatjekket pillartekst på begge sprog** (webverificeret 2026-08-18):
-NCAA-landhockey er en **kvindesport** — intet herremesterskab, ingen herrelegater,
+field hockey i NCAA er en **kvindesport** — intet herremesterskab, ingen herrelegater,
 så for britiske/danske drenge findes vejen ikke · efterårssæson, start sidst i
 august, NCAA-turnering midt/sidst i november · **fire kvarterer à 15 min**, sudden
 victory, derefter straffekonkurrence · D1 godt 80 programmer / ~33 conferences, op

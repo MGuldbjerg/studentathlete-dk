@@ -347,33 +347,33 @@ Ud over den klassiske indendørs 6-mod-6-volleyball er beachvolley vokset til en
 - [NCAA. (n.d.). NCAA Division I women's volleyball.](https://www.ncaa.com/sports/volleyball-women/d1)`,
   },
 
-  landhockey: {
-    title: "Landhockey",
+  "field-hockey": {
+    title: "Field hockey",
     intro:
-      "Danske landhockeyspillere på NCAA-hold. En lille sport i Danmark, men et af de mest internationale felter i amerikansk college-sport.",
+      "Danske field hockey-spillere på NCAA-hold. En lille sport i Danmark, men et af de mest internationale felter i amerikansk college-sport.",
     metaDescription:
-      "Danske landhockeyspillere i NCAA \u2013 nyheder, profiler og resultater fra college field hockey i USA.",
-    pillar: `## Landhockey i NCAA
+      "Danske field hockey-spillere i NCAA – nyheder, profiler og resultater fra college field hockey i USA.",
+    pillar: `## Field hockey i NCAA
 
-Landhockey er en lille sport i Danmark, og netop derfor er den amerikanske vej interessant: i USA er landhockey et etableret college-program med fuld st\u00f8tte, egne stadions og et m\u00e6sterskab, der f\u00f8lges p\u00e5 tv. Feltet er samtidig et af de mest internationale i NCAA \u2014 hollandske, tyske, engelske, argentinske og australske spillere fylder meget p\u00e5 de bedste hold.
+Field hockey er en lille sport i Danmark, og netop derfor er den amerikanske vej interessant: i USA er field hockey et etableret college-program med fuld støtte, egne stadions og et mesterskab, der følges på tv. Feltet er samtidig et af de mest internationale i NCAA — hollandske, tyske, engelske, argentinske og australske spillere fylder meget på de bedste hold.
 
-**\u00c9n ting skal siges f\u00f8rst: NCAA-landhockey er en kvindesport.** Der findes intet NCAA-m\u00e6sterskab for herrer og ingen herrelegater i landhockey. For danske drenge findes vejen alts\u00e5 ikke \u2014 uanset niveau.
+**Én ting skal siges først: field hockey i NCAA er en kvindesport.** Der findes intet NCAA-mesterskab for herrer og ingen herrelegater i field hockey. For danske drenge findes vejen altså ikke — uanset niveau.
 
-### S\u00e6sonens gang
+### Sæsonens gang
 
-Landhockey er en efter\u00e5rssport. S\u00e6sonen begynder sidst i august, conference-turneringerne afvikles i begyndelsen af november, og NCAA-turneringen spilles midt i november med semifinaler og finale sidst p\u00e5 m\u00e5neden. Det er en kort, t\u00e6t s\u00e6son p\u00e5 kunstgr\u00e6s, hvor holdene ofte spiller to kampe om ugen.
+Field hockey er en efterårssport. Sæsonen begynder sidst i august, conference-turneringerne afvikles i begyndelsen af november, og NCAA-turneringen spilles midt i november med semifinaler og finale sidst på måneden. Det er en kort, tæt sæson på kunstgræs, hvor holdene ofte spiller to kampe om ugen.
 
-### S\u00e5dan afg\u00f8res en kamp
+### Sådan afgøres en kamp
 
-Elleve spillere pr. hold, og kampen spilles i **fire kvarterer \u00e0 15 minutter** \u2014 ikke to halvlege, som mange forbinder med sporten fra Europa. St\u00e5r kampen lige, forl\u00e6nges den med sudden victory, og er der stadig ikke fundet en vinder, afg\u00f8res den p\u00e5 straffekonkurrence. M\u00e5l falder oftest efter en straffehj\u00f8rning, s\u00e5 specialisterne p\u00e5 dødbolde er v\u00e6rdifulde.
+Elleve spillere pr. hold, og kampen spilles i **fire kvarterer à 15 minutter** — ikke to halvlege, som mange forbinder med sporten fra Europa. Står kampen lige, forlænges den med sudden victory, og er der stadig ikke fundet en vinder, afgøres den på straffekonkurrence. Mål falder oftest efter et straffehjørne, så specialisterne på dødbolde er værdifulde.
 
 ### Legater og niveauer
 
-Division I har godt 80 programmer fordelt p\u00e5 omkring 33 conferences, og et D1-hold m\u00e5 r\u00e5de over op til 12 fulde legater, som typisk deles ud som delvise. Division II har op til 6,3, mens Division III slet ikke giver sportslegater \u2014 men ofte kan tilbyde akademisk st\u00f8tte og behovsbestemt hj\u00e6lp. Der spilles NCAA-m\u00e6sterskab i alle tre divisioner.
+Division I har godt 80 programmer fordelt på omkring 33 conferences, og et D1-hold må råde over op til 12 fulde legater, som typisk deles ud som delvise. Division II har op til 6,3, mens Division III slet ikke giver sportslegater — men ofte kan tilbyde akademisk støtte og behovsbestemt hjælp. Der spilles NCAA-mesterskab i alle tre divisioner.
 
 ### Tidbits
 
-Feltet er internationalt i et omfang, der er us\u00e6dvanligt selv for NCAA: allerede i 2015 kom mere end 10 procent af alle college-landhockeyspillere fra udlandet, og andelen er vokset siden. Sportsligt har nord\u00f8sten og Mid-Atlantic traditionelt domineret \u2014 i 2025 vandt Northwestern sit tredje mesterskab efter at have sl\u00e5et North Carolina i semifinalen i forl\u00e6nget spilletid.
+Feltet er internationalt i et omfang, der er usædvanligt selv for NCAA: allerede i 2015 kom mere end 10 procent af alle college-spillere i field hockey fra udlandet, og andelen er vokset siden. Sportsligt har nordøsten og Mid-Atlantic traditionelt domineret — i 2025 vandt Northwestern sit tredje mesterskab efter at have slået North Carolina i semifinalen i forlænget spilletid.
 
 ### Kilder
 

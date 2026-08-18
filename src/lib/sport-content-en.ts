@@ -283,9 +283,9 @@ The scale is the shock. A British player used to sports halls will find college 
   "field-hockey": {
     title: "Field Hockey",
     intro:
-      "British field hockey players in the NCAA. One of the strongest British pathways into American college sport \u2014 and, in the NCAA, a women's sport only.",
+      "British field hockey players in the NCAA. One of the strongest British pathways into American college sport — and, in the NCAA, a women's sport only.",
     metaDescription:
-      "British field hockey players in the NCAA \u2014 news, profiles and results from American college field hockey.",
+      "British field hockey players in the NCAA — news, profiles and results from American college field hockey.",
     pillar: `## British field hockey in the NCAA
 
 Field hockey is one of the most reliable British routes into American college sport. The school and club system produces players who arrive already coached, the NCAA field is unusually international, and American programmes actively recruit from England, Scotland and Wales alongside the Netherlands, Germany, Argentina and Australia.
@@ -298,15 +298,15 @@ Field hockey is an autumn sport. The season opens in late August, conference tou
 
 ### How a match is decided
 
-Eleven players a side, played in **four quarters of 15 minutes** \u2014 not the two halves familiar from British club hockey. A level match goes to sudden-victory extra time, and then to a shoot-out. Most goals come from penalty corners, which makes set-piece specialists valuable.
+Eleven players a side, played in **four quarters of 15 minutes** — not the two halves familiar from British club hockey. A level match goes to sudden-victory extra time, and then to a shoot-out. Most goals come from penalty corners, which makes set-piece specialists valuable.
 
 ### Scholarships and divisions
 
-Division I has just over 80 programmes across roughly 33 conferences, and a D1 team may hold up to 12 full scholarships, usually split into partial awards. Division II allows up to 6.3, while Division III offers no athletic scholarships at all \u2014 though academic and need-based aid is common there. All three divisions play for a national championship.
+Division I has just over 80 programmes across roughly 33 conferences, and a D1 team may hold up to 12 full scholarships, usually split into partial awards. Division II allows up to 6.3, while Division III offers no athletic scholarships at all — though academic and need-based aid is common there. All three divisions play for a national championship.
 
 ### Worth knowing
 
-The international share is remarkable even by NCAA standards: by 2015 more than 10 per cent of all college field hockey players came from outside the United States, and the proportion has grown since. The Northeast and Mid-Atlantic have long dominated \u2014 in 2025 Northwestern won a third national title, beating North Carolina in the semi-final in overtime.
+The international share is remarkable even by NCAA standards: by 2015 more than 10 per cent of all college field hockey players came from outside the United States, and the proportion has grown since. The Northeast and Mid-Atlantic have long dominated — in 2025 Northwestern won a third national title, beating North Carolina in the semi-final in overtime.
 
 ### Sources
 

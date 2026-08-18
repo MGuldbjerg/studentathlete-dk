@@ -27,7 +27,7 @@ const sportLabel: Record<SportKey, string> = {
   gymnastics: "Gymnastik",
   "ice-hockey": "Ishockey",
   volleyball: "Volleyball",
-  "field-hockey": "Landhockey",
+  "field-hockey": "Field hockey",
   other: "Andet",
 };
 
@@ -49,7 +49,7 @@ const sportSlug: Record<SportKey, string> = {
   gymnastics: "gymnastik",
   "ice-hockey": "ishockey",
   volleyball: "volleyball",
-  "field-hockey": "landhockey",
+  "field-hockey": "field-hockey",
   other: "andet",
 };
 
