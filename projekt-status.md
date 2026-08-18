@@ -7,6 +7,44 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🔎 Atletiksite fundet for 152 skoler (2026-08-18) — migration 042
+
+Sport-inventaret efterlod 435 blinde skoler. Årsagen var adressen, ikke platformen:
+`schools.website` peger for dem på universitetets hovedside — eller på atletiksitet,
+hvis rod serverer en splash-side uden holdmenu (Alabama A&M: `/splash.aspx`).
+
+`find-athletics-site.ts` + `athletics-site.ts` (25 tests) henter universitetets
+forside, rangerer kandidater (links til `/sports/<hold>/roster` først, så
+værtsnavne der ligner atletiksites, så tre mønster-gæt: `athletics.<dom>`,
+`sports.<dom>`, `<dom>/athletics`) og **bekræfter hver kandidat ved at hente den**:
+den skal selv levere mindst ét hold eller svare på roster-API'et. Et gæt gemmes
+aldrig — en forkert adresse ville få scraperen til at skrive en FREMMED skoles
+atleter som vores. `athletics_checked_at` sættes uanset udfald.
+
+**Resultat efter kørsel på alle tre divisioner (327 skoler søgt):**
+
+| Division | Skoler | Atletik-URL fundet | Hold i inventar | Negative | Blinde tilbage |
+|---|---|---|---|---|---|
+| NCAA D1 | 372 | 13 | 6.506 | 1.441 | **7** |
+| NCAA D2 | 291 | 42 | 4.385 | 1.413 | 39 |
+| NCAA D3 | 422 | 97 | 5.370 | 1.134 | 161 |
+| **I alt** | 1.085 | **152** | **16.261** | 3.988 | 207 |
+
+Hitraten falder med divisionen (D1 68%, D3 38%), og det er sportens natur: små
+D3-colleges driver ofte atletikken som en sektion af universitetets eget site, og
+så er der intet selvstændigt site at finde. De 207 blinde skoler beholder
+gætte-adfærden.
+
+**Til sammenligning**: den gamle tolv-sportsgrene-tabel kunne højst repræsentere
+~13.000 kombinationer for de samme skoler, hvoraf de fleste var spøgelser. Nu står
+der 16.261 hold der findes, og 3.988 dokumenterede «det hold har skolen ikke».
+
+**Driftserfaring**: D2-kørslen **døde tavst** efter 30 af 80 skoler — ingen
+fejltekst, ingen opsummering, altså dræbt (formodet OOM under WSL) og ikke en
+undtagelse. Genstart krævede ingen særlig håndtering: `athletics_checked_at`
+skrives pr. skole undervejs, så en ny kørsel tager præcis dem der mangler. Kør
+lange kørsler i mindre bidder (`--limit 60`) og gentag, frem for én stor.
+
 ## 🏑 Field hockey er en sportsgren nu (2026-08-18)
 
 Mikkel: «Add field hockey as a sport, at least for UK — there's one athlete in that
