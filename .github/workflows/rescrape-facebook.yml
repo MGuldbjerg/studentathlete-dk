@@ -1,0 +1,51 @@
+name: Genscrape Facebook-kort
+
+# Facebook renderer link-kortet ud fra SIN cachede scrape (~30 dage). Var scrapen
+# tom, mangler billedet på hver deling af URL'en indtil cachen fornyes. Amtrup-
+# opslaget 2026-08-18 var netop det: robots.txt spærrede /api/og, hvor OG-billedet
+# ligger. Robots er rettet, men Facebooks cache skal bedes om at hente forfra.
+#
+# KUN manuel. Et scrape er harmløst, men det er ikke noget der skal ske i ny og næ
+# af sig selv — post-social beder nu selv om et frisk scrape før hvert opslag.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Én URL (tom = brug "recent")'
+        required: false
+      recent:
+        description: 'Antal nyest publicerede artikler der skal genscrapes'
+        required: false
+        default: '10'
+      dry_run:
+        description: 'Vis kun hvilke URL’er der ville blive scrapet'
+        type: boolean
+        default: false
+
+jobs:
+  rescrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Genscrape
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.url }}" ]; then
+            ARGS="--url ${{ github.event.inputs.url }}"
+          else
+            ARGS="--recent ${{ github.event.inputs.recent || 10 }}"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          npx tsx pipeline/social/rescrape-facebook.ts $ARGS
+        env:
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}

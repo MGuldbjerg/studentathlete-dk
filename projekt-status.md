@@ -7,6 +7,50 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🖼 Facebook-opslag uden billede (2026-08-18) — vores egen robots.txt
+
+Mikkel: «When the Amtrup article was shared to Facebook, there was no image on the
+post». Billedet var i orden: `/api/og?type=card&article=105&v=8` svarede 200 med et
+**1200×630 PNG (206 KB)**, og **Blueskys** kort af samme artikel HAVDE en thumbnail
+samme dag. Forskellen er robots.txt:
+
+```
+User-Agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/          ← OG-billedet ligger på /api/og
+```
+
+Facebooks scraper (`facebookexternalhit`) respekterer robots.txt. Den hentede
+artiklen, læste `og:image` — og lod billedet ligge. Blueskys kort-tjeneste gjorde
+ikke. Det ramte **hvert delt link**, ikke kun dette: alle OG-billeder (artikler,
+atleter, skoler) serveres fra `/api/og`.
+
+**Rettet** (`src/lib/robots-txt.ts`, ny ren funktion + `src/app/robots.ts`):
+`Allow: /api/og` står nu som en MERE specifik regel end `Disallow: /api/`. Både
+Google og Meta følger længste-match, så OG-stien er åben, mens sporing, leads og
+admin-API stadig holdes ude. Reglerne er flyttet ud i en funktion netop for at
+kunne testes.
+
+**Testen der ville have fanget det**: `pipeline/lib/_robots-txt-site-test.ts` (24)
+renderer sitets egne regler og spørger vores EGEN robots-parser — den samme der
+efterlever andres robots.txt, og som implementerer længste-match — om
+`facebookexternalhit` og `Googlebot` må hente OG-kortet. Verificeret at den fejler
+på de gamle regler (`allows("/api/og") === false`).
+
+**Cachen er den anden halvdel**: Facebook renderer kortet ud fra sin egen scrape og
+husker den ~30 dage. Derfor:
+- `channels/facebook.ts` beder nu Facebook om et **frisk scrape lige før hvert
+  opslag** (`POST /?id=<url>&scrape=true`). Fejl sluges og logges — en manglende
+  forhåndsvisning må ikke koste opslaget. Svarer scrapen uden billede, står det som
+  en advarsel i loggen.
+- `pipeline/social/rescrape-facebook.ts` + workflowet **«Genscrape Facebook-kort»**
+  (kun manuelt, `--dry-run`, `--url`, `--recent N`) fornyer cachen for links der
+  allerede er delt.
+- **Vigtigt forbehold**: et allerede offentliggjort opslag beholder det kort det
+  blev født med. Amtrup-opslaget får altså først et billede, hvis det slettes
+  (`delete-post.ts`) og postes igen. Genscrapen retter alle FREMTIDIGE delinger.
+
 ## 🔎 Atletiksite fundet for 152 skoler (2026-08-18) — migration 042
 
 Sport-inventaret efterlod 435 blinde skoler. Årsagen var adressen, ikke platformen:
