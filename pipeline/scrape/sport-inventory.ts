@@ -56,10 +56,16 @@ const API_STOP_AFTER_EMPTY = 10;
 /** Hvor mange under-sitemaps vi følger fra et sitemapindex. */
 const MAX_CHILD_SITEMAPS = 6;
 
-interface SchoolRow {
+export interface SchoolRow {
   id: number;
   name: string;
   website: string;
+  /**
+   * Skolens atletiksite, når `website` peger på universitetets hovedside
+   * (migration 042). Findes den, er DET adressen vi spørger — ellers ledte vi
+   * efter rosters på en side der aldrig har haft nogen.
+   */
+  athletics_url?: string | null;
   division: string | null;
   platform_type: string | null;
 }
@@ -261,7 +267,8 @@ export async function buildInventoryForSchool(
   school: SchoolRow,
   opts: { dryRun: boolean; academicYear: number },
 ): Promise<InventoryResult> {
-  const origin = originOf(school.website);
+  const siteUrl = school.athletics_url ?? school.website;
+  const origin = originOf(siteUrl);
   const base: InventoryResult = {
     schoolId: school.id, name: school.name, source: "none",
     teams: 0, unsponsored: 0, stale: 0, requests: 0,
@@ -295,10 +302,10 @@ export async function buildInventoryForSchool(
   // side og virker også hvor `/sitemap.xml` svarer med en 404-HTML-side (Santa
   // Clara), hvor sitemappet mangler, eller hvor det kun lister nyheder.
   if (teams.length === 0 && apiTeams.length === 0) {
-    const home = await get(school.website, 20000);
+    const home = await get(siteUrl, 20000);
     base.requests++;
-    if (policy.allows(new URL(school.website).pathname) && home.body) {
-      teams = teamsFromHtml(home.body, school.website);
+    if (policy.allows(new URL(siteUrl).pathname) && home.body) {
+      teams = teamsFromHtml(home.body, siteUrl);
       if (teams.length > 0) source = "nav";
     }
   }
@@ -418,7 +425,7 @@ async function main(): Promise<void> {
   const params = args.school ? [args.school] : [divisionFilter, args.maxAgeDays];
 
   const schools = await db.query<SchoolRow>(
-    `SELECT s.id, s.name, s.website, s.division, s.platform_type
+    `SELECT s.id, s.name, s.website, s.athletics_url, s.division, s.platform_type
      FROM schools s
      LEFT JOIN (SELECT university, COUNT(*) c FROM athletes WHERE active = 1 GROUP BY university) a
        ON a.university = s.name
