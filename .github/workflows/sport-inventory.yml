@@ -1,0 +1,95 @@
+name: Sport-inventar (hvilke hold har skolerne)
+
+# Spørger hver skole hvilke hold den HAR, i stedet for at lade scraperen gætte på
+# tolv sportsgrene × tre navnevarianter. Resultatet er to ting:
+#   • præcise roster-URL'er pr. hold — også kvindeholdene, som gætteriet aldrig nåede
+#   • et negativt register (`sponsored = 0`): skolen har ikke gymnastik, spørg aldrig igen
+#
+# ÉN GANG OM ÅRET er nok: hold nedlægges og oprettes mellem sæsoner, ikke midt i dem.
+# Kørslen ligger 20. juli — efter at skolerne har lagt næste sæsons hold op, og før
+# efterårssæsonen begynder. Skoler hvis inventar er nyere end --max-age-days springes
+# over, så et gentaget kald er gratis.
+#
+# Matrixen kører divisionerne én ad gangen (max-parallel: 1) af samme grund som
+# weekly-scrape: vi vil ikke ramme mange skoler samtidigt.
+
+on:
+  schedule:
+    - cron: '0 5 20 7 *'   # 20. juli, 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      division:
+        description: 'Division (D1/D2/D3/NAIA/alle)'
+        required: false
+        default: 'alle'
+      limit:
+        description: 'Maks antal skoler pr. division'
+        required: false
+        default: '600'
+      max_age_days:
+        description: 'Spring skoler over hvis inventaret er nyere end N dage'
+        required: false
+        default: '365'
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+
+    strategy:
+      matrix:
+        division: [D1, D2, D3]
+      max-parallel: 1
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Byg inventar (${{ matrix.division }})
+        run: |
+          DIV="${{ github.event.inputs.division || 'alle' }}"
+          if [ "$DIV" != "alle" ] && [ "$DIV" != "${{ matrix.division }}" ]; then
+            echo "Springer ${{ matrix.division }} over (kørslen er sat til $DIV)."
+            exit 0
+          fi
+          npx tsx pipeline/scrape/sport-inventory.ts \
+            --division ${{ matrix.division }} \
+            --limit ${{ github.event.inputs.limit || 600 }} \
+            --max-age-days ${{ github.event.inputs.max_age_days || 365 }} \
+            --concurrency 4
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+  # Ét samlet resultat, ikke tre. Inventaret er årligt, så beskeden er sjælden nok
+  # til at måtte komme også når det gik godt.
+  notify:
+    needs: inventory
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord-notifikation
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RESULT: ${{ needs.inventory.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$RESULT" = "success" ]; then
+            COLOR=3066993
+            TITLE="✅ Sport-inventar opdateret"
+            DESC="Skolernes holdlister er bekræftet. Næste roster-scrape bruger de nye URL'er — og springer de hold over, skolerne ikke har."
+          else
+            COLOR=15158332
+            TITLE="❌ Sport-inventar fejlede"
+            DESC="Kørslen fejlede (resultat: $RESULT). [Se loggen]($RUN_URL)."
+          fi
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"$TITLE\",\"description\":\"$DESC\",\"color\":$COLOR,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

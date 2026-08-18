@@ -38,6 +38,24 @@ Atletdata tilføjes i `pipeline/seed/seed-data.json` og indsættes med `bash scr
 | `npm run dev` | Start lokal dev-server |
 | `npm run deploy` | Deploy til Cloudflare |
 
+## Roster-scraping: spørg skolen, gæt ikke (VIGTIGST)
+
+**Inden du ændrer roster- eller discovery-logik**: holdlisten er DATA, ikke et gæt.
+
+| Opgave | Brug dette | Hvorfor |
+|--------|-----------|---------|
+| Find skolens hold | `pipeline/scrape/sport-inventory.ts` (årlig) | Sitemap/menu/API giver de RIGTIGE holdnavne — inkl. kvindeholdene og lacrosse/water polo/softball |
+| Hold skolen ikke har | `roster_checks.sponsored = 0`, status `not_sponsored` | Det negative register. Spørg aldrig igen; inventaret åbner rækken hvis holdet dukker op |
+| Roster på ny Sidearm (Nuxt) | `parsers/roster-api.ts` → `/api/v2/rosters?sportId=N` | 42% af D1. HTML'en er tom for spillere; JSON'en er rigere (køn, forrige skole, årgang i ord) |
+| Roster i HTML | `parsers/` som før | Gratis og hurtigt |
+| Ny sportsgren fra en skole | `SOURCE_ALIASES` i `src/lib/sports.ts` | Ukendt slug → `other`. Giv ALDRIG en forkert etiket (softball ≠ baseball) |
+| Hentning | `robotsAllows()` fra `pipeline/lib/robots.ts` | robots.txt er en betingelse i interesseafvejningen og i DSM art. 4 |
+
+**Fejl er ikke ét begreb**: `not_found`/`robots_denied` er permanente; 429/403/5xx/timeout
+er forbigående og SKAL prøves igen (ellers gør ét 429 et hold usynligt for altid).
+
+Se `projekt-status.md` (afsnittet «Scraperen ser nu ALLE hold») for hele diagnosen.
+
 ## Pipeline-scraping: Cloudflare Browser Rendering (VIGTIG)
 
 **Inden du ændrer scraping- eller discovery-logik**, overvej Cloudflare Browser Rendering API:

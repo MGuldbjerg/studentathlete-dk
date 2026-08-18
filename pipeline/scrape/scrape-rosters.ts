@@ -8,6 +8,8 @@
 import { createD1Client } from "../lib/d1-client";
 import type { D1Client } from "../lib/d1-client";
 import { parseRoster } from "./parsers";
+import { apiRosterUrl, parseApiRoster } from "./parsers/roster-api";
+import { robotsAllows } from "../lib/robots";
 import {
   renderPage,
   isBrowserRenderAvailable,
@@ -22,7 +24,7 @@ import { generateSlug } from "../../src/lib/slug";
 import { samePerson, rosterKey } from "../lib/athlete-identity";
 import { genderFromTeamUrl } from "../../src/lib/gender";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
-import { cleanPosition } from "../../src/lib/roster-clean";
+import { cleanPosition, cleanRosterName } from "../../src/lib/roster-clean";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import type { School } from "../lib/types";
 
@@ -31,6 +33,12 @@ interface RosterCheckWithSchool {
   school_id: number;
   sport: string;
   roster_url: string | null;
+  /** Skolens eget holdnavn ("womens-tennis"). Findes for alle inventar-rækker. */
+  team_slug: string | null;
+  /** 'sitemap' | 'api' | 'guess' | 'legacy' — hvor holdlisten kom fra. */
+  inventory_source: string | null;
+  /** Holdets id i skolens JSON-API (kun den nye Sidearm-platform). */
+  api_sport_id: number | null;
   // School-felter
   name: string;
   slug: string;
@@ -85,6 +93,27 @@ function getRosterUrls(website: string, sport: string, platformType: string | nu
   return urls;
 }
 
+/**
+ * URL-kandidater for ÉT hold.
+ *
+ * Har sport-inventaret været forbi skolen (`inventory_source` = sitemap/api), er
+ * `roster_url` skolens egen adresse på præcis det hold — så er der intet at gætte,
+ * og vi sender ét request i stedet for tre. Kun `legacy`-rækker (fra før
+ * inventaret) falder tilbage på det gamle gætteri, så en skole uden sitemap og
+ * uden API stadig bliver scrapet som før.
+ */
+function rosterUrlsFor(check: RosterCheckWithSchool): string[] {
+  // Vendt om med vilje: ALT der ikke er 'legacy' (eller uden kilde) kommer fra
+  // inventaret og har skolens egen URL. Den første version listede kilderne
+  // positivt ("sitemap" eller "api") og glemte "nav" — og så gættede scraperen
+  // `/sports/mens-other/roster` for Santa Claras water polo-hold, som naturligvis
+  // gav 404. En ny kilde må ikke kunne genindføre den fejl.
+  const fromInventory =
+    check.roster_url && check.inventory_source && check.inventory_source !== "legacy";
+  if (fromInventory) return [check.roster_url as string];
+  return getRosterUrls(check.website, check.sport, check.platform_type);
+}
+
 interface CliArgs {
   division: string | null;
   limit: number;
@@ -127,27 +156,59 @@ function parseArgs(): CliArgs {
 interface FetchResult {
   html: string | null;
   httpStatus: number;
-  result: "ok" | "not_found" | "timeout" | "error";
+  result: "ok" | "not_found" | "blocked" | "server_error" | "timeout" | "error";
   size: number;
 }
 
-async function fetchRosterPage(url: string): Promise<FetchResult> {
+/**
+ * Resultater der betyder "spørg aldrig igen om denne URL". Alt ANDET er
+ * forbigående og skal prøves igen ved næste kørsel.
+ *
+ * Hvorfor det er vigtigt: `fetchWithProbeLog` sprang tidligere enhver URL over,
+ * hvis den ÉN gang havde fejlet — og hver ikke-ok status blev gemt som
+ * 'not_found'. Ét 429 (skolen bad os sagtne) eller én timeout gjorde derfor
+ * holdet permanent usynligt. Det er en oplagt kandidat til en pæn del af de
+ * 6.361 'Fetch fejlede'-rækker, der stod i basen før i dag.
+ */
+const PERMANENT_FAILURES = new Set(["not_found", "robots_denied"]);
+
+/** 429/403/5xx/timeout er forbigående — prøv igen, med luft imellem. */
+function isTransient(result: FetchResult["result"]): boolean {
+  return result === "blocked" || result === "server_error" || result === "timeout";
+}
+
+async function fetchOnce(url: string, timeoutMs: number): Promise<FetchResult> {
   try {
     const response = await fetch(url, {
       headers: { "User-Agent": USER_AGENT },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(timeoutMs),
       redirect: "follow",
     });
     const text = response.ok ? await response.text() : null;
-    return {
-      html: text,
-      httpStatus: response.status,
-      result: response.ok ? "ok" : "not_found",
-      size: text?.length ?? 0,
-    };
+    let result: FetchResult["result"] = "ok";
+    if (!response.ok) {
+      if (response.status === 404 || response.status === 410) result = "not_found";
+      else if (response.status === 429 || response.status === 403) result = "blocked";
+      else if (response.status >= 500) result = "server_error";
+      else result = "error";
+    }
+    return { html: text, httpStatus: response.status, result, size: text?.length ?? 0 };
   } catch {
     return { html: null, httpStatus: 0, result: "timeout", size: 0 };
   }
+}
+
+/**
+ * Hent én roster-side. 15 s (ikke 5) fordi moderne Sidearm-sider er store —
+ * Santa Claras cross country-roster er 858 KB — og ét forsøg mere ved
+ * forbigående fejl, med 4 sekunders pause.
+ */
+async function fetchRosterPage(url: string): Promise<FetchResult> {
+  const first = await fetchOnce(url, 15000);
+  if (!isTransient(first.result)) return first;
+  await new Promise((r) => setTimeout(r, 4000));
+  const second = await fetchOnce(url, 20000);
+  return second.result === "ok" ? second : first;
 }
 
 /** Log URL-forsøg til url_probes og skip allerede kendte fejl */
@@ -161,8 +222,21 @@ async function fetchWithProbeLog(
     "SELECT result FROM url_probes WHERE school_id = ? AND url = ? AND purpose = 'roster_scrape'",
     [schoolId, url],
   );
-  if (existing.results.length > 0 && existing.results[0].result !== "ok") {
-    return null; // Allerede prøvet, fejlede — spring over
+  if (existing.results.length > 0 && PERMANENT_FAILURES.has(existing.results[0].result)) {
+    return null; // Findes ikke (404/410) eller forbudt af robots — spørg ikke igen
+  }
+
+  // robots.txt afgør om vi må hente. Politikken caches pr. vært, så det koster ét
+  // request pr. skole — og det er den betingelse interesseafvejningen hviler på.
+  if (!(await robotsAllows(url, USER_AGENT))) {
+    try {
+      await db.execute(
+        `INSERT OR REPLACE INTO url_probes (school_id, url, purpose, http_status, result, response_size)
+         VALUES (?, ?, 'roster_scrape', 0, 'robots_denied', 0)`,
+        [schoolId, url],
+      );
+    } catch { /* log-fejl må ikke stoppe kørslen */ }
+    return null;
   }
 
   const { html, httpStatus, result, size } = await fetchRosterPage(url);
@@ -285,6 +359,7 @@ async function main(): Promise<void> {
   const result = await db.query<RosterCheckWithSchool>(
     `SELECT
        rc.id as check_id, rc.school_id, rc.sport, rc.roster_url,
+       rc.team_slug, rc.inventory_source, rc.api_sport_id,
        s.name, s.slug, s.state, s.division, s.conference, s.website, s.platform_type
      FROM roster_checks rc
      JOIN schools s ON rc.school_id = s.id
@@ -294,6 +369,9 @@ async function main(): Promise<void> {
      ) da ON da.university = s.name
      WHERE s.website IS NOT NULL
        AND s.division LIKE ?
+       -- Det negative register: hold skolen ikke har, spørger vi aldrig om igen.
+       -- Sport-inventaret sætter rækken tilbage til 'pending', hvis holdet dukker op.
+       AND rc.sponsored = 1
        AND (rc.checked_at IS NULL
             OR datetime(rc.checked_at, '+' || ? || ' days') < datetime('now')
             ${jsAgeBypass})
@@ -327,21 +405,41 @@ async function main(): Promise<void> {
 
   for (const check of checks) {
     try {
-      // Prøv flere URL-kandidater baseret på platform
-      const candidateUrls = getRosterUrls(check.website, check.sport, check.platform_type);
       let html: string | null = null;
       let usedUrl: string | null = null;
+      /** Rækker fra JSON-API'et — sat FØR HTML-sporet, hvis holdet har et api-id. */
+      let apiRoster: ReturnType<typeof parseApiRoster> = null;
 
-      for (const url of candidateUrls) {
-        html = await fetchWithProbeLog(db, check.school_id, url);
-        if (html) {
-          usedUrl = url;
-          break;
+      // ── Den nye Sidearm-platform ────────────────────────────────────────────
+      // Rosteren findes ikke i HTML på disse skoler (siden hydreres i browseren),
+      // så et HTML-forsøg ville altid give "Ingen roster-data" — det var hullet der
+      // gjorde hver sportsgren på 42% af D1 usynlig. Ét JSON-request i stedet.
+      if (check.api_sport_id != null) {
+        const origin = new URL(check.website).origin;
+        const apiUrl = apiRosterUrl(origin, check.api_sport_id);
+        const body = await fetchWithProbeLog(db, check.school_id, apiUrl);
+        if (body) {
+          try {
+            apiRoster = parseApiRoster(JSON.parse(body), origin);
+          } catch {
+            apiRoster = null;
+          }
+          if (apiRoster) usedUrl = check.roster_url ?? apiUrl;
         }
-        await new Promise((r) => setTimeout(r, 500));
       }
 
-      if (!html) {
+      if (!apiRoster) {
+        for (const url of rosterUrlsFor(check)) {
+          html = await fetchWithProbeLog(db, check.school_id, url);
+          if (html) {
+            usedUrl = url;
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+
+      if (!html && !apiRoster) {
         await db.execute(
           `UPDATE roster_checks
            SET status = 'error', checked_at = datetime('now'), error_message = 'Fetch fejlede for alle URL-varianter'
@@ -362,12 +460,14 @@ async function main(): Promise<void> {
         );
       }
 
-      // Parse plain HTML først. Tom roster = muligvis en JS-renderet side.
-      let roster = parseRoster(html);
+      // JSON-sporet er allerede parset; ellers plain HTML. Tom roster = muligvis
+      // en JS-renderet side.
+      let roster = apiRoster ? apiRoster.entries : parseRoster(html as string);
       let renderedUsed = false;
 
       // Fallback: render JS-tunge sider via CF Browser Rendering (budget-begrænset).
       if (
+        !apiRoster &&
         roster.length === 0 &&
         renderEnabled &&
         !renderQuotaExhausted &&
@@ -405,10 +505,11 @@ async function main(): Promise<void> {
 
       // Stadig ingen data og siden ligner JS → marker js_required (til render i en senere kørsel).
       if (
+        !apiRoster &&
         roster.length === 0 &&
-        html.length < 1500 &&
-        !html.includes("<table") &&
-        !html.toLowerCase().includes("sidearm")
+        (html as string).length < 1500 &&
+        !(html as string).includes("<table") &&
+        !(html as string).toLowerCase().includes("sidearm")
       ) {
         await db.execute(
           `UPDATE roster_checks
@@ -434,12 +535,20 @@ async function main(): Promise<void> {
 
       const academicYear = getAcademicYear();
       let athletesInCheck = 0;
-      for (const { entry: athlete, country: homeCountry } of matchedAthletes) {
+      for (const { entry: rawEntry, country: homeCountry } of matchedAthletes) {
+        // Navnet renses ÉT sted, før noget som helst sammenlignes eller skrives:
+        // ellers gør et dobbelt mellemrum fra skolen atleten til "omdøbt" ved hver
+        // kørsel (og dobbeltmellemrummet lander i det viste navn).
+        const athlete = { ...rawEntry, name: cleanRosterName(rawEntry.name) ?? rawEntry.name };
         const slug = generateSlug(athlete.name);
         const sportKey = sportKeyFromSource(check.sport);
         const { classYear, expectedGraduation, yearEnrolled } =
           resolveClassYear(athlete.year, academicYear);
         const bioUrl = toAbsoluteUrl(athlete.bioUrl, check.website);
+        // Køn: kilden selv, når den siger det (JSON-API'et gør), ellers holdets URL.
+        // Rækkefølgen er vigtig — et felt slår et mønster.
+        const gender =
+          athlete.gender ?? genderFromTeamUrl(bioUrl, check.roster_url) ?? null;
 
         try {
           // Dedup/transfer: matcher denne atlet en eksisterende person (samme
@@ -494,7 +603,7 @@ async function main(): Promise<void> {
                 check.name, check.state, check.division,
                 classYear, expectedGraduation, yearEnrolled,
                 athlete.hometown, bioUrl,
-                genderFromTeamUrl(bioUrl, check.roster_url),
+                gender,
                 existing.id,
               ],
             );
@@ -566,9 +675,9 @@ async function main(): Promise<void> {
               expectedGraduation,
               yearEnrolled,
               bioUrl,
-              // Holdets URL siger selv hvilket hold atleten går på; bio-URL'en
+              // Kildens eget felt først (JSON-API'et), ellers holdets URL: bio-URL'en
               // er mest præcis, roster-URL'en er faldback.
-              genderFromTeamUrl(bioUrl, check.roster_url),
+              gender,
             ],
           );
 
@@ -590,8 +699,11 @@ async function main(): Promise<void> {
       }
 
       // Opdatér roster_check status
-      const status = matchedAthletes.length > 0 ? "success" : roster.length > 0 ? "empty" : "error";
-      const errorMsg = roster.length === 0 ? "Ingen roster-data fundet i HTML" : null;
+      // API'et svarede, men holdet har ingen offentliggjorte spillere: det er
+      // 'empty' (rosteren blev læst), ikke 'error' (vi kunne ikke læse den).
+      const readOk = roster.length > 0 || apiRoster !== null;
+      const status = matchedAthletes.length > 0 ? "success" : readOk ? "empty" : "error";
+      const errorMsg = readOk ? null : "Ingen roster-data fundet i HTML";
 
       await db.execute(
         `UPDATE roster_checks

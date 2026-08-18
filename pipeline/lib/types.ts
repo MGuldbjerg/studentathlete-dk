@@ -59,6 +59,13 @@ export interface RosterEntry {
   /** Link til atletens officielle bio på skolens roster-side (rå href — opløses
    *  til absolut URL i scraperen mod skolens website). null hvis ingen anker. */
   bioUrl: string | null;
+  /**
+   * Køn, når KILDEN selv siger det. Kun JSON-API'et (`parsers/roster-api.ts`)
+   * kan udfylde feltet; HTML-parserne lader det være udefineret, og scraperen
+   * falder da tilbage på `genderFromTeamUrl()` som før. Optional, netop for at
+   * de gamle parsere ikke skal ændres.
+   */
+  gender?: "m" | "f" | null;
 }
 
 export interface RosterCheck {

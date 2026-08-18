@@ -58,6 +58,34 @@ const SOURCE_ALIASES: Record<string, SportKey> = {
   hockey: "ice-hockey",
   gymnastics: "gymnastics",
   rowing: "rowing",
+
+  // Tilføjet med sport-inventaret (2026-08-17): skolernes egne holdnavne er
+  // mere varierede end de tolv slugs pipelinen gættede på. Alt herunder er
+  // navne vi HAR set i skolernes sitemaps.
+  "cross-country-and-track-and-field": "track-and-field",
+  "track-and-field-and-cross-country": "track-and-field",
+  "indoor-track-and-field": "track-and-field",
+  "outdoor-track-and-field": "track-and-field",
+  "indoor-track": "track-and-field",
+  "outdoor-track": "track-and-field",
+  "track-field": "track-and-field",
+  track: "track-and-field",
+  xc: "track-and-field",
+  "swimming-diving": "swimming-and-diving",
+  diving: "swimming-and-diving",
+  "swim-and-dive": "swimming-and-diving",
+  "swim-dive": "swimming-and-diving",
+  // Beach volleyball er en selvstændig NCAA-sport, men en dansk beachspiller er
+  // bedre beskrevet som "volleyball" end som "andet".
+  "beach-volleyball": "volleyball",
+  "sand-volleyball": "volleyball",
+  crew: "rowing",
+  "lightweight-rowing": "rowing",
+  "ice-hockey-men": "ice-hockey",
+  "basketball-men": "basketball",
+  // Softball, lacrosse, water polo, wrestling, field hockey m.fl. har BEVIDST
+  // ingen alias: de er ikke baseball/volleyball/andet-i-forklædning, og en
+  // forkert etiket er værre end "other" (jf. regel 5 i ARKITEKTUR-motor.md).
 };
 
 export function sportKeyFromSource(raw: string | null | undefined): SportKey {

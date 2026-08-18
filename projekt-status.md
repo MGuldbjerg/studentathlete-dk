@@ -1,11 +1,90 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-16 (kladdegennemgang: to nye mekaniske spærrer — markup-fjernelse før navne-matchning + forhåndsomtale-vagt)
+**Sidst opdateret**: 2026-08-18 (scraperen: sport-inventar pr. hold, JSON-API-parser, negativt register — kvindeholdene var usynlige)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🔧 Scraperen ser nu ALLE hold (2026-08-17/18) — inventar + JSON-API + negativt register
+
+**Baggrund**: Mikkel bad om at intet skulle være usynligt, og om et register over
+hold skolerne ikke har, så kørslerne ikke spilder tid på dem. Diagnosen fandt
+**fire** fejl, ikke én — og den vigtigste var ikke parseren:
+
+1. **Kvindeholdene var usynlige.** `roster_checks` havde UNIQUE(school_id, sport),
+   så en skole kunne kun have ÉN tennis-række, og gætte-løkken brød ved første
+   URL der svarede (typisk herreholdet). Det stod sort på hvidt i basen: **32
+   mandlige basketballspillere og 0 kvindelige · 165 mandlige fodboldspillere mod
+   22 kvindelige · 68 mandlige golfspillere mod 4 kvindelige.**
+2. **Spøgelses-sporten.** Scraperen spurgte hver skole om de samme tolv
+   sportsgrene. Stikprøve på 14 skoler: **65% af alle `error`-rækker var hold
+   skolen ikke har** (Santa Clara har ikke football, Loyola ikke baseball).
+3. **Den nye Sidearm-platform.** 200 OK, men rosteren hydreres i browseren, så
+   HTML'en er tom for spillere → "Ingen roster-data". **42% af D1-skolerne
+   registreret som `sidearm` kører den** (D2: 3%, D3: 0%), og 73% af de danske
+   atleter er D1. Louisville, Tennessee og Dartmouth fejlede på HVER sportsgren.
+4. **Forbigående fejl blev permanente.** `fetchWithProbeLog` sprang enhver URL
+   over der ÉN gang havde fejlet — og hver ikke-ok status blev gemt som
+   `not_found`. Ét 429 eller én timeout gjorde holdet usynligt for altid.
+
+**Bygget** (migration 041 kørt mod prod; backup af `roster_checks` taget først):
+
+- **`db/migration-041-team-inventory.sql`** — `roster_checks` genopbygget: nøglen
+  er nu (school_id, **team_slug**), så herre- og kvindehold er to rækker. Nye
+  felter: `gender`, `sponsored`, `inventory_source`, `inventory_at`,
+  `api_sport_id`. Ny status: **`not_sponsored`**. 13.944 rækker bevaret, 3.606
+  fik deres rigtige holdnavn ud af den URL der virkede.
+- **`pipeline/scrape/team-discovery.ts`** (rent modul, 57 tests) — sitemap/HTML →
+  hold → kanonisk sportsnøgle. Kvinde-mønster testes FØRST ("womens" indeholder
+  "mens"). Ukendte sportsgrene bliver `other`, aldrig et gæt: softball er ikke
+  baseball, water polo og lacrosse er ikke volleyball.
+- **`pipeline/scrape/sport-inventory.ts`** — årlig kørsel der spørger skolen selv,
+  i tre kilder efter pris: **API-probe** (1 request, afgør platformen) → **sitemap**
+  → **skolens egen sport-menu i HTML**. Skriver det negative register
+  (`sponsored=0`) for de kanoniske sportsgrene skolen ikke har, og sletter de
+  gamle gætte-rækker (`inventory_source='legacy'`) for skolen.
+- **`pipeline/scrape/parsers/roster-api.ts`** (31 tests) — `/api/v2/rosters?sportId=N`.
+  Rigere end HTML: fornavn/efternavn adskilt, hjemby, high school, forrige skole,
+  **køn eksplicit**, højde, position i lang form, årgang i ord. `RosterEntry.gender`
+  er nyt og optionelt — kilden slår mønsteret.
+- **`pipeline/lib/robots.ts`** (23 tests) — robots.txt efterleves nu (User-agent,
+  Allow/Disallow, længste match, fail-open). Det er betingelsen i
+  `UDKAST-LIA-interesseafvejning.md` og i DSM art. 4.
+- **`src/lib/roster-clean.ts`** → `cleanRosterName()`: skolernes dobbelte
+  mellemrum gjorde atleten "omdøbt" ved hver kørsel ("Mikkel  Johansson").
+- **`.github/workflows/sport-inventory.yml`** — 20. juli årligt + manuel; springer
+  skoler over hvis inventaret er nyere end `--max-age-days` (365).
+
+**Fælder fanget undervejs** (begge var mine egne, fundet ved at køre mod prod):
+- `rosterUrlsFor()` listede kilderne positivt ("sitemap"/"api") og glemte "nav" →
+  scraperen gættede `/sports/mens-other/roster` for Santa Claras water polo. Nu er
+  reglen vendt om: alt der ikke er `legacy` bruger skolens egen URL.
+- Roster-sitemaps lister **kun sæson-URL'er** (`/roster/2013` … `/roster/2026`),
+  aldrig den bare `/roster` — den første matcher krævede at stien SLUTTEDE ved
+  `/roster` og fandt derfor nul hold på hele Loyola. Sæsonen bruges nu positivt:
+  et hold hvis nyeste roster er år gammel, er et **henlagt program** og indlæses
+  ikke som aktivt (ACU's herre-cross country svarer stadig med 2016-rosteren).
+- **RETTELSE af noget jeg selv skrev i analysen**: at skoler svarer "404 med et
+  gyldigt sitemap i kroppen" holdt ikke. De svarer 404 med en HTML-side — hvori
+  hele sport-menuen står. Derfor er `nav`-kilden med, og derfor kræver
+  sitemap-sporet nu `<loc>` i kroppen.
+
+**Verificeret mod prod** (fire skoler, tre kilder): Santa Clara 18 hold [nav] ·
+Loyola 11 [sitemap] · ACU 11 + 5 henlagte [api] · Louisville 18 [api]. Derefter
+scrape af 60 D1-checks: **19 danske atleter fundet, heraf 7 på Louisville**, som
+før fejlede på hver eneste sportsgren — og 2 af dem i en sportsgren uden for de
+tolv (`other`). 1.096 forgiftede probe-rækker (403/405/5xx gemt som `not_found`)
+rettet, så de prøves igen; 1.324 timeout-rækker er ikke længere permanente.
+
+**Tal at følge**: kønsbalancen i `athletes` er målet på om hullet er lukket.
+Før: 0 kvindelige basketballspillere. Kør:
+`SELECT sport, gender, COUNT(*) FROM athletes WHERE active=1 GROUP BY 1,2;`
+
+**Ikke gjort**: skoler hvor `website` peger på universitetets hovedsite (typisk
+D3/NAIA) svarer hverken med sitemap, menu eller API — de beholder gætte-adfærden,
+og atletiksitet skal findes først. NJCAA/NAIA er uændret nedprioriteret.
 
 ## 🛑 Kladdegennemgang 2026-08-16 — to nye spærrer
 
