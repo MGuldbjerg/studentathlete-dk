@@ -159,6 +159,16 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
     // "Coxswain" er ægte information; "Rower" filtreres (gentager verbet).
     return { present: "ror", preteritum: "roede", participle: "roet", object: "", posNoun: meaningfulPosition(sport, position) };
   }
+  if (sport === "fencing") {
+    // Man fægter — våbnet (fleuret/kårde/sabel) er positionen.
+    return { present: "fægter", preteritum: "fægtede", participle: "fægtet", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
+  if (sport === "esports") {
+    // "Dyrker esport" er ikke dansk. Man SPILLER — og titlen (League of
+    // Legends, Valorant) står i positionsfeltet, fordi det er den skolen
+    // rekrutterer til.
+    return { present: "spiller", preteritum: "spillede", participle: "spillet", object: sportNoun(sport), posNoun: meaningfulPosition(sport, position) };
+  }
   if (sport === "track-and-field") {
     if (position) {
       const running = RUNNING_EVENTS.find((r) => r.re.test(position));

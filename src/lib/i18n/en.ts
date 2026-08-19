@@ -28,6 +28,11 @@ const sportLabel: Record<SportKey, string> = {
   "ice-hockey": "Ice Hockey",
   volleyball: "Volleyball",
   "field-hockey": "Field Hockey",
+  rugby: "Rugby",
+  "water-polo": "Water Polo",
+  fencing: "Fencing",
+  squash: "Squash",
+  esports: "Esports",
   other: "Other",
 };
 
@@ -49,6 +54,11 @@ const sportSlug: Record<SportKey, string> = {
   "ice-hockey": "ice-hockey",
   volleyball: "volleyball",
   "field-hockey": "field-hockey",
+  rugby: "rugby",
+  "water-polo": "water-polo",
+  fencing: "fencing",
+  squash: "squash",
+  esports: "esports",
   other: "other",
 };
 
@@ -180,6 +190,48 @@ const positionPhrase: Record<string, string> = {
   pommel_horse: "pommel horse",
   rings: "rings",
   high_bar: "high bar",
+  // Rugby
+  prop: "prop",
+  loosehead_prop: "loosehead prop",
+  tighthead_prop: "tighthead prop",
+  hooker: "hooker",
+  lock: "lock",
+  flanker: "flanker",
+  number_eight: "number eight",
+  scrum_half: "scrum-half",
+  fly_half: "fly-half",
+  centre: "centre",
+  inside_centre: "inside centre",
+  outside_centre: "outside centre",
+  back_row: "back row",
+  front_row: "front row",
+  back: "back",
+
+  // Water polo
+  driver: "driver",
+  attacker: "attacker",
+  hole_set: "hole set",
+  hole_defender: "hole defender",
+  two_meter: "two-metre player",
+
+  // Fencing — the weapon is the position
+  epee: "epee",
+  foil: "foil",
+  sabre: "sabre",
+
+  // Esports
+  top_lane: "top laner",
+  jungle: "jungler",
+  mid_lane: "mid laner",
+  bot_lane: "bot laner",
+  ad_carry: "AD carry",
+  support: "support",
+  in_game_leader: "in-game leader",
+  duelist: "duelist",
+  controller: "controller",
+  sentinel: "sentinel",
+  initiator: "initiator",
+
 };
 
 /**

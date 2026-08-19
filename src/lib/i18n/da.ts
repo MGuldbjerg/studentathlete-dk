@@ -28,6 +28,11 @@ const sportLabel: Record<SportKey, string> = {
   "ice-hockey": "Ishockey",
   volleyball: "Volleyball",
   "field-hockey": "Field hockey",
+  rugby: "Rugby",
+  "water-polo": "Vandpolo",
+  fencing: "Fægtning",
+  squash: "Squash",
+  esports: "Esport",
   other: "Andet",
 };
 
@@ -50,6 +55,11 @@ const sportSlug: Record<SportKey, string> = {
   "ice-hockey": "ishockey",
   volleyball: "volleyball",
   "field-hockey": "field-hockey",
+  rugby: "rugby",
+  "water-polo": "vandpolo",
+  fencing: "faegtning",
+  squash: "squash",
+  esports: "esport",
   other: "andet",
 };
 
@@ -184,6 +194,49 @@ const positionPhrase: Record<string, string> = {
   pommel_horse: "bensvingsstol",
   rings: "ringe",
   high_bar: "reck",
+  // Rugby — dansk rugbysprog bruger de engelske pladsnavne, undtagen otteren
+  prop: "prop",
+  loosehead_prop: "loosehead prop",
+  tighthead_prop: "tighthead prop",
+  hooker: "hooker",
+  lock: "lock",
+  flanker: "flanker",
+  number_eight: "nummer otte",
+  scrum_half: "scrum half",
+  fly_half: "fly half",
+  centre: "center",
+  inside_centre: "inside centre",
+  outside_centre: "outside centre",
+  back_row: "back row",
+  front_row: "front row",
+  back: "back",
+
+  // Vandpolo
+  driver: "driver",
+  attacker: "angriber",
+  hole_set: "hole set",
+  hole_defender: "hole defender",
+  two_meter: "to-meter-spiller",
+
+  // Fægtning — våbnet er positionen
+  epee: "kårde",
+  foil: "fleuret",
+  sabre: "sabel",
+
+  // Esport — rollen i spillet (League of Legends-terminologien er den mest
+  // udbredte; skolerne skriver den på engelsk, og det gør danske spillere også)
+  top_lane: "toplaner",
+  jungle: "jungler",
+  mid_lane: "midlaner",
+  bot_lane: "botlaner",
+  ad_carry: "AD carry",
+  support: "support",
+  in_game_leader: "in-game leader",
+  duelist: "duelist",
+  controller: "controller",
+  sentinel: "sentinel",
+  initiator: "initiator",
+
 };
 
 /**

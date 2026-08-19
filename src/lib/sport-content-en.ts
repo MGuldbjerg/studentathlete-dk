@@ -314,6 +314,174 @@ The international share is remarkable even by NCAA standards: by 2015 more than 
 - [USA Field Hockey. (2025, August 25). 2025 NCAA field hockey season preview: Division I.](https://www.usafieldhockey.com/news/2025/august/25/2025-ncaa-field-hockey-season-preview-division-i)
 - [ScholarshipStats.com. (n.d.). Field hockey scholarships.](https://scholarshipstats.com/fieldhockey)`,
   },
+  rugby: {
+    title: "Rugby",
+    intro:
+      "British rugby players in American college sport. Two separate worlds: the women's game is on its way into the NCAA, the men's game sits outside it.",
+    metaDescription:
+      "British rugby players in American college sport — news, profiles and results from NCAA and college rugby in the United States.",
+    pillar: `## British rugby in American college sport
+
+**The first thing to understand is that college rugby is not one system but two.** For women, rugby is one of the NCAA's four current emerging sports — a recognised route towards a full championship, with scholarships under NCAA rules and championship matches run by the National Intercollegiate Rugby Association. For men, rugby is not an NCAA sport at all. The men's programmes play under National Collegiate Rugby and the Collegiate Rugby Association of America, and varsity sides generally do not award athletic scholarships.
+
+### The season
+
+Fifteens is an autumn sport. Matches begin in late August and the championship is settled in November — in 2025 with semi-finals on 15 November and finals on 22 November at Harvard. Spring and early summer belong to sevens, where National Collegiate Rugby's championship is the largest collegiate rugby event in the world.
+
+### How a match is decided
+
+Fifteen a side, two halves of 40 minutes, and the familiar arithmetic: five for a try, two for the conversion, three for a penalty or a drop goal. Eight forwards win the ball and seven backs are meant to use it — and American programmes recruit the two groups as if they were different sports.
+
+### Programmes and standards
+
+58 American colleges field varsity rugby: 35 men's teams and 43 women's, spread across the three NCAA divisions, the NAIA and a handful of others. The NCAA's own listing counts around 30 institutions sponsoring women's rugby as an emerging sport, and NIRA's top division held 13 teams in 2025. Women's rugby is an equivalency sport, so scholarships can be divided into partial awards.
+
+### Worth knowing
+
+Rugby shares emerging-sport status with equestrian, flag football and triathlon. That list is worth taking seriously: since 1994 eight sports have travelled the whole way from emerging sport to full NCAA championship — rowing, ice hockey and water polo among them.
+
+### Sources
+
+- [NCAA. (n.d.). Emerging sports for women.](https://www.ncaa.org/championships/emerging-sports-for-women/)
+- [ScholarshipStats.com. (n.d.). Rugby scholarships and college varsity teams.](https://scholarshipstats.com/rugby)
+- [The Rugby Breakdown. (n.d.). Tracking: NCAA varsity programs.](https://therugbybreakdown.com/tracking-ncaa-varsity-programs/)
+- [National Collegiate Rugby. (2026). NCR partners with the All Women's Sports Network for the 2026 National 7s Championships.](https://www.ncr.rugby/news/national-collegiate-rugby-partners-with-the-all-womens-sports-network-for-global-broadcast-of-2026-national-7s-championships/)`,
+  },
+
+  "water-polo": {
+    title: "Water Polo",
+    intro:
+      "British water polo players in the NCAA. The men play in the autumn, the women in the spring, and every division competes for the same title.",
+    metaDescription:
+      "British water polo players in the NCAA — news, profiles and results from American college water polo.",
+    pillar: `## British water polo in the NCAA
+
+Water polo is a full NCAA sport for both men and women, with one feature few college sports share: the title is a National Collegiate championship. Teams from Divisions I, II and III play for the same trophy in the same eight-team knockout bracket.
+
+### The season
+
+The two programmes split the calendar. The men play in the autumn and finish with the championship in December — in 2026 at UC San Diego from 18 to 20 December. The women play in the spring; their 2026 championship was decided in the same pool from 22 to 26 April.
+
+### How a match is decided
+
+Seven players in the water at a time, one of them a goalkeeper, and the match is played in **four quarters of eight minutes**. Attacks are built around the centre — listed on American rosters as "2-meter" or "hole set" — while the drivers carry the ball forward from wide.
+
+### Scholarships and divisions
+
+77 NCAA schools sponsor water polo: 42 in Division I (29 men's teams and 37 women's), 10 in Division II and 25 in Division III, together around 1,900 male and 2,050 female athletes. Following the House settlement, Division I programmes may from 2025-26 award up to 24 scholarships within a roster limit of 24 — where the old caps were 4.5 for men and 8 for women. Division II allows 4.5, and Division III offers no athletic scholarships.
+
+### Worth knowing
+
+Water polo is itself proof of what an emerging sport can become: the women's game entered by that route and now has a championship of its own. The centre of gravity remains California — UCLA opened the 2026 season as men's champions for the second year running.
+
+### Sources
+
+- [ScholarshipStats.com. (n.d.). Water polo scholarships.](https://scholarshipstats.com/waterpolo)
+- [Collegiate Water Polo Association. (n.d.). NCAA announces sites of the 2026-2028 men's and women's water polo championships.](https://collegiatewaterpolo.org/national-collegiate-athletic-association-announces-sites-of-2026-to-2028-national-collegiate-athletic-association-mens-womens-water-polo-championships/)
+- [NCAA.com. (2026, April 13). 2026 National Collegiate women's water polo championship selections.](https://www.ncaa.com/news/waterpolo-women/article/2026-04-13/2026-national-collegiate-womens-water-polo-championship-selections)
+- [NCAA. (n.d.). National Collegiate men's water polo.](https://www.ncaa.org/championship/national-collegiate/mens-water-polo/)`,
+  },
+
+  fencing: {
+    title: "Fencing",
+    intro:
+      "British fencers in the NCAA. One of the few championships where Division I, II and III meet on the same piste.",
+    metaDescription:
+      "British fencers in the NCAA — news, profiles and results from American college fencing.",
+    pillar: `## British fencing in the NCAA
+
+Fencing has one of the most unusual championships in the NCAA: there is no split by division. Teams from Divisions I, II and III qualify for the same National Collegiate championship and meet head to head — a small Division III squad can end up fencing a scholarship-funded Division I programme for the same title.
+
+### The season
+
+Winter is the season for dual meets, where programmes gather for days of bout after bout, and it builds towards March. The 2026 championships were held from 19 to 22 March at Notre Dame, with 144 competitors from 26 institutions.
+
+### How a championship is decided
+
+Three weapons — foil, épée and sabre — and individual titles in all six events, each weapon for both men and women. The team championship has just changed shape: from 1990 to 2025 the team title was decided on the combined score of both sexes, but from 2026 separate men's and women's team titles are awarded again. The change settles an old inequity, since a programme fielding only a women's squad could never win the combined title.
+
+### Programmes and standards
+
+45 institutions across the three divisions sponsor fencing, holding roughly 1,400 student-athletes between them. It is a small, tightly connected world, concentrated in the Northeast and around a few large Midwestern universities.
+
+### Worth knowing
+
+Notre Dame won both team titles in 2026 — and so became the first winner of the standalone three-weapon women's championship.
+
+### Sources
+
+- [NCAA. (n.d.). National Collegiate fencing.](https://www.ncaa.org/championship/national-collegiate/fencing/)
+- [USA Fencing. (2026, March 11). 2026 NCAA championships preview: A historic new era begins.](https://www.usafencing.org/news/2026/march/11/2026-ncaa-championships-preview)
+- [NCAA.com. (2026, March 10). NCAA men's and women's fencing committee selects championships participants.](https://www.ncaa.com/news/fencing/article/2026-03-10/ncaa-mens-and-womens-fencing-committee-selects-championships-participants)
+- [NCAA.com. (2026, March 3). Notre Dame wins the 2026 NC men's and women's fencing championships.](https://www.ncaa.com/news/fencing/article/2026-03-03/notre-dame-wins-2026-nc-mens-and-womens-fencing-championships)`,
+  },
+
+  squash: {
+    title: "Squash",
+    intro:
+      "British squash players in American college sport. A varsity sport at some of the oldest universities in the country — and outside the NCAA.",
+    metaDescription:
+      "British squash players in American college sport — news, profiles and results from college squash in the United States.",
+    pillar: `## British squash in American college sport
+
+**Squash is not an NCAA sport.** It is governed by the College Squash Association, a body of its own — though every CSA member institution is an NCAA member, and the association leans heavily on NCAA legislation for its own compliance rules. In practice squash is a varsity sport with coaching, dual matches and national championships, but without an NCAA title and outside the NCAA scholarship system.
+
+### The season
+
+Dual matches run through the winter and the season gathers into the national team championships in February. Varsity teams are placed in playoff divisions of eight — although the top men's division, the Potter Cup, holds twelve.
+
+### How a team match is decided
+
+Nine players from each side meet in nine individual matches, and the team result is the sum of them. Squads usually run to 12-14 players to cover injuries, and the tenth-ranked players often meet in an exhibition outside the scoring. A place on the ladder is the currency of the whole squad.
+
+### Programmes and standards
+
+37 American colleges field varsity squash — 33 men's teams and 32 women's, with around 500 male and 428 female players. Fourteen of the schools are Division I institutions and 23 are Division III, and the sport is concentrated in the Northeast. Only a handful of CSA teams can offer athletic scholarships at all: Ivy League and Division III schools are not permitted to, and between them they make up most of the field.
+
+### Worth knowing
+
+The absence of the NCAA says nothing about the standard. American college squash is one of the deepest squash environments in the world, and the matches between Harvard, Trinity and Princeton have decided the national pecking order for years.
+
+### Sources
+
+- [College Squash Association. (n.d.). College squash recruiting FAQ.](https://csasquash.com/college-squash-recruiting-faq-2/)
+- [College Squash Association. (2026). 2026 CSA national team championships.](https://csasquash.com/2026-national-team-championship/)
+- [ScholarshipStats.com. (n.d.). Colleges with varsity squash teams.](https://scholarshipstats.com/squash)`,
+  },
+
+  esports: {
+    title: "Esports",
+    intro:
+      "British players on American college esports teams. Varsity programmes with coaches, team rooms and scholarships — entirely outside the NCAA.",
+    metaDescription:
+      "British players in American college esports — news, profiles and results from varsity college esports in the United States.",
+    pillar: `## British players in American college esports
+
+**Esports sits outside the NCAA.** There is no NCAA championship in League of Legends and no NCAA rulebook to stay inside. The scene has built its own governing bodies instead — the National Association of Collegiate Esports and the National Esports Collegiate Conference — while the game publishers run parallel circuits of their own, the largest being Riot Games' College League of Legends.
+
+### The season
+
+The season follows the academic year: conference play in the autumn, playoffs in the spring, with College League of Legends building to its championship in the spring semester. Because matches are played online, most fixtures fall on weekday evenings; travel is reserved for LAN finals.
+
+### How a squad is put together
+
+The roster looks unlike any other college sport: players are listed by title and role rather than position. League of Legends fields five roles — top, jungle, mid, bot and support — and a programme with several titles will run separate squads in Valorant, Rocket League, Overwatch 2 and Counter-Strike. NECC's core titles also include Rainbow Six: Siege, Marvel Rivals and Super Smash Bros.
+
+### Money and programmes
+
+More than 300 North American programmes provide financial support to varsity players, and over 280 institutions offer esports scholarships through NACE. The sums are modest next to the major sports: the average award is around $4,800 a year, while the best-funded programmes go considerably higher. NECC alone counts more than 500 participating colleges and universities.
+
+### Worth knowing
+
+The largest pots follow the largest titles — League of Legends, Valorant and Rocket League — because those are the ones that fill an arena and a stream. And with no NCAA rulebook, the rules belong to the institutions: entry requirements, playing time and prize money are settled programme by programme.
+
+### Sources
+
+- [National Esports Collegiate Conference. (2026). NECC announces 2026-2027 competition calendar.](https://necc.gg/blogs/news/necc-announces-2026-2027-competition-calendar)
+- [Esports Insider. (2026). Esports scholarships in 2026: How gaming can put you through school.](https://esportsinsider.com/esports-scholarships)
+- [Liquipedia. (2026). Collegiate League of Legends 2026 championship.](https://liquipedia.net/leagueoflegends/CLOL/2026/Championship)`,
+  },
+
   other: {
     title: "Other sports",
     intro:

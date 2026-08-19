@@ -381,6 +381,174 @@ Feltet er internationalt i et omfang, der er usædvanligt selv for NCAA: allered
 - [USA Field Hockey. (2025, August 25). 2025 NCAA field hockey season preview: Division I.](https://www.usafieldhockey.com/news/2025/august/25/2025-ncaa-field-hockey-season-preview-division-i)
 - [ScholarshipStats.com. (n.d.). Field hockey scholarships.](https://scholarshipstats.com/fieldhockey)`,
   },
+  rugby: {
+    title: "Rugby",
+    intro:
+      "Danske rugbyspillere på amerikanske college-hold. To adskilte verdener: kvindernes rugby er på vej ind i NCAA, mens mændenes stadig ligger udenfor.",
+    metaDescription:
+      "Rugby i amerikansk college-sport – nyheder, profiler og resultater fra NCAA-emerging sport og college-rugby i USA.",
+    pillar: `## Rugby i amerikansk college-sport
+
+**Det vigtigste at vide først: college-rugby er ikke ét system, men to.** For kvinder er rugby en af NCAA's fire nuværende emerging sports — en anerkendt vej mod fuldt mesterskab, med legater efter NCAA's regler og mesterskabskampe i National Intercollegiate Rugby Association. For mænd er rugby slet ikke en NCAA-sport. Herreholdene spiller under National Collegiate Rugby og Collegiate Rugby Association of America, og varsity-programmerne giver som hovedregel ikke sportslegater.
+
+### Sæsonens gang
+
+15-mands-rugby er en efterårssport. Kampene begynder sidst i august, og mesterskabet afgøres i november — i 2025 med semifinaler 15. november og finaler 22. november på Harvard. Foråret og forsommeren tilhører 7-mands-rugby, hvor National Collegiate Rugbys mesterskab er den største kollegiale rugbybegivenhed i verden.
+
+### Sådan afgøres en kamp
+
+Femten spillere pr. hold og to halvlege à 40 minutter. Et forsøg giver fem point, konverteringen bagefter to, og både straffespark og drop-mål tæller tre. Otte forwards vinder bolden, syv backs skal bruge den — og de to grupper rekrutteres på vidt forskellige kropstyper.
+
+### Niveauer og programmer
+
+58 amerikanske colleges har varsity-rugby: 35 herrehold og 43 damehold, fordelt på NCAA's tre divisioner, NAIA og enkelte andre. NCAA's egen oversigt tæller omkring 30 institutioner, der har kvinderugby som emerging sport, og NIRA's øverste division bestod i 2025 af 13 hold. Kvinderugby er en equivalency-sport, så legaterne kan deles ud i delvise andele.
+
+### Tidbits
+
+Rugby deler emerging sport-status med ridning, flag football og triatlon. Listen er ikke pyntelig: otte sportsgrene er siden 1994 gået hele vejen fra emerging sport til fuldt NCAA-mesterskab — blandt dem roning, ishockey og vandpolo, som alle i dag er selvfølgelige dele af college-landskabet.
+
+### Kilder
+
+- [NCAA. (n.d.). Emerging sports for women.](https://www.ncaa.org/championships/emerging-sports-for-women/)
+- [ScholarshipStats.com. (n.d.). Rugby scholarships and college varsity teams.](https://scholarshipstats.com/rugby)
+- [The Rugby Breakdown. (n.d.). Tracking: NCAA varsity programs.](https://therugbybreakdown.com/tracking-ncaa-varsity-programs/)
+- [National Collegiate Rugby. (2026). NCR partners with the All Women's Sports Network for the 2026 National 7s Championships.](https://www.ncr.rugby/news/national-collegiate-rugby-partners-with-the-all-womens-sports-network-for-global-broadcast-of-2026-national-7s-championships/)`,
+  },
+
+  vandpolo: {
+    title: "Vandpolo",
+    intro:
+      "Danske vandpolospillere på NCAA-hold. En sport hvor herrerne spiller om efteråret, kvinderne om foråret, og hele landet dyster i ét mesterskab.",
+    metaDescription:
+      "Vandpolo i NCAA – nyheder, profiler og resultater fra college-vandpolo i USA.",
+    pillar: `## Vandpolo i NCAA
+
+Vandpolo er en fuldgyldig NCAA-sport for både herrer og kvinder, og den har en detalje, som kun få college-sportsgrene deler: mesterskabet er et National Collegiate-mesterskab. Hold fra Division I, II og III spiller om den samme titel i den samme ottehold-turnering, hvor vinderen findes ved direkte udslagning.
+
+### Sæsonens gang
+
+Kønnene deler kalenderen mellem sig. Herrerne spiller om efteråret og afslutter med mesterskabet i december — i 2026 hos UC San Diego 18.-20. december. Kvinderne spiller om foråret; deres mesterskab blev afgjort i samme bassin 22.-26. april 2026.
+
+### Sådan afgøres en kamp
+
+Syv spillere i vandet ad gangen, heraf en målmand, og kampen spilles i **fire kvarterer à otte minutter**. Angrebene bygges op omkring centerspilleren — på amerikanske rosterlister kaldet "2-meter" eller "hole set" — mens driverne svømmer bolden frem fra siderne.
+
+### Legater og niveauer
+
+77 NCAA-skoler har vandpolo: 42 i Division I (29 herrehold og 37 damehold), 10 i Division II og 25 i Division III, tilsammen omkring 1.900 mandlige og 2.050 kvindelige udøvere. Efter House-forliget kan Division I-programmer fra 2025-26 tildele op til 24 legater inden for et rosterloft på 24 — mod tidligere 4,5 for herrer og 8 for kvinder. Division II har 4,5, og Division III giver ingen sportslegater.
+
+### Tidbits
+
+Vandpolo er selv et eksempel på, hvad en emerging sport kan blive til: sporten kom ind ad den vej for kvinder og har i dag sit eget mesterskab. Sportsligt er tyngdepunktet stadig Californien — UCLA gik ind i 2026-sæsonen som forsvarende herremester for andet år i træk.
+
+### Kilder
+
+- [ScholarshipStats.com. (n.d.). Water polo scholarships.](https://scholarshipstats.com/waterpolo)
+- [Collegiate Water Polo Association. (n.d.). NCAA announces sites of the 2026-2028 men's and women's water polo championships.](https://collegiatewaterpolo.org/national-collegiate-athletic-association-announces-sites-of-2026-to-2028-national-collegiate-athletic-association-mens-womens-water-polo-championships/)
+- [NCAA.com. (2026, April 13). 2026 National Collegiate women's water polo championship selections.](https://www.ncaa.com/news/waterpolo-women/article/2026-04-13/2026-national-collegiate-womens-water-polo-championship-selections)
+- [NCAA. (n.d.). National Collegiate men's water polo.](https://www.ncaa.org/championship/national-collegiate/mens-water-polo/)`,
+  },
+
+  faegtning: {
+    title: "Fægtning",
+    intro:
+      "Danske fægtere på amerikanske college-hold. Et af de få NCAA-mesterskaber, hvor Division I, II og III mødes på samme planche.",
+    metaDescription:
+      "Fægtning i NCAA – nyheder, profiler og resultater fra college-fægtning i USA.",
+    pillar: `## Fægtning i NCAA
+
+Fægtning har et af de mest usædvanlige mesterskaber i NCAA: der er ingen opdeling i divisioner. Hold fra Division I, II og III kvalificerer sig til det samme National Collegiate-mesterskab og møder hinanden direkte — et lille D3-hold kan altså ende med at fægte mod et stipendiebærende D1-program om den samme titel.
+
+### Sæsonens gang
+
+Vinteren er holdkampenes tid, hvor programmerne mødes i stævner med mange dueller på én dag, og sæsonen kulminerer i marts. I 2026 blev mesterskabet afviklet 19.-22. marts hos Notre Dame med 144 deltagere fra 26 institutioner.
+
+### Sådan afgøres et mesterskab
+
+Der fægtes med tre våben — fleuret, kårde og sabel — og der uddeles individuelle titler i alle seks konkurrencer, altså hvert våben for både herrer og damer. Holdmesterskabet har lige skiftet form: fra 1990 til 2025 blev holdtitlen afgjort på kønnenes samlede point, men fra 2026 uddeles der igen separate holdtitler til herrer og damer. Ændringen løser et gammelt problem — et program med kun et damehold kunne ikke vinde den fælles titel.
+
+### Niveauer og programmer
+
+45 institutioner på tværs af de tre divisioner har fægtning, og de rummer tilsammen omkring 1.400 udøvere. Det er et lille, tæt miljø koncentreret i det nordøstlige USA og omkring et par store universiteter i Midtvesten.
+
+### Tidbits
+
+Notre Dame vandt begge holdtitler i 2026 — og skrev sig dermed ind som den første vinder af det selvstændige damemesterskab i tre våben.
+
+### Kilder
+
+- [NCAA. (n.d.). National Collegiate fencing.](https://www.ncaa.org/championship/national-collegiate/fencing/)
+- [USA Fencing. (2026, March 11). 2026 NCAA championships preview: A historic new era begins.](https://www.usafencing.org/news/2026/march/11/2026-ncaa-championships-preview)
+- [NCAA.com. (2026, March 10). NCAA men's and women's fencing committee selects championships participants.](https://www.ncaa.com/news/fencing/article/2026-03-10/ncaa-mens-and-womens-fencing-committee-selects-championships-participants)
+- [NCAA.com. (2026, March 3). Notre Dame wins the 2026 NC men's and women's fencing championships.](https://www.ncaa.com/news/fencing/article/2026-03-03/notre-dame-wins-2026-nc-mens-and-womens-fencing-championships)`,
+  },
+
+  squash: {
+    title: "Squash",
+    intro:
+      "Danske squashspillere på amerikanske college-hold. Varsity-sport på nogle af landets ældste universiteter — men uden for NCAA.",
+    metaDescription:
+      "Squash i amerikansk college-sport – nyheder, profiler og resultater fra college-squash i USA.",
+    pillar: `## Squash i amerikansk college-sport
+
+**Squash er ikke en NCAA-sport.** Den styres af College Squash Association, som er sit eget forbund — men alle CSA's medlemsinstitutioner er NCAA-medlemmer, og forbundet læner sig tæt op ad NCAA's regler. Det betyder, at squash på papiret er varsity-sport med træning, holdkampe og nationale mesterskaber, men uden NCAA-mesterskab og uden NCAA's legatsystem.
+
+### Sæsonens gang
+
+Holdkampene ligger hen over vinteren, og sæsonen samles i de nationale holdmesterskaber i februar. Varsity-holdene fordeles i playoff-divisioner på otte hold — den øverste herredivision, Potter Cup, har dog tolv.
+
+### Sådan afgøres en holdkamp
+
+Ni spillere fra hvert hold møder hinanden i hver sin individuelle kamp, og holdets resultat er summen af de ni. Rosterne tæller typisk 12-14 spillere, så der er dækning ved skader, og nummer ti møder tit modstanderens nummer ti i en kamp uden for pointregnskabet. Pladsen på stigen er dermed hele holdets valuta.
+
+### Niveauer og programmer
+
+37 amerikanske colleges har varsity-squash — 33 herrehold og 32 damehold, med omkring 500 mandlige og 428 kvindelige spillere. Fjorten af skolerne er Division I-institutioner og 23 er Division III, og geografisk er sporten koncentreret i det nordøstlige USA. Kun ganske få CSA-hold kan tilbyde sportslegater: Ivy League-universiteterne og Division III-skolerne må ikke, og de udgør størstedelen af feltet.
+
+### Tidbits
+
+Fraværet af NCAA er ikke et tegn på lille niveau. Det amerikanske college-felt er et af verdens tætteste squashmiljøer, og de bedste holdkampe mellem Harvard, Trinity og Princeton har i årevis afgjort, hvem der reelt er bedst i landet.
+
+### Kilder
+
+- [College Squash Association. (n.d.). College squash recruiting FAQ.](https://csasquash.com/college-squash-recruiting-faq-2/)
+- [College Squash Association. (2026). 2026 CSA national team championships.](https://csasquash.com/2026-national-team-championship/)
+- [ScholarshipStats.com. (n.d.). Colleges with varsity squash teams.](https://scholarshipstats.com/squash)`,
+  },
+
+  esport: {
+    title: "Esport",
+    intro:
+      "Danske esportsudøvere på amerikanske college-hold. Varsity-programmer med trænere, holdlokaler og legater — helt uden for NCAA.",
+    metaDescription:
+      "Esport i amerikansk college-sport – nyheder, profiler og resultater fra college-esport i USA.",
+    pillar: `## Esport i amerikansk college-sport
+
+**Esport ligger uden for NCAA.** Der findes intet NCAA-mesterskab i League of Legends, og ingen NCAA-regler at holde sig inden for. I stedet har miljøet bygget sine egne forbund: National Association of Collegiate Esports og National Esports Collegiate Conference, mens spillenes udgivere kører deres egne kredsløb ved siden af — Riot Games' College League of Legends er det største af dem.
+
+### Sæsonens gang
+
+Sæsonen følger studieåret. Efteråret bruges på ligaspil i konferencerne, foråret på slutspil, og College League of Legends kulminerer i sit mesterskab i forårssemesteret. Fordi kampene spilles online, ligger de fleste opgør på hverdagsaftener — rejsedage er forbeholdt LAN-finalerne.
+
+### Sådan er holdet skruet sammen
+
+Rosterlisten ser anderledes ud end i enhver anden college-sport: spillerne står opført efter titel og rolle, ikke position. I League of Legends er de fem roller top, jungle, mid, bot og support, og et program med flere titler har typisk selvstændige hold i Valorant, Rocket League, Overwatch 2 og Counter-Strike. NECC's kernetitler tæller også Rainbow Six: Siege, Marvel Rivals og Super Smash Bros.
+
+### Penge og programmer
+
+Mere end 300 nordamerikanske programmer giver økonomisk støtte til deres varsity-spillere, og over 280 skoler tilbyder esportslegater gennem NACE. Beløbene er små sammenlignet med de store boldsportsgrene: gennemsnittet ligger omkring 4.800 dollar om året, mens de bedst finansierede programmer kan komme betydeligt højere op. NECC alene tæller over 500 deltagende colleges og universiteter.
+
+### Tidbits
+
+De største puljer følger de største titler — League of Legends, Valorant og Rocket League — fordi det er dem, skolerne kan fylde en tribune og en stream med. Og fordi der ikke er NCAA-regler, er reglerne skolernes egne: adgangskrav, spilletid og præmiepenge afgøres program for program.
+
+### Kilder
+
+- [National Esports Collegiate Conference. (2026). NECC announces 2026-2027 competition calendar.](https://necc.gg/blogs/news/necc-announces-2026-2027-competition-calendar)
+- [Esports Insider. (2026). Esports scholarships in 2026: How gaming can put you through school.](https://esportsinsider.com/esports-scholarships)
+- [Liquipedia. (2026). Collegiate League of Legends 2026 championship.](https://liquipedia.net/leagueoflegends/CLOL/2026/Championship)`,
+  },
+
   andet: {
     title: "Andre sportsgrene",
     intro:

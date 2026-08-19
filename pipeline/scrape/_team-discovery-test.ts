@@ -79,7 +79,16 @@ eq(
   "spiller-bio på et landhockey-hold",
 );
 
-eq(sportFromTeamSlug("mens-water-polo"), "other", "water polo → other");
+// Vandpolo, rugby, fægtning, squash og esport blev kanoniske 2026-08-19 —
+// atleterne lå i "other", hvor sporten forsvandt.
+eq(sportFromTeamSlug("mens-water-polo"), "water-polo", "vandpolo → water-polo");
+eq(sportFromTeamSlug("womens-rugby"), "rugby", "rugby → rugby");
+eq(sportFromTeamSlug("mens-fencing"), "fencing", "fægtning → fencing");
+eq(sportFromTeamSlug("womens-squash"), "squash", "squash → squash");
+eq(sportFromTeamSlug("league-of-legends"), "esports", "spiltitel → esports");
+eq(sportFromTeamSlug("mens-heavyweight-rowing"), "rowing", "vægtklasse-roning → rowing");
+eq(sportFromTeamSlug("wcross"), "track-and-field", "cross country hører til atletik");
+eq(sportFromTeamSlug("mens-polo"), "other", "hestepolo er IKKE vandpolo");
 eq(sportFromTeamSlug("softball"), "other", "softball er IKKE baseball");
 eq(sportFromTeamSlug("wrestling"), "other", "wrestling → other");
 
@@ -196,7 +205,10 @@ ok(
   scuTeams.filter((t) => t.sport === "tennis").length === 2,
   "to hold kan dele samme kanoniske sport",
 );
-ok(scuTeams.some((t) => t.sport === "other" && t.teamSlug === "womens-water-polo"), "water polo med som other");
+ok(
+  scuTeams.some((t) => t.sport === "water-polo" && t.teamSlug === "womens-water-polo"),
+  "vandpolo med som water-polo",
+);
 
 // Det negative register: Santa Clara har ikke football, gymnastik, ishockey,
 // svømning, golf eller atletik i uddraget.
@@ -246,8 +258,8 @@ const NAV = `<!doctype html><html><body><nav>
 const navTeams = teamsFromHtml(NAV, "https://santaclarabroncos.com");
 eq(navTeams.length, 3, "tre hold fra menuen (schedule, general og nyhed tælles ikke)");
 ok(
-  navTeams.some((t) => t.teamSlug === "womens-water-polo" && t.sport === "other"),
-  "water polo med som other",
+  navTeams.some((t) => t.teamSlug === "womens-water-polo" && t.sport === "water-polo"),
+  "vandpolo med som water-polo",
 );
 eq(
   navTeams.find((t) => t.teamSlug === "womens-rowing")?.rosterUrl,

@@ -31,6 +31,11 @@ export const SPORT_KEYS = [
   "ice-hockey",
   "volleyball",
   "field-hockey",
+  "rugby",
+  "water-polo",
+  "fencing",
+  "squash",
+  "esports",
   "other",
 ] as const;
 
@@ -90,9 +95,142 @@ const SOURCE_ALIASES: Record<string, SportKey> = {
   // "other", hvor sporten forsvandt sammen med lacrosse og water polo.
   fieldhockey: "field-hockey",
   "field-hockey-women": "field-hockey",
-  // Softball, lacrosse, water polo og wrestling har fortsat BEVIDST ingen alias:
-  // de er ikke baseball/volleyball/andet-i-forklædning, og en forkert etiket er
-  // værre end "other" (jf. regel 5 i ARKITEKTUR-motor.md).
+  fhockey: "field-hockey",
+
+  // ── Fem nye kanoniske nøgler 2026-08-19 (Mikkel fandt atleterne i "andet") ──
+  // Rugby: NCAA-emerging sport for KVINDER (NIRA), klubsport for mænd.
+  rugby: "rugby",
+  "mens-rugby": "rugby",
+  "womens-rugby": "rugby",
+  "club-mens-rugby": "rugby",
+  "club-womens-rugby": "rugby",
+  "mens-rugby-club": "rugby",
+  "womens-rugby-club": "rugby",
+  // Vandpolo. NB: "mens-polo"/"womens-polo" er hestepolo og bliver BEVIDST i
+  // "other" — polo uden vand er en anden sport.
+  "water-polo": "water-polo",
+  "mens-water-polo": "water-polo",
+  "womens-water-polo": "water-polo",
+  "club-mens-water-polo": "water-polo",
+  "club-womens-water-polo": "water-polo",
+  // Fægtning — NCAA-mesterskab på tværs af divisioner.
+  fencing: "fencing",
+  "mens-fencing": "fencing",
+  "womens-fencing": "fencing",
+  "fencing-practice-players": "fencing",
+  // Squash — IKKE NCAA (College Squash Association), men varsity-sport.
+  squash: "squash",
+  "mens-squash": "squash",
+  "womens-squash": "squash",
+  msquash: "squash",
+  wsquash: "squash",
+  // Esport. Skolerne skriver spillets navn, ikke "esport" — spiltitlerne ER
+  // holdnavnet i sitemappet, så de skal stå her.
+  esports: "esports",
+  esport: "esports",
+  "club-esports": "esports",
+  "league-of-legends": "esports",
+  valorant: "esports",
+  overwatch: "esports",
+  "overwatch-2": "esports",
+  "overwatch-2-red": "esports",
+  "rocket-league": "esports",
+  "counter-strike": "esports",
+  "super-smash-bros": "esports",
+  "super-smash-bros-ultimate": "esports",
+  "rainbow-six-siege": "esports",
+  "marvel-rivals": "esports",
+
+  // ── Huller i eksisterende nøgler (samme runde) ────────────────────────────
+  // Roning: skolerne deler efter vægtklasse og skriver "crew" lige så tit som
+  // "rowing" — 30 danske/britiske roere lå i "andet" på de her etiketter.
+  "mens-rowing": "rowing",
+  "womens-rowing": "rowing",
+  "heavyweight-rowing": "rowing",
+  "mens-heavyweight-rowing": "rowing",
+  "womens-heavyweight-rowing": "rowing",
+  "mens-lightweight-rowing": "rowing",
+  "womens-lightweight-rowing": "rowing",
+  "mens-crew": "rowing",
+  "womens-crew": "rowing",
+  mcrew: "rowing",
+  wcrew: "rowing",
+  mcrewhvy: "rowing",
+  mcrewlt: "rowing",
+  wcrewlt: "rowing",
+  wcrewop: "rowing",
+  mrow: "rowing",
+  wrow: "rowing",
+  // Cross country hører til atletik (som "cross-country" allerede gjorde) —
+  // rosterne er i praksis de samme løbere, og skolerne slår tit bane og
+  // terræn sammen i ét holdnavn.
+  "cross-country-men": "track-and-field",
+  "cross-country-women": "track-and-field",
+  "mens-cross-country": "track-and-field",
+  "womens-cross-country": "track-and-field",
+  "mens-cross-country-pre-2017": "track-and-field",
+  "womens-cross-country-pre-2017": "track-and-field",
+  "combined-cross-country": "track-and-field",
+  "cross-country-track": "track-and-field",
+  "track-cross-country": "track-and-field",
+  "track-field-cross-country": "track-and-field",
+  "track-fieldcross-country": "track-and-field",
+  "womens-cross-country-track": "track-and-field",
+  "mens-track-and-field-xc": "track-and-field",
+  "womens-track-and-field-xc": "track-and-field",
+  "mw-track-and-field": "track-and-field",
+  "mens-indoor-track-field": "track-and-field",
+  "womens-indoor-track-field": "track-and-field",
+  "mens-outdoor-track-field": "track-and-field",
+  "womens-outdoor-track-field": "track-and-field",
+  athletics: "track-and-field",
+  cross: "track-and-field",
+  mcross: "track-and-field",
+  wcross: "track-and-field",
+  mxct: "track-and-field",
+  tfxc: "track-and-field",
+  xctrack: "track-and-field",
+  mtrack: "track-and-field",
+  wtrack: "track-and-field",
+  // Skolernes forkortelser og JV/reserve-hold. En JV-fodboldspiller spiller
+  // fodbold — holdets niveau er ikke en anden sportsgren.
+  msoc: "soccer",
+  wsoc: "soccer",
+  soc: "soccer",
+  "jv-mens-soccer": "soccer",
+  "jv-womens-soccer": "soccer",
+  "mens-soccer-reserves": "soccer",
+  "womens-soccer-reserves": "soccer",
+  "club-mens-soccer": "soccer",
+  "club-womens-soccer": "soccer",
+  mbball: "basketball",
+  wbball: "basketball",
+  "jv-mens-basketball": "basketball",
+  "jv-womens-basketball": "basketball",
+  mgolf: "golf",
+  wgolf: "golf",
+  mglf: "golf",
+  wglf: "golf",
+  mten: "tennis",
+  wten: "tennis",
+  mswim: "swimming-and-diving",
+  wswim: "swimming-and-diving",
+  swim: "swimming-and-diving",
+  "c-swim": "swimming-and-diving",
+  wvball: "volleyball",
+  mvball: "volleyball",
+  bvb: "volleyball",
+  wgym: "gymnastics",
+  mgym: "gymnastics",
+  "jv-baseball": "baseball",
+  "club-baseball": "baseball",
+  "club-hockey": "ice-hockey",
+  "mens-ice-hockey-acha-d2-": "ice-hockey",
+  // Softball, lacrosse, wrestling, bowling, sejlsport, skydning, ski,
+  // triatlon, ridning og cheer har fortsat BEVIDST ingen alias: de er ikke
+  // baseball/volleyball/andet-i-forklædning, og en forkert etiket er værre
+  // end "other" (jf. regel 5 i ARKITEKTUR-motor.md). Det samme gælder
+  // ikke-sportslige "hold" som saac, band og hall-of-fame.
 };
 
 export function sportKeyFromSource(raw: string | null | undefined): SportKey {
@@ -117,6 +255,11 @@ export const SPORT_ICONS: Record<SportKey, string> = {
   "ice-hockey": "ice-hockey",
   volleyball: "volleyball",
   "field-hockey": "field-hockey",
+  rugby: "rugby",
+  "water-polo": "water-polo",
+  fencing: "fencing",
+  squash: "squash",
+  esports: "esports",
   other: "other",
 };
 
@@ -134,6 +277,11 @@ export const SPORT_COLORS: Record<SportKey, string> = {
   "ice-hockey": "#2C3E6B",
   volleyball: "#A0522D",
   "field-hockey": "#2F6E63",
+  rugby: "#6B4A2F",
+  "water-polo": "#4A8FA8",
+  fencing: "#7A6C8A",
+  squash: "#8A4A5C",
+  esports: "#5B4BA8",
   other: "#6B6B6B",
 };
 
@@ -152,6 +300,13 @@ export const SPORT_EMOJI: Record<SportKey, string> = {
   "ice-hockey": "🏒",
   volleyball: "🏐",
   "field-hockey": "🏑",
+  rugby: "🏉",
+  "water-polo": "🤽",
+  fencing: "🤺",
+  // Squash har ingen emoji. Den sorte bold ER sportens kendetegn, så den får
+  // lov at stå for sporten frem for en lånt ketsjer fra tennis eller badminton.
+  squash: "⚫",
+  esports: "🎮",
   other: "🏅",
 };
 
@@ -179,4 +334,9 @@ export const BALL_SPORT_KEYS = new Set<SportKey>([
   "ice-hockey",
   "volleyball",
   "field-hockey",
+  "rugby",
+  "water-polo",
+  "squash",
+  // Fægtning og esport står bevidst udenfor: man fægter, og en esportsudøver
+  // spiller et SPIL, ikke en bold (verbet sættes i profile-baseline).
 ]);

@@ -1,11 +1,56 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-19 (landhockey som sportsgren + sport-inventar pr. hold, JSON-API-parser, negativt register)
+**Sidst opdateret**: 2026-08-19 (fem nye sportsgrene: rugby, vandpolo, fægtning, squash, esport — 167 atleter ud af "andet")
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🏉 Fem nye sportsgrene, og hullerne i aliastabellen (2026-08-19)
+
+Mikkel fandt roere, rugbyspillere, fægtere, squashspillere, en cross country-løber,
+vandpolospillere og en League of Legends-spiller parkeret i "andet". De var der af
+to forskellige grunde, og forskellen er hele pointen:
+
+1. **Sporten fandtes ikke** — rugby, vandpolo, fægtning, squash og esport havde
+   ingen kanonisk nøgle. De er nu fem nøgler med farve, emoji, eget ikon,
+   positionsbegreber på begge sprog og en faktatjekket pillartekst pr. sprog.
+2. **Sporten fandtes, men holdnavnet var ukendt** — `mens-heavyweight-rowing`,
+   `mcrewhvy`, `wcross`, `mgolf`, `wten`, `fhockey`, `jv-mens-soccer`. 30 roere lå
+   i "andet", selv om roning har haft en nøgle hele tiden.
+
+**Aliastabellen bliver kun konsulteret ved scrape.** Rækker der ER hentet mens et
+alias manglede, bliver stående i "other" for altid. Derfor findes nu
+`pipeline/fix/recategorize-other-sports.ts`: den kører den nuværende aliastabel hen
+over det der allerede står i D1. Atletens kilde-sport står ikke i en kolonne — den
+læses ud af `bio_url` (`…/sports/womens-rugby/roster/…`), som er det eneste sted
+skolens eget holdnavn overlever.
+
+**I prod**: 197 → 30 atleter i "andet" (rugby 77, roning +19, atletik +14,
+landhockey +13, squash 10, fægtning 9, vandpolo 7, esport 3, resten til
+eksisterende nøgler) og 653 `roster_checks`-rækker flyttet. Begge tabeller i samme
+greb — `findExistingAthleteByIdentity` slår op med `WHERE sport = ?`.
+
+**Beslutninger værd at kende:**
+- **Cross country → atletik**, ikke sin egen nøgle. Skolerne slår i praksis bane og
+  terræn sammen i ét holdnavn (`mens-track-and-field-xc`, `mxct`, `xctrack`), og
+  aliaset `cross-country → track-and-field` var der i forvejen. Vil Mikkel have en
+  selvstændig /cross-country-side, skal rosterne splittes først.
+- **`mens-polo` er hestepolo** og bliver bevidst i "andet". Polo uden vand er en
+  anden sport.
+- **De 30 der bliver**: lacrosse 11, bowling 4, sejlsport 2, skydning 2, hestepolo 2,
+  ski 2, brydning, triatlon, softball — plus 3 rækker fra
+  `student-athlete-advisory-committee`/`saac`, som slet ikke er atleter. De sidste
+  bør nok slettes; det er en oprydning i data, ikke i taksonomi.
+- **Squash og esport er ikke NCAA-sportsgrene** (CSA henholdsvis NACE/NECC), og
+  herrerugby er det heller ikke. Det står i pillarteksterne, fordi det er det mest
+  beslutningsrelevante faktum for en læser.
+
+**Kilder i pillarteksterne er webtjekket 2026-08-19** — bl.a. at NCAA-fægtning fra
+2026 uddeler separate holdtitler til herrer og damer, at vandpoloens D1-legatloft
+efter House-forliget er 24 (mod 4,5/8 før), og at kvinderugby er én af fire
+nuværende emerging sports.
 
 ## 📏 Kvalitetstjekket er målt mod Mikkels egne beslutninger (2026-08-19) — migration 044
 

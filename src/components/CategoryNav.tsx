@@ -45,6 +45,23 @@ const ICON_PATHS: Record<string, string> = {
     // Egen tegning i Tabler-stil: stav med hook + bold. Tabler har intet
     // landhockey-ikon, og ishockey-staven ville forveksles med issport.
     "<path d=\"M9 4v9a5 5 0 0 0 5 5h1\" /><circle cx=\"18.5\" cy=\"18\" r=\"1.8\" />",
+  "rugby":
+    // Egen tegning i Tabler-stil: ægformet bold på skrå med søm og snørebånd.
+    // Tabler har kun den amerikanske football, og de to bolde er ikke ens.
+    "<ellipse cx=\"12\" cy=\"12\" rx=\"9\" ry=\"5.5\" transform=\"rotate(-40 12 12)\" /><path d=\"M8.5 15.5l7 -7\" /><path d=\"M10.2 14.2l1.4 1.4\" /><path d=\"M12 12.4l1.4 1.4\" /><path d=\"M13.8 10.6l1.4 1.4\" />",
+  "water-polo":
+    // Bold over vandlinje — vandet skiller den fra alle andre boldsportsikoner.
+    "<circle cx=\"12\" cy=\"8\" r=\"4.5\" /><path d=\"M12 3.5a4.5 4.5 0 0 1 0 9\" /><path d=\"M3 17.5a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1\" /><path d=\"M3 21a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1\" />",
+  "fencing":
+    // Klinge med parérplade og fæste — våbnet, ikke fægteren.
+    "<path d=\"M20 3l-9.5 9.5\" /><path d=\"M7.5 15.5l-2.5 2.5\" /><path d=\"M8.2 11.8l4 4\" /><path d=\"M5.5 14.5l4 4\" /><path d=\"M4 17l3 3\" />",
+  "squash":
+    // Ketsjer med lille bold. Squashketsjeren er smallere og længere end
+    // tennisketsjeren — derfor egen tegning og ikke tennis-ikonet.
+    "<ellipse cx=\"14.5\" cy=\"8\" rx=\"4\" ry=\"5.5\" transform=\"rotate(35 14.5 8)\" /><path d=\"M11 12.5l-5.5 7\" /><circle cx=\"5\" cy=\"11\" r=\"1.6\" />",
+  "esports":
+    // Tabler \"device-gamepad\" — controlleren er esportens universelle tegn.
+    "<path d=\"M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z\" /><path d=\"M6 12h4\" /><path d=\"M8 10v4\" /><path d=\"M15 11l0 .01\" /><path d=\"M18 13l0 .01\" />",
   "other":
     "<polygon points=\"12,2 14.9,8.3 22,9.3 17,14.1 18.2,21.1 12,17.8 5.8,21.1 7,14.1 2,9.3 9.1,8.3\" />",
 };
