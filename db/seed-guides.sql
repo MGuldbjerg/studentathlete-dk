@@ -1,5 +1,5 @@
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('hvad-er-ncaa', 'Hvad er NCAA?', 'NCAA (National Collegiate Athletic Association) er den største organisation for universitetssport i USA. Her får du overblikket over systemet og dets betydning for danske student athletes.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('hvad-er-ncaa', 'DK', 'Hvad er NCAA?', 'NCAA (National Collegiate Athletic Association) er den største organisation for universitetssport i USA. Her får du overblikket over systemet og dets betydning for danske student athletes.
 
 ## Hvad står NCAA for?
 
@@ -53,7 +53,7 @@ Ja, i stigende grad. Atleter har siden 2021 kunnet tjene på deres Name, Image a
 - [NCAA. (2025, 15. september). A record number of NCAA student-athletes participated in 2024-25.](https://www.ncaa.org/news/2025/9/15/media-center-a-record-number-of-ncaa-student-athletes-participated-in-2024-25.aspx)
 - [NCAA. (2021). NCAA 101: What is the NCAA?](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)
 - [ESPN. (2025). Judge grants final approval of House v. NCAA settlement.](https://www.espn.com/college-sports/story/_/id/45467505/judge-grants-final-approval-house-v-ncaa-settlement)', 'NCAA organiserer college sport i USA — over 1.000 universiteter og en halv million atleter. Forstå systemet, og hvad det betyder for danske atleter.', 1, 'guide', 'system', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -61,8 +61,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('ncaa-divisioner', 'Divisioner i NCAA: Division I, II og III', 'NCAA er inddelt i tre divisioner. De adskiller sig på sportsligt niveau, økonomi og hvor meget sporten fylder i hverdagen. Her er forskellene — og hvad de betyder for dig.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('ncaa-divisioner', 'DK', 'Divisioner i NCAA: Division I, II og III', 'NCAA er inddelt i tre divisioner. De adskiller sig på sportsligt niveau, økonomi og hvor meget sporten fylder i hverdagen. Her er forskellene — og hvad de betyder for dig.
 
 ## Division I (D-I)
 
@@ -98,7 +98,7 @@ Nej. D-III tilbyder ikke idrætslegater, men kan give akademisk og behovsbaseret
 
 - [NCAA. (2021). NCAA 101: Our three divisions.](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-our-three-divisions.aspx)
 - [Ropes & Gray. (2025, juni). House v. NCAA settlement approved: Era of direct payments to college athletes begins.](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'Forskellen på NCAA Division I, II og III — niveau, idrætslegater og balancen mellem sport og studie. Hvad betyder det for danske atleter?', 1, 'guide', 'system', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -106,8 +106,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('conferences', 'Conferences forklaret: Big Ten, SEC, ACC og resten', 'En conference er en sammenslutning af universiteter, der konkurrerer i samme liga. Her er, hvordan de fungerer — og hvorfor de fylder så meget i amerikansk college sport.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('conferences', 'DK', 'Conferences forklaret: Big Ten, SEC, ACC og resten', 'En conference er en sammenslutning af universiteter, der konkurrerer i samme liga. Her er, hvordan de fungerer — og hvorfor de fylder så meget i amerikansk college sport.
 
 ## Hvad er en conference?
 
@@ -139,7 +139,7 @@ Conference afgør modstandere, rejseafstande, eksponering og ofte niveau. På pr
 
 - [Wikipedia. (n.d.). Power conferences. Hentet juni 2026.](https://en.wikipedia.org/wiki/Power_conferences)
 - [Front Office Sports. (n.d.). Conference realignment and the end of the Power 5 era.](https://frontofficesports.com/conference-realignment-end-of-power-5-end/)', 'Hvad er en conference i college sport? Big Ten, SEC, ACC og de mange andre — hvordan de fungerer, og hvorfor de betyder noget.', 1, 'guide', 'system', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -147,8 +147,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('ncaa-naia-njcaa', 'NCAA vs NAIA vs NJCAA: Hvad er forskellen?', 'Mange tror, at college sport i USA er lig med NCAA. Men NAIA og NJCAA er selvstændige forbund, der for mange danskere er oplagte — og nogle gange bedre — veje.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('ncaa-naia-njcaa', 'DK', 'NCAA vs NAIA vs NJCAA: Hvad er forskellen?', 'Mange tror, at college sport i USA er lig med NCAA. Men NAIA og NJCAA er selvstændige forbund, der for mange danskere er oplagte — og nogle gange bedre — veje.
 
 ## NCAA
 
@@ -179,7 +179,7 @@ Det afhænger af niveau, karakterer, økonomi og mål. JUCO kan åbne døre, hvi
 - [NAIA. (n.d.). Official website.](https://www.naia.org/)
 - [NJCAA. (n.d.). Official website.](https://www.njcaa.org/)
 - [ESPN. (2024). NCAA Division I board grants waiver for former JUCO players appealing in Diego Pavia injunction.](https://www.espn.com/college-football/story/_/id/43131557/ncaa-division-board-grants-waiver-former-juco-players-appealing-diego-pavia-injunction)', 'NCAA er ikke det eneste forbund for college sport i USA. Forstå NAIA og NJCAA (junior colleges) — og hvornår de er den rigtige vej for danske atleter.', 1, 'guide', 'system', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -187,8 +187,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('amerikansk-universitetssystem', 'Det amerikanske universitetssystem for student athletes', 'At være student athlete betyder fuldtidsstudie og elitesport på samme tid. Her er, hvordan det amerikanske universitetssystem er skruet sammen.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('amerikansk-universitetssystem', 'DK', 'Det amerikanske universitetssystem for student athletes', 'At være student athlete betyder fuldtidsstudie og elitesport på samme tid. Her er, hvordan det amerikanske universitetssystem er skruet sammen.
 
 ## Major, credits og GPA
 
@@ -218,7 +218,7 @@ Inden man overhovedet kan konkurrere, skal man opfylde optagelses- og spillebere
 
 - [NCAA. (2014, 6. oktober). Academic standards.](https://www.ncaa.org/sports/2014/10/6/academic-standards.aspx)
 - [NCAA. (2018, 11. juli). Eligibility Center.](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)', 'Major, credits, GPA og campus-liv: sådan fungerer amerikanske universiteter — og hvordan hverdagen ser ud som student athlete.', 1, 'guide', 'system', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -226,8 +226,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('saeson-kalender', 'Sæsonkalenderen i NCAA: hvornår spilles hvad?', 'College sport følger studieåret og deles groft i tre sæsoner. Her er, hvornår de enkelte sportsgrene spiller — med link til vores dækning af hver gren.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('saeson-kalender', 'DK', 'Sæsonkalenderen i NCAA: hvornår spilles hvad?', 'College sport følger studieåret og deles groft i tre sæsoner. Her er, hvornår de enkelte sportsgrene spiller — med link til vores dækning af hver gren.
 
 ## Efterårssæson (ca. august–december)
 
@@ -265,7 +265,7 @@ Uden for selve kampsæsonen (''non-traditional season'') trænes der videre, og 
 ## Kilder
 
 - [NCAA. (n.d.). Championships and dates.](https://www.ncaa.com/)', 'Efterår, vinter eller forår? Overblik over hvornår de enkelte NCAA-sportsgrene har sæson — fra football til roning.', 1, 'guide', 'system', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -273,8 +273,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('akademiske-krav', 'Akademiske krav & eligibility i NCAA', 'Før man kan konkurrere i NCAA, skal man godkendes både akademisk og som amatør. Her er hovedreglerne — husk at tjekke den aktuelle status, da kravene ændrer sig.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('akademiske-krav', 'DK', 'Akademiske krav & eligibility i NCAA', 'Før man kan konkurrere i NCAA, skal man godkendes både akademisk og som amatør. Her er hovedreglerne — husk at tjekke den aktuelle status, da kravene ændrer sig.
 
 ## NCAA Eligibility Center
 
@@ -317,7 +317,7 @@ Ja. Atleter kan tjene på NIL (Name, Image and Likeness) siden 2021, og fra 2025
 - [Higher Ed Dive. (2023). NCAA permanently ends SAT/ACT eligibility requirement (Division I & II).](https://www.highereddive.com/news/ncaa-permanently-ends-sat-act-eligibility-requirement-division-i-ii/642117/)
 - [NCAA. (2018, 11. juli). Eligibility Center.](https://www.ncaa.org/sports/2018/7/11/eligibility-center.aspx)
 - [Ropes & Gray. (2025, juni). House v. NCAA settlement approved: Era of direct payments to college athletes begins.](https://www.ropesgray.com/en/insights/alerts/2025/06/house-v-ncaa-settlement-approved-era-of-direct-payments-to-college-athletes-begins)', 'NCAA Eligibility Center, core courses, GPA og amatørstatus: hvad skal danske atleter opfylde for at blive spilleberettiget?', 1, 'guide', 'begreber', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -325,8 +325,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('transfer-portal', 'Transfer Portal forklaret', 'Transfer-portalen har ændret college sport markant. Her er, hvad den er, og hvorfor den er relevant for danske atleter, der søger bedre muligheder.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('transfer-portal', 'DK', 'Transfer Portal forklaret', 'Transfer-portalen har ændret college sport markant. Her er, hvad den er, og hvorfor den er relevant for danske atleter, der søger bedre muligheder.
 
 ## Hvad er portalen?
 
@@ -352,7 +352,7 @@ Spillertrupper ændrer sig hurtigt, og portalen giver atleter mulighed for at fi
 
 - [NCAA. (2024, 17. april). Division I Council approves changes to transfer rules.](https://www.ncaa.org/news/2024/4/17/media-center-division-i-council-approves-changes-to-transfer-rules.aspx)
 - [ESPN. (2024). NCAA approves new transfer rule allowing immediate eligibility.](https://www.espn.com/college-football/story/_/id/39963389/ncaa-approves-new-transfer-rule-allowing-immediate-eligibility)', 'Hvad er NCAA''s transfer portal, og hvordan virker den? Sådan skifter college-atleter universitet — og hvad det betyder for danske spillere.', 1, 'guide', 'begreber', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -360,8 +360,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('redshirt-og-eligibility', 'Redshirt og eligibility-år forklaret', 'Hvor mange år må man egentlig spille i NCAA? Reglerne er netop blevet lagt grundlæggende om: den klassiske ''fire sæsoner inden for fem år'' og selve redshirt-begrebet er på vej ud, til fordel for en aldersbaseret model. Her er forklaringen — på både det gamle og det nye.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('redshirt-og-eligibility', 'DK', 'Redshirt og eligibility-år forklaret', 'Hvor mange år må man egentlig spille i NCAA? Reglerne er netop blevet lagt grundlæggende om: den klassiske ''fire sæsoner inden for fem år'' og selve redshirt-begrebet er på vej ud, til fordel for en aldersbaseret model. Her er forklaringen — på både det gamle og det nye.
 
 ## Stor ændring: aldersbaseret model fra 2026
 
@@ -403,7 +403,7 @@ Under den nye model op til fem år, hvis du er indskrevet på college senest i d
 
 - [NCAA. (2026, 23. juni). Division I adopts age-based eligibility model.](https://www.ncaa.org/news/2026/6/23/media-center-division-i-adopts-age-based-eligibility-model.aspx)
 - [CBS Sports. (2026). NCAA votes to approve age-based five-year eligibility rule.](https://www.cbssports.com/college-football/news/ncaa-five-year-eligibility-rule-college-football-basketball/)', 'NCAA udfaser redshirt og indfører en aldersbaseret model med op til fem års eligibility. Forstå både den nye og den gamle ordning — og overgangen.', 1, 'guide', 'begreber', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -411,8 +411,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('college-sport-ordbog', 'Ordbog: college sport-begreber fra A til Z', 'Amerikansk college sport har sit eget sprog. Her er de vigtigste begreber forklaret kort — med links til dybere guider.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('college-sport-ordbog', 'DK', 'Ordbog: college sport-begreber fra A til Z', 'Amerikansk college sport har sit eget sprog. Her er de vigtigste begreber forklaret kort — med links til dybere guider.
 
 ## Amatørstatus (amateurism)
 
@@ -499,7 +499,7 @@ En atlet på holdet uden idrætslegat — i modsætning til en ''scholarship''-a
 ## Kilder
 
 - [NCAA. (2021). NCAA 101: What is the NCAA? (glossary).](https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-what-ncaa.aspx)', 'Amatørstatus, FBS, mid-major, redshirt, walk-on … de vigtigste begreber i amerikansk college sport forklaret kort på dansk.', 1, 'guide', 'begreber', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -507,8 +507,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('march-madness-forklaret', 'March Madness forklaret', 'March Madness er et af USA''s største sportsbegivenheder. Her er, hvordan turneringen fungerer — og hvorfor den er værd at følge for danske basketballfans.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('march-madness-forklaret', 'DK', 'March Madness forklaret', 'March Madness er et af USA''s største sportsbegivenheder. Her er, hvordan turneringen fungerer — og hvorfor den er værd at følge for danske basketballfans.
 
 ## Hvad er March Madness?
 
@@ -536,7 +536,7 @@ Danske [basketball](/basketball)-atleter kan være med, når deres hold når tur
 
 - [NCAA. (2026, 7. maj). NCAA basketball tournaments expanding to 76 teams: What to know.](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
 - [NCAA. (2026, 7. maj). How the 2027 expanded NCAA tournament and March Madness brackets will work.](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)', 'Single-elimination og en hel nation i basketball-feber. Sådan fungerer March Madness — NCAA''s store basketballturnering (udvides til 76 hold fra 2026-27).', 1, 'guide', 'saeson', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -544,8 +544,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('college-football-playoff-forklaret', 'College Football Playoff forklaret', 'College football afgøres i et slutspil kaldet College Football Playoff (CFP). Her er, hvordan det fungerer — kort og for danskere.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('college-football-playoff-forklaret', 'DK', 'College Football Playoff forklaret', 'College football afgøres i et slutspil kaldet College Football Playoff (CFP). Her er, hvordan det fungerer — kort og for danskere.
 
 ## Hvad er CFP?
 
@@ -571,7 +571,7 @@ Danskere i college football er ofte specialister (kickere, puntere) og linemen. 
 
 - [Wikipedia. (n.d.). College Football Playoff. Hentet juni 2026.](https://en.wikipedia.org/wiki/College_Football_Playoff)
 - [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)', 'Hvordan kåres mesteren i college football? Guide til College Football Playoff, det udvidede slutspil og bowl-systemet.', 1, 'guide', 'saeson', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
@@ -579,8 +579,8 @@ ON CONFLICT(slug) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('signing-day-og-nli', 'Signing Day og National Letter of Intent', 'Når en rekrut og et universitet bliver enige, formaliseres det på en ''signing day''. Her er, hvad det betyder — og hvorfor reglerne er værd at holde øje med.
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('signing-day-og-nli', 'DK', 'Signing Day og National Letter of Intent', 'Når en rekrut og et universitet bliver enige, formaliseres det på en ''signing day''. Her er, hvad det betyder — og hvorfor reglerne er værd at holde øje med.
 
 ## Signing Day
 
@@ -612,10 +612,13 @@ Ikke i Division I — NCAA afskaffede NLI-programmet i oktober 2024 og erstatted
 
 - [ESPN. (2024). NCAA approves elimination of National Letter of Intent program.](https://www.espn.com/college-sports/story/_/id/41702974/ncaa-approves-elimination-national-letter-intent-program)
 - [NCSA. (2024). NCAA eliminates the NLI: What now?](https://www.ncsasports.org/blog/ncaa-eliminates-nli)', 'Hvad sker der på Signing Day, og hvad er en National Letter of Intent? Sådan formaliseres aftalen mellem atlet og universitet.', 1, 'guide', 'saeson', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'guide',
   category = excluded.category,
   updated_at = datetime('now');
+
+INSERT INTO site_content (key, country, value, updated_at) VALUES ('seedhash.guides', 'DK', '791ba5870e504cbadfc6bdd7b5ff9ae0dc24540529c43c74dca96bb8ea598094', datetime('now'))
+ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, updated_at = datetime('now');

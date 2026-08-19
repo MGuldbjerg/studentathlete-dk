@@ -8,6 +8,8 @@
  *
  * Idempotent (ON CONFLICT DO UPDATE). NB: kører du den IGEN efter manuelle
  * admin-redigeringer, overskrives indholdet med koden — kun til engangs-seed.
+ * NB: `pages` har UNIQUE (slug, country) — ON CONFLICT skal nævne BEGGE
+ * kolonner, ellers fejler hele sætningen (samme fælde som site_content/037).
  */
 import { writeFileSync } from "node:fs";
 import { VIDEN_GUIDES, guideToMarkdown } from "../../src/lib/viden-content";
@@ -17,9 +19,9 @@ const esc = (s: string) => s.replace(/'/g, "''");
 
 const stmts = VIDEN_GUIDES.map((g) => {
   const md = guideToMarkdown(g);
-  return `INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('${esc(g.slug)}', '${esc(g.title)}', '${esc(md)}', '${esc(g.description)}', 1, 'guide', '${esc(g.category)}', datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+  return `INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('${esc(g.slug)}', 'DK', '${esc(g.title)}', '${esc(md)}', '${esc(g.description)}', 1, 'guide', '${esc(g.category)}', datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,

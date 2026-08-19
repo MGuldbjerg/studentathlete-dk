@@ -1,5 +1,5 @@
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('football', 'Football', '## Dansk football i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('football', 'DK', 'Football', '## Dansk football i NCAA
 
 Amerikansk football er den sportsgren, der har åbnet flest døre for danske atleter i USA. Særligt kicker- og punter-positionen er blevet en dansk specialitet — det kræver præcision og is i maven, og en dansk fodboldopvækst træner benet i at ramme bolden rent. Det er en evne, som flere college-programmer aktivt rekrutterer efter i udlandet.
 
@@ -21,15 +21,15 @@ Morten Andersen — "The Great Dane" — er den mest berømte dansker i amerikan
 - [CBS Sports. (2025). NCAA removes scholarship limits, aligns with House settlement as roster sizes evolve.](https://www.cbssports.com/college-football/news/ncaa-removes-scholarship-limits-aligns-with-house-settlement-as-roster-sizes-evolve-in-new-college-sports-era/)
 - [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)
 - [Pro Football Hall of Fame. (2017). Morten Andersen.](https://www.profootballhof.com/players/morten-andersen)', 'Danske football-atleter i NCAA – nyheder, profiler og resultater fra college football i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('basketball', 'Basketball', '## Dansk basketball i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('basketball', 'DK', 'Basketball', '## Dansk basketball i NCAA
 
 Basketball har i de seneste år set en stigende interesse fra danske atleter, der drømmer om at spille på højt niveau i USA. Den danske liga giver et godt fundament, og flere spillere har gjort springet til NCAA Division I og II.
 
@@ -50,15 +50,15 @@ College basketball har en helt anden stemning end de professionelle ligaer: stud
 - [NCAA. (2026, 7. maj). NCAA basketball tournaments expanding to 76 teams: What to know.](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
 - [NCAA. (2026, 7. maj). How the 2027 expanded NCAA tournament and March Madness brackets will work.](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)
 - [Women''s Basketball Hall of Fame. (2012). Inge Nissen.](https://wbhof.com/member/inge-nissen/)', 'Danske basketball-atleter i NCAA – nyheder, profiler og resultater fra college basketball i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('baseball', 'Baseball', '## Dansk baseball i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('baseball', 'DK', 'Baseball', '## Dansk baseball i NCAA
 
 Baseball er en nichesport i Danmark, men det lille danske baseballmiljø har alligevel produceret atleter, der kan konkurrere på NCAA-niveau. Den voksende interesse for sporten har åbnet døre for danske talenter.
 
@@ -78,15 +78,15 @@ Baseball var historisk en såkaldt "equivalency sport": et hold delte et begræn
 
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
 - [NCSA. (2025). New NCAA scholarship and roster limits for 2025-26.](https://www.ncsasports.org/blog/ncaa-scholarship-roster-limits-2024)', 'Danske baseball-atleter i NCAA – nyheder, profiler og resultater fra college baseball i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('fodbold', 'Fodbold', '## Dansk fodbold i NCAA (soccer)
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('fodbold', 'DK', 'Fodbold', '## Dansk fodbold i NCAA (soccer)
 
 Fodbold — eller soccer, som det hedder i USA — er en af de mest populære veje for danske atleter til amerikanske universiteter. Med et af verdens stærkeste ungdomssystemer har danske fodboldspillere et naturligt forspring.
 
@@ -106,15 +106,15 @@ Kvindefodbold er enormt i USA og i mange år bygget op netop omkring college-sys
 
 - [NCAA. (2024, 18. april). Substitution rules changes approved for DI men''s soccer.](https://www.ncaa.org/news/2024/4/18/media-center-substitution-rules-changes-approved-for-di-mens-soccer.aspx)
 - [NCAA. (n.d.). Road to the championship: Men''s soccer (College Cup).](https://www.ncaa.com/championships/soccer-men/d1/road-to-the-championship)', 'Danske fodboldspillere (soccer) i NCAA – nyheder, profiler og resultater fra college soccer i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('svoemning', 'Svømning', '## Dansk svømning i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('svoemning', 'DK', 'Svømning', '## Dansk svømning i NCAA
 
 Danmark har en stærk svømmetradition, og NCAA tilbyder en unik mulighed for danske svømmere til at kombinere sport på højt niveau med en amerikansk universitetsuddannelse. Flere danske svømmere har opnået imponerende resultater i college-regi.
 
@@ -133,15 +133,15 @@ En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-ya
 ### Kilder
 
 - [NCAA. (n.d.). NCAA Division I men''s swimming & diving.](https://www.ncaa.com/sports/swimming-men/d1)', 'Danske svømmere i NCAA – nyheder, profiler og resultater fra college-svømning i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('atletik', 'Atletik', '## Dansk atletik i NCAA (track & field)
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('atletik', 'DK', 'Atletik', '## Dansk atletik i NCAA (track & field)
 
 Atletik er en af de største sportsgrene i NCAA, og danske atleter har gode muligheder for at konkurrere på højt niveau. Fra sprint til kast, fra spring til mellemdistance — der er plads til danske talenter i alle discipliner.
 
@@ -161,15 +161,15 @@ Stafetterne er blandt de mest populære øvelser, og holdfølelsen omkring dem e
 
 - [NCAA. (n.d.). NCAA Division I men''s outdoor track and field.](https://www.ncaa.com/sports/track-field-outdoor-men/d1)
 - [NCAA. (n.d.). NCAA Division I men''s cross country.](https://www.ncaa.com/sports/cross-country-men/d1)', 'Danske atletikudøvere i NCAA – nyheder, profiler og resultater fra track and field i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('golf', 'Golf', '## Dansk golf i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('golf', 'DK', 'Golf', '## Dansk golf i NCAA
 
 Golf er en af de sportsgrene, hvor danske atleter har markeret sig allermest i NCAA. Danmarks stærke golftradition og høje niveau i ungdomsgolf gør det til en naturlig vej til amerikanske universiteter.
 
@@ -189,15 +189,15 @@ Vejen fra dansk ungdomsgolf til NCAA er veletableret, og flere danskere har vund
 
 - [NCAA. (n.d.). NCAA Division I men''s golf.](https://www.ncaa.com/sports/golf-men/d1)
 - [NCAA. (n.d.). DI men''s golf championship history.](https://www.ncaa.com/history/golf-men/d1)', 'Danske golfspillere i NCAA – nyheder, profiler og resultater fra college golf i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('tennis', 'Tennis', '## Dansk tennis i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('tennis', 'DK', 'Tennis', '## Dansk tennis i NCAA
 
 Tennis er en af de mest populære sportsgrene for internationale atleter i NCAA, og danske spillere har en stærk tilstedeværelse. Det individuelle format og det høje niveau i dansk tennis gør det til en oplagt mulighed.
 
@@ -217,15 +217,15 @@ College tennis bryder med den professionelle sports stilhed: holdkammerater og s
 
 - [NCAA. (2015, 13. august). Division I tennis championships move to no-ad scoring.](https://www.ncaa.com/news/tennis-men/article/2015-08-13/division-i-tennis-championships-move-no-ad-scoring)
 - [Intercollegiate Tennis Association. (2025, 14. juli). 2025-2026 ITA rule modifications, changes and clarifications.](https://wearecollegetennis.com/2025/07/14/2025-2026-ita-rule-modifications-changes-and-clarifications/)', 'Danske tennisspillere i NCAA – nyheder, profiler og resultater fra college tennis i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('roning', 'Roning', '## Dansk roning i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('roning', 'DK', 'Roning', '## Dansk roning i NCAA
 
 Roning har en særlig plads i NCAA, især for kvinder, og Danmarks stærke roklubber og traditioner gør det til en naturlig base for atleter, der vil konkurrere i USA.
 
@@ -245,15 +245,15 @@ Et kuriosum værd at kende: kvinderoning er en officiel NCAA-mesterskabssport, m
 
 - [NCAA. (n.d.). NCAA Division I women''s rowing.](https://www.ncaa.com/sports/rowing-women/d1)
 - [California Golden Bears Athletics. (2017, 1. februar). Inside the lair: Danish rower makes immediate impact in Berkeley.](https://calbears.com/news/2017/2/1/inside-the-lair-danish-rower-makes-immediate-impact-in-berkeley.aspx)', 'Danske roere i NCAA – nyheder, profiler og resultater fra college rowing i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('gymnastik', 'Gymnastik', '## Dansk gymnastik i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('gymnastik', 'DK', 'Gymnastik', '## Dansk gymnastik i NCAA
 
 Gymnastik er en af NCAAʼs mest populære sportsgrene med stor publikumsinteresse. Danske gymnaster, der har trænet på højt niveau i Danmark eller Skandinavien, kan finde gode muligheder i det amerikanske college-system.
 
@@ -272,15 +272,15 @@ En charmerende særhed ved kvindernes college-gymnastik: den holder fast i den k
 ### Kilder
 
 - [NCAA. (n.d.). NCAA Division I women''s gymnastics.](https://www.ncaa.com/sports/gymnastics-women/d1)', 'Danske gymnaster i NCAA – nyheder, profiler og resultater fra college gymnastics i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('ishockey', 'Ishockey', '## Dansk ishockey i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('ishockey', 'DK', 'Ishockey', '## Dansk ishockey i NCAA
 
 Ishockey er en stor sport i det amerikanske college-system, med intense rivaliseringer og høj kvalitet. Danske ishockeyspillere, der har udviklet sig i Metal Ligaen eller danske ungdomsprogrammer, kan finde en vej til NCAA.
 
@@ -298,15 +298,15 @@ En historisk regelændring trådte i kraft 1. august 2025: spillere fra den cana
 
 - [NHL.com. (2024, 7. november). CHL players to be eligible to play NCAA hockey beginning in 2025-26.](https://www.nhl.com/news/chl-players-to-be-eligible-to-play-ncaa-hockey-beginning-in-2025-26)
 - [College Hockey Inc. (2024, november). NCAA DI Council votes to make CHL players eligible.](https://www.collegehockeyinc.com/2024/11/breaking-ncaa-di-council-votes-to-make-chl-players-eligible/)', 'Danske ishockeyspillere i NCAA – nyheder, profiler og resultater fra college hockey i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('volleyball', 'Volleyball', '## Dansk volleyball i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('volleyball', 'DK', 'Volleyball', '## Dansk volleyball i NCAA
 
 Volleyball er en af NCAAʼs største sportsgrene, især for kvinder, med tusindvis af hold på tværs af divisioner. Danske volleyballspillere har gode muligheder, da sporten er mindre eksponeret internationalt end fx fodbold.
 
@@ -321,15 +321,50 @@ Ud over den klassiske indendørs 6-mod-6-volleyball er beachvolley vokset til en
 ### Kilder
 
 - [NCAA. (n.d.). NCAA Division I women''s volleyball.](https://www.ncaa.com/sports/volleyball-women/d1)', 'Danske volleyballspillere i NCAA – nyheder, profiler og resultater fra college volleyball i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('andet', 'Andre sportsgrene', '## Andre sportsgrene i NCAA
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('field-hockey', 'DK', 'Field hockey', '## Field hockey i NCAA
+
+Field hockey er en lille sport i Danmark, og netop derfor er den amerikanske vej interessant: i USA er field hockey et etableret college-program med fuld støtte, egne stadions og et mesterskab, der følges på tv. Feltet er samtidig et af de mest internationale i NCAA — hollandske, tyske, engelske, argentinske og australske spillere fylder meget på de bedste hold.
+
+**Én ting skal siges først: field hockey i NCAA er en kvindesport.** Der findes intet NCAA-mesterskab for herrer og ingen herrelegater i field hockey. For danske drenge findes vejen altså ikke — uanset niveau.
+
+### Sæsonens gang
+
+Field hockey er en efterårssport. Sæsonen begynder sidst i august, conference-turneringerne afvikles i begyndelsen af november, og NCAA-turneringen spilles midt i november med semifinaler og finale sidst på måneden. Det er en kort, tæt sæson på kunstgræs, hvor holdene ofte spiller to kampe om ugen.
+
+### Sådan afgøres en kamp
+
+Elleve spillere pr. hold, og kampen spilles i **fire kvarterer à 15 minutter** — ikke to halvlege, som mange forbinder med sporten fra Europa. Står kampen lige, forlænges den med sudden victory, og er der stadig ikke fundet en vinder, afgøres den på straffekonkurrence. Mål falder oftest efter et straffehjørne, så specialisterne på dødbolde er værdifulde.
+
+### Legater og niveauer
+
+Division I har godt 80 programmer fordelt på omkring 33 conferences, og et D1-hold må råde over op til 12 fulde legater, som typisk deles ud som delvise. Division II har op til 6,3, mens Division III slet ikke giver sportslegater — men ofte kan tilbyde akademisk støtte og behovsbestemt hjælp. Der spilles NCAA-mesterskab i alle tre divisioner.
+
+### Tidbits
+
+Feltet er internationalt i et omfang, der er usædvanligt selv for NCAA: allerede i 2015 kom mere end 10 procent af alle college-spillere i field hockey fra udlandet, og andelen er vokset siden. Sportsligt har nordøsten og Mid-Atlantic traditionelt domineret — i 2025 vandt Northwestern sit tredje mesterskab efter at have slået North Carolina i semifinalen i forlænget spilletid.
+
+### Kilder
+
+- [NCAA. (n.d.). Division I field hockey.](https://www.ncaa.org/championship/division-i/field-hockey/)
+- [USA Field Hockey. (2025, August 25). 2025 NCAA field hockey season preview: Division I.](https://www.usafieldhockey.com/news/2025/august/25/2025-ncaa-field-hockey-season-preview-division-i)
+- [ScholarshipStats.com. (n.d.). Field hockey scholarships.](https://scholarshipstats.com/fieldhockey)', 'Danske field hockey-spillere i NCAA – nyheder, profiler og resultater fra college field hockey i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('andet', 'DK', 'Andre sportsgrene', '## Andre sportsgrene i NCAA
 
 NCAA afvikler mesterskaber i omkring 24 sportsgrene, og danske atleter kan findes i mange af dem. Fra lacrosse til fægtning, fra vandpolo og sejlsport til skisport og wrestling — mulighederne er bredere, end de fleste tror. Udbuddet vokser stadig: kvindebrydning fik sit første NCAA-mesterskab i 2026, og acrobatics & tumbling samt stunt følger fra 2027.
 
@@ -345,9 +380,12 @@ Flere af NCAAʼs mindre sportsgrene har færre ansøgere til stipendierne, hvilk
 
 - [NCAA. (2026, 16. januar). NCAA to add four new championships.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-to-add-four-new-championships.aspx)
 - [NCAA. (2026, 4. marts). NCAA''s first women''s wrestling championships: What to know.](https://www.ncaa.org/news/2026/3/4/media-center-ncaas-first-womens-wrestling-championships-what-to-know.aspx)', 'Danske atleter i øvrige NCAA-sportsgrene – nyheder og profiler fra niche-sportsgrene i USA.', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
   kind = 'sport',
   updated_at = datetime('now');
+
+INSERT INTO site_content (key, country, value, updated_at) VALUES ('seedhash.sport', 'DK', '0354bfebf084eea752dc4ba80ef6c57322ce1124b62b05d80c627dc512d213e7', datetime('now'))
+ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, updated_at = datetime('now');

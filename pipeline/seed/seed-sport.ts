@@ -8,6 +8,8 @@
  * Indlæs: wrangler d1 execute studentathlete-dk --remote --file=db/seed-sport.sql
  *
  * Idempotent. NB: kør ikke igen efter manuelle admin-redigeringer (overskriver).
+ * NB: `pages` har UNIQUE (slug, country) — ON CONFLICT skal nævne BEGGE
+ * kolonner, ellers fejler hele sætningen (samme fælde som site_content/037).
  */
 import { writeFileSync } from "node:fs";
 import { SPORT_CONTENT } from "../../src/lib/sport-content";
@@ -17,9 +19,9 @@ const esc = (s: string) => s.replace(/'/g, "''");
 
 const stmts = Object.entries(SPORT_CONTENT).map(
   ([slug, c]) =>
-    `INSERT INTO pages (slug, title, content, meta_description, published, kind, category, updated_at)
-VALUES ('${esc(slug)}', '${esc(c.title)}', '${esc(c.pillar)}', '${esc(c.metaDescription)}', 1, 'sport', NULL, datetime('now'))
-ON CONFLICT(slug) DO UPDATE SET
+    `INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('${esc(slug)}', 'DK', '${esc(c.title)}', '${esc(c.pillar)}', '${esc(c.metaDescription)}', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,
