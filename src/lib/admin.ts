@@ -201,24 +201,41 @@ export async function deleteArticle(id: number): Promise<void> {
   try {
     const row = await db
       .prepare(
-        `SELECT a.published, a.original_content, a.article_type, a.fabrication_risk, s.sensitive
+        `SELECT a.published, a.original_content, a.title, a.article_type, a.fabrication_risk,
+                a.story_id, a.athlete_id, s.sensitive
          FROM articles a LEFT JOIN stories s ON a.story_id = s.id WHERE a.id = ?`
       )
       .bind(id)
       .first() as {
         published: number;
         original_content: string | null;
+        title: string | null;
         article_type: string | null;
         fabrication_risk: string | null;
+        story_id: number | null;
+        athlete_id: number | null;
         sensitive: string | null;
       } | null;
     if (row && row.published === 0 && row.original_content) {
       await db
         .prepare(
-          `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive)
-           VALUES (?, 'rejected', ?, ?, ?)`
+          // Teksten gemmes MED: uden den kan en afvisning ikke efterprøves
+          // senere, og afvisningerne er de vigtigste sager at måle et
+          // kvalitetstjek på (migration 044).
+          `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive,
+                                   content_snapshot, title_snapshot, story_id, athlete_id)
+           VALUES (?, 'rejected', ?, ?, ?, ?, ?, ?, ?)`
         )
-        .bind(id, row.article_type, row.fabrication_risk, row.sensitive)
+        .bind(
+          id,
+          row.article_type,
+          row.fabrication_risk,
+          row.sensitive,
+          row.original_content,
+          row.title,
+          row.story_id,
+          row.athlete_id
+        )
         .run();
     }
   } catch {

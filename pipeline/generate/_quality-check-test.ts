@@ -35,7 +35,13 @@ eq(numbersIn("18 kampe, 3,5 point og 2-1"), ["18", "3.5", "2", "1"], "tal trækk
 ok(properNamesIn("Cheftræner Mark Carr sagde").includes("Mark Carr"), "halen af et sætningsstart-match er med");
 ok(properNamesIn("Han startede i august").length === 0, "almindelig dansk sætning giver ingen navne");
 eq(quotesIn('Han sagde: «Vi spillede godt i dag».').length, 1, "typografisk citat");
-eq(quotesIn("> Vi spillede godt i aften, sagde han").length, 1, "blockquote");
+eq(quotesIn("Brødtekst her.\n\n> Vi spillede godt i aften, sagde han").length, 1, "tilskrevet blockquote er et citat");
+// Husets manchet står som en indledende «>»-linje og er IKKE et citat (#23).
+eq(
+  quotesIn("> Danske Marie Eline Madsen har sat sit aftryk på golfsæsonen for NC State.\n\nBrødtekst.").length,
+  0,
+  "indledende blockquote er manchetten, ikke et citat",
+);
 
 // ── #105: opdigtet alder og kamptal ──────────────────────────────────────────
 const amtrup = checkDraft({

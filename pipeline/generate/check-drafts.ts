@@ -36,6 +36,8 @@ interface DraftRow {
   fact_sheet: string | null;
   content_raw: string | null;
   summary: string | null;
+  headline: string | null;
+  preferred_name: string | null;
   athlete_name: string | null;
   gender: string | null;
   class_year: string | null;
@@ -88,10 +90,13 @@ export async function checkOne(
     title: row.title,
     content: row.content,
     factSheet: row.fact_sheet,
-    sourceText: row.content_raw ?? row.summary ?? null,
+    // Overskrift OG resumé lægges til kilden: når content_raw ikke kunne
+    // hentes, er de dét kilden faktisk sagde.
+    sourceText: [row.headline, row.summary, row.content_raw].filter(Boolean).join("\n") || null,
     athlete: row.athlete_name
       ? {
           name: row.athlete_name,
+          preferredName: row.preferred_name,
           gender: row.gender,
           classYear: row.class_year,
           university: row.university,
@@ -127,7 +132,8 @@ async function main(): Promise<void> {
 
   const rows = await db.query<DraftRow>(
     `SELECT a.id, a.title, a.content, a.country, a.article_type,
-            s.fact_sheet, s.content_raw, s.summary,
+            s.fact_sheet, s.content_raw, s.summary, s.headline,
+            ath.preferred_name,
             ath.name AS athlete_name, ath.gender, ath.class_year,
             ath.university, ath.hometown
      FROM articles a

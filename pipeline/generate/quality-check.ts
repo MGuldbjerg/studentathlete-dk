@@ -52,6 +52,8 @@ export interface CheckInput {
   sourceText: string | null;
   athlete: {
     name: string;
+    /** Skolens kaldenavn ("Ogbe" for Ogbemudia) — `athletes.preferred_name`. */
+    preferredName?: string | null;
     gender: string | null;
     classYear: string | null;
     university: string | null;
@@ -96,6 +98,41 @@ export function numbersIn(text: string): string[] {
 }
 
 /**
+ * Ord der er STORE fordi sætningen begynder der, eller fordi dansk skriver dem
+ * sådan — aldrig fordi de er navne. Uden listen blev «Danske Marie Eline»,
+ * «Udover Bangerts» og «Med Uagboe» flaget som ukendte personer på kladder
+ * Mikkel godkendte uændret (målt 2026-08-19: 41 navnefund, kun 6 som mennesket
+ * faktisk fjernede).
+ */
+const FUNCTION_WORDS = new Set([
+  // dansk
+  "danske", "dansk", "danskeren", "danskerens", "britiske", "britisk", "udover",
+  "med", "for", "efter", "ifølge", "den", "det", "de", "der", "han", "hun", "hans",
+  "hendes", "i", "på", "til", "som", "da", "og", "men", "nu", "her", "sidste",
+  "første", "andet", "andre", "både", "en", "et", "alt", "både", "hvor", "når",
+  "siden", "under", "over", "mens", "samtidig", "desuden", "dermed", "derfor",
+  "trods", "foran", "bag", "ved", "om", "af", "fra", "hos", "mod", "uden",
+  // engelsk
+  "the", "his", "her", "in", "on", "to", "as", "and", "but", "now", "also",
+  "both", "last", "first", "other", "despite", "beyond", "besides", "after",
+  "before", "while", "when", "where", "with", "from", "at", "by", "for",
+]);
+
+/** Ord der gør et navn til en INSTITUTION frem for en person. */
+const INSTITUTION_WORDS = new Set([
+  "university", "universitet", "college", "conference", "division", "championship",
+  "championships", "team", "cup", "league", "invitational", "classic", "open",
+  "state", "tech", "academy", "school", "club", "association", "all-american",
+]);
+
+function isInstitution(name: string): boolean {
+  return name
+    .toLowerCase()
+    .split(/[\s-]+/)
+    .some((w) => INSTITUTION_WORDS.has(w));
+}
+
+/**
  * Navne: to eller tre store forbogstaver i træk ("Mark Carr", "Big West").
  *
  * Enkeltord ville støje enormt på dansk, hvor sætninger begynder med stort og
@@ -103,30 +140,76 @@ export function numbersIn(text: string): string[] {
  * gengæld næsten altid et egennavn — og det er præcis formen på de opdigtede
  * trænere og de forkerte atleter vi har set.
  *
- * Faldgruben: et ord der kun er stort fordi sætningen begynder der, hænger ved.
- * «Cheftræner Mark Carr sagde» giver tre store ord i træk. Derfor returneres
- * ogsÅ halen af et tre-ords-match ("Mark Carr"), og kalderen vælger det korteste
- * kandidat der mangler i kilden.
+ * To fælder, begge målt på rigtige kladder:
+ *  · Et ord der kun er stort fordi sætningen begynder der, hænger ved
+ *    («Cheftræner Mark Carr»). Derfor trimmes funktionsord fra begge ender.
+ *  · Et match må ikke krydse en sætnings- eller linjegrænse: «…Uagboe\nIfølge…»
+ *    blev ét «navn».
  */
 export function properNamesIn(text: string): string[] {
   const out = new Set<string>();
   const re = /\p{Lu}[\p{Ll}'’-]+(?:\s+\p{Lu}[\p{Ll}'’-]+){1,2}/gu;
-  for (const m of text.matchAll(re)) {
-    const full = m[0].replace(/\s+/g, " ");
-    out.add(full);
-    const words = full.split(" ");
-    if (words.length === 3) out.add(words.slice(1).join(" "));
+  // Del ved sætnings- og linjegrænser, så ingen kandidat spænder over dem.
+  for (const segment of text.split(/[.!?:;\n]+/)) {
+    for (const m of segment.matchAll(re)) {
+      const words = m[0].replace(/\s+/g, " ").split(" ");
+      // Trim funktionsord fra begge ender.
+      while (words.length > 0 && FUNCTION_WORDS.has(words[0].toLowerCase())) words.shift();
+      while (words.length > 0 && FUNCTION_WORDS.has(words[words.length - 1].toLowerCase())) words.pop();
+      if (words.length < 2) continue;
+      out.add(words.join(" "));
+      if (words.length === 3) out.add(words.slice(1).join(" "));
+    }
   }
   return [...out];
 }
 
-/** Citater: typografiske og lige anførselstegn samt markdown-blockquotes. */
+/**
+ * Citater: typografiske og lige anførselstegn samt markdown-blockquotes.
+ *
+ * Kravet om at det skal LIGNE tale er tilføjet efter måling: et løst
+ * anførselstegn (fx om et prisnavn) fik regexen til at opfange almindelig
+ * brødtekst mellem to tegn, og 14 citat-fund gav kun 2 rigtige. Nu skal spanden
+ * være på én linje, af rimelig længde, og enten slutte som en sætning eller stå
+ * ved siden af et sige-verbum.
+ */
+const SPEECH_VERBS = /\b(sagde|siger|udtaler|fortæller|fortalte|udtalte|forklarer|forklarede|said|says|added|explained|told)\b/i;
+
 export function quotesIn(text: string): string[] {
   const out: string[] = [];
-  for (const m of text.matchAll(/[«"„”“]([^«»"„”“]{12,})[»"”“]/g)) out.push(m[1].trim());
-  for (const line of text.split("\n")) {
+  for (const m of text.matchAll(/[«"„”“]([^«»"„”“\n]{20,240})[»"”“]/g)) {
+    const span = m[1].trim();
+    const after = text.slice((m.index ?? 0) + m[0].length, (m.index ?? 0) + m[0].length + 60);
+    const before = text.slice(Math.max(0, (m.index ?? 0) - 60), m.index ?? 0);
+    // Kolon lige før anførselstegnet er dansk journalistiks tydeligste
+    // tale-markør: «Cheftræneren er tilfreds: «…»».
+    // Et citat er TILSKREVET nogen. Uden det krav opfangede regexen kladdens
+    // egen manchet, hver gang der stod et løst anførselstegn i teksten: 14
+    // citat-fund gav kun 2 rigtige (målt 2026-08-19).
+    const introducedByColon = /:\s*$/.test(before);
+    const speechLike = introducedByColon || SPEECH_VERBS.test(after) || SPEECH_VERBS.test(before);
+    if (speechLike) out.push(span);
+  }
+  // Blockquotes: i DETTE hus er en indledende «>»-linje MANCHETTEN, ikke et
+  // citat. Alle citat-fund på rigtige kladder viste sig at være netop den
+  // manchet (målt 2026-08-19: 14 fund, 2 rigtige). Et blockquote tælles derfor
+  // kun som citat hvis det er tilskrevet — eller står inde i brødteksten med
+  // anførselstegn.
+  const lines = text.split("\n");
+  let bodySeen = false;
+  for (const [i, line] of lines.entries()) {
     const t = line.trim();
-    if (t.startsWith(">") && t.length > 14) out.push(t.slice(1).trim());
+    if (t === "") continue;
+    if (!t.startsWith(">")) {
+      bodySeen = true;
+      continue;
+    }
+    if (t.length <= 14) continue;
+    const inner = t.slice(1).trim();
+    const isManchet = !bodySeen && i < 3;
+    if (isManchet) continue;
+    const attributed = SPEECH_VERBS.test(inner) || /[«"„”“]/.test(inner);
+    if (attributed) out.push(inner);
   }
   return out;
 }
@@ -217,11 +300,16 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
     // Et længere navn der indeholder et allerede flaget, er samme fund.
     if (missingNames.some((m) => n.includes(m))) continue;
     missingNames.push(n);
+    // En institution der mangler i kilden er værd at se på, men en PERSON der
+    // mangler, er den fejl der har kostet os to kladder om forkerte mennesker.
+    const institution = isInstitution(name);
     findings.push({
-      severity: "high",
+      severity: institution ? "medium" : "high",
       category: "names",
       claim: name,
-      why: "navnet står ikke i kilden — opdigtede trænere og forkerte personer ser sådan ud",
+      why: institution
+        ? "institutionen står ikke i kilden — tjek at holdet/turneringen er den rigtige"
+        : "navnet står ikke i kilden — opdigtede trænere og forkerte personer ser sådan ud",
     });
   }
 
@@ -238,14 +326,30 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
   }
 
   // ── 4. Identitet ──────────────────────────────────────────────────────────
-  const firstName = (input.athlete?.name ?? "").trim().split(/\s+/)[0] ?? "";
-  if (firstName && input.sourceText && !normalise(input.sourceText).includes(normalise(firstName))) {
-    findings.push({
-      severity: "high",
-      category: "identity",
-      claim: firstName,
-      why: "atletens fornavn optræder ikke i kilden — handler historien om et andet menneske?",
-    });
+  //
+  // Kaldenavnet er en del af identiteten: kilden skriver «Ogbe Uagboe», basen
+  // «Ogbemudia Uagboe». Uden det blev en korrekt kladde flaget for forkert
+  // person (#79). Og står efternavnet i kilden, men ikke fornavnet, er det en
+  // MILDERE tvivl end når intet af navnet findes.
+  const nameParts = (input.athlete?.name ?? "").trim().split(/\s+/).filter(Boolean);
+  const firstName = nameParts[0] ?? "";
+  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+  const preferred = (input.athlete?.preferredName ?? "").trim();
+  if (firstName && input.sourceText) {
+    const src = normalise(input.sourceText);
+    const knowsFirst =
+      src.includes(normalise(firstName)) || (preferred !== "" && src.includes(normalise(preferred)));
+    const knowsLast = lastName !== "" && src.includes(normalise(lastName));
+    if (!knowsFirst) {
+      findings.push({
+        severity: knowsLast ? "medium" : "high",
+        category: "identity",
+        claim: firstName,
+        why: knowsLast
+          ? "kun efternavnet står i kilden — er det den rigtige person i familien/på holdet?"
+          : "atletens navn optræder ikke i kilden — handler historien om et andet menneske?",
+      });
+    }
   }
 
   // ── 5. Stedord ────────────────────────────────────────────────────────────
@@ -298,10 +402,55 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
   return findings.sort((a, b) => order[a.severity] - order[b.severity]);
 }
 
-/** Samlet alvor: den værste enkeltfund. Tom liste = 'low'. */
+/**
+ * Samlet alvor — og hvorfor det IKKE bare er «det værste enkeltfund».
+ *
+ * Målt mod Mikkels faktiske beslutninger (`pipeline/report/review-accuracy.ts`,
+ * 2026-08-19) opfører kategorierne sig meget forskelligt:
+ *
+ *   class_year  2 fund → 2 rettet af mennesket
+ *   quotes      2 fund → 1
+ *   numbers    20 fund → 5
+ *   names      24 fund → 4
+ *
+ * Identitet, tid, stedord og citater er PRÆCISE: fyrer de, er der noget galt.
+ * Tal og navne er derimod LÆSEHJÆLP — de peger på påstande der skal efterprøves,
+ * og fire femtedele af dem viste sig at være i orden. Lod vi et enkelt sådant
+ * fund gøre badgen rød, ville næsten hver kladde være rød, og så er badgen lige
+ * så ubrugelig som den gamle (den flagede 2 af 3 kladder Mikkel godkendte uændret).
+ *
+ * Derfor: de præcise kategorier sætter badgen. Tal og navne løfter den kun når de
+ * optræder i KLYNGE — én ukildebelagt oplysning er en note, to er et mønster.
+ *
+ * Grænsen er MÅLT, ikke gættet. På de 21 kladder med bevaret tekst:
+ *
+ *   gammelt badge (modellen)      3/18 fanget · 0/3 falske alarmer
+ *   ethvert fund = rød           12/18        · 2/3   ← ubrugelig som triage
+ *   præcis ELLER klynge ≥ 2      10/18        · 0/3   ← valgt
+ *   præcis ELLER klynge ≥ 3       8/18        · 0/3
+ *
+ * Grænse 2 fanger altså 3,3× så meget som det gamle badge UDEN at fejlflage en
+ * eneste kladde Mikkel godkendte uændret. Kør rapporten igen når sæsonen har
+ * givet flere beslutninger — n=21 er for lidt til at kalde det andet end det
+ * bedste valg på det vi ved nu.
+ */
+const PRECISE: ReadonlySet<Finding["category"]> = new Set([
+  "identity",
+  "timing",
+  "pronouns",
+  "quotes",
+  "class_year",
+]);
+
+const CLUSTER_THRESHOLD = 2;
+
 export function severityOf(findings: Finding[]): "low" | "medium" | "high" {
-  if (findings.some((f) => f.severity === "high")) return "high";
-  if (findings.length > 0) return "medium";
+  const precise = findings.filter((f) => PRECISE.has(f.category));
+  if (precise.some((f) => f.severity === "high")) return "high";
+
+  const aids = findings.filter((f) => !PRECISE.has(f.category));
+  if (aids.length >= CLUSTER_THRESHOLD) return "high";
+  if (precise.length > 0 || aids.length > 0) return "medium";
   return "low";
 }
 

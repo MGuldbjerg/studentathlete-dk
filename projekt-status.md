@@ -7,6 +7,61 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 📏 Kvalitetstjekket er målt mod Mikkels egne beslutninger (2026-08-19) — migration 044
+
+Spørgsmålet der afgør om badgen er værd at stole på: **forudsiger fundene hvad et
+menneske faktisk gjorde med kladden?** `pipeline/report/review-accuracy.ts` svarer
+på det, og målingen ændrede designet tre gange undervejs.
+
+**Grundlaget i dag**: 21 kladder hvor `original_content` er bevaret (18 blev rettet
+eller afvist, 3 godkendt uændret). De 11 hidtidige afvisninger kan IKKE måles — de
+blev slettet med teksten. Det er lukket fremadrettet: migration 044 gemmer nu den
+afviste kladdes tekst, titel, story_id og athlete_id i `review_log`, så
+`deleteArticle` ikke længere smider bevismaterialet ud. **Det er de vigtigste sager**
+et tjek skal måles på.
+
+**Resultatet, og hvorfor grænsen er 2:**
+
+| Regel | Fanget af 18 der skulle rettes | Falske alarmer af 3 rene |
+|---|---|---|
+| Gammelt badge (modellens skøn) | 3 (17%) | 0 |
+| Ethvert mekanisk fund = rød | 12 (67%) | **2 (67%)** ← ubrugelig som triage |
+| **Præcis kategori ELLER klynge ≥ 2** | **10 (56%)** | **0** ← valgt |
+| Præcis kategori ELLER klynge ≥ 3 | 8 (44%) | 0 |
+
+Badgen er altså **3,3× så følsom som den gamle uden en enkelt falsk alarm**. Reglen
+er målt, ikke gættet: de præcise kategorier (identitet, tid, stedord, citater,
+årgang) sætter badgen alene; tal og navne er læsehjælp og løfter den kun i klynge.
+Kategoriernes præcision målt claim-for-claim: `class_year` 2/2, `quotes` 1/2,
+`numbers` 5/20, `names` 4/24.
+
+**Fire falske positiver rettet ved roden, alle fundet af målingen:**
+1. **Manchetten er ikke et citat.** Husets format lægger manchetten i en indledende
+   «>»-linje. Alle 14 citat-fund var netop den. Nu tælles et blockquote kun som
+   citat hvis det er tilskrevet — citat-fund faldt 14 → 2.
+2. **Funktionsord hang på navne.** «Danske Marie Eline», «Med Uagboe», «Udover
+   Bangerts» blev læst som ukendte personer. Kandidater trimmes nu for funktionsord
+   i begge ender, og et match må ikke krydse en sætnings- eller linjegrænse
+   («…Uagboe\nIfølge…» var ét «navn»). Navne-fund faldt 41 → 24.
+3. **Kaldenavnet er en del af identiteten.** Kilden skriver «Ogbe Uagboe», basen
+   «Ogbemudia» — en korrekt kladde blev flaget for forkert person. `preferred_name`
+   tæller nu med, og står KUN efternavnet i kilden, er det medium, ikke high.
+4. **Institution ≠ person.** «Coast Conference» og «Horizon League» er medium; en
+   ukendt PERSON er fortsat high — det var den fejl der gav to kladder om forkerte
+   mennesker.
+
+Dertil en fejl i min egen rapport: en kladde der stadig ligger i køen er **ulæst**,
+ikke godkendt uændret. Uden det filter tælles hver ventende kladde som falsk alarm.
+
+**En hypotese der IKKE holdt**: jeg gættede på at støjen kom fra manglende
+kildetekst (`content_raw` NULL → alt ser ukildebelagt ud). Kun 5 af 21 mangler
+kildetekst, og kilderne er i snit 5.154 tegn. Forklaringen var altså ikke der, og
+tjekkene skulle rettes hver for sig.
+
+**Kør rapporten igen efter en måneds sæson** (`npx tsx pipeline/report/review-accuracy.ts
+--verbose`). n=21 er for lidt til at kalde grænsen andet end det bedste valg på det
+vi ved nu — men fra i dag vokser grundlaget med hver beslutning, også afvisningerne.
+
 ## 🔍 Hver kladde bliver kvalitetstjekket (2026-08-19) — migration 043
 
 Mikkel: «for each draft, you quality check it … that should speed up the learning».
