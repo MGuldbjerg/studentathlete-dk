@@ -1,11 +1,36 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-19 (14 nye sportsgrene i to runder — "andet" er tomt, og tre ikke-atleter er slettet)
+**Sidst opdateret**: 2026-08-19 (17 nye sportsgrene i tre runder — "andet" er tomt, og tre ikke-atleter er slettet)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🚩 Flag football, cykling og bueskydning (2026-08-19, tredje runde)
+
+Mikkel gennemgik ventelisten og traf afgørelsen: **flag football skal med — den er
+OL-sport** — og cykling og bueskydning ligeså. **Dans og hestesport er fravalgt.**
+
+- **flag-football** (dansk: Flag football): NCAA-emerging sport for kvinder siden
+  januar 2026 med 120+ skoler, NAIA's 30. mesterskabssport fra 2026-27, og
+  OL-debut i Los Angeles 2028. Fem mod fem, 70×25 yards, to halvlege à 20 min.
+  104 `roster_checks`-rækker flyttet — det største enkelthold i "other".
+- **cycling** (Cykling): USA Cycling, ikke NCAA. Fem collegemesterskaber —
+  landevej, bane, mountainbike, cyclocross og gravel (nyt i 2026) — og skolerne
+  kører i varsity- og klubdivision.
+- **archery** (Bueskydning): USA Archery's Collegiate Archery Program. Fire
+  buetyper (recurve, compound, barebow, bowhunter) tæller alle med i det samlede
+  holdmesterskab.
+
+**Fravalgt af Mikkel og skal blive i "other"**: dans/dance-team, cheerleading,
+stunt og al hestesport (ridning, rodeo). Testen i `_team-discovery-test.ts` holder
+fast i det — `dance-team` og `equestrian` SKAL svare "other", så et velment alias
+ikke sniger dem ind igen. Hestepolo blev tilføjet i anden runde og bliver stående,
+fordi to atleter ligger på nøglen; skal den væk, skal de to have et andet sted at
+være først.
+
+Acrobatics & tumbling (36 hold) og ultimate (3) er hverken valgt til eller fra.
 
 ## 🎯 Ni sportsgrene mere, og "andet" er tomt (2026-08-19, anden runde)
 

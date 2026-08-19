@@ -184,6 +184,14 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
     // langrend) er positionen.
     return { present: "står på ski", preteritum: "stod på ski", participle: "stået på ski", object: "", posNoun: meaningfulPosition(sport, position) };
   }
+  if (sport === "cycling") {
+    // Disciplinen (landevej, bane, mountainbike) er positionen.
+    return { present: "cykler", preteritum: "cyklede", participle: "cyklet", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
+  if (sport === "archery") {
+    // Samme verbum som skydning; buetypen står i position-feltet.
+    return { present: "skyder", preteritum: "skød", participle: "skudt", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
   if (sport === "track-and-field") {
     if (position) {
       const running = RUNNING_EVENTS.find((r) => r.re.test(position));

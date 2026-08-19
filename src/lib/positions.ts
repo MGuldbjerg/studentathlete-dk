@@ -585,6 +585,68 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
   // ── Hestepolo (spillerne står som numre 1-4, og et tal er ikke en rolle) ───
   polo: {},
 
+  // ── Flag football ──────────────────────────────────────────────────────────
+  // Fem mod fem: begreberne er amerikansk fodbolds, men uden linje. Rusheren
+  // erstatter pass-rushet — det er den eneste rolle der ikke findes i 11-mands.
+  "flag-football": {
+    qb: "quarterback",
+    quarterback: "quarterback",
+    wr: "wide_receiver",
+    rec: "wide_receiver",
+    receiver: "wide_receiver",
+    "wide receiver": "wide_receiver",
+    c: "center",
+    center: "center",
+    rb: "running_back",
+    "running back": "running_back",
+    r: "rusher",
+    rush: "rusher",
+    rusher: "rusher",
+    db: "defensive_back",
+    "defensive back": "defensive_back",
+    cb: "cornerback",
+    cornerback: "cornerback",
+    s: "safety",
+    safety: "safety",
+    lb: "linebacker",
+    linebacker: "linebacker",
+    ath: "athlete",
+    athlete: "athlete",
+  },
+
+  // ── Cykling (disciplin eller rytterrolle) ──────────────────────────────────
+  cycling: {
+    road: "road",
+    "road racing": "road",
+    track: "track_cycling",
+    "track cycling": "track_cycling",
+    mtb: "mountain_bike",
+    "mountain bike": "mountain_bike",
+    "mountain biking": "mountain_bike",
+    cx: "cyclocross",
+    cyclocross: "cyclocross",
+    gravel: "gravel",
+    sprinter: "sprinter",
+    sprint: "sprinter",
+    climber: "climber",
+  },
+
+  // ── Bueskydning (buetypen er disciplinen) ──────────────────────────────────
+  archery: {
+    r: "recurve",
+    recurve: "recurve",
+    olympic: "recurve",
+    "olympic recurve": "recurve",
+    c: "compound",
+    compound: "compound",
+    bb: "barebow",
+    barebow: "barebow",
+    "bare bow": "barebow",
+    bh: "bowhunter",
+    bowhunter: "bowhunter",
+    "fixed pins": "bowhunter",
+  },
+
   golf: {},
   tennis: {},
   other: {},

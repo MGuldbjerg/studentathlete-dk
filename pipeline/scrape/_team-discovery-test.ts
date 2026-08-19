@@ -96,6 +96,12 @@ eq(sportFromTeamSlug("womens-rifle"), "shooting", "riffel → shooting");
 eq(sportFromTeamSlug("nordic-skiing"), "skiing", "langrend og alpint er ét skihold");
 eq(sportFromTeamSlug("womens-triathlon"), "triathlon", "triatlon → triathlon");
 eq(sportFromTeamSlug("mens-sailing"), "sailing", "sejlsport → sailing");
+eq(sportFromTeamSlug("womens-flag-football"), "flag-football", "flag football → flag-football");
+eq(sportFromTeamSlug("cycling"), "cycling", "cykling → cycling");
+eq(sportFromTeamSlug("archery"), "archery", "bueskydning → archery");
+// Dans og hestesport er fravalgt (Mikkel 2026-08-19) — de SKAL blive i "other".
+eq(sportFromTeamSlug("dance-team"), "other", "dans er fravalgt");
+eq(sportFromTeamSlug("equestrian"), "other", "ridning er fravalgt");
 ok(!isTeamSlug("saac"), "SAAC er ikke et hold");
 ok(!isTeamSlug("hall-of-fame"), "hall of fame er ikke et hold");
 ok(!isTeamSlug("pep-band"), "orkestret er ikke et hold");

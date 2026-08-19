@@ -833,6 +833,95 @@ Over 35 etablerede intercollegiate-programmer fordeler sig på 15 herrehold og 2
 - [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)`,
   },
 
+  "flag-football": {
+    title: "Flag football",
+    intro:
+      "Danske flag football-spillere på amerikanske college-hold. Den hurtigst voksende kvindesport i college-sporten — og OL-sport fra 2028.",
+    metaDescription:
+      "Flag football i amerikansk college-sport – nyheder, profiler og resultater fra college-flag football i USA.",
+    pillar: `## Flag football i amerikansk college-sport
+
+Flag football er den sportsgren, der lige nu bevæger sig hurtigst i amerikansk college-sport. NCAA optog den i januar 2026 i sit emerging sports-program for kvinder, og mere end 120 skoler stiller hold i indeværende studieår. NAIA gik skridtet videre og gjorde flag football til forbundets 30. mesterskabssport fra 2026-27, med det første nationale NAIA-mesterskab i foråret 2027 og omkring 60 deltagende institutioner.
+
+**Og så er den OL-sport.** Flag football får debut ved legene i Los Angeles i 2028 med seks hold i hver af de to turneringer, herrer og kvinder, og ti spillere pr. trup.
+
+### Sådan afgøres en kamp
+
+Fem spillere på banen fra hver side, ingen tacklinger: forsvaret stopper spillet ved at rive et flag af angriberens bælte. Banen er 70 gange 25 yards med to endzoner på ti yards, og kampen varer 40 minutter fordelt på to halvlege. Angrebet har fire forsøg til at nå midten af banen og derefter fire til at nå endzonen.
+
+### Sæsonens gang
+
+College-sæsonen ligger i foråret. Vejen mod et NCAA-mesterskab går gennem emerging sports-programmet, hvor en sport skal have mindst 40 skoler med varsity-hold og opfylde krav til antal kampe og deltagelse — en tærskel flag football allerede havde passeret, da NCAA optog den.
+
+### Tidbits
+
+Kombinationen er usædvanlig: en sport, der først for nylig fik en plads i college-systemet, står allerede med OL-debut foran sig. Det gør rekrutteringsvinduet kort og synligheden stor for de spillere, der er med nu.
+
+### Kilder
+
+- [NCAA. (2026, January 16). NCAA adds flag football to Emerging Sports for Women program.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-adds-flag-football-to-emerging-sports-for-women-program.aspx)
+- [NAIA. (n.d.). Women's flag football.](https://www.naia.org/sports/wflag/index)
+- [Olympics.com. (n.d.). Flag football at the Olympic Games Los Angeles 2028: Everything you need to know.](https://www.olympics.com/en/news/flag-football-at-the-olympic-games-los-angeles-2028-everything-you-need-to-know-about-the-new-sport-at-la-28)`,
+  },
+
+  cykling: {
+    title: "Cykling",
+    intro:
+      "Danske cykelryttere på amerikanske college-hold. Fem nationale collegemesterskaber om året — landevej, bane, mountainbike, cyclocross og nu gravel.",
+    metaDescription:
+      "Cykling i amerikansk college-sport – nyheder, profiler og resultater fra college-cykling i USA.",
+    pillar: `## Cykling i amerikansk college-sport
+
+Collegecykling ligger uden for NCAA og styres af USA Cycling, som afvikler de nationale collegemesterskaber. Til gengæld er der flere af dem end i nogen anden college-sportsgren: landevej, bane, mountainbike og cyclocross har hvert sit mesterskab, og i 2026 kom gravel til som det femte.
+
+### Sæsonens gang
+
+Kalenderen følger disciplinerne hen over hele året i stedet for at samle sig om én sæson. I 2026 blev banemesterskabet kørt 10.-13. september på Major Taylor Velodrome i Indianapolis, mountainbike 7. oktober i Grand Junction i Colorado og cyclocross 9. december i Fayetteville i Arkansas, mens landevejsmesterskabet blev afviklet i Wisconsin.
+
+### Niveauer og programmer
+
+Skolerne kører i to rækker: en varsity-division og en klubdivision. Ved mountainbike-mesterskabet er varsity-feltet omkring 15-20 skoler, mens klubdivisionen tæller over 30 — en struktur, der betyder, at en dansk rytter kan køre for sit universitet, uanset om skolen har et fuldt program eller en klub.
+
+### Tidbits
+
+Fra 2026 kører USA Cycling også high school-klasser ved tre af collegemesterskaberne — bane, mountainbike og cyclocross — så juniorfeltet og collegefeltet mødes på den samme bane den samme weekend.
+
+### Kilder
+
+- [USA Cycling. (n.d.). National championships.](https://usacycling.org/national-championships)
+- [USA Cycling. (2026). USA Cycling announces 2026 national championship schedule.](https://usacycling.org/article/usa-cycling-announces-2026-national-championship-schedule)
+- [USA Cycling. (n.d.). Collegiate mountain bike national championships.](https://mtbnats.usacycling.org/coll-mtb)`,
+  },
+
+  bueskydning: {
+    title: "Bueskydning",
+    intro:
+      "Danske bueskytter på amerikanske college-hold. Varsity-programmer med legater, klubhold og fire buetyper til det samme nationale mesterskab.",
+    metaDescription:
+      "Bueskydning i amerikansk college-sport – nyheder, profiler og resultater fra college-bueskydning i USA.",
+    pillar: `## Bueskydning i amerikansk college-sport
+
+Bueskydning på college ligger uden for NCAA og drives af USA Archery gennem forbundets Collegiate Archery Program. Programmet dækker hele spændet: varsity-hold med legater, klubhold og studenterforeninger skyder i det samme system og til de samme mesterskaber.
+
+### Sæsonens gang
+
+Sæsonens omdrejningspunkt er Collegiate Target Nationals, som i 2026 blev skudt i Lansing i Michigan fra 14. til 17. maj. Indendørssæsonen ligger i vintermånederne op til det.
+
+### Sådan afgøres et mesterskab
+
+Der skydes i fire klasser — recurve, compound, barebow og bowhunter — for både mænd og kvinder, og alle fire tæller med i det samlede nationale holdmesterskab. Buetypen er altså både disciplin og holdopstilling: en skole kan vinde samlet uden at have den bedste enkeltskytte i nogen af klasserne.
+
+### Niveauer og programmer
+
+Feltet spænder fra store universiteter med fuldt finansierede varsity-programmer til rene klubhold, og netop derfor er adgangen bredere end i de fleste andre college-sportsgrene. USA Archery kårer desuden et akademisk All-American-hold, hvor karaktergennemsnittet tæller på linje med resultaterne.
+
+### Kilder
+
+- [USA Archery. (n.d.). Collegiate archery.](https://www.usarchery.org/participate/collegiate)
+- [USA Archery. (2026). USA Archery Collegiate Target Nationals.](https://www.usarchery.org/events/national-tournaments/USA-Archery-Collegiate-Target-Nationals)
+- [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)`,
+  },
+
   andet: {
     title: "Andre sportsgrene",
     intro:

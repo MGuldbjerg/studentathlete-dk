@@ -766,6 +766,95 @@ More than 35 established intercollegiate programmes are spread across 15 men's a
 - [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)`,
   },
 
+  "flag-football": {
+    title: "Flag Football",
+    intro:
+      "British flag football players in American college sport. The fastest-growing women's sport in the college system — and an Olympic sport from 2028.",
+    metaDescription:
+      "British flag football players in American college sport — news, profiles and results from college flag football in the United States.",
+    pillar: `## British flag football in American college sport
+
+Flag football is the fastest-moving sport in American college athletics right now. The NCAA added it to its emerging sports for women programme in January 2026, and more than 120 schools are fielding a squad this academic year. The NAIA went further and made flag football its 30th championship sport from 2026-27, with the first NAIA national championship in spring 2027 and around 60 institutions taking part.
+
+**And it is an Olympic sport.** Flag football makes its debut at the Los Angeles Games in 2028, with six teams in each of the two tournaments, men's and women's, and ten athletes per squad.
+
+### How a match is decided
+
+Five players a side and no tackling: the defence stops the play by pulling a flag from the ball carrier's belt. The field is 70 by 25 yards with two ten-yard end zones, and the match lasts 40 minutes in two halves. The offence has four downs to reach halfway and four more to reach the end zone.
+
+### The season
+
+The college season falls in the spring. The route to an NCAA championship runs through the emerging sports process, which requires at least 40 schools sponsoring the sport at varsity level along with minimum contest and participation standards — a threshold flag football had already cleared when the NCAA adopted it.
+
+### Worth knowing
+
+The combination is unusual: a sport that only recently took its place in the college system already has an Olympic debut ahead of it. That makes the recruiting window short and the visibility high for the players in it now.
+
+### Sources
+
+- [NCAA. (2026, January 16). NCAA adds flag football to Emerging Sports for Women program.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-adds-flag-football-to-emerging-sports-for-women-program.aspx)
+- [NAIA. (n.d.). Women's flag football.](https://www.naia.org/sports/wflag/index)
+- [Olympics.com. (n.d.). Flag football at the Olympic Games Los Angeles 2028: Everything you need to know.](https://www.olympics.com/en/news/flag-football-at-the-olympic-games-los-angeles-2028-everything-you-need-to-know-about-the-new-sport-at-la-28)`,
+  },
+
+  cycling: {
+    title: "Cycling",
+    intro:
+      "British riders on American college teams. Five national collegiate championships a year — road, track, mountain bike, cyclocross and now gravel.",
+    metaDescription:
+      "British riders in American college cycling — news, profiles and results from collegiate cycling in the United States.",
+    pillar: `## British cycling in American college sport
+
+Collegiate cycling sits outside the NCAA and is run by USA Cycling, which stages the national collegiate championships. In return there are more of them than in any other college sport: road, track, mountain bike and cyclocross each have their own title, and gravel joined as a fifth in 2026.
+
+### The season
+
+The calendar follows the disciplines across the whole year rather than gathering into one season. In 2026 the track championships were held from 10 to 13 September at the Major Taylor Velodrome in Indianapolis, mountain bike on 7 October in Grand Junction, Colorado, and cyclocross on 9 December in Fayetteville, Arkansas, while the road championships were staged in Wisconsin.
+
+### Programmes and standards
+
+Schools race in two tiers: a varsity division and a club division. At the mountain bike championships the varsity field runs to roughly 15-20 schools while the club division counts more than 30 — a structure that lets a rider compete for their university whether or not the school runs a fully funded programme.
+
+### Worth knowing
+
+From 2026 USA Cycling also runs high school categories at three of the collegiate championships — track, mountain bike and cyclocross — so the junior and collegiate fields meet on the same course on the same weekend.
+
+### Sources
+
+- [USA Cycling. (n.d.). National championships.](https://usacycling.org/national-championships)
+- [USA Cycling. (2026). USA Cycling announces 2026 national championship schedule.](https://usacycling.org/article/usa-cycling-announces-2026-national-championship-schedule)
+- [USA Cycling. (n.d.). Collegiate mountain bike national championships.](https://mtbnats.usacycling.org/coll-mtb)`,
+  },
+
+  archery: {
+    title: "Archery",
+    intro:
+      "British archers on American college teams. Varsity programmes with scholarships, club squads, and four bow classes shooting for the same national title.",
+    metaDescription:
+      "British archers in American college sport — news, profiles and results from collegiate archery in the United States.",
+    pillar: `## British archery in American college sport
+
+Collegiate archery sits outside the NCAA and is run by USA Archery through its Collegiate Archery Program. The programme covers the full range: varsity teams with scholarships, club squads and student organisations all shoot in the same system and for the same championships.
+
+### The season
+
+The season turns on Collegiate Target Nationals, shot in 2026 at Lansing, Michigan from 14 to 17 May. The indoor season runs through the winter months leading up to it.
+
+### How a championship is decided
+
+There are four classes — recurve, compound, barebow and bowhunter — for both men and women, and all four count towards the overall national team championship. The bow is therefore both the discipline and the team sheet: a school can win overall without holding the best individual archer in any single class.
+
+### Programmes and standards
+
+The field runs from large universities with fully funded varsity programmes to pure club squads, which makes the way in broader than in most college sports. USA Archery also names an academic All-American team, where the grade average counts alongside the scores.
+
+### Sources
+
+- [USA Archery. (n.d.). Collegiate archery.](https://www.usarchery.org/participate/collegiate)
+- [USA Archery. (2026). USA Archery Collegiate Target Nationals.](https://www.usarchery.org/events/national-tournaments/USA-Archery-Collegiate-Target-Nationals)
+- [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)`,
+  },
+
   other: {
     title: "Other sports",
     intro:

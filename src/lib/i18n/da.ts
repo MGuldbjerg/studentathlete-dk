@@ -42,6 +42,9 @@ const sportLabel: Record<SportKey, string> = {
   skiing: "Skisport",
   triathlon: "Triatlon",
   polo: "Hestepolo",
+  "flag-football": "Flag football",
+  cycling: "Cykling",
+  archery: "Bueskydning",
   other: "Andet",
 };
 
@@ -79,6 +82,9 @@ const sportSlug: Record<SportKey, string> = {
   triathlon: "triatlon",
   // Hestepolo, ikke bare "polo" — /vandpolo ligger lige ved siden af.
   polo: "hestepolo",
+  "flag-football": "flag-football",
+  cycling: "cykling",
+  archery: "bueskydning",
   other: "andet",
 };
 
@@ -287,6 +293,24 @@ const positionPhrase: Record<string, string> = {
   slalom: "slalom",
   giant_slalom: "storslalom",
   classic: "klassisk",
+
+  // Flag football (resten af begreberne deles med amerikansk fodbold)
+  rusher: "rusher",
+
+  // Cykling
+  sprinter: "sprinter",
+  climber: "klatrer",
+  road: "landevej",
+  track_cycling: "bane",
+  mountain_bike: "mountainbike",
+  cyclocross: "cyclocross",
+  gravel: "gravel",
+
+  // Bueskydning — buetypen er disciplinen
+  recurve: "recurve",
+  compound: "compound",
+  barebow: "barebow",
+  bowhunter: "bowhunter",
 
 };
 

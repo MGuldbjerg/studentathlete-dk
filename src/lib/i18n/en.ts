@@ -42,6 +42,9 @@ const sportLabel: Record<SportKey, string> = {
   skiing: "Skiing",
   triathlon: "Triathlon",
   polo: "Polo",
+  "flag-football": "Flag Football",
+  cycling: "Cycling",
+  archery: "Archery",
   other: "Other",
 };
 
@@ -77,6 +80,9 @@ const sportSlug: Record<SportKey, string> = {
   skiing: "skiing",
   triathlon: "triathlon",
   polo: "polo",
+  "flag-football": "flag-football",
+  cycling: "cycling",
+  archery: "archery",
   other: "other",
 };
 
@@ -281,6 +287,24 @@ const positionPhrase: Record<string, string> = {
   slalom: "slalom",
   giant_slalom: "giant slalom",
   classic: "classic",
+
+  // Flag football
+  rusher: "rusher",
+
+  // Cycling
+  sprinter: "sprinter",
+  climber: "climber",
+  road: "road",
+  track_cycling: "track",
+  mountain_bike: "mountain bike",
+  cyclocross: "cyclocross",
+  gravel: "gravel",
+
+  // Archery — the bow is the discipline
+  recurve: "recurve",
+  compound: "compound",
+  barebow: "barebow",
+  bowhunter: "bowhunter",
 
 };
 

@@ -89,6 +89,15 @@ const ICON_PATHS: Record<string, string> = {
   "polo":
     // Køllen med hovedet og bolden — hesten kan ikke tegnes i 24px.
     "<path d=\"M19 3l-9 12\" /><path d=\"M8 16.5l3.5 2\" /><circle cx=\"5\" cy=\"20\" r=\"1.6\" /><path d=\"M9.5 14l3 1.8\" />",
+  "flag-football":
+    // Flaget i bæltet — sportens hele idé, og det der skiller den fra football.
+    "<path d=\"M5 21v-16\" /><path d=\"M5 5h11l-2.5 3.5l2.5 3.5h-11\" /><path d=\"M19 13v8\" /><path d=\"M17 21h4\" />",
+  "cycling":
+    // To hjul og en ramme (Tabler \"bike\"-linjen).
+    "<circle cx=\"5\" cy=\"17\" r=\"3.5\" /><circle cx=\"19\" cy=\"17\" r=\"3.5\" /><path d=\"M12 17l-2 -6l5 0l-4 -3l3 -1\" /><path d=\"M5 17l7 0\" /><path d=\"M15 11l4 6\" />",
+  "archery":
+    // Bue og pil.
+    "<path d=\"M18 3a13 13 0 0 1 -13 13\" /><path d=\"M18 3l-13 13\" /><path d=\"M18 3h-4\" /><path d=\"M18 3v4\" /><path d=\"M9 12l3 3\" />",
   "other":
     "<polygon points=\"12,2 14.9,8.3 22,9.3 17,14.1 18.2,21.1 12,17.8 5.8,21.1 7,14.1 2,9.3 9.1,8.3\" />",
 };
