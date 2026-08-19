@@ -647,6 +647,35 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     "fixed pins": "bowhunter",
   },
 
+  // ── Akrobatik og tumbling ──────────────────────────────────────────────────
+  // Rollerne er dem fra en pyramide: basen løfter, toppen bliver løftet,
+  // backspotten sikrer — plus tumblerne, der ikke løfter nogen.
+  "acrobatics-tumbling": {
+    b: "base",
+    base: "base",
+    "main base": "base",
+    t: "top",
+    top: "top",
+    flyer: "top",
+    bs: "backspot",
+    backspot: "backspot",
+    "back spot": "backspot",
+    tumbler: "tumbler",
+    tumbling: "tumbler",
+  },
+
+  // ── Ultimate ───────────────────────────────────────────────────────────────
+  ultimate: {
+    h: "handler",
+    handler: "handler",
+    c: "cutter",
+    cutter: "cutter",
+    deep: "deep",
+    d: "defender",
+    defense: "defender",
+    defender: "defender",
+  },
+
   golf: {},
   tennis: {},
   other: {},

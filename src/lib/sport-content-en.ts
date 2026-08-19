@@ -855,6 +855,66 @@ The field runs from large universities with fully funded varsity programmes to p
 - [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)`,
   },
 
+  "acrobatics-tumbling": {
+    title: "Acrobatics & Tumbling",
+    intro:
+      "British acrobatics and tumbling athletes on American college teams. The NCAA's newest championship sport, voted through in January 2026.",
+    metaDescription:
+      "British athletes in NCAA acrobatics and tumbling — news, profiles and results from American college acrobatics & tumbling.",
+    pillar: `## British acrobatics and tumbling in the NCAA
+
+Acrobatics and tumbling is the newest sport on the NCAA's list. At the January 2026 convention, members from all three divisions voted to make it a championship sport, and the first NCAA championship is expected in spring 2027. Until then the title is decided by the National Collegiate Acrobatics & Tumbling Association, which has run the sport since long before the NCAA arrived.
+
+**It is a women's sport**, and it grew by the same route as women's rugby and triathlon: into the NCAA's emerging sports programme in August 2020, past the threshold of 40 varsity schools, and on to a championship of its own. Today 52 NCAA institutions sponsor it at varsity level with more than 1,300 athletes.
+
+### How a meet is decided
+
+A meet runs to **six events** and usually lasts an hour and a half to two hours. Teams perform synchronised skills in acro, pyramid, toss and tumbling before a closing team routine, and every skill is scored on both difficulty and execution. The format is a head-to-head duel between two teams, with the score running throughout.
+
+### Roles in the squad
+
+Rosters are divided by what the body does: bases lift, tops are lifted and thrown, back spots protect, and tumblers run their passes without lifting anyone. It is a team sport built out of individual specialists, and recruiting follows the role.
+
+### Worth knowing
+
+The sport is often confused with cheerleading and with STUNT, but the three are neither the same thing nor under the same governing body. Acrobatics and tumbling has no chants, no pom-poms and no sideline — it is a competition from the first event to the last.
+
+### Sources
+
+- [NCAA. (2026, January 16). NCAA elevates acrobatics and tumbling to championship status.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-elevates-acrobatics-and-tumbling-to-championship-status.aspx)
+- [National Collegiate Acrobatics & Tumbling Association. (2026). NCAA elevates acrobatics & tumbling to championship status.](https://thencata.org/news/2026/1/16/ncaa-elevates-acrobatics-tumbling-to-championship-status.aspx)
+- [USA Gymnastics. (2026). Acrobatics & tumbling becomes an NCAA championship.](https://usagym.org/acrobatics-tumbling-becomes-an-ncaa-championship/)`,
+  },
+
+  ultimate: {
+    title: "Ultimate",
+    intro:
+      "British ultimate players on American college teams. A self-refereed team sport with a national championship of its own, in two divisions.",
+    metaDescription:
+      "British ultimate players in American college sport — news, profiles and results from college ultimate in the United States.",
+    pillar: `## British ultimate in American college sport
+
+Ultimate sits outside the NCAA and is run by USA Ultimate, which stages the national college championships in two divisions: D-I for the larger programmes and D-III for smaller schools. Both divisions hold separate men's and women's championships, reached through sectionals and regionals across the spring.
+
+### The season
+
+The season builds to May. In 2026 both championships were played in Illinois: D-III at Waukegan from 16 to 18 May with 32 teams, D-I at Rockford from 22 to 25 May with 40 — 20 in each division. Middlebury won both the men's and women's D-III titles, the first sweep in the championship's history.
+
+### How a game is decided
+
+Seven players a side, and points are scored by catching the disc in the opponent's end zone. You may not run with the disc, so the game is built from throws and runs into space — handlers control the build-up, cutters run free. Games are played to 15 points under a time cap.
+
+### What makes it different
+
+Ultimate is **self-refereed**. Players call their own games under the principle of Spirit of the Game, and at the biggest tournaments observers assist rather than referee. It is the sport's defining feature, and one reason it has held on to its own governing body instead of seeking a place in the NCAA.
+
+### Sources
+
+- [USA Ultimate. (2026). 2026 D-I college championships.](https://usaultimate.org/2026-d-i-college-championships/)
+- [USA Ultimate. (2026). D-III college championships wrap with historic sweep.](https://usaultimate.org/news/2026/06/d-iii-college-championships-wrap-with-historic-sweep/)
+- [USA Ultimate. (2025). Illinois set to host 2026 college championships.](https://usaultimate.org/news/2025/08/illinois-set-to-host-2026-college-championships/)`,
+  },
+
   other: {
     title: "Other sports",
     intro:

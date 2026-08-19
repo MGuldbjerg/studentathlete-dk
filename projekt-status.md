@@ -1,11 +1,31 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-19 (17 nye sportsgrene i tre runder — "andet" er tomt, og tre ikke-atleter er slettet)
+**Sidst opdateret**: 2026-08-19 (19 nye sportsgrene i fire runder — "andet" er tomt, og tre ikke-atleter er slettet)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🥏 Akrobatik og ultimate lukker ventelisten (2026-08-19, fjerde runde)
+
+- **acrobatics-tumbling** (dansk: Akrobatik og tumbling, URL /akrobatik): NCAA's
+  NYESTE mesterskabssport — vedtaget på konventet i januar 2026, første
+  NCAA-mesterskab ventes forår 2027, indtil da NCATA's. 52 varsity-programmer,
+  1.300+ udøvere, seks discipliner pr. stævne. 36 `roster_checks`-rækker flyttet.
+- **ultimate**: USA Ultimate, ikke NCAA. To divisioner (D-I og D-III) med hver
+  sit herre- og damemesterskab, selvdømt spil (Spirit of the Game). 5 rækker.
+
+**STUNT er ikke det samme som acrobatics & tumbling** — to sportsgrene, to
+forbund — og STUNT er ikke valgt til. Testen fastholder `stunt` → "other".
+
+Ventelisten er hermed tom på nær cheerleading, dans, stunt, ridning og rodeo, som
+alle er fravalgt af Mikkel. Hestepolo bliver stående efter aftale.
+
+**23 → 25 sportsgrene i alt.** SPORT_KEYS, sprogpakkerne, positionsbegreberne,
+farverne, emoji'erne, nav-ikonerne og pillarteksterne på begge sprog er komplette
+for dem alle — typesystemet håndhæver det: en manglende nøgle i én af tabellerne
+er en typefejl, ikke en tavs fallback.
 
 ## 🚩 Flag football, cykling og bueskydning (2026-08-19, tredje runde)
 

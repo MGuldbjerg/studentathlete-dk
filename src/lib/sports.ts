@@ -48,6 +48,8 @@ export const SPORT_KEYS = [
   "flag-football",
   "cycling",
   "archery",
+  "acrobatics-tumbling",
+  "ultimate",
   "other",
 ] as const;
 
@@ -334,12 +336,29 @@ const SOURCE_ALIASES: Record<string, SportKey> = {
   "club-archery": "archery",
   "target-archery": "archery",
 
-  // Cheerleading, dance, stunt, acrobatics & tumbling, ridning, rodeo og
-  // ultimate har fortsat ingen alias. Dans og hestesport er fravalgt (Mikkel
-  // 2026-08-19); resten venter på en afgørelse om, hvad der er konkurrence, og
-  // hvad der er stemning på sidelinjen. Ikke-sportslige "hold" (saac, band,
-  // hall-of-fame) skal slet ikke i registret; de står i NOT_A_TEAM i
-  // team-discovery.ts.
+  // ── De sidste to fra ventelisten (Mikkel 2026-08-19) ──────────────────────
+  // Acrobatics & tumbling blev NCAA-mesterskabssport ved konventet i januar
+  // 2026; ultimate har aldrig været NCAA og styres af USA Ultimate.
+  "acrobatics-tumbling": "acrobatics-tumbling",
+  "acrobatics-and-tumbling": "acrobatics-tumbling",
+  "acro-tumbling": "acrobatics-tumbling",
+  "acrobatics-&-tumbling": "acrobatics-tumbling",
+  acrobatics: "acrobatics-tumbling",
+  ultimate: "ultimate",
+  "ultimate-frisbee": "ultimate",
+  "mens-ultimate": "ultimate",
+  "womens-ultimate": "ultimate",
+  "mens-ultimate-frisbee": "ultimate",
+  "womens-ultimate-frisbee": "ultimate",
+  "club-ultimate": "ultimate",
+
+  // Cheerleading, dance, stunt, ridning og rodeo har fortsat ingen alias: dans
+  // og hestesport er fravalgt (Mikkel 2026-08-19), og cheer/stunt venter på en
+  // afgørelse om, hvad der er konkurrence, og hvad der er stemning på
+  // sidelinjen. STUNT er IKKE det samme som acrobatics & tumbling — det er to
+  // forskellige sportsgrene med hver sit forbund. Ikke-sportslige "hold"
+  // (saac, band, hall-of-fame) skal slet ikke i registret; de står i
+  // NOT_A_TEAM i team-discovery.ts.
 };
 
 export function sportKeyFromSource(raw: string | null | undefined): SportKey {
@@ -381,6 +400,8 @@ export const SPORT_ICONS: Record<SportKey, string> = {
   "flag-football": "flag-football",
   cycling: "cycling",
   archery: "archery",
+  "acrobatics-tumbling": "acrobatics-tumbling",
+  ultimate: "ultimate",
   other: "other",
 };
 
@@ -415,6 +436,8 @@ export const SPORT_COLORS: Record<SportKey, string> = {
   "flag-football": "#7A2E4A",
   cycling: "#4A7A2E",
   archery: "#3D5A4A",
+  "acrobatics-tumbling": "#A8548A",
+  ultimate: "#2E9EC2",
   other: "#6B6B6B",
 };
 
@@ -453,6 +476,10 @@ export const SPORT_EMOJI: Record<SportKey, string> = {
   // Cykling får cyklen; triatlon har allerede rytteren.
   cycling: "🚲",
   archery: "🏹",
+  // Gymnastik har allerede 🤸 — akrobatik får den kvindelige variant, hvilket
+  // også er sandt: NCAA-sporten er en kvindesport.
+  "acrobatics-tumbling": "🤸‍♀️",
+  ultimate: "🥏",
   other: "🏅",
 };
 
@@ -488,6 +515,7 @@ export const BALL_SPORT_KEYS = new Set<SportKey>([
   "bowling",
   "polo",
   "flag-football",
+  "ultimate",
   // Fægtning og esport står bevidst udenfor: man fægter, og en esportsudøver
   // spiller et SPIL, ikke en bold. Det samme gælder brydning, sejlsport,
   // skydning, ski og triatlon — de har hver deres verbum i profile-baseline.

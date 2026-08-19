@@ -45,6 +45,8 @@ const sportLabel: Record<SportKey, string> = {
   "flag-football": "Flag football",
   cycling: "Cykling",
   archery: "Bueskydning",
+  "acrobatics-tumbling": "Akrobatik og tumbling",
+  ultimate: "Ultimate",
   other: "Andet",
 };
 
@@ -85,6 +87,9 @@ const sportSlug: Record<SportKey, string> = {
   "flag-football": "flag-football",
   cycling: "cykling",
   archery: "bueskydning",
+  // Sporten hedder "acrobatics & tumbling"; den danske URL bliver akrobatik.
+  "acrobatics-tumbling": "akrobatik",
+  ultimate: "ultimate",
   other: "andet",
 };
 
@@ -311,6 +316,17 @@ const positionPhrase: Record<string, string> = {
   compound: "compound",
   barebow: "barebow",
   bowhunter: "bowhunter",
+
+  // Akrobatik og tumbling
+  base: "base",
+  top: "top",
+  backspot: "backspot",
+  tumbler: "tumbler",
+
+  // Ultimate
+  handler: "handler",
+  cutter: "cutter",
+  deep: "deep",
 
 };
 

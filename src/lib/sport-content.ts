@@ -922,6 +922,66 @@ Feltet spænder fra store universiteter med fuldt finansierede varsity-programme
 - [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)`,
   },
 
+  akrobatik: {
+    title: "Akrobatik og tumbling",
+    intro:
+      "Danske akrobatik- og tumbling-udøvere på amerikanske college-hold. NCAA's nyeste mesterskabssport — vedtaget i januar 2026.",
+    metaDescription:
+      "Akrobatik og tumbling i NCAA – nyheder, profiler og resultater fra college-acrobatics & tumbling i USA.",
+    pillar: `## Akrobatik og tumbling i NCAA
+
+Acrobatics & tumbling er den nyeste sportsgren på NCAA's liste. Ved konventet i januar 2026 stemte medlemmerne fra alle tre divisioner for at gøre den til mesterskabssport, og det første NCAA-mesterskab ventes afviklet i foråret 2027. Indtil da afvikles mesterskabet af National Collegiate Acrobatics & Tumbling Association, som har drevet sporten siden længe før NCAA kom med.
+
+**Det er en kvindesport**, og den er vokset ad den samme vej som kvinderugby og triatlon: ind i NCAA's emerging sports-program i august 2020, forbi tærsklen på 40 varsity-skoler, og videre til eget mesterskab. I dag har 52 NCAA-institutioner sporten på varsity-niveau med over 1.300 udøvere.
+
+### Sådan afgøres et stævne
+
+Et møde består af **seks discipliner** og varer typisk halvanden til to timer. Holdene udfører synkrone serier i akrobatik, pyramide, kast, tumbling og en afsluttende holdrutine, og hver færdighed bedømmes på både sværhedsgrad og udførelse. Formatet er bygget som en direkte duel mellem to hold — pointene lægges sammen undervejs, så stillingen følger med hele vejen.
+
+### Rollerne på holdet
+
+Rosterne er delt efter, hvad kroppen laver: baserne løfter, toppen bliver løftet og kastet, backspotten sikrer, og tumblerne løber deres baner uden at løfte nogen. Det er en holdsport bygget af individuelle specialister, og rekrutteringen følger rollen.
+
+### Tidbits
+
+Sporten forveksles ofte med cheerleading og med STUNT, men de tre er hverken det samme eller under samme forbund. Acrobatics & tumbling har hverken tilråb, pomponer eller sidelinje — det er en konkurrence fra første til sidste disciplin.
+
+### Kilder
+
+- [NCAA. (2026, January 16). NCAA elevates acrobatics and tumbling to championship status.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-elevates-acrobatics-and-tumbling-to-championship-status.aspx)
+- [National Collegiate Acrobatics & Tumbling Association. (2026). NCAA elevates acrobatics & tumbling to championship status.](https://thencata.org/news/2026/1/16/ncaa-elevates-acrobatics-tumbling-to-championship-status.aspx)
+- [USA Gymnastics. (2026). Acrobatics & tumbling becomes an NCAA championship.](https://usagym.org/acrobatics-tumbling-becomes-an-ncaa-championship/)`,
+  },
+
+  ultimate: {
+    title: "Ultimate",
+    intro:
+      "Danske ultimate-spillere på amerikanske college-hold. Selvdømt holdsport med eget nationalt mesterskab i to divisioner.",
+    metaDescription:
+      "Ultimate i amerikansk college-sport – nyheder, profiler og resultater fra college-ultimate i USA.",
+    pillar: `## Ultimate i amerikansk college-sport
+
+Ultimate ligger uden for NCAA og styres af USA Ultimate, som afvikler de nationale collegemesterskaber i to divisioner: D-I for de store programmer og D-III for de mindre skoler. Begge divisioner har separate herre- og damemesterskaber, og vejen dertil går gennem sectionals og regionals i løbet af foråret.
+
+### Sæsonens gang
+
+Sæsonen kulminerer i maj. I 2026 blev begge mesterskaber spillet i Illinois: D-III i Waukegan 16.-18. maj med 32 hold, D-I i Rockford 22.-25. maj med 40 hold — 20 i hver række. Middlebury vandt både herre- og damerækken i D-III og lavede dermed det første samlede dobbelt i mesterskabets historie.
+
+### Sådan afgøres en kamp
+
+Syv spillere pr. hold, og der scores ved at gribe disken i modstanderens endzone. Man må ikke løbe med disken, så spillet bygges op af kast og løb i frirum — handlerne styrer opbygningen, cutterne løber sig fri. Kampene spilles til 15 point med tidsgrænse.
+
+### Spillets særkende
+
+Ultimate er **selvdømt**. Spillerne dømmer selv deres kampe efter princippet Spirit of the Game, og ved de største stævner assisterer observatører i stedet for dommere. Det er sportens mest karakteristiske træk og en af grundene til, at den har holdt fast i sit eget forbund frem for at søge ind i NCAA.
+
+### Kilder
+
+- [USA Ultimate. (2026). 2026 D-I college championships.](https://usaultimate.org/2026-d-i-college-championships/)
+- [USA Ultimate. (2026). D-III college championships wrap with historic sweep.](https://usaultimate.org/news/2026/06/d-iii-college-championships-wrap-with-historic-sweep/)
+- [USA Ultimate. (2025). Illinois set to host 2026 college championships.](https://usaultimate.org/news/2025/08/illinois-set-to-host-2026-college-championships/)`,
+  },
+
   andet: {
     title: "Andre sportsgrene",
     intro:

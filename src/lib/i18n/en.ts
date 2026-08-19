@@ -45,6 +45,8 @@ const sportLabel: Record<SportKey, string> = {
   "flag-football": "Flag Football",
   cycling: "Cycling",
   archery: "Archery",
+  "acrobatics-tumbling": "Acrobatics & Tumbling",
+  ultimate: "Ultimate",
   other: "Other",
 };
 
@@ -83,6 +85,8 @@ const sportSlug: Record<SportKey, string> = {
   "flag-football": "flag-football",
   cycling: "cycling",
   archery: "archery",
+  "acrobatics-tumbling": "acrobatics-tumbling",
+  ultimate: "ultimate",
   other: "other",
 };
 
@@ -305,6 +309,17 @@ const positionPhrase: Record<string, string> = {
   compound: "compound",
   barebow: "barebow",
   bowhunter: "bowhunter",
+
+  // Acrobatics & tumbling
+  base: "base",
+  top: "top",
+  backspot: "backspot",
+  tumbler: "tumbler",
+
+  // Ultimate
+  handler: "handler",
+  cutter: "cutter",
+  deep: "deep",
 
 };
 

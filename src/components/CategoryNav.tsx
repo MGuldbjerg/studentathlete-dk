@@ -98,6 +98,12 @@ const ICON_PATHS: Record<string, string> = {
   "archery":
     // Bue og pil.
     "<path d=\"M18 3a13 13 0 0 1 -13 13\" /><path d=\"M18 3l-13 13\" /><path d=\"M18 3h-4\" /><path d=\"M18 3v4\" /><path d=\"M9 12l3 3\" />",
+  "acrobatics-tumbling":
+    // Pyramiden: to baser, en top — sportens billede i én figur.
+    "<circle cx=\"12\" cy=\"4.5\" r=\"1.5\" /><path d=\"M12 6v4\" /><path d=\"M8 10h8\" /><circle cx=\"6\" cy=\"14\" r=\"1.5\" /><circle cx=\"18\" cy=\"14\" r=\"1.5\" /><path d=\"M3 20h18\" /><path d=\"M6 15.5v4.5\" /><path d=\"M18 15.5v4.5\" />",
+  "ultimate":
+    // Disken set på skrå, i luften.
+    "<ellipse cx=\"12\" cy=\"13\" rx=\"9\" ry=\"3.5\" /><path d=\"M4.5 11.5a9 3.5 0 0 0 15 0\" /><path d=\"M6 7l2 2\" /><path d=\"M10 5l1 2\" />",
   "other":
     "<polygon points=\"12,2 14.9,8.3 22,9.3 17,14.1 18.2,21.1 12,17.8 5.8,21.1 7,14.1 2,9.3 9.1,8.3\" />",
 };

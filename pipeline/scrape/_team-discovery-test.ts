@@ -99,6 +99,10 @@ eq(sportFromTeamSlug("mens-sailing"), "sailing", "sejlsport → sailing");
 eq(sportFromTeamSlug("womens-flag-football"), "flag-football", "flag football → flag-football");
 eq(sportFromTeamSlug("cycling"), "cycling", "cykling → cycling");
 eq(sportFromTeamSlug("archery"), "archery", "bueskydning → archery");
+eq(sportFromTeamSlug("acrobatics-tumbling"), "acrobatics-tumbling", "A&T → acrobatics-tumbling");
+eq(sportFromTeamSlug("ultimate-frisbee"), "ultimate", "ultimate frisbee → ultimate");
+// STUNT er en anden sport end acrobatics & tumbling og er ikke valgt til.
+eq(sportFromTeamSlug("stunt"), "other", "STUNT er ikke A&T");
 // Dans og hestesport er fravalgt (Mikkel 2026-08-19) — de SKAL blive i "other".
 eq(sportFromTeamSlug("dance-team"), "other", "dans er fravalgt");
 eq(sportFromTeamSlug("equestrian"), "other", "ridning er fravalgt");
