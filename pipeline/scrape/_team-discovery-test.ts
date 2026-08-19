@@ -67,7 +67,6 @@ eq(sportFromTeamSlug("womens-beach-volleyball"), "volleyball", "beach volley →
 eq(sportFromTeamSlug("mens-crew"), "rowing", "crew → roning");
 eq(sportFromTeamSlug("baseball"), "baseball", "baseball");
 // Sportsgrene UDEN kanonisk nøgle må ikke få en forkert etiket.
-eq(sportFromTeamSlug("womens-lacrosse"), "other", "lacrosse → other, ikke et gæt");
 // Landhockey blev en kanonisk sportsgren 2026-08-18 — den må IKKE falde i other.
 eq(sportFromTeamSlug("field-hockey"), "field-hockey", "landhockey er sin egen sportsgren");
 eq(sportFromTeamSlug("womens-field-hockey"), "field-hockey", "kønsprefiks foran landhockey");
@@ -88,9 +87,19 @@ eq(sportFromTeamSlug("womens-squash"), "squash", "squash → squash");
 eq(sportFromTeamSlug("league-of-legends"), "esports", "spiltitel → esports");
 eq(sportFromTeamSlug("mens-heavyweight-rowing"), "rowing", "vægtklasse-roning → rowing");
 eq(sportFromTeamSlug("wcross"), "track-and-field", "cross country hører til atletik");
-eq(sportFromTeamSlug("mens-polo"), "other", "hestepolo er IKKE vandpolo");
-eq(sportFromTeamSlug("softball"), "other", "softball er IKKE baseball");
-eq(sportFromTeamSlug("wrestling"), "other", "wrestling → other");
+eq(sportFromTeamSlug("mens-polo"), "polo", "hestepolo er IKKE vandpolo");
+eq(sportFromTeamSlug("womens-lacrosse"), "lacrosse", "lacrosse → lacrosse");
+eq(sportFromTeamSlug("softball"), "softball", "softball er sin egen sport, ikke baseball");
+eq(sportFromTeamSlug("womens-bowling"), "bowling", "bowling → bowling");
+eq(sportFromTeamSlug("pistol"), "shooting", "pistol og riffel er ÉN kategori");
+eq(sportFromTeamSlug("womens-rifle"), "shooting", "riffel → shooting");
+eq(sportFromTeamSlug("nordic-skiing"), "skiing", "langrend og alpint er ét skihold");
+eq(sportFromTeamSlug("womens-triathlon"), "triathlon", "triatlon → triathlon");
+eq(sportFromTeamSlug("mens-sailing"), "sailing", "sejlsport → sailing");
+ok(!isTeamSlug("saac"), "SAAC er ikke et hold");
+ok(!isTeamSlug("hall-of-fame"), "hall of fame er ikke et hold");
+ok(!isTeamSlug("pep-band"), "orkestret er ikke et hold");
+eq(sportFromTeamSlug("wrestling"), "wrestling", "brydning → wrestling");
 
 // ── Hvad er et hold ──────────────────────────────────────────────────────────
 ok(isTeamSlug("womens-golf"), "womens-golf er et hold");

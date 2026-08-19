@@ -169,6 +169,21 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
     // rekrutterer til.
     return { present: "spiller", preteritum: "spillede", participle: "spillet", object: sportNoun(sport), posNoun: meaningfulPosition(sport, position) };
   }
+  if (sport === "wrestling") {
+    // Vægtklassen står i position-feltet og er ægte information.
+    return { present: "bryder", preteritum: "brød", participle: "brudt", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
+  if (sport === "sailing") {
+    return { present: "sejler", preteritum: "sejlede", participle: "sejlet", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
+  if (sport === "shooting") {
+    return { present: "skyder", preteritum: "skød", participle: "skudt", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
+  if (sport === "skiing") {
+    // "Dyrker skisport" er stift; man står på ski. Disciplinen (alpint,
+    // langrend) er positionen.
+    return { present: "står på ski", preteritum: "stod på ski", participle: "stået på ski", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
   if (sport === "track-and-field") {
     if (position) {
       const running = RUNNING_EVENTS.find((r) => r.re.test(position));

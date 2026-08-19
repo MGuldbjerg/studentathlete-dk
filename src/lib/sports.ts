@@ -36,6 +36,15 @@ export const SPORT_KEYS = [
   "fencing",
   "squash",
   "esports",
+  "lacrosse",
+  "softball",
+  "wrestling",
+  "bowling",
+  "sailing",
+  "shooting",
+  "skiing",
+  "triathlon",
+  "polo",
   "other",
 ] as const;
 
@@ -226,11 +235,85 @@ const SOURCE_ALIASES: Record<string, SportKey> = {
   "club-baseball": "baseball",
   "club-hockey": "ice-hockey",
   "mens-ice-hockey-acha-d2-": "ice-hockey",
-  // Softball, lacrosse, wrestling, bowling, sejlsport, skydning, ski,
-  // triatlon, ridning og cheer har fortsat BEVIDST ingen alias: de er ikke
-  // baseball/volleyball/andet-i-forklædning, og en forkert etiket er værre
-  // end "other" (jf. regel 5 i ARKITEKTUR-motor.md). Det samme gælder
-  // ikke-sportslige "hold" som saac, band og hall-of-fame.
+  // ── Ni nøgler mere 2026-08-19 (Mikkels regel) ─────────────────────────────
+  // "Er det organiseret skolekonkurrence, skal det have en kategori." Det gælder
+  // også de sportsgrene NCAA ikke styrer: sejlsport (ICSA), hestepolo (USPA) og
+  // pistolskydning (NRA) er varsity-konkurrencer med nationale mesterskaber.
+  lacrosse: "lacrosse",
+  "mens-lacrosse": "lacrosse",
+  "womens-lacrosse": "lacrosse",
+  "club-lacrosse": "lacrosse",
+  "club-mens-lacrosse": "lacrosse",
+  "club-womens-lacrosse": "lacrosse",
+  "mens-club-lacrosse": "lacrosse",
+  lax: "lacrosse",
+  mlax: "lacrosse",
+  wlax: "lacrosse",
+  softball: "softball",
+  "jv-softball": "softball",
+  "club-softball": "softball",
+  sball: "softball",
+  wrestling: "wrestling",
+  "mens-wrestling": "wrestling",
+  "womens-wrestling": "wrestling",
+  "club-wrestling": "wrestling",
+  bowling: "bowling",
+  "mens-bowling": "bowling",
+  "womens-bowling": "bowling",
+  mbowl: "bowling",
+  wbowl: "bowling",
+  sailing: "sailing",
+  "mens-sailing": "sailing",
+  "womens-sailing": "sailing",
+  "coed-sailing": "sailing",
+  "club-sailing": "sailing",
+  // Skydning er ÉN kategori for riffel og pistol (Mikkel 2026-08-19). NCAA har
+  // kun riffel, og pistolskytterne skyder til NRA's mesterskaber — men det er
+  // den samme skydebane, og en pistolskytte er ikke "andet".
+  rifle: "shooting",
+  "mens-rifle": "shooting",
+  "womens-rifle": "shooting",
+  "coed-rifle": "shooting",
+  pistol: "shooting",
+  "mens-pistol": "shooting",
+  "womens-pistol": "shooting",
+  "rifle-and-pistol": "shooting",
+  "rifle-pistol": "shooting",
+  shooting: "shooting",
+  "shooting-sports": "shooting",
+  smallbore: "shooting",
+  "air-rifle": "shooting",
+  shotgun: "shooting",
+  trap: "shooting",
+  skeet: "shooting",
+  "clay-target": "shooting",
+  skiing: "skiing",
+  ski: "skiing",
+  "mens-skiing": "skiing",
+  "womens-skiing": "skiing",
+  "alpine-skiing": "skiing",
+  "nordic-skiing": "skiing",
+  "mens-alpine-skiing": "skiing",
+  "womens-alpine-skiing": "skiing",
+  "mens-nordic-skiing": "skiing",
+  "womens-nordic-skiing": "skiing",
+  triathlon: "triathlon",
+  "mens-triathlon": "triathlon",
+  "womens-triathlon": "triathlon",
+  "club-triathlon": "triathlon",
+  // Hestepolo. Vandpolo hedder ALTID water-polo i kilderne, så "polo" alene er
+  // hesten — det var netop den forveksling der holdt to spillere i "andet".
+  polo: "polo",
+  "mens-polo": "polo",
+  "womens-polo": "polo",
+  "arena-polo": "polo",
+  "club-polo": "polo",
+
+  // Cheerleading, dance, stunt, acrobatics & tumbling, ridning, flag football,
+  // rodeo, cykling, bueskydning og ultimate har fortsat ingen alias — de venter
+  // på Mikkels afgørelse om, hvad der er konkurrence, og hvad der er stemning
+  // på sidelinjen. Ikke-sportslige "hold" (saac, band, hall-of-fame) skal slet
+  // ikke i registret; de står i NOT_A_TEAM i team-discovery.ts.
 };
 
 export function sportKeyFromSource(raw: string | null | undefined): SportKey {
@@ -260,6 +343,15 @@ export const SPORT_ICONS: Record<SportKey, string> = {
   fencing: "fencing",
   squash: "squash",
   esports: "esports",
+  lacrosse: "lacrosse",
+  softball: "softball",
+  wrestling: "wrestling",
+  bowling: "bowling",
+  sailing: "sailing",
+  shooting: "shooting",
+  skiing: "skiing",
+  triathlon: "triathlon",
+  polo: "polo",
   other: "other",
 };
 
@@ -282,6 +374,15 @@ export const SPORT_COLORS: Record<SportKey, string> = {
   fencing: "#7A6C8A",
   squash: "#8A4A5C",
   esports: "#5B4BA8",
+  lacrosse: "#6E7B2E",
+  softball: "#9E4B3C",
+  wrestling: "#5E5A6B",
+  bowling: "#7A3F6E",
+  sailing: "#3A5FA8",
+  shooting: "#4A5A3D",
+  skiing: "#6A8FA8",
+  triathlon: "#2E8A6B",
+  polo: "#8A6B4A",
   other: "#6B6B6B",
 };
 
@@ -307,6 +408,15 @@ export const SPORT_EMOJI: Record<SportKey, string> = {
   // lov at stå for sporten frem for en lånt ketsjer fra tennis eller badminton.
   squash: "⚫",
   esports: "🎮",
+  lacrosse: "🥍",
+  softball: "🥎",
+  wrestling: "🤼",
+  bowling: "🎳",
+  sailing: "⛵",
+  shooting: "🎯",
+  skiing: "⛷️",
+  triathlon: "🚴",
+  polo: "🐎",
   other: "🏅",
 };
 
@@ -337,6 +447,11 @@ export const BALL_SPORT_KEYS = new Set<SportKey>([
   "rugby",
   "water-polo",
   "squash",
+  "lacrosse",
+  "softball",
+  "bowling",
+  "polo",
   // Fægtning og esport står bevidst udenfor: man fægter, og en esportsudøver
-  // spiller et SPIL, ikke en bold (verbet sættes i profile-baseline).
+  // spiller et SPIL, ikke en bold. Det samme gælder brydning, sejlsport,
+  // skydning, ski og triatlon — de har hver deres verbum i profile-baseline.
 ]);

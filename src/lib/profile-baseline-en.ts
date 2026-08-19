@@ -145,6 +145,18 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
   if (sport === "esports") {
     return { present: "plays", past: "played", participle: "played", object: sportNoun(sport), posNoun: role(position) };
   }
+  if (sport === "wrestling") {
+    return { present: "wrestles", past: "wrestled", participle: "wrestled", object: "", posNoun: role(position) };
+  }
+  if (sport === "sailing") {
+    return { present: "sails", past: "sailed", participle: "sailed", object: "", posNoun: role(position) };
+  }
+  if (sport === "shooting") {
+    return { present: "shoots", past: "shot", participle: "shot", object: "", posNoun: role(position) };
+  }
+  if (sport === "skiing") {
+    return { present: "skis", past: "skied", participle: "skied", object: "", posNoun: role(position) };
+  }
   if (sport === "track-and-field") {
     if (position) {
       const running = RUNNING_EVENTS.find((r) => r.re.test(position));

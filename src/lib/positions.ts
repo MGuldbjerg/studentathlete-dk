@@ -461,6 +461,130 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     initiator: "initiator",
   },
 
+  // ── Lacrosse ───────────────────────────────────────────────────────────────
+  // Herre- og damelacrosse har forskellige specialistroller: FOGO tager
+  // opkastet hos herrerne, draw-specialisten gør det hos damerne.
+  lacrosse: {
+    a: "attackman",
+    att: "attackman",
+    attack: "attackman",
+    attacker: "attackman",
+    attackman: "attackman",
+    m: "midfielder",
+    mid: "midfielder",
+    midfield: "midfielder",
+    midfielder: "midfielder",
+    lsm: "long_stick_midfielder",
+    "long stick midfield": "long_stick_midfielder",
+    ssdm: "defensive_midfielder",
+    fo: "faceoff_specialist",
+    fogo: "faceoff_specialist",
+    faceoff: "faceoff_specialist",
+    draw: "draw_specialist",
+    "draw specialist": "draw_specialist",
+    d: "defender",
+    def: "defender",
+    defense: "defender",
+    defender: "defender",
+    g: "goalkeeper",
+    gk: "goalkeeper",
+    goalie: "goalkeeper",
+    goalkeeper: "goalkeeper",
+  },
+
+  // ── Softball (begreberne deles med baseball) ───────────────────────────────
+  softball: {
+    p: "pitcher",
+    rhp: "right_handed_pitcher",
+    lhp: "left_handed_pitcher",
+    pitcher: "pitcher",
+    c: "catcher",
+    catcher: "catcher",
+    "1b": "first_baseman",
+    "2b": "second_baseman",
+    "3b": "third_baseman",
+    ss: "shortstop",
+    inf: "infielder",
+    if: "infielder",
+    infield: "infielder",
+    infielder: "infielder",
+    of: "outfielder",
+    outfield: "outfielder",
+    outfielder: "outfielder",
+    lf: "left_fielder",
+    cf: "center_fielder",
+    rf: "right_fielder",
+    dp: "designated_player",
+    "designated player": "designated_player",
+    flex: "flex",
+    util: "utility",
+    utility: "utility",
+  },
+
+  // ── Brydning ───────────────────────────────────────────────────────────────
+  // Vægtklassen ER positionen, og den er et tal ("125", "174"). Tal oversættes
+  // ikke; kun sværvægt har et navn i stedet for et tal.
+  wrestling: {
+    hwt: "heavyweight",
+    hvy: "heavyweight",
+    heavyweight: "heavyweight",
+  },
+
+  // ── Bowling (ingen positioner — holdet spiller Baker-format) ───────────────
+  bowling: {},
+
+  // ── Sejlsport ──────────────────────────────────────────────────────────────
+  sailing: {
+    s: "skipper",
+    skip: "skipper",
+    skipper: "skipper",
+    c: "crew",
+    crew: "crew",
+  },
+
+  // ── Skydning (disciplinen står i position-feltet) ──────────────────────────
+  shooting: {
+    sb: "smallbore",
+    smallbore: "smallbore",
+    "small bore": "smallbore",
+    ar: "air_rifle",
+    "air rifle": "air_rifle",
+    airrifle: "air_rifle",
+    rifle: "air_rifle",
+    ap: "air_pistol",
+    "air pistol": "air_pistol",
+    p: "pistol",
+    pistol: "pistol",
+    "free pistol": "pistol",
+    "standard pistol": "pistol",
+    trap: "trap",
+    skeet: "skeet",
+  },
+
+  // ── Skisport ───────────────────────────────────────────────────────────────
+  // NCAA-mesterskabet er ét hold af alpint og langrend, så disciplinen er den
+  // eneste måde at se, hvad en skiløber egentlig laver.
+  skiing: {
+    alpine: "alpine",
+    nordic: "nordic",
+    "cross country": "nordic",
+    xc: "nordic",
+    sl: "slalom",
+    slalom: "slalom",
+    gs: "giant_slalom",
+    "giant slalom": "giant_slalom",
+    classic: "classic",
+    classical: "classic",
+    freestyle: "freestyle",
+    skate: "freestyle",
+  },
+
+  // ── Triatlon (én disciplin, tre grene — ingen positioner) ──────────────────
+  triathlon: {},
+
+  // ── Hestepolo (spillerne står som numre 1-4, og et tal er ikke en rolle) ───
+  polo: {},
+
   golf: {},
   tennis: {},
   other: {},

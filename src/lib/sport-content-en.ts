@@ -482,6 +482,290 @@ The largest pots follow the largest titles — League of Legends, Valorant and R
 - [Liquipedia. (2026). Collegiate League of Legends 2026 championship.](https://liquipedia.net/leagueoflegends/CLOL/2026/Championship)`,
   },
 
+  lacrosse: {
+    title: "Lacrosse",
+    intro:
+      "British lacrosse players in the NCAA. One of the largest team sports in American college sport, and one of its broadest fields.",
+    metaDescription:
+      "British lacrosse players in the NCAA — news, profiles and results from American college lacrosse.",
+    pillar: `## British lacrosse in the NCAA
+
+Lacrosse is among the largest team sports in American college sport by number of programmes, played across all three NCAA divisions for both men and women. For British players it is a genuine route: the English university and club game feeds the American college system, and the Northeast in particular recruits abroad.
+
+### The season
+
+Lacrosse is a spring sport. The regular season runs from February, and the NCAA tournaments are decided in May. In 2026, 18 men's teams contested the Division I title from 6 to 25 May and 29 women's teams played from 8 to 24 May. Princeton took the men's title, Northwestern the women's.
+
+### How a match is decided
+
+Men play **ten a side**, women **twelve**, and both play four quarters of 15 minutes — the women's two-half format was retired in 2022. The real difference is contact: the men's game allows body checks and firm stick checks, with helmets and shoulder pads, while the women's game bans body checking and permits only controlled stick checks away from the head and body.
+
+### Scholarships and divisions
+
+The field is large: 77 men's teams in Division I, 82 in Division II and 247 in Division III — and on the women's side 130, 119 and 290, with the NAIA and junior colleges beyond that. Division I programmes hold up to 48 scholarships for men and 38 for women, Division II 10.8 and 9.9, and Division III none.
+
+### Worth knowing
+
+The Division III count is what makes the sport distinctive: the weight sits in the small Northeastern colleges where lacrosse is the flagship sport, and where squads recruit heavily from England, Canada and Australia.
+
+### Sources
+
+- [ScholarshipStats.com. (n.d.). Lacrosse scholarships and college programs.](https://scholarshipstats.com/lacrosse)
+- [NCAA.com. (2026, May 3). NCAA Division I women's lacrosse championship subcommittee announces 2026 field.](https://www.ncaa.com/news/lacrosse-women/article/2026-05-03/ncaa-division-i-womens-lacrosse-championship-subcommittee-announces-2026-field)
+- [USA Lacrosse. (2026). NCAA 2026 preview: Your guide to the college lacrosse season.](https://www.usalacrosse.com/magazine/college/ncaa-2026-preview-your-guide-college-lacrosse-season)`,
+  },
+
+  softball: {
+    title: "Softball",
+    intro:
+      "British softball players in the NCAA. The most widely sponsored women's team sport in American college sport.",
+    metaDescription:
+      "British softball players in the NCAA — news, profiles and results from American college softball.",
+    pillar: `## British softball in the NCAA
+
+Softball is the women's sport with the most programmes in American college sport. It is not women's baseball: the diamond is smaller, the pitch is underarm and the game is shorter — but the recruiting, the season and the championship mirror baseball's closely.
+
+### The season
+
+The season opens in early February and finishes in June. The 2026 Division I season ran from 5 February to 5 June with 309 teams. The postseason starts with 16 regionals in mid-May, continues through super regionals, and the last eight teams meet at the Women's College World Series in Oklahoma City — in 2026 from 28 May to 5 June, won by Texas.
+
+### How a game is decided
+
+Seven innings, not nine. The pitcher throws underarm from a shorter distance than in baseball, and the combination of a short diamond and fast pitching makes the game tight: one error in the infield often settles it.
+
+### Scholarships and divisions
+
+1,673 American colleges sponsor softball across the three NCAA divisions, the NAIA, junior colleges and a few smaller associations — nearly 35,000 players in total. Division I has 310 schools, Division II 277 and Division III 401. Following the House settlement, Division I's scholarship cap has given way to a roster limit of 25, all of whom may hold full scholarships; Division II allows 7.2 and Division III none.
+
+### Worth knowing
+
+The Women's College World Series is among the best-attended NCAA championships of any sport — Devon Park in Oklahoma City is its permanent home, and the finals go out on ESPN in prime time.
+
+### Sources
+
+- [ScholarshipStats.com. (n.d.). Softball scholarships and college programs.](https://scholarshipstats.com/softball)
+- [NCAA.com. (2026, June 4). Texas wins the 2026 NCAA DI softball championship.](https://www.ncaa.com/news/softball/article/2026-06-04/2026-ncaa-softball-tournament-bracket-schedule-womens-college-world-series-scores)`,
+  },
+
+  wrestling: {
+    title: "Wrestling",
+    intro:
+      "British wrestlers in the NCAA. One of college sport's oldest disciplines — and since 2026 an NCAA championship sport for women too.",
+    metaDescription:
+      "British wrestlers in the NCAA — news, profiles and results from American college wrestling.",
+    pillar: `## British wrestling in the NCAA
+
+Wrestling is an American winter sport and one of the most thoroughly organised: weight classes, dual meets between schools, and a championship that fills an NBA arena. **The big news is the women's game.** The NCAA held its first women's wrestling championship on 6-7 March 2026 in Coralville, Iowa, making wrestling the NCAA's 91st championship sport. McKendree took the inaugural title, 171-166 over Iowa.
+
+### The season
+
+Duals and open tournaments fill the winter from November, conference championships fall in early March, and the NCAA championship follows mid-month — the 2026 Division I men's championship was decided from 19 to 21 March in Cleveland.
+
+### How a dual is decided
+
+Wrestlers compete in weight classes, and a dual is the sum of the individual bouts. The first NCAA women's championship crowned champions in ten classes from 103 to 207 pounds. A bout is won on points, by technical superiority or by pin — and the pin ends it on the spot, whatever the score.
+
+### Scholarships and divisions
+
+440 American colleges sponsor wrestling: 433 men's teams and 170 women's across the NCAA, NAIA and junior colleges, with some 12,400 male and 2,050 female wrestlers. Division I programmes hold up to 30 scholarships per gender, Division II 9 and 10, and Division III none.
+
+### Worth knowing
+
+Women's wrestling is among the fastest-growing college sports anywhere in the United States — and its arrival at championship status in 2026 is a reminder that the NCAA's list of sports is not fixed.
+
+### Sources
+
+- [NCAA. (2026, March 4). NCAA's first women's wrestling championships: What to know.](https://www.ncaa.org/media-center-ncaas-first-womens-wrestling-championships-what-to-know/)
+- [NCAA.com. (2026, March 7). McKendree clinches the 2026 NC women's wrestling championship.](https://www.ncaa.com/news/wrestling-women/article/2026-03-07/mckendree-clinches-2026-nc-womens-wrestling-championship)
+- [ScholarshipStats.com. (n.d.). Wrestling scholarships and college programs.](https://scholarshipstats.com/wrestling)`,
+  },
+
+  bowling: {
+    title: "Bowling",
+    intro:
+      "British bowlers in the NCAA. A women's championship where all three divisions play for the same title.",
+    metaDescription:
+      "British bowlers in the NCAA — news, profiles and results from American college bowling.",
+    pillar: `## British bowling in the NCAA
+
+Bowling is an NCAA sport for women and, like fencing and water polo, has a single championship: teams from Divisions I, II and III play for the same title. Men's bowling exists at a number of schools but has no NCAA championship.
+
+### The season
+
+Competition runs through the autumn and winter in tournament form, and the championship is decided in April. The 22nd NCAA championship was bowled on 10-11 April 2026 in Parma Heights, Ohio, with 19 teams — Jacksonville State beat Wichita State in the final for its second title.
+
+### How a team match is decided
+
+Not five individual games added together. The championship uses the **Baker format**, in which the five bowlers share a single game and take alternate frames — the team is one game, not five. Regional matches are best of three: a five-person team game, Baker total pinfall, then Baker match play, with the title itself settled in a best-of-seven Baker match.
+
+### Scholarships and divisions
+
+37 Division I schools, 43 in Division II and 34 in Division III sponsor women's bowling. Division I programmes hold up to 10 scholarships, Division II 5, and Division III offers no athletic scholarships.
+
+### Worth knowing
+
+The Baker format is why college bowling looks different on television from every other kind: one bad frame belongs to the whole team, and a final can turn on two deliveries.
+
+### Sources
+
+- [NCAA. (n.d.). National Collegiate bowling.](https://www.ncaa.org/championship/national-collegiate/womens-bowling/)
+- [NCAA.com. (2026, April 11). Jax State wins 2026 NC bowling championship.](https://www.ncaa.com/news/bowling/article/2026-04-11/jax-state-wins-2026-nc-bowling-championship)
+- [ScholarshipStats.com. (n.d.). Bowling scholarships and college programs.](https://scholarshipstats.com/bowling)`,
+  },
+
+  sailing: {
+    title: "Sailing",
+    intro:
+      "British sailors in American college sport. A varsity sport with national championships — run outside the NCAA, by sailing's own association.",
+    metaDescription:
+      "British sailors in American college sport — news, profiles and results from college sailing in the United States.",
+    pillar: `## British sailing in American college sport
+
+**College sailing sits outside the NCAA.** It is governed by the Inter-Collegiate Sailing Association, the sport's own college body, and it is the ICSA rather than the NCAA that runs the national championships. Sailing is a varsity sport at a long list of schools, with coaches, boat parks and full regatta programmes.
+
+### The season
+
+There is racing in both autumn and spring. The autumn is given over to ranking regattas, while the national championships fall in May. In 2026 the fleet race championships were sailed at St Petersburg, Florida: the women's from 15 May, the open from 19 May, each with a 36-boat field split into two divisions, the top nine in each advancing to the closing days.
+
+### How the sport is organised
+
+The ICSA crowns national champions in seven categories: open and women's fleet racing, open and women's team racing, men's and women's singlehanded, and match racing. "Open" means mixed — men and women race in the same boats and against each other, which is rare in American college sport. Team racing, where three boats from a school race tactically against three from another, is the sport's most distinctive discipline.
+
+### Programmes and standards
+
+Programmes cluster on the East and West coasts and around the Great Lakes, and the strongest sit at schools with long maritime traditions. The women's team racing championship is new — founded in 2022 — and Stanford won it in 2026, while Brown took the open fleet race title for the first time since 1948.
+
+### Sources
+
+- [Inter-Collegiate Sailing Association. (n.d.). Championships.](https://www.collegesailing.org/championships/coed)
+- [College Sailing National Championships. (2026). National championship regatta.](https://nationals.collegesailing.org/)
+- [Inter-Collegiate Sailing Association. (n.d.). Women's team race championships.](https://www.collegesailing.org/championships/womens-team-race)`,
+  },
+
+  shooting: {
+    title: "Shooting",
+    intro:
+      "British shooters in American college sport. Rifle is an NCAA sport contested by men and women together; pistol has championships of its own.",
+    metaDescription:
+      "British shooters in American college sport — news, profiles and results from college rifle and pistol in the United States.",
+    pillar: `## British shooting in American college sport
+
+Shooting covers two closely related college sports with separate governing bodies. **Rifle is an NCAA sport** with one championship across all divisions — and a rarity in American college sport: men and women shoot in the same competition for the same titles. Formally rifle is recorded as a men's sport in the NCAA rulebook, but it has been mixed since 1980. **Pistol is not an NCAA sport**; the collegiate pistol championships are run by the NRA.
+
+### The season
+
+The rifle season runs through the winter and the NCAA championship is decided in March. Ohio State hosted in 2026 on 13-14 March: smallbore three-position on the first day, air rifle on the second. West Virginia won for the second year running — the programme's 21st rifle title. The pistol shooters met the same spring for their intercollegiate championship in Columbia, Missouri, won by Ohio State.
+
+### How a competition is decided
+
+The rifle championship is an aggregate score over two days: smallbore is shot in three positions — prone, standing and kneeling — while air rifle is standing only. Eight teams qualify, and both team and individual titles are settled on the aggregate. Pistol shooting is contested in disciplines including free pistol, standard pistol and open air pistol.
+
+### Programmes and standards
+
+The field is small and tight: the 2026 NCAA championship had eight qualified teams — Kentucky, Nebraska, TCU, West Virginia, Ole Miss, Alaska-Fairbanks, Navy and Georgia Southern. Precisely because the competition is mixed and the field narrow, international shooters are a fixture in the strongest programmes.
+
+### Worth knowing
+
+The NRA returned to collegiate pistol in 2026 after a seven-year absence — a championship that had gone quiet, back on the same range as the rest of the shooting sports on the same weekend.
+
+### Sources
+
+- [NCAA.com. (2026, March 14). West Virginia wins 2026 NCAA rifle championship.](https://www.ncaa.com/news/rifle/article/2026-03-14/west-virginia-wins-2026-ncaa-rifle-championship)
+- [NCAA.com. (2026, February 23). 2026 National Collegiate men's and women's rifle selections.](https://www.ncaa.com/news/rifle/article/2026-02-23/2026-national-collegiate-mens-and-womens-rifle-selections)
+- [NRA Shooting Sports USA. (2026). Ohio State captures 2026 intercollegiate pistol crown as NRA returns to the range.](https://www.ssusa.org/content/ohio-state-captures-2026-intercollegiate-pistol-crown-as-nra-returns-to-the-range/)`,
+  },
+
+  skiing: {
+    title: "Skiing",
+    intro:
+      "British skiers in the NCAA. Alpine and nordic are one team and one championship — and the field is among the most international in college sport.",
+    metaDescription:
+      "British skiers in the NCAA — news, profiles and results from American college skiing.",
+    pillar: `## British skiing in the NCAA
+
+NCAA skiing is built unlike any other American winter sport: **alpine and nordic are the same team**, men and women score towards the same title, and there is a single championship across the divisions. A university cannot win on slalom alone — it needs speed skiers and distance skiers both.
+
+### The season
+
+The season runs through the winter on a regional circuit, and the championship is decided in March. In 2026 it was held from 11 to 14 March in Utah: alpine at Utah Olympic Park in Park City, nordic at Soldier Hollow. Utah won for the second year running — the programme's 18th NCAA title.
+
+### How a championship is decided
+
+Eight events are contested: slalom and giant slalom for both sexes, and classic and freestyle nordic races for both. 74 men and 74 women are selected regionally — two regions in alpine, three in nordic — and no school may enter more than twelve skiers, three per gender per discipline. The points are added across the lot.
+
+### Programmes and standards
+
+Programmes cluster in the Rockies, New England and Alaska, where the snow is, and the field is among the most international in college sport: Norwegian, Swedish and Finnish skiers are heavily represented at the top, precisely because the Nordic training culture fits the format directly.
+
+### Worth knowing
+
+Combining alpine and nordic in a single team score is unique to the United States. Nowhere else is a university championship decided on whether the same school can both run giant slalom and ski classic.
+
+### Sources
+
+- [NCAA.com. (2026, March 4). 2026 NCAA skiing championships: Schedule, selections, results, how to watch.](https://www.ncaa.com/news/skiing/article/2026-03-04/2026-ncaa-skiing-championships-schedule-selections-results-how-to-watch)
+- [NCAA.com. (2026, March 14). Utah wins 2026 NCAA skiing championship.](https://www.ncaa.com/news/skiing/article/2026-03-14/utah-wins-2026-ncaa-skiing-championship)
+- [NCAA.com. (2026, March 4). NC men's and women's skiing committee selects 2026 championship field.](https://www.ncaa.com/news/skiing/article/2026-03-04/nc-mens-and-womens-skiing-committee-selects-2026-championship-field)`,
+  },
+
+  triathlon: {
+    title: "Triathlon",
+    intro:
+      "British triathletes in American college sport. An NCAA emerging sport for women, raced draft-legal, with the championship in November.",
+    metaDescription:
+      "British triathletes in American college sport — news, profiles and results from college triathlon in the United States.",
+    pillar: `## British triathlon in American college sport
+
+Triathlon is one of the NCAA's four current emerging sports for women — a recognised sport on its way to a full championship, but not there yet. It was adopted in 2014, and in 2025-26 42 institutions sponsor varsity triathlon, 14 of them in Division II. There is no equivalent NCAA route for men.
+
+### The season
+
+Triathlon is an autumn sport in the United States, which turns the calendar upside down for a European triathlete. The season builds to November, and USA Triathlon runs the championship race for all three NCAA divisions — in 2026 at Tempe, Arizona.
+
+### How a race is decided
+
+College triathlon is raced over the **draft-legal sprint distance**: a 750-metre open-water swim, a 20-kilometre bike and a 5-kilometre run. Drafting changes the sport fundamentally — the bike is ridden tactically in groups, as in road cycling, rather than alone, so the race is usually settled over the closing five kilometres.
+
+### Programmes and standards
+
+The number of programmes is growing steadily, and in autumn 2026 Conference Carolinas became the first NCAA conference to sponsor the sport as a whole. The way forward runs through the NCAA's emerging sports process, where a sport needs a set number of sponsoring schools to earn a championship of its own.
+
+### Sources
+
+- [USA Triathlon. (n.d.). NCAA triathlon.](https://www.usatriathlon.org/multisport/ncaa-triathlon)
+- [NCAA. (n.d.). Emerging sports for women.](https://www.ncaa.org/championships/emerging-sports-for-women/)
+- [NCAA. (2026, May 4). Conference Carolinas announces the addition of women's triathlon.](https://www.ncaa.org/news/2026/5/4/media-center-conference-carolinas-announces-the-addition-of-womens-triathlon.aspx)`,
+  },
+
+  polo: {
+    title: "Polo",
+    intro:
+      "British polo players in American college sport. Arena polo, three a side, a national championship of its own — and no NCAA.",
+    metaDescription:
+      "British polo players in American college sport — news, profiles and results from college polo in the United States.",
+    pillar: `## British polo in American college sport
+
+College polo is run by the United States Polo Association through its Intercollegiate/Interscholastic programme. **It is not an NCAA sport**, but it is organised competition with regional circuits and a national championship — and one of the few college sports where teams ride the school's own horses.
+
+### The season
+
+The season follows the academic year and is settled in early spring: the 2026 national intercollegiate championships were played from 16 to 22 March, after the leading men's and women's teams had qualified through their regions.
+
+### How a match is decided
+
+College polo is played **in an arena rather than on a grass field**, under USPA arena rules. That means three players a side instead of four, a smaller boarded arena and a larger, softer ball. Teams share the horses on a "split string" principle, both sides riding from the same pool — precisely so that the match is decided by the players and not by who owns the most expensive ponies.
+
+### Programmes and standards
+
+More than 35 established intercollegiate programmes are spread across 15 men's and 26 women's teams in four regions. The field is small but stable, and the USPA also runs an international intercollegiate fixture in which American college players meet opposition from abroad.
+
+### Sources
+
+- [United States Polo Association. (n.d.). Intercollegiate.](https://www.uspolo.org/association/programs/intercollegiate-interscholastic/intercollegiate)
+- [United States Polo Association. (n.d.). Division I men's national intercollegiate championship.](https://www.uspolo.org/calendar/tournaments/division-i-mens-national-intercollegiate-championship)
+- [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)`,
+  },
+
   other: {
     title: "Other sports",
     intro:

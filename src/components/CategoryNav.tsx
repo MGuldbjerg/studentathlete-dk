@@ -62,6 +62,33 @@ const ICON_PATHS: Record<string, string> = {
   "esports":
     // Tabler \"device-gamepad\" — controlleren er esportens universelle tegn.
     "<path d=\"M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2z\" /><path d=\"M6 12h4\" /><path d=\"M8 10v4\" /><path d=\"M15 11l0 .01\" /><path d=\"M18 13l0 .01\" />",
+  "lacrosse":
+    // Stav med net-hoved og bold. Tabler har ingen lacrossestav.
+    "<path d=\"M6 21l6.5 -6.5\" /><ellipse cx=\"16\" cy=\"10\" rx=\"3.2\" ry=\"4.5\" transform=\"rotate(45 16 10)\" /><path d=\"M14 8l4 4\" /><circle cx=\"5\" cy=\"9\" r=\"1.6\" />",
+  "softball":
+    // Som baseball, men med de to store søm-buer og uden det tætte stingmønster.
+    "<circle cx=\"12\" cy=\"12\" r=\"9\" /><path d=\"M6.5 5a11 11 0 0 1 0 14\" /><path d=\"M17.5 5a11 11 0 0 0 0 14\" />",
+  "wrestling":
+    // To greb der låser hinanden — brydning tegnet som figur bliver rod i 24px.
+    "<path d=\"M4 9a4 4 0 0 1 8 0v6a4 4 0 0 0 8 0\" /><path d=\"M4 15a4 4 0 0 0 8 0\" /><path d=\"M12 9a4 4 0 0 1 8 0\" />",
+  "bowling":
+    // Kugle med tre huller + en kegle.
+    "<circle cx=\"9\" cy=\"14\" r=\"6.5\" /><circle cx=\"7\" cy=\"11\" r=\".8\" /><circle cx=\"10\" cy=\"10.5\" r=\".8\" /><circle cx=\"8.5\" cy=\"14\" r=\".8\" /><path d=\"M18 21c-1.5 0 -2.5 -1 -2.5 -3s1 -3 1 -6s.5 -4 1.5 -4s1.5 1 1.5 4s1 4 1 6s-1 3 -2.5 3z\" />",
+  "sailing":
+    // Sejl og skrog over vand (Tabler \"sailboat\"-linjen).
+    "<path d=\"M4 18l-1 -5h18l-2 5\" /><path d=\"M11 13v-9l7 9\" /><path d=\"M3 21a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1\" />",
+  "shooting":
+    // Skiven — den ene ting riffel og pistol deler.
+    "<circle cx=\"12\" cy=\"12\" r=\"9\" /><circle cx=\"12\" cy=\"12\" r=\"5\" /><circle cx=\"12\" cy=\"12\" r=\"1.4\" />",
+  "skiing":
+    // Skiløber i fart: hoved, krop, stav og ski.
+    "<circle cx=\"15.5\" cy=\"4.5\" r=\"1.5\" /><path d=\"M9 20l3.5 -4.5l-1.5 -4l-3 2\" /><path d=\"M11 11.5l4 2l1.5 4\" /><path d=\"M3 20.5l17 -5.5\" />",
+  "triathlon":
+    // Cykelhjulene bærer ikonet; svømning og løb kan ikke være der samtidig.
+    "<circle cx=\"5.5\" cy=\"17\" r=\"3.5\" /><circle cx=\"18.5\" cy=\"17\" r=\"3.5\" /><path d=\"M5.5 17l4 -6h5l4 6\" /><path d=\"M9.5 11l2.5 6\" /><path d=\"M13 7h3\" />",
+  "polo":
+    // Køllen med hovedet og bolden — hesten kan ikke tegnes i 24px.
+    "<path d=\"M19 3l-9 12\" /><path d=\"M8 16.5l3.5 2\" /><circle cx=\"5\" cy=\"20\" r=\"1.6\" /><path d=\"M9.5 14l3 1.8\" />",
   "other":
     "<polygon points=\"12,2 14.9,8.3 22,9.3 17,14.1 18.2,21.1 12,17.8 5.8,21.1 7,14.1 2,9.3 9.1,8.3\" />",
 };

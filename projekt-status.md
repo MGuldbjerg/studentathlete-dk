@@ -1,11 +1,48 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-19 (fem nye sportsgrene: rugby, vandpolo, fægtning, squash, esport — 167 atleter ud af "andet")
+**Sidst opdateret**: 2026-08-19 (14 nye sportsgrene i to runder — "andet" er tomt, og tre ikke-atleter er slettet)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🎯 Ni sportsgrene mere, og "andet" er tomt (2026-08-19, anden runde)
+
+Mikkels regel, som nu er den der gælder: **er det organiseret skolekonkurrence,
+skal det have en kategori — og er de ikke atleter, skal de ikke stå i registret.**
+
+Ni nye nøgler: lacrosse, softball, brydning, bowling, sejlsport, skydning,
+skisport, triatlon og hestepolo. Fire af dem styres ikke af NCAA (sejlsport under
+ICSA, hestepolo under USPA, pistolskydning under NRA, og herrelacrosse/-rugby er
+klubsport) — det er ikke et argument imod en kategori, det er et faktum der står i
+pillarteksten.
+
+**Riffel og pistol er ÉN kategori: `shooting` (dansk: Skydning).** NCAA har kun
+riffel, og pistolskytterne skyder til NRA's mesterskaber, men det er den samme
+skydebane og den samme atlet. `rifle`, `pistol`, `shotgun`, `trap` og `skeet`
+peger alle på nøglen.
+
+**Resultatet i prod**: 0 atleter i "andet" (fra 197 i morges). Sidste mand ud var
+August Holmgren, der lå uden `bio_url` fra en manuel indtastning i marts — USD's
+egen roster bekræfter tennis, og rækken har nu både sport, køn og bio_url.
+2.082 `roster_checks`-rækker flyttet med i samme greb; softball alene stod for 776
+og lacrosse 707, så det negative register (`unsponsoredSports`) kan nu udtale sig
+om alle 23 sportsgrene i stedet for at tie om de 11 største huller.
+
+**Tre rækker slettet, fordi de ikke var atleter.** To fra
+`student-athlete-advisory-committee` og én fra `saac`. De havde ingen artikler,
+begivenheder eller fotos knyttet til sig (tjekket tabel for tabel før sletning).
+Roden er lukket: `NOT_A_TEAM` i `team-discovery.ts` afviser nu saac, hall-of-fame,
+band, pep-band, facilities, ticketing, compliance, sports-information m.fl. — 49
+`roster_checks`-rækker for de "hold" er også væk.
+
+**Venter på en afgørelse fra Mikkel**: cheerleading (246 hold i inventaret), dance
+(107), stunt (45), acrobatics & tumbling (36), flag football (102), ridning (47),
+rodeo (16), cykling (7), bueskydning (5) og ultimate (3). Nogle af dem ER
+konkurrencesport — acrobatics & tumbling har eget NCAA-mesterskab, flag football og
+ridning er emerging sports — men grænsen mellem konkurrencehold og sidelinjehold
+skal trækkes af et menneske, ikke af aliastabellen.
 
 ## 🏉 Fem nye sportsgrene, og hullerne i aliastabellen (2026-08-19)
 

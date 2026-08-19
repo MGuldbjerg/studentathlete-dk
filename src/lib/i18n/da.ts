@@ -33,6 +33,15 @@ const sportLabel: Record<SportKey, string> = {
   fencing: "Fægtning",
   squash: "Squash",
   esports: "Esport",
+  lacrosse: "Lacrosse",
+  softball: "Softball",
+  wrestling: "Brydning",
+  bowling: "Bowling",
+  sailing: "Sejlsport",
+  shooting: "Skydning",
+  skiing: "Skisport",
+  triathlon: "Triatlon",
+  polo: "Hestepolo",
   other: "Andet",
 };
 
@@ -60,6 +69,16 @@ const sportSlug: Record<SportKey, string> = {
   fencing: "faegtning",
   squash: "squash",
   esports: "esport",
+  lacrosse: "lacrosse",
+  softball: "softball",
+  wrestling: "brydning",
+  bowling: "bowling",
+  sailing: "sejlsport",
+  shooting: "skydning",
+  skiing: "skisport",
+  triathlon: "triatlon",
+  // Hestepolo, ikke bare "polo" — /vandpolo ligger lige ved siden af.
+  polo: "hestepolo",
   other: "andet",
 };
 
@@ -236,6 +255,38 @@ const positionPhrase: Record<string, string> = {
   controller: "controller",
   sentinel: "sentinel",
   initiator: "initiator",
+
+  // Lacrosse
+  attackman: "attackman",
+  long_stick_midfielder: "long stick-midtbane",
+  faceoff_specialist: "faceoff-specialist",
+  draw_specialist: "draw-specialist",
+
+  // Softball (resten af begreberne deles med baseball)
+  designated_player: "designated player",
+  flex: "flex",
+
+  // Brydning — vægtklassen er tallet selv, kun sværvægt har et navn
+  heavyweight: "sværvægt",
+
+  // Sejlsport
+  skipper: "rorsmand",
+  crew: "gast",
+
+  // Skydning
+  smallbore: "smallbore",
+  air_rifle: "luftgevær",
+  pistol: "pistol",
+  air_pistol: "luftpistol",
+  trap: "trap",
+  skeet: "skeet",
+
+  // Skisport
+  alpine: "alpint",
+  nordic: "langrend",
+  slalom: "slalom",
+  giant_slalom: "storslalom",
+  classic: "klassisk",
 
 };
 

@@ -33,6 +33,15 @@ const sportLabel: Record<SportKey, string> = {
   fencing: "Fencing",
   squash: "Squash",
   esports: "Esports",
+  lacrosse: "Lacrosse",
+  softball: "Softball",
+  wrestling: "Wrestling",
+  bowling: "Bowling",
+  sailing: "Sailing",
+  shooting: "Shooting",
+  skiing: "Skiing",
+  triathlon: "Triathlon",
+  polo: "Polo",
   other: "Other",
 };
 
@@ -59,6 +68,15 @@ const sportSlug: Record<SportKey, string> = {
   fencing: "fencing",
   squash: "squash",
   esports: "esports",
+  lacrosse: "lacrosse",
+  softball: "softball",
+  wrestling: "wrestling",
+  bowling: "bowling",
+  sailing: "sailing",
+  shooting: "shooting",
+  skiing: "skiing",
+  triathlon: "triathlon",
+  polo: "polo",
   other: "other",
 };
 
@@ -231,6 +249,38 @@ const positionPhrase: Record<string, string> = {
   controller: "controller",
   sentinel: "sentinel",
   initiator: "initiator",
+
+  // Lacrosse
+  attackman: "attackman",
+  long_stick_midfielder: "long-stick midfielder",
+  faceoff_specialist: "faceoff specialist",
+  draw_specialist: "draw specialist",
+
+  // Softball
+  designated_player: "designated player",
+  flex: "flex",
+
+  // Wrestling
+  heavyweight: "heavyweight",
+
+  // Sailing
+  skipper: "skipper",
+  crew: "crew",
+
+  // Shooting
+  smallbore: "smallbore",
+  air_rifle: "air rifle",
+  pistol: "pistol",
+  air_pistol: "air pistol",
+  trap: "trap",
+  skeet: "skeet",
+
+  // Skiing
+  alpine: "alpine",
+  nordic: "nordic",
+  slalom: "slalom",
+  giant_slalom: "giant slalom",
+  classic: "classic",
 
 };
 

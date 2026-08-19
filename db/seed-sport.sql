@@ -532,6 +532,290 @@ ON CONFLICT(slug, country) DO UPDATE SET
   updated_at = datetime('now');
 
 INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('lacrosse', 'DK', 'Lacrosse', '## Lacrosse i NCAA
+
+Lacrosse er en af de største holdsportsgrene i amerikansk college-sport målt på antal programmer, og den spilles på alle tre NCAA-niveauer for både herrer og damer. For en europæer er det den mest ukendte af de store — sporten har rødder hos de nordamerikanske oprindelige folk og er stadig tættest på skolerne i nordøst.
+
+### Sæsonens gang
+
+Lacrosse er en forårssport. Grundspillet løber fra februar, og NCAA-turneringerne afgøres i maj. I 2026 spillede 18 herrehold om Division I-titlen fra 6. til 25. maj, mens 29 damehold spillede fra 8. til 24. maj. Princeton vandt herretitlen, Northwestern damernes.
+
+### Sådan afgøres en kamp
+
+Herrer spiller **ti mod ti**, damer **tolv mod tolv**, og begge køn spiller fire kvarterer à 15 minutter — damernes to halvlege blev afskaffet i 2022. Den store forskel er kontakten: herrelacrosse tillader kropstacklinger og hårde stavtacklinger med hjelm og skulderbeskyttelse, mens damelacrosse forbyder kropstacklinger og kun tillader kontrollerede stavtacklinger væk fra hoved og krop.
+
+### Legater og niveauer
+
+Feltet er stort: 77 herrehold i Division I, 82 i Division II og 247 i Division III — og på damesiden 130, 119 og 290. Dertil kommer NAIA og junior colleges. Division I-programmer råder over op til 48 legater på herresiden og 38 på damesiden, Division II over 10,8 og 9,9, mens Division III ikke giver sportslegater.
+
+### Tidbits
+
+Antallet af Division III-programmer er det, der gør sporten særlig: tyngden ligger i de små skoler i nordøst, hvor lacrosse er hovedsporten, og hvor holdene rekrutterer bredt i udlandet — England, Canada og Australien fylder mest.
+
+### Kilder
+
+- [ScholarshipStats.com. (n.d.). Lacrosse scholarships and college programs.](https://scholarshipstats.com/lacrosse)
+- [NCAA.com. (2026, May 3). NCAA Division I women''s lacrosse championship subcommittee announces 2026 field.](https://www.ncaa.com/news/lacrosse-women/article/2026-05-03/ncaa-division-i-womens-lacrosse-championship-subcommittee-announces-2026-field)
+- [USA Lacrosse. (2026). NCAA 2026 preview: Your guide to the college lacrosse season.](https://www.usalacrosse.com/magazine/college/ncaa-2026-preview-your-guide-college-lacrosse-season)', 'Lacrosse i NCAA – nyheder, profiler og resultater fra college-lacrosse i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('softball', 'DK', 'Softball', '## Softball i NCAA
+
+Softball er kvindesporten med flest programmer i amerikansk college-sport. Den er ikke damebaseball: banen er mindre, kastet er underhånds, og kampen er kortere — men rekrutteringen, sæsonstrukturen og mesterskabet ligner baseballs til forveksling.
+
+### Sæsonens gang
+
+Sæsonen begynder i begyndelsen af februar og slutter først i juni. I 2026 løb Division I-sæsonen fra 5. februar til 5. juni med 309 hold. Slutspillet begynder med 16 regionalstævner i midten af maj, fortsætter i super-regionaler, og de sidste otte hold mødes ved Women''s College World Series i Oklahoma City — i 2026 fra 28. maj til 5. juni, hvor Texas vandt.
+
+### Sådan afgøres en kamp
+
+Syv innings, ikke ni. Pitcheren kaster underhånds fra en kortere afstand end i baseball, og kombinationen af kort bane og hurtige kast gør spillet tættere: en enkelt fejl i infielden afgør ofte kampen.
+
+### Legater og niveauer
+
+1.673 amerikanske colleges har softball, fordelt på NCAA''s tre divisioner, NAIA, junior colleges og et par mindre forbund — tilsammen næsten 35.000 spillere. Division I tæller 310 skoler, Division II 277 og Division III 401. Efter House-forliget er Division I''s legatloft afløst af et rosterloft på 25 spillere, som alle kan få fuldt legat; Division II har 7,2 legater, og Division III giver ingen.
+
+### Tidbits
+
+Women''s College World Series er blandt de bedst besøgte NCAA-mesterskaber overhovedet — Devon Park i Oklahoma City er sportens faste hjem, og finalerne sendes på ESPN i bedste sendetid.
+
+### Kilder
+
+- [ScholarshipStats.com. (n.d.). Softball scholarships and college programs.](https://scholarshipstats.com/softball)
+- [NCAA.com. (2026, June 4). Texas wins the 2026 NCAA DI softball championship.](https://www.ncaa.com/news/softball/article/2026-06-04/2026-ncaa-softball-tournament-bracket-schedule-womens-college-world-series-scores)', 'Softball i NCAA – nyheder, profiler og resultater fra college-softball i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('brydning', 'DK', 'Brydning', '## Brydning i NCAA
+
+Brydning er en vinterens sport i USA og en af de mest gennemorganiserede: vægtklasser, dueller mellem skoler og et mesterskab, der fylder en NBA-arena. **Det største nye er kvindernes:** NCAA afviklede sit første damemesterskab i brydning 6.-7. marts 2026 i Coralville, Iowa, og brydning blev dermed NCAA''s 91. mesterskabssport. McKendree vandt den første titel 171-166 over Iowa.
+
+### Sæsonens gang
+
+Dueller og stævner fylder vinteren fra november, conference-mesterskaberne ligger i begyndelsen af marts, og NCAA-mesterskabet afvikles midt i måneden — herrernes Division I-mesterskab blev i 2026 afgjort 19.-21. marts i Cleveland.
+
+### Sådan afgøres en dyst
+
+Der brydes i vægtklasser, og en holddyst er summen af de individuelle kampe. Ved damernes første NCAA-mesterskab blev der kåret mestre i ti klasser fra 103 til 207 pund. En kamp vindes på point, på teknisk overlegenhed eller på fald — og faldet afslutter kampen på stedet, uanset stillingen.
+
+### Legater og niveauer
+
+440 amerikanske colleges har brydning: 433 herrehold og 170 damehold på tværs af NCAA, NAIA og junior colleges, med godt 12.400 mandlige og 2.050 kvindelige brydere. Division I-programmer råder over op til 30 legater pr. køn, Division II over 9 og 10, mens Division III ikke giver sportslegater.
+
+### Tidbits
+
+Damebrydning er en af de hurtigst voksende college-sportsgrene overhovedet — og at den nåede mesterskabsstatus i 2026 er den seneste påmindelse om, at NCAA''s sportsliste ikke er en fast størrelse.
+
+### Kilder
+
+- [NCAA. (2026, March 4). NCAA''s first women''s wrestling championships: What to know.](https://www.ncaa.org/media-center-ncaas-first-womens-wrestling-championships-what-to-know/)
+- [NCAA.com. (2026, March 7). McKendree clinches the 2026 NC women''s wrestling championship.](https://www.ncaa.com/news/wrestling-women/article/2026-03-07/mckendree-clinches-2026-nc-womens-wrestling-championship)
+- [ScholarshipStats.com. (n.d.). Wrestling scholarships and college programs.](https://scholarshipstats.com/wrestling)', 'Brydning i NCAA – nyheder, profiler og resultater fra college-brydning i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('bowling', 'DK', 'Bowling', '## Bowling i NCAA
+
+Bowling er en NCAA-sport for kvinder, og som fægtning og vandpolo har den ét fælles mesterskab: hold fra Division I, II og III spiller om den samme titel. Herrebowling findes på en del skoler, men uden NCAA-mesterskab.
+
+### Sæsonens gang
+
+Sæsonen løber hen over efteråret og vinteren i stævneform, og mesterskabet afgøres i april. Det 22. NCAA-mesterskab blev spillet 10.-11. april 2026 i Parma Heights, Ohio, med 19 hold — Jacksonville State slog Wichita State i finalen og vandt sin anden titel.
+
+### Sådan afgøres en holdkamp
+
+Det er ikke fem individuelle serier lagt sammen. Mesterskabet bruger **Baker-formatet**, hvor de fem spillere deles om den samme serie og slår hver anden frame — holdet er ét spil, ikke fem. Regionalstævnerne afgøres bedst af tre: femmandsserie, samlet Baker-kegletal og til sidst Baker-matchspil, og selve titlen findes i et bedst-af-syv Baker-opgør.
+
+### Legater og niveauer
+
+37 Division I-skoler, 43 i Division II og 34 i Division III har damebowling. Division I-programmer råder over op til 10 legater, Division II over 5, og Division III giver ingen sportslegater.
+
+### Tidbits
+
+Baker-formatet er grunden til, at college-bowling ser anderledes ud på tv end alt andet bowling: én dårlig frame er hele holdets, og en finale kan vende på to kast.
+
+### Kilder
+
+- [NCAA. (n.d.). National Collegiate bowling.](https://www.ncaa.org/championship/national-collegiate/womens-bowling/)
+- [NCAA.com. (2026, April 11). Jax State wins 2026 NC bowling championship.](https://www.ncaa.com/news/bowling/article/2026-04-11/jax-state-wins-2026-nc-bowling-championship)
+- [ScholarshipStats.com. (n.d.). Bowling scholarships and college programs.](https://scholarshipstats.com/bowling)', 'Bowling i NCAA – nyheder, profiler og resultater fra college-bowling i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('sejlsport', 'DK', 'Sejlsport', '## Sejlsport i amerikansk college-sport
+
+**Collegesejlsport ligger uden for NCAA.** Den styres af Inter-Collegiate Sailing Association, sejlsportens eget college-forbund, og det er ICSA — ikke NCAA — der afvikler de nationale mesterskaber. Sporten er varsity på en lang række skoler, med trænere, bådpark og fulde kapsejladsprogrammer.
+
+### Sæsonens gang
+
+Der sejles både efterår og forår. Efteråret bruges på ranglistestævner, mens de nationale mesterskaber ligger i maj. I 2026 blev fleet race-mesterskaberne sejlet i St. Petersburg i Florida: kvindernes fra 15. maj, det åbne fra 19. maj, hvert med 36 hold delt i to grupper, hvor de ni bedste i hver gik videre til de afsluttende dage.
+
+### Sådan er sporten skruet sammen
+
+ICSA kårer nationale mestre i syv kategorier: åben og kvinders fleet race, åben og kvinders team race, herrer og kvinders singlehanded samt match race. "Åben" betyder mixed — mænd og kvinder sejler i samme både og mod hinanden, hvilket er sjældent i amerikansk skolesport. Team racing, hvor tre både pr. skole sejler taktisk mod tre andre, er sportens mest særegne disciplin.
+
+### Niveauer og programmer
+
+Programmerne er koncentreret på øst- og vestkysten og omkring de store søer, og de bedste ligger på skoler med lange maritime traditioner. Kvindernes team race-mesterskab er nyt — det blev indstiftet i 2022 — og Stanford vandt det i 2026, mens Brown vandt det åbne fleet race-mesterskab for første gang siden 1948.
+
+### Kilder
+
+- [Inter-Collegiate Sailing Association. (n.d.). Championships.](https://www.collegesailing.org/championships/coed)
+- [College Sailing National Championships. (2026). National championship regatta.](https://nationals.collegesailing.org/)
+- [Inter-Collegiate Sailing Association. (n.d.). Women''s team race championships.](https://www.collegesailing.org/championships/womens-team-race)', 'Sejlsport i amerikansk college-sport – nyheder, profiler og resultater fra college-sejlsport i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('skydning', 'DK', 'Skydning', '## Skydning i amerikansk college-sport
+
+Skydning dækker to nært beslægtede college-sportsgrene med hver sit forbund. **Riffel er NCAA-sport** med ét mesterskab for alle divisioner — og en sjældenhed i amerikansk skolesport: mænd og kvinder skyder i samme konkurrence om de samme titler. Formelt er riffel registreret som en herresport i NCAA''s regelværk, men den har været mixed siden 1980. **Pistol er ikke NCAA-sport**; de kollegiale pistolmesterskaber afvikles af NRA.
+
+### Sæsonens gang
+
+Riffelsæsonen løber hen over vinteren, og NCAA-mesterskabet afgøres i marts. I 2026 var Ohio State vært 13.-14. marts: smallbore med tre stillinger den første dag, luftgevær den anden. West Virginia vandt for andet år i træk — universitetets 21. riffeltitel. Pistolskytterne mødtes samme forår til det kollegiale mesterskab i Columbia, Missouri, hvor Ohio State vandt.
+
+### Sådan afgøres en konkurrence
+
+Riffelmesterskabet er en sammenlagt score over to dage: smallbore skydes i tre stillinger — liggende, stående og knælende — mens luftgevær kun skydes stående. Otte hold kvalificerer sig, og både hold- og individuelle titler afgøres på aggregatet. På pistolsiden skydes der i discipliner som frempistol, standardpistol og luftpistol.
+
+### Niveauer og programmer
+
+Feltet er lille og tæt: NCAA-mesterskabet i 2026 havde otte kvalificerede hold, blandt dem Kentucky, Nebraska, TCU, West Virginia, Ole Miss, Alaska-Fairbanks, Naval Academy og Georgia Southern. Netop fordi konkurrencen er mixed og feltet smalt, er internationale skytter en fast bestanddel af de bedste programmer.
+
+### Tidbits
+
+NRA vendte i 2026 tilbage til collegepistol efter syv års pause — et forbund, der havde ligget stille, mødtes igen med resten af skydesporten på samme bane samme weekend.
+
+### Kilder
+
+- [NCAA.com. (2026, March 14). West Virginia wins 2026 NCAA rifle championship.](https://www.ncaa.com/news/rifle/article/2026-03-14/west-virginia-wins-2026-ncaa-rifle-championship)
+- [NCAA.com. (2026, February 23). 2026 National Collegiate men''s and women''s rifle selections.](https://www.ncaa.com/news/rifle/article/2026-02-23/2026-national-collegiate-mens-and-womens-rifle-selections)
+- [NRA Shooting Sports USA. (2026). Ohio State captures 2026 intercollegiate pistol crown as NRA returns to the range.](https://www.ssusa.org/content/ohio-state-captures-2026-intercollegiate-pistol-crown-as-nra-returns-to-the-range/)', 'Skydning i amerikansk college-sport – nyheder, profiler og resultater fra college-riffel og -pistol i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('skisport', 'DK', 'Skisport', '## Skisport i NCAA
+
+NCAA-ski er bygget anderledes end enhver anden vintersport i USA: **alpint og langrend er det samme hold**, mænd og kvinder scorer til den samme titel, og der findes kun ét mesterskab på tværs af divisionerne. Et universitet vinder altså ikke på slalom alene — det skal have både fartløbere og langrendsløbere.
+
+### Sæsonens gang
+
+Sæsonen løber gennem vinteren med regionale stævner, og mesterskabet afgøres i marts. I 2026 blev det afviklet 11.-14. marts i Utah: alpint i Utah Olympic Park i Park City, langrend i Soldier Hollow. Utah vandt for andet år i træk — programmets 18. NCAA-titel.
+
+### Sådan afgøres et mesterskab
+
+Der køres otte konkurrencer: slalom og storslalom for begge køn, og klassisk og fri stil i langrend for begge køn. 74 mænd og 74 kvinder udtages regionalt — to regioner i alpint, tre i langrend — og hver skole må højst stille med tolv løbere, tre pr. køn pr. disciplin. Pointene lægges sammen på tværs af det hele.
+
+### Niveauer og programmer
+
+Feltet er koncentreret i Rocky Mountains, New England og Alaska, hvor sneen er, og det er blandt de mest internationale i college-sporten: norske, svenske og finske løbere fylder meget på de bedste hold, netop fordi den nordiske træningskultur passer direkte ind i formatet.
+
+### Tidbits
+
+Kombinationen af alpint og langrend i én holdscore er unik for USA. Ingen andre steder i verden afgøres et universitetsmesterskab på, at den samme skole både kan køre storslalom og gå klassisk.
+
+### Kilder
+
+- [NCAA.com. (2026, March 4). 2026 NCAA skiing championships: Schedule, selections, results, how to watch.](https://www.ncaa.com/news/skiing/article/2026-03-04/2026-ncaa-skiing-championships-schedule-selections-results-how-to-watch)
+- [NCAA.com. (2026, March 14). Utah wins 2026 NCAA skiing championship.](https://www.ncaa.com/news/skiing/article/2026-03-14/utah-wins-2026-ncaa-skiing-championship)
+- [NCAA.com. (2026, March 4). NC men''s and women''s skiing committee selects 2026 championship field.](https://www.ncaa.com/news/skiing/article/2026-03-04/nc-mens-and-womens-skiing-committee-selects-2026-championship-field)', 'Skisport i NCAA – nyheder, profiler og resultater fra college-ski i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('triatlon', 'DK', 'Triatlon', '## Triatlon i amerikansk college-sport
+
+Triatlon er en af NCAA''s fire nuværende emerging sports for kvinder — en anerkendt sport på vej mod fuldt mesterskab, men ikke fremme endnu. Den blev optaget i 2014, og i 2025-26 har 42 institutioner varsity-triatlon, heraf 14 i Division II. Der findes ingen tilsvarende NCAA-vej for mænd.
+
+### Sæsonens gang
+
+Triatlon er en efterårssport i USA, hvilket vender kalenderen på hovedet for en europæisk triatlet. Sæsonen kulminerer i november, og USA Triathlon afvikler mesterskabsløbet for alle tre NCAA-divisioner — i 2026 i Tempe, Arizona.
+
+### Sådan afgøres et løb
+
+College-triatlon køres på **sprintdistancen med drafting tilladt**: 750 meter svøm i åbent vand, 20 kilometer på cykel og 5 kilometer løb. At drafting er tilladt, ændrer sporten fundamentalt — cykelfeltet kører taktisk i grupper som i landevejscykling i stedet for hver for sig, og løbet afgøres derfor oftest på de sidste fem kilometer.
+
+### Niveauer og programmer
+
+Antallet af programmer vokser støt, og Conference Carolinas blev i efteråret 2026 den første NCAA-konference til at sponsorere sporten samlet. Vejen videre går gennem NCAA''s emerging sports-proces, hvor en sport skal have et bestemt antal værtsskoler for at få sit eget mesterskab.
+
+### Kilder
+
+- [USA Triathlon. (n.d.). NCAA triathlon.](https://www.usatriathlon.org/multisport/ncaa-triathlon)
+- [NCAA. (n.d.). Emerging sports for women.](https://www.ncaa.org/championships/emerging-sports-for-women/)
+- [NCAA. (2026, May 4). Conference Carolinas announces the addition of women''s triathlon.](https://www.ncaa.org/news/2026/5/4/media-center-conference-carolinas-announces-the-addition-of-womens-triathlon.aspx)', 'Triatlon i amerikansk college-sport – nyheder, profiler og resultater fra college-triatlon i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
+VALUES ('hestepolo', 'DK', 'Hestepolo', '## Hestepolo i amerikansk college-sport
+
+Hestepolo på college styres af United States Polo Association gennem forbundets Intercollegiate/Interscholastic-program. **Det er ikke en NCAA-sport**, men det er organiseret konkurrence med regionale kredse og et nationalt mesterskab — og det er en af de få college-sportsgrene, hvor holdene bruger skolens egne heste.
+
+### Sæsonens gang
+
+Sæsonen følger studieåret og afgøres i det tidlige forår: de nationale intercollegiate-mesterskaber blev i 2026 spillet 16.-22. marts, efter at de bedste herre- og damehold havde kvalificeret sig gennem deres regioner.
+
+### Sådan afgøres en kamp
+
+College-polo spilles **i arena, ikke på græsbane**, efter USPA''s arenaregler. Det betyder tre spillere pr. hold i stedet for fire, en mindre bane med bander og en større, blødere bold. Holdene deler hestene efter et "split string"-princip, hvor begge hold rider på den samme pulje — netop for at kampen afgøres af spillerne og ikke af, hvem der har de dyreste heste.
+
+### Niveauer og programmer
+
+Over 35 etablerede intercollegiate-programmer fordeler sig på 15 herrehold og 26 damehold i fire regioner. Feltet er lille, men stabilt, og USPA driver desuden et internationalt intercollegiate-opgør, hvor amerikanske collegespillere møder udenlandske.
+
+### Kilder
+
+- [United States Polo Association. (n.d.). Intercollegiate.](https://www.uspolo.org/association/programs/intercollegiate-interscholastic/intercollegiate)
+- [United States Polo Association. (n.d.). Division I men''s national intercollegiate championship.](https://www.uspolo.org/calendar/tournaments/division-i-mens-national-intercollegiate-championship)
+- [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)', 'Hestepolo i amerikansk college-sport – nyheder, profiler og resultater fra college-polo i USA.', 1, 'sport', NULL, datetime('now'))
+ON CONFLICT(slug, country) DO UPDATE SET
+  title = excluded.title,
+  content = excluded.content,
+  meta_description = excluded.meta_description,
+  kind = 'sport',
+  updated_at = datetime('now');
+
+INSERT INTO pages (slug, country, title, content, meta_description, published, kind, category, updated_at)
 VALUES ('andet', 'DK', 'Andre sportsgrene', '## Andre sportsgrene i NCAA
 
 NCAA afvikler mesterskaber i omkring 24 sportsgrene, og danske atleter kan findes i mange af dem. Fra lacrosse til fægtning, fra vandpolo og sejlsport til skisport og wrestling — mulighederne er bredere, end de fleste tror. Udbuddet vokser stadig: kvindebrydning fik sit første NCAA-mesterskab i 2026, og acrobatics & tumbling samt stunt følger fra 2027.
@@ -555,5 +839,5 @@ ON CONFLICT(slug, country) DO UPDATE SET
   kind = 'sport',
   updated_at = datetime('now');
 
-INSERT INTO site_content (key, country, value, updated_at) VALUES ('seedhash.sport', 'DK', 'd0e2b8612084974cc0b245b842adac7ed23de32eda743915fb6c6e55dcd0e4b6', datetime('now'))
+INSERT INTO site_content (key, country, value, updated_at) VALUES ('seedhash.sport', 'DK', 'ffdc2ad87ee70739c58c45a1f16f507327e010852973e524198f1f82eb108cc5', datetime('now'))
 ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, updated_at = datetime('now');

@@ -66,6 +66,26 @@ const NOT_A_TEAM = new Set([
   "composite",
   "all-access",
   "sports",
+  // Tilføjet 2026-08-19: rosterlister der ikke er hold. SAAC er skolens
+  // studenterudvalg — dets medlemmer ER typisk atleter, men rækken siger ikke
+  // hvilken sport, og en atlet uden sport hører ikke til i registret (Mikkel).
+  // Tre sådanne "atleter" lå i registret, indtil de blev slettet samme dag.
+  "saac",
+  "student-athlete-advisory-committee",
+  "student-athlete-advisory-council",
+  "strength-conditioning",
+  "hall-of-fame",
+  "band",
+  "pep-band",
+  "spirit-band",
+  "facilities",
+  "ticketing",
+  "marketing",
+  "compliance",
+  "sports-information",
+  "media-relations",
+  "development",
+  "trainers",
 ]);
 
 /**
