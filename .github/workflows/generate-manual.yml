@@ -59,6 +59,20 @@ jobs:
           DISCORD_WEBHOOK_DK: ${{ secrets.DISCORD_WEBHOOK_DK }}
           DISCORD_WEBHOOK_UK: ${{ secrets.DISCORD_WEBHOOK_UK }}
 
+      # Mekanisk tjek FØR modellens verifikation: de syv tjek er deterministiske og
+      # ejer admin-badgen. verify-article skriver kun når fabrication_risk er NULL,
+      # så rækkefølgen betyder at mekanikken vinder — hvilket er meningen.
+      - name: Kvalitetstjek kladder (mekanisk)
+        if: always()
+        run: npx tsx pipeline/generate/check-drafts.ts --notify
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_DK: ${{ secrets.DISCORD_WEBHOOK_DK }}
+          DISCORD_WEBHOOK_UK: ${{ secrets.DISCORD_WEBHOOK_UK }}
+
       - name: Verificér kladder mod faktaark (fase 3)
         if: always()
         run: npx tsx pipeline/generate/verify-article.ts

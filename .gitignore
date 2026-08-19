@@ -48,3 +48,6 @@ graphify-out/
 
 # Ekspansions-katalog run-snapshots (genereret data, ikke kode)
 pipeline/catalogue/snapshots/
+
+# Gennemgangs-pakker og svar (regenereres af scripts/review-drafts.sh)
+logs/

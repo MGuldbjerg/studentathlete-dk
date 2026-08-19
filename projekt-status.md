@@ -1,11 +1,67 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-18 (landhockey som sportsgren + sport-inventar pr. hold, JSON-API-parser, negativt register)
+**Sidst opdateret**: 2026-08-19 (landhockey som sportsgren + sport-inventar pr. hold, JSON-API-parser, negativt register)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🔍 Hver kladde bliver kvalitetstjekket (2026-08-19) — migration 043
+
+Mikkel: «for each draft, you quality check it … that should speed up the learning».
+Sat op i **to lag**, fordi de to slags fejl kræver to slags læsning:
+
+**Lag 1 — mekanisk, gratis, altid** (`pipeline/generate/quality-check.ts`, 23 tests).
+Syv tjek uden et eneste modelkald, alle møntet på fejlklasser der HAR kostet noget:
+
+| Tjek | Fanger | Den virkelige sag |
+|---|---|---|
+| tal | tal/alder/dato uden belæg i kilde+faktaark | «23-årige», «18 kampe» (#105) |
+| navne | egennavn (to store ord) der ikke står i kilden | den opdigtede træner «Mark Carr» (#107) |
+| citater | citat i kladden + tomt `quotes` i faktaarket | #99 |
+| identitet | atletens fornavn mangler i kilden | #101, #102 handlede om ET ANDET menneske |
+| stedord | strider mod `athletes.gender` | «he» om Almi Nerurkar |
+| tid | begivenheden er ikke overstået (genbruger vagten) | #107, kamp omtalt i datid 16 t før kickoff |
+| årgang | fremskrevet sæson for Sr./Gr. | regel 25 |
+
+Resultatet skrives til `draft_reviews` **og** til `articles.fabrication_risk`/`fact_flags`
+— altså dét felt admin-badgen allerede læser. **Badgen er dermed mekanisk nu**, uden
+at admin skulle bygges om. `verify-article.ts` skriver kun når feltet er NULL, så
+den overskriver ikke mekanikken; rækkefølgen i workflowet er skriv → tjek → verificér.
+
+**Lag 2 — Claude læser kladden** (`scripts/review-drafts.sh` + `draft-pack.ts` +
+`save-review.ts`). Pakken samler kilde, faktaark, atletens data fra basen, de
+mekaniske fund og kladden — **kilden først, kladden sidst**, fordi man ellers læser
+kilden efter hvad kladden påstår. Svaret er JSON og gemmes som `reviewer='claude'`.
+Ugyldigt svar gemmes IKKE: en manglende gennemgang er bedre end en falsk.
+
+**Kørt på den rigtige kladde #108** (Paul Claes Nielsen, Belmont): mekanikken fandt
+ét ægte fund (højden «188 cm» står intet sted i kilden). Claude fandt **ti**, heraf
+to alvorlige tidsfejl — kladden præsenterede freshman-sæsonen 2025 som indeværende,
+selvom 2026-sæsonen først åbner torsdag — plus tre opdigtede karakteristikker
+(lederskab, fysisk styrke, kreativitet), en hæder opgraderet til en rangering,
+«tidligere klubber som» om én klub, og uoversat engelsk («team-leading fem assists»).
+Det er præcis den forskel de to lag skal dække.
+
+**Automatik:**
+- **Workflow «Kvalitetstjek af kladder»** hver 3. time: mekanisk tjek + Discord-ping
+  (også om Claudes fund, som ligger i D1 — pinget behøver ikke komme fra din maskine).
+- **Cron på WSL** kl. 7, 10, 13, 16 og 19: `scripts/review-drafts.sh` kører begge lag.
+  Fjernes med `crontab -e`.
+- **Generate-workflowet** kører nu det mekaniske tjek lige efter skrivningen.
+
+**To cron-fælder, håndteret i scriptet** (begge fundet ved at køre i et tomt miljø):
+`~/.bashrc` returnerer med vilje straks i en ikke-interaktiv shell, så nøglerne
+plukkes direkte ud af filen i stedet for at source den; og cron har en minimal PATH
+uden nvm, så node-bin lægges foran hvis `npx` ikke kan ses.
+
+**Idempotent**: en kladde gennemgås igen når INDHOLDET ændres (`content_hash`), ikke
+pr. kørsel. Tom kø = ingen kald, ingen omkostning.
+
+**Det næste, når der er data**: hold `draft_reviews` op mod `review_log`. Forudsiger
+fundene dine faktiske afvisninger? Det er svaret på om badgen er værd at stole på —
+og det var hele problemet med den gamle.
 
 ## 🖼 Facebook-opslag uden billede (2026-08-18) — vores egen robots.txt
 
