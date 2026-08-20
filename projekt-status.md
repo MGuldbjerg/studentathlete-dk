@@ -58,7 +58,7 @@ forbund — og STUNT er ikke valgt til. Testen fastholder `stunt` → "other".
 Ventelisten er hermed tom på nær cheerleading, dans, stunt, ridning og rodeo, som
 alle er fravalgt af Mikkel. Hestepolo bliver stående efter aftale.
 
-**23 → 25 sportsgrene i alt.** SPORT_KEYS, sprogpakkerne, positionsbegreberne,
+**30 → 32 sportsgrene i alt** (33 nøgler med `other` — her stod «25», og det var en tællefejl). SPORT_KEYS, sprogpakkerne, positionsbegreberne,
 farverne, emoji'erne, nav-ikonerne og pillarteksterne på begge sprog er komplette
 for dem alle — typesystemet håndhæver det: en manglende nøgle i én af tabellerne
 er en typefejl, ikke en tavs fallback.

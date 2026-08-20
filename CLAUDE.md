@@ -17,7 +17,26 @@
 Se **DESIGN.md** for farver, typografi, komponenter, layout-regler og artikel-templates.
 
 ## Sportsgrene (til navigation og kategorisering)
-Football, Basketball, Baseball, Soccer, Swimming, Track and Field, Golf, Tennis, Volleyball, Ice Hockey
+**Listen står i koden, ikke her**: `SPORT_KEYS` i `src/lib/sports.ts` (32 sportsgrene
++ `other` pr. 2026-08-20). Denne fil stod med ti sportsgrene længe efter at der var
+flere — derfor peger den nu på kilden i stedet for at gentage den.
+
+En ny sportsgren kræver en nøgle ALLE steder: navn og URL-slug i `src/lib/i18n/da.ts`
+og `en.ts`, farve/emoji/ikon i `sports.ts`, ikonsti i `CategoryNav.tsx`,
+positionskoder i `positions.ts` og pillartekst i `sport-content.ts` +
+`sport-content-en.ts`. Typesystemet fejler, hvis én mangler.
+
+## Claude Desktop
+
+Skal Desktop-Claude arbejde på projektet (typisk artikeltekst, strategi, jura),
+så byg kontekstpakken og læg den i Desktop under "Projektviden":
+
+    ./scripts/build-desktop-pack.sh     (eller byg-desktop-pakke.bat fra Windows)
+    → desktop-pakke/StudentAthlete-til-Claude-Desktop.md
+
+Prosaen redigeres i `desktop-pakke/_brief-skabelon.md`; sportsnøgler, tabeller,
+kladdekø og status hentes fra koden og D1, så pakken ikke kan stå og lyve.
+Afleveringsformatet tilbage fra Desktop står i pakkens afsnit 8.
 
 ## Database-tabeller
 - `athletes` — atletprofiler
