@@ -32,6 +32,33 @@ sletning, ingen andre tabeller.
 Opsætning i `SETUP-mcp-desktop.md`. `_mcp-server-test.ts` (i CI) holder fast i
 protokolformen og i de to spærrer.
 
+## 🔌 Claude Desktop kan arbejde på sitet (2026-08-20)
+
+Kontekstpakken gav Desktop viden; connectoren giver den hænder. Den eksisterende
+worker taler nu MCP (Streamable HTTP) og udstiller ni værktøjer: kladdekøen og
+hele grundlaget bag en kladde (kilde, faktaark, atletdata, gennemgangens fund),
+`save_draft` (publicerer ALDRIG), `publish_draft` (kræver `confirm: true` og
+nægter kladder gennemgangen har afvist), sider pr. land, atletopslag og nøgletal.
+Skrivningerne går gennem `publishArticle`/`updateArticle`/`upsertPage` — de samme
+funktioner som `/admin`.
+
+**To indgange, fordi Desktops connector-dialog ikke ser ens ud i alle versioner:**
+`/api/mcp` med `Authorization: Bearer <token>` (foretrukket — tokenet holder sig
+ude af URL'er og logs) og `/api/mcp/<token>` for builds med kun et URL-felt.
+Serveren accepterer også `X-MCP-Token`. Uden `MCP_TOKEN` på workeren svarer
+endepunktet 503 — en glemt secret lukker døren i stedet for at åbne den.
+
+**Hvorfor ikke bare give Desktop Cloudflare-tokenet?** Fordi Cloudflares egen
+D1-MCP-server giver vilkårlig SQL mod hele kontoen — også `DROP TABLE` — uden om
+`publishArticle`, uden om spærren mod automatisk publicering og uden om `/admin`s
+kodeveje. Ni afgrænsede værktøjer er den mindre adgang, ikke den større.
+
+`/api/mcp` ligger bevidst uden for Cloudflare Access (som dækker `/admin` og
+`/api/admin`): Desktop kan ikke gennemføre et Access-login.
+
+Opsætning i `SETUP-mcp-desktop.md`. `_mcp-server-test.ts` (i CI) holder fast i
+protokolformen og i begge spærrer.
+
 ## 📰 To danske kladder omskrevet — og gennemgangen så kun halvdelen af kilden (2026-08-20)
 
 Mikkel bad om, at de to danske kladder blev bragt i overensstemmelse med

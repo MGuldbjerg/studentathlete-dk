@@ -1,6 +1,6 @@
 # StudentAthlete — projektbrief til Claude Desktop
 
-*Genereret 2026-08-20 09:47 (commit 0ffaf23). Regenerér med `byg-desktop-pakke.bat` (Windows) eller
+*Genereret 2026-08-20 09:52 (commit 9bfdf9c). Regenerér med `byg-desktop-pakke.bat` (Windows) eller
 `scripts/build-desktop-pack.sh` (WSL), når noget herunder er blevet forældet.*
 
 Denne fil er ÉN selvstændig kontekstpakke. Læg den i et Claude Desktop-projekt
@@ -37,8 +37,10 @@ Mikkel kan give videre til Claude Code — brug afleveringsformatet i afsnit 8.
 
 ### Har du StudentAthlete-connectoren?
 
-Er connectoren slået til i dette projekt (Indstillinger → Connectors), har du
-alligevel hænder — direkte mod den live database:
+Er connectoren slået til i dette projekt (Indstillinger → Connectors — enten
+`https://studentathlete.dk/api/mcp` med en `Authorization: Bearer`-header eller
+`/api/mcp/<token>` som ren URL), har du alligevel hænder — direkte mod den live
+database:
 
 | Værktøj | Gør |
 |---|---|
@@ -318,10 +320,11 @@ Er du i tvivl om et faktum, så **lad det stå i NOTER i stedet for i teksten**.
 
 ## 9. Aktuel status
 
-**Sidst opdateret**: 2026-08-20 (kladde #108 og #111 omskrevet til kilderne; gennemgangen så kun halvdelen af kilden)
+**Sidst opdateret**: 2026-08-20 (MCP-connector: Claude Desktop kan nu arbejde på sitet; kladde #108 og #111 omskrevet)
 
 De nyeste afsnit i `projekt-status.md` (bed Mikkel om filen, hvis et af dem er relevant):
 
+- 🔌 Claude Desktop kan arbejde på sitet (2026-08-20)
 - 📰 To danske kladder omskrevet — og gennemgangen så kun halvdelen af kilden (2026-08-20)
 - 🥏 Akrobatik og ultimate lukker ventelisten (2026-08-19, fjerde runde)
 - 🚩 Flag football, cykling og bueskydning (2026-08-19, tredje runde)
@@ -333,7 +336,6 @@ De nyeste afsnit i `projekt-status.md` (bed Mikkel om filen, hvis et af dem er r
 - 🔎 Atletiksite fundet for 152 skoler (2026-08-18) — migration 042
 - 🏑 Field hockey er en sportsgren nu (2026-08-18)
 - 🔧 Scraperen ser nu ALLE hold (2026-08-17/18) — inventar + JSON-API + negativt register
-- 🛑 Kladdegennemgang 2026-08-16 — to nye spærrer
 
 **Atleter pr. sportsgren og land:**
 

@@ -37,8 +37,10 @@ Mikkel kan give videre til Claude Code — brug afleveringsformatet i afsnit 8.
 
 ### Har du StudentAthlete-connectoren?
 
-Er connectoren slået til i dette projekt (Indstillinger → Connectors), har du
-alligevel hænder — direkte mod den live database:
+Er connectoren slået til i dette projekt (Indstillinger → Connectors — enten
+`https://studentathlete.dk/api/mcp` med en `Authorization: Bearer`-header eller
+`/api/mcp/<token>` som ren URL), har du alligevel hænder — direkte mod den live
+database:
 
 | Værktøj | Gør |
 |---|---|

@@ -20,23 +20,43 @@ Cloudflare viser det aldrig igen.
 
 ## 2. Tilføj connectoren i Claude Desktop
 
-Indstillinger → Connectors → **Add custom connector** → URL:
+Indstillinger → Connectors → **Add custom connector**. Har dialogen et felt til
+API-nøgle eller request headers, så brug det — så holder tokenet sig ude af
+URL'er, logs og browserhistorik:
+
+```
+URL:    https://studentathlete.dk/api/mcp
+Header: Authorization: Bearer <dit-token>
+```
+
+Har dialogen **kun** et URL-felt (ældre builds), så læg tokenet i stien i stedet:
 
 ```
 https://studentathlete.dk/api/mcp/<dit-token>
 ```
 
-Ingen OAuth-felter, ingen headers. Desktop opdager selv værktøjerne.
+Samme server, samme værktøjer. Serveren tager imod tokenet tre steder:
+`Authorization: Bearer`, `X-MCP-Token` og som sidste sti-segment.
+
+OAuth-felterne i dialogen skal ikke bruges — de kræver en OAuth-server, vi ikke
+har.
 
 ## 3. Tjek at den svarer
 
 ```bash
-curl -s -X POST https://studentathlete.dk/api/mcp/<dit-token> \
+# Header-vejen
+curl -s -X POST https://studentathlete.dk/api/mcp \
+  -H 'content-type: application/json' \
+  -H "authorization: Bearer $MCP_TOKEN" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | head -c 400
+
+# Sti-vejen
+curl -s -X POST https://studentathlete.dk/api/mcp/$MCP_TOKEN \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | head -c 400
 ```
 
-Forkert token svarer `404`, manglende secret svarer `503`.
+Forkert eller manglende token svarer `401`, manglende secret svarer `503`.
 
 ## Værktøjerne
 
@@ -53,10 +73,18 @@ Forkert token svarer `404`, manglende secret svarer `503`.
 
 ## Sikkerheden — sagt højt
 
-**Tokenet ER adgangen.** Desktops connector-felt tager kun en URL: OAuth-felterne
-kræver en OAuth-server vi ikke har, og header-feltet er endnu ikke ude alle
-steder. Derfor ligger hemmeligheden i stien, og **hvem som helst med URL'en kan
-skrive i kladder og sider**. Behandl den som en adgangskode.
+**Tokenet ER adgangen** — uanset hvilken af de to veje du bruger. Header-vejen
+er den bedste af dem: et token i en URL ender i browserhistorik, i logs og i
+enhver skærmdeling af adresselinjen, mens en header kun ligger i Desktops egen
+opsætning. Kan din build ikke sende headers, virker sti-vejen — men så er
+**URL'en adgangskoden**, og alle med den kan skrive i kladder og sider.
+
+**Hvorfor ikke bare give Desktop Cloudflare-tokenet?** Fordi det er en anden
+størrelse adgang. Cloudflares egen D1-MCP-server ville lade Desktop køre vilkårlig
+SQL mod hele kontoen — også `DROP TABLE` — uden om `publishArticle`,
+uden om spærren mod automatisk publicering og uden om `/admin`s kodeveje.
+Denne connector kan præcis ni ting, og hver af dem gør det samme som knappen i
+admin gør.
 
 - **Roter**: kør kommandoen i trin 1 igen og opdater URL'en i Desktop. Den gamle
   URL dør i samme øjeblik.
