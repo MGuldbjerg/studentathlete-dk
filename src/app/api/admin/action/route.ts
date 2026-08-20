@@ -24,7 +24,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    // Uden den her linje er «Serverfejl» alt hvad man har at gå efter: da
+    // fremmednøglen fra draft_reviews begyndte at blokere sletningen, kunne
+    // fejlen kun findes ved at genskabe den i D1 i hånden.
+    console.error("admin/action fejlede:", err);
     return NextResponse.json({ error: "Serverfejl" }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@
  * Unit-tests for social-modulets rene logik (pacing + copy).
  * Kør: npx tsx pipeline/social/_social-test.ts
  */
-import { distributionAllowed } from "./post-social";
+import { cardReadyClause, distributionAllowed } from "./post-social";
 import { bluesky } from "./channels/bluesky";
 import { facebook } from "./channels/facebook";
 import {
@@ -13,6 +13,7 @@ import {
   shouldPostNow,
 } from "./pacing";
 import { buildPostText, truncate } from "./copy";
+import { cardBlobKey } from "../../src/lib/seo";
 
 let passed = 0;
 let failed = 0;
@@ -133,6 +134,23 @@ expect("kanal: facebook er en dansk konto", facebook.country, "DK");
 expect("distribution: DK er tilladt", distributionAllowed("DK"), true);
 expect("distribution: UK er dark launch → spærret", distributionAllowed("UK"), false);
 expect("distribution: ukendt land falder tilbage på standardsitet", distributionAllowed("ZZ"), true);
+
+// ── Kort før opslag (Amtrup 2026-08-18, #108 2026-08-20) ─────────────────────
+// Begge opslag gik ud FØR artiklens 1200×630-kort var rendret, fik /api/og's
+// 600×315-fallback i stedet — mens siden lovede 1200 — og endte uden billede på
+// Facebook. Køen spørger nu efter kortet, og nøglen i SQL'en SKAL være den
+// samme som `cardBlobKey()` bygger; ellers venter køen på et kort der aldrig
+// findes, eller poster et der ikke er der.
+expect(
+  "kort-gate: SQL'ens nøgle matcher cardBlobKey",
+  cardReadyClause("a").includes(`'${cardBlobKey(42).replace("42", "' || a.id || '")}'`),
+  true,
+);
+expect(
+  "kort-gate: alias bruges (så klausulen kan genbruges)",
+  cardReadyClause("x").includes("x.id"),
+  true,
+);
 
 console.log(`\n${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

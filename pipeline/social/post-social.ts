@@ -18,7 +18,7 @@
  */
 
 import { createD1Client, type D1Client } from "../lib/d1-client";
-import { getArticleCoverUrl, getArticleUrl } from "../../src/lib/seo";
+import { CARD_VERSION, getArticleCoverUrl, getArticleUrl } from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl } from "../../src/lib/site";
 import { DEFAULT_PACING, computeGapMinutes, shouldPostNow } from "./pacing";
@@ -106,6 +106,37 @@ function buildContent(row: QueuedRow, channel: SocialChannel["name"]): PostConte
   };
 }
 
+/**
+ * "Har artiklen et færdigt kampkort?" som SQL — ÉT sted, så drænet og
+ * advarslen ikke kan komme til at spørge om hver sin nøgle. Nøgleformatet er
+ * `cardBlobKey()`s (src/lib/seo.ts); testen holder de to sammen.
+ */
+export function cardReadyClause(alias = "a"): string {
+  return `EXISTS (SELECT 1 FROM card_blobs cb WHERE cb.key = 'card-' || ${alias}.id || '-v${CARD_VERSION}')`;
+}
+
+/**
+ * Køen er ikke tom — den venter på kort. Sig det højt, med navn og id.
+ *
+ * Uden linjen ligner "intet postet" en stille no-op, og et permanent brudt
+ * kort-render ville standse al distribution uden at nogen kunne se hvorfor
+ * (kø-rækkerne udløber tavst efter 48 timer).
+ */
+async function warnIfWaitingForCards(db: D1Client, ch: SocialChannel): Promise<void> {
+  const { results } = await db.query<{ id: number; title: string }>(
+    `SELECT a.id, a.title
+       FROM social_posts sp
+       JOIN articles a ON a.id = sp.article_id
+      WHERE sp.channel = ? AND sp.status = 'queued' AND a.country = ?
+        AND NOT ${cardReadyClause("a")}
+      ORDER BY sp.created_at ASC`,
+    [ch.name, ch.country],
+  );
+  for (const r of results) {
+    console.warn(`  ⚠ ${ch.name}: #${r.id} "${r.title}" venter på sit kampkort (card-${r.id}-v${CARD_VERSION}) — ikke postet.`);
+  }
+}
+
 /** Dræn én kanal: post den ældste i køen hvis pacing tillader det. */
 async function drainChannel(
   db: D1Client,
@@ -132,6 +163,18 @@ async function drainChannel(
     return { posted: false, error: null };
   }
 
+  // KORTET SKAL FINDES FØRST. Facebook (og Bluesky) bygger forhåndsvisningen af
+  // sin EGEN scrape af siden, og siden lover `og:image:width=1200`. Mangler
+  // blob'en, serverer /api/og sit 600×315-fallback — halvdelen af det lovede —
+  // og Facebook viser opslaget uden billede OG husker det i ~30 dage.
+  //
+  // Rækkefølgen var tænkt løst med cron (kort :05, social :15), men GitHub
+  // Actions' skemalægning skrider: 18. august postede Amtrup-artiklen 07:07 og
+  // fik sit kort 07:46; 20. august postede #108 07:58 og fik kortet 08:50.
+  // Begge opslag blev uden billede. En rækkefølge man ØNSKER, er ikke en
+  // rækkefølge man HAR — derfor er den nu en betingelse i forespørgslen:
+  // en artikel uden kort er ikke klar til at blive delt og bliver stående i
+  // køen, mens de andre kan komme forbi.
   const [row] = (
     await db.query<QueuedRow>(
       `SELECT sp.id, sp.article_id, sp.attempts,
@@ -142,12 +185,16 @@ async function drainChannel(
        LEFT JOIN athletes ath ON ath.id = a.athlete_id
        WHERE sp.channel = ? AND sp.status = 'queued'
          AND a.country = ?
+         AND ${cardReadyClause("a")}
        ORDER BY sp.created_at ASC, sp.id ASC
        LIMIT 1`,
       [ch.name, ch.country],
     )
   ).results;
-  if (!row) return { posted: false, error: null };
+  if (!row) {
+    await warnIfWaitingForCards(db, ch);
+    return { posted: false, error: null };
+  }
 
   // Sidste kontrol før noget forlader huset. En kø-række kan være oprettet af
   // en ældre version af koden — den må ikke kunne poste alligevel.

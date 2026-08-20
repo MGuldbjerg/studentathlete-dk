@@ -69,6 +69,15 @@ async function main() {
 
   if (hardDelete) {
     // Cascade-slet fra alle tabeller der refererer athletes(id)
+    // — og først fra dem der refererer articles(id), ellers falder
+    // artikel-sletningen på FOREIGN KEY constraint failed (samme fælde som
+    // /admin's afvis-knap, se deleteArticle i src/lib/admin.ts).
+    await db.execute(
+      `DELETE FROM draft_reviews WHERE article_id IN (SELECT id FROM articles WHERE athlete_id IN (${idList}))`,
+    );
+    await db.execute(
+      `DELETE FROM social_posts WHERE article_id IN (SELECT id FROM articles WHERE athlete_id IN (${idList}))`,
+    );
     await db.execute(`DELETE FROM articles WHERE athlete_id IN (${idList})`);
     await db.execute(`DELETE FROM stories WHERE athlete_id IN (${idList})`);
     await db.execute(`DELETE FROM sources WHERE athlete_id IN (${idList})`);

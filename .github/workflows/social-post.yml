@@ -27,6 +27,18 @@ jobs:
 
       - run: npm ci
 
+      # Kortene FØR opslaget, i samme kørsel. «Pre-render kampkort» kører også
+      # selv kl. :05, men GitHub Actions' skemalægning skrider (18. og 20.
+      # august postede social-kørslen før kort-kørslen, og begge opslag blev
+      # uden billede). Kaldet er idempotent og springer eksisterende kort over,
+      # så prisen er sekunder når der intet nyt er.
+      - name: Pre-render manglende kampkort (før opslag)
+        run: npx tsx pipeline/render/render-cards.ts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
       - name: Enqueue + dræn social-kø
         run: npx tsx pipeline/social/post-social.ts ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
         env:

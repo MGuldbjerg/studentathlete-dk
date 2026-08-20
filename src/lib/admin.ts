@@ -241,7 +241,22 @@ export async function deleteArticle(id: number): Promise<void> {
   } catch {
     /* log-fejl må aldrig blokere sletning */
   }
-  await db.prepare("DELETE FROM articles WHERE id = ?").bind(id).run();
+  // To tabeller PEGER på artiklen med en fremmednøgle, og D1 håndhæver dem:
+  // `draft_reviews` (migration 043) og `social_posts` (migration 018). Fra og
+  // med 043 har HVER kladde mindst én gennemgang, så en ren
+  // `DELETE FROM articles` fejlede med FOREIGN KEY constraint failed — og
+  // /admin's afvis-knap svarede «Serverfejl» på hver eneste kladde.
+  //
+  // Begge tabeller er logbøger OM rækken og kan ikke overleve den. Det der SKAL
+  // overleve, ligger i `review_log`: den har ingen fremmednøgle og gemmer selve
+  // teksten (migration 044), så en afvisning kan efterprøves bagefter.
+  // Rækkefølgen er børn før forælder, i én batch, så en halv sletning ikke kan
+  // efterlade en gennemgang uden artikel.
+  await db.batch([
+    db.prepare("DELETE FROM draft_reviews WHERE article_id = ?").bind(id),
+    db.prepare("DELETE FROM social_posts WHERE article_id = ?").bind(id),
+    db.prepare("DELETE FROM articles WHERE id = ?").bind(id),
+  ]);
 }
 
 export async function getArticleById(id: number): Promise<Article | null> {
