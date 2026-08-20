@@ -1,11 +1,101 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-20 (MCP-connector: Claude Desktop kan nu arbejde på sitet; kladde #108 og #111 omskrevet)
+**Sidst opdateret**: 2026-08-20 (otte britiske kladder rettet; afvis-knappen og Facebook-kortet fikset)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🇬🇧 Otte britiske kladder rettet — og to fejl fundet undervejs (2026-08-20)
+
+Mikkel bad om en gennemgang af de britiske kladder. Alle otte (#109, #110,
+#112–#117) er nu bragt i overensstemmelse med deres kilder, og kvalitetstjekket
+melder **nul mekaniske fund** på dem alle. Ny hjælper:
+`pipeline/generate/save-draft.ts` — læser den rettede tekst i generatorens eget
+format (`# titel` / `> ingress` / brødtekst), skriver den tilbage gennem de samme
+felter som `/admin`, **publicerer aldrig**, nægter at røre en publiceret artikel
+og flytter kun sluggen hvis titlen ændres.
+
+**Tre kladder var reelt fri fantasi oven på ét faktum:**
+
+- **#113 (Lauren Pickup, Rice)** var værst. Kilden er en ugens-hæder: Pickup fik
+  honorable mention, Kirsten Ruf blev ugens målmand. Kladden lavede det om til en
+  kampreportage — «to mål i et 3-2-nederlag til Texas A&M», mål i første halvleg,
+  en opdigtet træner ved navn **Brian Lee**, og målmanden hed **Sarah** Ruf.
+  Sandheden er det modsatte og bedre: hun scorede ét mål i hver af de to kampe,
+  og det er netop pointen — første gang i karrieren i to kampe i træk.
+- **#114–#116 (Jack Whaley, FSU, golf)** var tre næsten ens svulstige tekster på
+  4.800–6.000 tegn. Ude er bl.a. «den første englænder i årevis», en alder
+  (23 år), en påstand om at han ville være den første brite til at vinde siden
+  **Matt Wallace i 2017**, **Tom McKibbin** og **Barclay Brown** som
+  sammenligning, ACC-tilhør, og en forkert dag for finalen (fredag → søndag).
+  Kvartfinalen sluttede på 14. hul (5&4), ikke på 13., og birdien på 22. hul mod
+  Ormond faldt i MATCHEN, ikke i kvalifikationens omspil — kladden havde blandet
+  de to sammen. Teksterne er nu 1.300–1.800 tegn.
+
+**Fem mindre, men reelle fejl:** #109's ingress gjorde sidste sæsons 22 point til
+noget hun lavede «in the preseason campaign». #110 skrev konferencens fulde navn
+uden belæg i kilden og lagde «Now a senior» foran 2025-tallene. #112 kaldte
+Blythe Clark målmand (kilden siger det aldrig — det er en slutning fra
+«outstretched hand») og havde et «two of them» der kunne læses som om atleten
+spillede for UNCG. #117 kaldte 2025 hans ANDEN sæson hos Wolfpack, hvor kilden
+siger at han nu GÅR IND I sin anden — og fremskrev en Sr. med «set to graduate in
+2027», som regel 25 forbyder. Og «soccer» stod tre steder; husreglen er britisk:
+football.
+
+**Relative ugedage er en fælde i sig selv.** «on Saturday», «Thursday night»,
+«was set for Friday» — skrevet ud fra en kilde fra 13.–17. august og udgivet den
+20. peger de på den KOMMENDE weekend. Alle otte har nu datoer.
+
+**To ting rettelserne ikke kan løse:**
+
+1. **Den vigtigste Whaley-historie er aldrig skrevet.** Story #2834, «Whaley
+   Takes Home U.S. Amateur Championship» (16. august), står stadig som `new`,
+   mens de tre optaktshistorier blev til kladder. Det samme gælder #2932: Whaley
+   er udtaget til **Walker Cup-holdet for GB&I** (18. august). Vi har altså tre
+   tekster om vejen til en finale, og ingen om at han vandt den.
+2. **Faktaarket forurener sig selv med fremmede box scores.** #109's ark
+   indeholder «Maine 0 Final 1 Vermont» og en statline (3 shots, 0 goals) fra en
+   kamp der ikke er spillet — kilden er en preseason-udtagelse. #112's ark lægger
+   ECU's HOLDtal (2 mål, 1 assist) ind under atletens statistik. Begge kladder
+   gik uden om tallene af sig selv, men næste kladde på samme ark kan lige så godt
+   give hende to mål.
+
+**Bemærk om gennemgangens egen målestok**: pakken siger «faktaarket er det ENESTE
+kladden må hvile på», mens tjekpunkt 2 siger «faktaarket ELLER kilden». Derfor
+returnerer gennemgangen `fix` med medium-fund på oplysninger den selv har
+verificeret i kilden. De to formuleringer bør enes om én regel.
+
+## 🐛 Afvis-knappen og Facebook-billedet (2026-08-20)
+
+Begge fejl kom fra Mikkel midt i kladdegennemgangen.
+
+**«Serverfejl» ved afvisning.** `deleteArticle` kørte en ren
+`DELETE FROM articles`, men to tabeller peger på rækken med en fremmednøgle:
+`social_posts` (migration 018) og — siden i går — `draft_reviews` (migration
+043). Fra det øjeblik hver kladde fik en gennemgang, fejlede hver eneste
+afvisning med FOREIGN KEY constraint failed. Verificeret i D1 med en
+skraldespands-række: børn først, så forælder, i én batch. `review_log` har ingen
+fremmednøgle og gemmer selve teksten, så afvisningen kan stadig efterprøves.
+Samme fælde er lukket i `cleanup-false-positives.ts`, og `/api/admin/action`
+logger nu fejlen i stedet for kun at svare «Serverfejl».
+
+**Facebook-opslag uden billede — rækkefølgen, ikke robots.txt denne gang.**
+`Allow: /api/og` er live og virker. Men siden lover `og:image:width=1200`, og
+mangler kortet i `card_blobs`, serverer /api/og sit **600×315-fallback**.
+Facebook viser så opslaget uden billede — og husker det i ~30 dage. Sporet i
+tidsstemplerne: 18/8 postede Amtrup-artiklen 07:07 og fik sit kort 07:46; 20/8
+postede #108 07:58 og fik kortet 08:50. #111 havde sit kort i forvejen og fik
+billede. Cron'ens `:05` (kort) før `:15` (social) er altså ikke en rækkefølge man
+HAR — GitHub Actions' skemalægning skrider. Nu er den en betingelse:
+`cardReadyClause()` i `post-social.ts` lader kun artikler med færdigt kort komme
+igennem køen, køen siger højt hvad den venter på, og social-workflowet renderer
+manglende kort FØR det dræner. Testen i `_social-test.ts` binder SQL'ens nøgle til
+`cardBlobKey()`.
+
+**#108's opslag er stadig uden billede.** Facebook husker sit eget kort; det får
+kun et billede, hvis opslaget slettes (`delete-post.ts`) og postes igen.
 
 ## 🔌 Claude Desktop kan arbejde på sitet (2026-08-20)
 
