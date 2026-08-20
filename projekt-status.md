@@ -1,11 +1,36 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-20 (kladde #108 og #111 omskrevet til kilderne; gennemgangen så kun halvdelen af kilden)
+**Sidst opdateret**: 2026-08-20 (MCP-connector: Claude Desktop kan nu arbejde på sitet; kladde #108 og #111 omskrevet)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🔌 Claude Desktop kan arbejde på sitet (2026-08-20)
+
+Kontekstpakken gav Desktop viden; connectoren giver den hænder.
+`/api/mcp/<token>` på den eksisterende worker taler MCP (Streamable HTTP) og
+udstiller ni værktøjer: kladdekøen og hele grundlaget bag en kladde, `save_draft`
+(publicerer ALDRIG), `publish_draft` (kræver `confirm: true` og nægter kladder
+gennemgangen har afvist), sider pr. land, atletopslag og nøgletal. Skrivningerne
+går gennem de samme funktioner som `/admin`, så en rettelse fra Desktop opfører
+sig som en rettelse i UI'et.
+
+**Autentifikation: token i STIEN.** Desktops connector-felt tager kun en URL —
+OAuth-felterne kræver en OAuth-server vi ikke har, og header-feltet er ikke ude
+alle steder endnu. Konsekvensen skal siges højt: **URL'en ER adgangskoden**.
+Rotation = `wrangler secret put MCP_TOKEN` igen + ny URL i Desktop; lukning =
+`wrangler secret delete MCP_TOKEN` (endepunktet svarer så 503 for alle). Uden
+secret er endepunktet lukket som standard — en glemt opsætning åbner ikke døren.
+
+`/api/mcp` ligger bevidst uden for Cloudflare Access (som dækker `/admin` og
+`/api/admin`): Desktop kan ikke gennemføre et Access-login. Adgangen er i stedet
+begrænset af, at der KUN findes de ni værktøjer — ingen vilkårlig SQL, ingen
+sletning, ingen andre tabeller.
+
+Opsætning i `SETUP-mcp-desktop.md`. `_mcp-server-test.ts` (i CI) holder fast i
+protokolformen og i de to spærrer.
 
 ## 📰 To danske kladder omskrevet — og gennemgangen så kun halvdelen af kilden (2026-08-20)
 

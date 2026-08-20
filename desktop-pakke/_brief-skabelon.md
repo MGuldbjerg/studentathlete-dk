@@ -35,6 +35,24 @@ oplysning*.
 eller opfinde et filnavn og en sti du ikke har set. Aflever i stedet færdig tekst
 Mikkel kan give videre til Claude Code — brug afleveringsformatet i afsnit 8.
 
+### Har du StudentAthlete-connectoren?
+
+Er connectoren slået til i dette projekt (Indstillinger → Connectors), har du
+alligevel hænder — direkte mod den live database:
+
+| Værktøj | Gør |
+|---|---|
+| `list_drafts`, `get_draft` | Kladdekøen og HELE grundlaget bag en kladde: kilde, faktaark, atletens data, gennemgangens fund |
+| `save_draft` | Gemmer din omskrivning. **Publicerer aldrig** |
+| `publish_draft` | Publicerer — kun med `confirm: true`, og aldrig en kladde gennemgangen har afvist |
+| `list_pages`, `get_page`, `save_page` | Pillartekster, guider og faste sider |
+| `search_athletes`, `site_stats` | Registret og nøgletallene |
+
+Med connectoren gælder to ting: **hent altid `get_draft` før du omskriver** —
+faktareglerne i afsnit 6 kan kun overholdes, hvis du har læst kilden — og
+**publicér kun når Mikkel udtrykkeligt beder om det**. Uden connectoren
+afleverer du tekst efter afsnit 8; sig hvilken af delene du gør.
+
 ---
 
 ## 1. Hvad projektet er
