@@ -67,15 +67,32 @@ function pretty(json: string | null): string {
   }
 }
 
-/** Kildens tekst uden Sidearms tomme linjer og menu-rester. */
-function cleanSource(raw: string | null, fallback: string | null): string {
-  const text = raw ?? fallback ?? "";
-  return text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0)
-    .join("\n")
-    .slice(0, 6000);
+/**
+ * Kildens tekst uden Sidearms tomme linjer og menu-rester.
+ *
+ * BEGGE felter kommer med, ikke `content_raw ?? summary` (2026-08-20). På
+ * Sidearm-sider er `content_raw` tit sidens «Upcoming Event»-widget, mens
+ * artiklens egen manchet ligger i `summary` fra feedet. Med fallback-logikken så
+ * gennemgangen kun kampprogrammet — og dømte derfor rigtige, kildebelagte navne
+ * (FAU's Roberts og Santos, kladde #111) som opdigtede. Et falsk «opdigtet» er
+ * dyrere end lidt gentagelse: det sender en korrekt kladde retur.
+ */
+export function cleanSource(raw: string | null, summary: string | null): string {
+  const tidy = (t: string | null): string =>
+    (t ?? "")
+      // Feed-manchetter starter tit med et <img>/<br>-hoved. Det er støj her.
+      .replace(/<[^>]+>/g, " ")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0)
+      .join("\n")
+      .trim();
+
+  const feed = tidy(summary);
+  const page = tidy(raw);
+  // Er manchetten allerede indeholdt i sidens tekst, gentager vi den ikke.
+  const both = page.includes(feed.slice(0, 120)) ? page : [feed, page].filter(Boolean).join("\n\n");
+  return both.slice(0, 6000);
 }
 
 export function buildPack(r: Row): string {

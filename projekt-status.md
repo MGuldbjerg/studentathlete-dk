@@ -1,11 +1,47 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-19 (19 nye sportsgrene i fire runder — "andet" er tomt, og tre ikke-atleter er slettet)
+**Sidst opdateret**: 2026-08-20 (kladde #108 og #111 omskrevet til kilderne; gennemgangen så kun halvdelen af kilden)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 📰 To danske kladder omskrevet — og gennemgangen så kun halvdelen af kilden (2026-08-20)
+
+Mikkel bad om, at de to danske kladder blev bragt i overensstemmelse med
+kilderne. Begge står nu som **ok med nul fund** hos kvalitetstjekket, og begge er
+stadig **upublicerede**.
+
+- **#111 (Alfred Mikkelsen, FAU)** var værst: opdigtet citat, en opfundet
+  sæson 2025, en falsk kildeattribution og en formodning om kåringens kriterier —
+  oven på ét faktum. Den nye tekst er tre afsnit: kåringen, de to holdkammerater
+  der kom med på preseason-holdet, og at kåringen ER en preseason-udnævnelse.
+  Kampprogrammet er ude: det stammer fra sidens «Upcoming Event»-widget, og
+  «åbner sæsonen» var vores egen tilføjelse.
+- **#108 (Paul Claes Nielsen, Belmont)** havde rigtige tal, men i nutid, som om
+  sæsonen var i gang. Tallene er fra freshman-sæsonen, og udtagelsen er til
+  preseason-holdet for 2026. Rettet undervejs: «shots on target» blev til «ramte
+  målrammen» (det modsatte af på mål), efternavnet er **Claes Nielsen**, ikke
+  Nielsen, og kåringen som ugens offensive spiller kom EFTER Lipscomb-kampen —
+  kilden gør det til en følge, ikke to løsrevne hændelser.
+
+**Rodfejlen, som kostede en falsk afvisning:** `cleanSource` i
+`pipeline/generate/draft-pack.ts` brugte `content_raw ?? summary`. På
+Sidearm-sider er `content_raw` tit sidens kampprogram-widget, mens artiklens egen
+manchet ligger i `summary` fra feedet. Gennemgangen så derfor kun widgetten og
+dømte FAU's David Roberts og Felipe Santos som opdigtede — de stod ordret i
+manchetten. Nu kommer BEGGE felter med (og html-rester strippes).
+`_draft-pack-test.ts` holder fast i det, og testen er med i CI.
+
+**Bemærk ved næste gennemgang**: tjekket vaklede om årstal på en dato — først
+«skriv 2025», så «2025 står ikke i kilden». Formuleringen «den 23. september
+sidste sæson» blev foreslået af begge gennemgange og bestod. Vaklen på
+udledte årstal er værd at holde øje med, hvis det gentager sig.
+
+**Datarettelse**: Paul Claes Nielsen stod som `Fr.` i registret fra 2025-rosteren;
+Belmonts egen artikel kalder ham «Sophomore Midfielder». Rækken er rettet til
+`So.` + `gender = 'm'`.
 
 ## 🥏 Akrobatik og ultimate lukker ventelisten (2026-08-19, fjerde runde)
 
