@@ -68,6 +68,33 @@ Til GitHub Actions: læg hele JSON-indholdet i secreten
 ./scripts/search-console.sh --json               # til videre behandling
 ```
 
+## Fredagsgennemgangen (fast arbejdsgang)
+
+```bash
+./scripts/search-console.sh --opportunities
+./scripts/search-console.sh --opportunities --min-impressions=5 --days=90   # tidligt, tyndt datagrundlag
+./scripts/search-console.sh --opportunities --min-position=3 --max-position=20
+```
+
+Finder **statiske sider** (forside, arkiv, sportslandingssider, guider,
+redaktionelle sider) med søgeord i **position 5-15** og mindst 10 visninger.
+Artikler, atlet- og skoleprofiler er bevidst UDE: en artikel handler om én kamp
+og skal ikke skrives om for et søgeords skyld.
+
+**Tallene er ikke svaret.** Scriptet finder kandidater; vurderingen er
+redaktionel og laves af et menneske (eller Claude, som forslag):
+
+1. Handler siden FAKTISK om det søgeord? Hvis nej, drop det — også når volumen
+   er fristende. Mikkels eksempel: *Temple University* handler om universitetet,
+   ikke om templer.
+2. Er der reelt noget at hente? Position 11 på et hovedord som «ncaa» er en
+   anden opgave end position 6 på et langt, præcist søgeord.
+3. Hvad ville ændringen KOSTE læseren? En side der skrives om for at ramme et
+   ord, læses dårligere.
+
+**Ændringer kræver en godkendt plan** (se `CLAUDE.md`). Gennemgangen afleverer et
+forslag; den retter ikke selv.
+
 ## Det du skal vide om tallene
 
 - **Data halter 2-3 døgn.** Vinduet slutter derfor i går, ikke i dag — ellers

@@ -14,6 +14,10 @@
  * Kør: npx tsx pipeline/report/_search-console-test.ts
  */
 import {
+  isOpportunity,
+  pathOf,
+  groupByPage,
+  type Opportunity,
   propertyCandidates,
   propertyMatchesHost,
   dateRange,
@@ -89,6 +93,45 @@ expect("tabellen har hoved + én række", lines.length, 2);
 expect("nøglen står i rækken", lines[1].includes("british athletes ncaa"), true);
 // En tom property er normalt de første dage — det skal SIGES, ikke vises som nul.
 expect("tom liste forklarer sig selv", formatRows([], "query")[0].includes("ingen query"), true);
+
+// ── Fredagsgennemgangen ────────────────────────────────────────────────────
+const row = (position: number, impressions = 50): Row => ({
+  keys: ["x"],
+  clicks: 0,
+  impressions,
+  ctr: 0,
+  position,
+});
+const band = { min: 5, max: 15, minImpressions: 10 };
+
+expect("position 11 på en guide er en mulighed", isOpportunity(row(11), "guide", band), true);
+expect("position 2 er der allerede", isOpportunity(row(2), "guide", band), false);
+expect("position 30 er en anden slags problem", isOpportunity(row(30), "guide", band), false);
+expect("grænserne er inklusive (5)", isOpportunity(row(5), "sport", band), true);
+expect("grænserne er inklusive (15)", isOpportunity(row(15), "sport", band), true);
+expect("for få visninger er støj", isOpportunity(row(9, 3), "guide", band), false);
+
+// Mikkels afgrænsning: gennemgangen gælder statiske sider, ikke artikler.
+expect("ARTIKLER er ude", isOpportunity(row(9), "article", band), false);
+expect("atletprofiler er ude", isOpportunity(row(9), "athlete", band), false);
+expect("skoleprofiler er ude", isOpportunity(row(9), "school", band), false);
+expect("forsiden er med", isOpportunity(row(9), "home", band), true);
+expect("arkivet er med", isOpportunity(row(9), "archive", band), true);
+expect("sportslandingsside er med", isOpportunity(row(9), "sport", band), true);
+
+expect("pathOf trimmer værten", pathOf("https://student-athlete.co.uk/guides/what-is-the-ncaa"), "/guides/what-is-the-ncaa");
+expect("pathOf tåler vrøvl", pathOf("ikke en url"), "ikke en url");
+
+const opps: Opportunity[] = [
+  { page: "https://x/a", pageType: "guide", query: "q1", clicks: 0, impressions: 10, ctr: 0, position: 9 },
+  { page: "https://x/b", pageType: "sport", query: "q2", clicks: 0, impressions: 90, ctr: 0, position: 7 },
+  { page: "https://x/a", pageType: "guide", query: "q3", clicks: 0, impressions: 40, ctr: 0, position: 6 },
+];
+const grouped = groupByPage(opps);
+expect("grupperet pr. side", grouped.length, 2);
+expect("siden med flest visninger først", grouped[0].page, "https://x/b");
+expect("visninger lægges sammen pr. side", grouped[1].impressions, 50);
+expect("søgeord sorteret inden for siden", grouped[1].rows[0].query, "q3");
 
 console.log(`\nsearch-console: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

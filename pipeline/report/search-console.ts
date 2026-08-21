@@ -26,6 +26,7 @@
  *   npx tsx pipeline/report/search-console.ts --sitemaps         # er sitemappet læst?
  *   npx tsx pipeline/report/search-console.ts --submit-sitemap   # kræver «Fuld»
  *   npx tsx pipeline/report/search-console.ts --remove-sitemap=https://…  # fjern dødt sitemap
+ *   npx tsx pipeline/report/search-console.ts --opportunities     # fredagsgennemgangen
  *   npx tsx pipeline/report/search-console.ts --inspect https://…  # indekseringsstatus
  *   npx tsx pipeline/report/search-console.ts --json             # maskinlæsbart
  *
@@ -36,6 +37,7 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { SignJWT, importPKCS8 } from "jose";
 import { COUNTRIES, countryProfile } from "../../src/lib/countries";
+import { classify } from "../../src/lib/analytics";
 
 const API = "https://searchconsole.googleapis.com/webmasters/v3";
 const INSPECT_API = "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect";
@@ -205,6 +207,114 @@ async function totals(token: string, property: string, start: string, end: strin
   return data.rows?.[0] ?? null;
 }
 
+
+// ── Fredagens gennemgang: sider der ligger LIGE under top 3 ────────────────
+
+/**
+ * Sidetyper der tæller som «statiske» i fredagsgennemgangen.
+ *
+ * Mikkels regel: gennemgangen gælder de sider vi selv skriver og kan
+ * omarbejde — forside, sektionshub, sportslandingssider (pillartekst), guider
+ * og redaktionelle sider. ARTIKLER er ude: de handler om én kamp eller én
+ * udtagelse, de aldrig kommer til at handle om noget andet, og de skal ikke
+ * skrives om for et søgeords skyld. Atlet- og skoleprofiler er også ude —
+ * de er genereret pr. enhed, ikke tekst nogen har forfattet.
+ */
+const STATIC_PAGE_TYPES = new Set(["home", "archive", "guide", "sport", "other"]);
+
+export interface Opportunity {
+  page: string;
+  pageType: string;
+  query: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
+
+/**
+ * Er rækken en mulighed? Positionen skal ligge i BÅNDET (5-15 som standard):
+ * over 5 er den der allerede, og under 15 er der som regel en anden årsag end
+ * ordvalg. Visninger er nedre grænse mod støj — et søgeord med tre visninger
+ * på fire uger siger ingenting.
+ */
+export function isOpportunity(
+  row: Row,
+  pageType: string,
+  opts: { min: number; max: number; minImpressions: number },
+): boolean {
+  if (!STATIC_PAGE_TYPES.has(pageType)) return false;
+  if (row.impressions < opts.minImpressions) return false;
+  return row.position >= opts.min && row.position <= opts.max;
+}
+
+/** Sti uden vært — `classify()` arbejder på stier, GSC svarer med fulde URL'er. */
+export function pathOf(url: string): string {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url;
+  }
+}
+
+async function opportunities(
+  token: string,
+  property: string,
+  lang: string,
+  opts: { start: string; end: string; min: number; max: number; minImpressions: number },
+): Promise<Opportunity[]> {
+  const data = await api<{ rows?: Row[] }>(
+    token,
+    `${API}/sites/${encodeURIComponent(property)}/searchAnalytics/query`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        startDate: opts.start,
+        endDate: opts.end,
+        dimensions: ["page", "query"],
+        rowLimit: 25000,
+        type: "web",
+      }),
+    },
+  );
+
+  const out: Opportunity[] = [];
+  for (const row of data.rows ?? []) {
+    const [page, query] = row.keys;
+    const { pageType } = classify(pathOf(page), lang);
+    if (!isOpportunity(row, pageType, opts)) continue;
+    out.push({
+      page,
+      pageType,
+      query,
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.ctr,
+      position: row.position,
+    });
+  }
+  // Flest visninger først: det er dér der er noget at hente, uanset placering.
+  return out.sort((a, b) => b.impressions - a.impressions);
+}
+
+/** Grupper pr. side, så gennemgangen kan tage én side ad gangen. */
+export function groupByPage(rows: Opportunity[]): Array<{ page: string; pageType: string; impressions: number; rows: Opportunity[] }> {
+  const map = new Map<string, Opportunity[]>();
+  for (const r of rows) {
+    const list = map.get(r.page) ?? [];
+    list.push(r);
+    map.set(r.page, list);
+  }
+  return [...map.entries()]
+    .map(([page, list]) => ({
+      page,
+      pageType: list[0].pageType,
+      impressions: list.reduce((sum, r) => sum + r.impressions, 0),
+      rows: list.sort((a, b) => b.impressions - a.impressions),
+    }))
+    .sort((a, b) => b.impressions - a.impressions);
+}
+
 // ── Sitemaps ────────────────────────────────────────────────────────────────
 
 interface SitemapEntry {
@@ -304,6 +414,9 @@ interface Args {
   showSitemaps: boolean;
   submit: boolean;
   removeSitemapUrl: string | null;
+  opportunities: boolean;
+  band: { min: number; max: number };
+  minImpressions: number;
   inspectUrl: string | null;
   json: boolean;
 }
@@ -326,6 +439,12 @@ export function parseArgs(argv: string[]): Args {
       get("remove-sitemap") ??
       (argv.includes("--remove-sitemap") ? argv[argv.indexOf("--remove-sitemap") + 1] ?? null : null),
     inspectUrl: get("inspect") ?? (argv.includes("--inspect") ? argv[argv.indexOf("--inspect") + 1] ?? null : null),
+    opportunities: argv.includes("--opportunities"),
+    band: {
+      min: Number.parseFloat(get("min-position") ?? "5") || 5,
+      max: Number.parseFloat(get("max-position") ?? "15") || 15,
+    },
+    minImpressions: Number.parseInt(get("min-impressions") ?? "10", 10) || 10,
     json: argv.includes("--json"),
   };
 }
@@ -397,6 +516,41 @@ async function main(): Promise<void> {
       if (!args.json) {
         console.log(`\n   Top ${args.limit} — ${args.dimension}:`);
         for (const line of formatRows(rows, args.dimension)) console.log(` ${line}`);
+      }
+
+      if (args.opportunities) {
+        const found = await opportunities(token, property, profile.language, {
+          start,
+          end,
+          min: args.band.min,
+          max: args.band.max,
+          minImpressions: args.minImpressions,
+        });
+        const grouped = groupByPage(found);
+        siteReport.opportunities = grouped;
+        if (!args.json) {
+          console.log(
+            `\n   Statiske sider med søgeord i position ${args.band.min}-${args.band.max} ` +
+              `(mindst ${args.minImpressions} visninger):`,
+          );
+          if (grouped.length === 0) {
+            console.log("     (ingen — enten for lidt data endnu, eller ingen sider i båndet)");
+          }
+          for (const g of grouped) {
+            console.log(`\n     ${pathOf(g.page)}  [${g.pageType}] · ${g.impressions} visninger i båndet`);
+            for (const line of formatRows(
+              g.rows.map((r) => ({ keys: [r.query], clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position })),
+              "søgeord",
+            )) {
+              console.log(`   ${line}`);
+            }
+          }
+          console.log(
+            `\n   → Vurderingen er REDAKTIONEL og laves af et menneske/Claude:` +
+              `\n     passer søgeordet til det siden FAKTISK handler om? Hvis nej, drop det.` +
+              `\n     Ændringer kræver en godkendt plan (se CLAUDE.md).`,
+          );
+        }
       }
 
       if (args.showSitemaps || args.submit) {
