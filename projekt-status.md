@@ -7,6 +7,30 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🇬🇧 Sitene er adskilte hele vejen ud (2026-08-21, sidste runde)
+
+Sektionsstierne og query-parametrene var det sidste danske på .co.uk. De er nu
+sprogbestemte, og **motoren deler kun det der ER fælles**.
+
+- Sprogpakken har `routes` (athletes/schools/guides/archive) og `params`
+  (page/source). Typen tvinger begge sprog til at udfylde dem — et nyt sprog
+  kan ikke glemme dem.
+- **Middlewaren** skriver sitets sti om til app-routerens (danske) mappenavn og
+  sender det andet sprogs sti videre med **308**. Mapperne i `src/app/` behøver
+  altså ikke at blive omdøbt.
+- Alle links, canonicals, breadcrumbs, sitemap og feeds bygger stien af
+  sprogpakken. Det ENGELSKE guide-indhold linkede stadig til `/atleter` —
+  også rettet.
+- **Læsningen tager imod begge parameternavne** (`?side=` og `?page=`,
+  `?kilde=` og `?source=`), så et delt link ikke mister sin side eller kilde,
+  hvis det åbnes på det andet site.
+- Analytics klassificerer `/athletes` og `/atleter` som samme sidetype.
+
+Verificeret live: `/athletes`, `/schools`, `/guides`, `/articles` svarer 200 på
+.co.uk; `/atleter/aaron-bickerton` → 308 → `/athletes/aaron-bickerton`;
+`/athletes` → 308 → `/atleter` på .dk; nul danske stier i UK-sitemappet og nul
+engelske i det danske.
+
 ## 🔒 Dansk er ikke længere et fallback (2026-08-21)
 
 Mikkel, efter tredje gang: «The audience is separate, so the sites should be
