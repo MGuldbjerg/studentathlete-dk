@@ -1,11 +1,62 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-20 (otte britiske kladder rettet; afvis-knappen og Facebook-kortet fikset)
+**Sidst opdateret**: 2026-08-21 (UK ud af dark launch; 13 britiske kladder rettet i alt)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🇬🇧 UK ud af dark launch + fem nye kladder rettet (2026-08-21)
+
+**Sitet må indekseres nu.** Begge grunde til noindex var væk: forespørgslerne
+filtrerer på land (`a.country` / `home_country` i `src/lib/db.ts`), og sitet har
+sit eget indhold. Verificeret FØR flaget blev slået fra: dansk atlet → 404 på
+.co.uk, britisk artikel → 404 på .dk, sitemappet på .co.uk er britisk (2.092
+atleter, 537 skoler mod .dk's 271/168), canonical peger på .co.uk selv,
+`lang="en"`, og .dk har stadig ingen X-Robots-Tag. Efter deploy: ingen
+X-Robots-Tag på .co.uk, `<meta name="robots" content="index, follow">`, og
+robots.txt med `Allow: /` + `Allow: /api/og`.
+
+**Én ting blev IKKE anglificeret: URL'erne.** Britiske artikler ligger på
+`/fodbold/…` og `/atletik/…`, fordi `getArticleUrl()` kalder `dbSportToUrlSlug()`
+uden sprog og derfor får standardsitets slug. `/football/<slug>` svarer 404 —
+også ruteopslaget er dansk. Det er ikke en dublet (canonical er korrekt), men det
+er danske ord i adressen på et engelsk site, og fra i dag bliver de indekseret.
+Rettes det senere, koster det 301'ere og genindeksering.
+
+**Fem nye kladder (#119–#123), alle britiske, alle rettet.** Mønstret er det
+samme som i går, og to fejl er værd at huske:
+
+- **#119 (Sonny Wright, UAH)**: kladden gav Wright en hæder der tilhører
+  holdkammeraten. Kilden skriver «A member of last season's Second Team All-GSC,
+  senior Orzechowski was named…» — sætningen hører til Orzechowski. Gennemgangen
+  fangede det; jeg havde selv skrevet den forkert ind i min rettelse.
+- **#123 (Amy Meadows, Hofstra)** havde forkert konference (Conference USA —
+  Hofstra spiller i CAA), forkert ugedag, en opdigtet «collegiate career in the
+  UK», en opdigtet spilbeskrivelse, hjemmeholdet gjort til udehold og et 1-3
+  kaldt «a three-goal defeat».
+- **#121 (Libby Bermingham)** læste boxscorens «58 minutes» (spilletid) som et
+  indskiftningstidspunkt og byggede en indskiftningshistorie oven på det — hendes
+  mål faldt 54:19 og 63:43. Begge mål var i øvrigt hovedstød; kladden beskrev
+  afslutninger på jorden.
+- **#120 (Worsfold-Gregg)** hentede igen et fremmed boxscore fra faktaarket og
+  digtede en «preseason opener» mod Hofstra ud af det.
+- **#122 (Jessica Whitaker)** fremskrev en Sr. med «expected to graduate in
+  2027» (regel 25) og skrev sæsonstarten i fremtid, selv om den lå ti dage tilbage.
+
+**Årgangs-konflikt afklaret ved kilden**: UAH's pressemeddelelse kalder Wright
+«senior», basen siger Jr. Skolens EGEN roster giver basen ret — 2023 Freshman,
+2024 Redshirt Freshman, 2025 Redshirt Sophomore, **2026 Junior**. Modsat sagen om
+Paul Claes Nielsen, hvor artiklen havde ret og rosteren tog fejl. Reglen er
+altså ikke «artiklen vinder», men «slå det op på rosteren». Kladden nævner ingen
+årgang.
+
+**Tilbagevendende**: faktaarkets boxscore-linjer er stadig upålidelige (fremmede
+kampe, holdtal under atletens navn, spilletid der ligner et minuttal), og
+gennemgangens pakke siger stadig «faktaarket er det ENESTE kladden må hvile på»
+mens tjekpunkt 2 siger «faktaarket ELLER kilden». Begge dele koster fund i hver
+eneste runde.
 
 ## 🇬🇧 Otte britiske kladder rettet — og to fejl fundet undervejs (2026-08-20)
 
