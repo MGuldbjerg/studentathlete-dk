@@ -7,6 +7,42 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🔗 Engelske adresser på det engelske site (2026-08-21)
+
+Mikkel: «UK articles should not be Danish slugs, that goes without saying.»
+Britiske artikler lå på `/fodbold/…` og `/atletik/…`, fordi `getArticleUrl()`
+blev kaldt uden sprog og derfor fik standardsitets slug. Sproget følger nu med
+hele vejen — kort, karrusel, relaterede artikler, profilsider, feed, sitemap,
+canonical og social-pipelinen — og ruten kender sitets eget sprog.
+
+**Tre fejl mere kom med op, da tråden blev trukket:**
+
+1. **Sitemappet pegede på 404'ere — også på .dk.** Artikel-adressen blev bygget
+   af DB-nøglen (`soccer`), som ingen af sitene serverer. Verificeret på tre
+   danske adresser før rettelsen: alle 404. Det bruger nu `getArticleUrl` som
+   alt andet.
+2. **`/football` på .co.uk viste den engelske sportsside (soccer) fyldt med
+   AMERIKANSK fodbold-atleter**, fordi `urlSlugToDbSport()` slog sluggen op i
+   standardsitets tabel.
+3. **307 hvor der stod 301.** Både de nye sprog-omdirigeringer og de tre
+   legacy-omdirigeringer (hvis kommentarer allerede sagde «301 permanent»)
+   brugte `redirect()`, som sender 307. En midlertidig kode flytter ikke en
+   indeksering. Nu `permanentRedirect()` → 308.
+
+**Fælden ved at «bare acceptere begge sprog»**: `football` er en gyldig slug på
+begge sprog og betyder hver sin sportsgren — amerikansk fodbold på dansk, soccer
+på engelsk. Omdirigeringen sker derfor KUN når sluggen betyder præcis samme
+sportsgren som artiklen, og sitets eget sprog spørges først.
+`_article-url-test.ts` (13 tests, i CI) holder fast i begge retninger.
+
+Verificeret live: `/football/<slug>` 200 på .co.uk, `/fodbold/<slug>` → 308 →
+`/football/<slug>`, `/fodbold` → 308 → `/football`, `/athletics` → 308 →
+`/atletik` på .dk, og sitemap-adresser der svarer 200 på begge sites.
+
+**Stadig dansk på det engelske site**: sektionsstierne `/atleter`, `/skoler`,
+`/viden`, `/artikler`. De er mappenavne i app-routeren, ikke opslag i en tabel,
+så de kræver engelske ruter + omdirigeringer — ikke gjort.
+
 ## 🇬🇧 UK ud af dark launch + fem nye kladder rettet (2026-08-21)
 
 **Sitet må indekseres nu.** Begge grunde til noindex var væk: forespørgslerne
