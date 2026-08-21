@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { SearchBar } from "./SearchBar";
 import { AdminBarLink } from "./AdminBarLink";
 import { currentLanguage } from "@/lib/site-server";
-import { t } from "@/lib/i18n";
+import { t, routePath } from "@/lib/i18n";
 
 export async function Header() {
   const lang = await currentLanguage();
@@ -33,7 +33,7 @@ export async function Header() {
           {/* Desktop navigation + søgefelt */}
           <div className="hidden md:flex items-center gap-6 flex-1 justify-end">
             <a
-              href="/atleter"
+              href={routePath("athletes", lang)}
               className="text-sm font-medium text-white/70 hover:text-white transition-colors whitespace-nowrap"
             >
               {t("nav.athletes", lang)}

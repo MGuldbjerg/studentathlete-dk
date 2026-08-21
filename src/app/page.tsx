@@ -13,7 +13,7 @@ import {
   getSiteCounts,
   getArticlesGroupedBySport,
 } from "@/lib/db";
-import { ARCHIVE_PATH } from "@/lib/routes";
+import { archivePath } from "@/lib/routes";
 import { currentLanguage } from "@/lib/site-server";
 import { t } from "@/lib/i18n";
 
@@ -171,7 +171,7 @@ export default async function HomePage({
               {t("home.latest", lang)}
             </h2>
           </div>
-          <a href={ARCHIVE_PATH} className="text-sm text-muted hover:text-ink transition-colors">
+          <a href={archivePath(lang)} className="text-sm text-muted hover:text-ink transition-colors">
             {t("home.see_all", lang)} →
           </a>
         </div>
@@ -214,7 +214,7 @@ export default async function HomePage({
 
           <div className="flex justify-center px-4 py-8">
             <a
-              href={ARCHIVE_PATH}
+              href={archivePath(lang)}
               data-track="internal"
               className="px-6 py-3 text-sm font-semibold border border-[#00205B] text-[#00205B] hover:bg-[#00205B] hover:text-white transition-colors"
             >

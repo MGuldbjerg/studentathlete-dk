@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/admin";
 
-import { sportNav } from "@/lib/i18n";
-import { ARCHIVE_PATH } from "@/lib/routes";
+import { sportNav, routePath } from "@/lib/i18n";
+import { archivePath } from "@/lib/routes";
 import { ConsentSettingsLink } from "./ConsentSettingsLink";
 import { currentLanguage } from "@/lib/site-server";
 import { t } from "@/lib/i18n";
@@ -53,22 +53,22 @@ export async function Footer() {
           </h5>
           <ul className="space-y-1.5">
             <li>
-              <Link href={ARCHIVE_PATH} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={archivePath(lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.all_articles", lang)}
               </Link>
             </li>
             <li>
-              <Link href="/atleter" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("athletes", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.all_athletes", lang)}
               </Link>
             </li>
             <li>
-              <Link href="/skoler" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("schools", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.universities", lang)}
               </Link>
             </li>
             <li>
-              <Link href="/viden" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("guides", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.knowledge", lang)}
               </Link>
             </li>

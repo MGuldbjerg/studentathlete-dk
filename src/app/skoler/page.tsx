@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getSchoolsWithAthletes } from "@/lib/db";
 import { getSchoolUrl, breadcrumbStructuredData } from "@/lib/seo";
 import { currentBaseUrl, currentLanguage, currentSite } from "@/lib/site-server";
-import { t } from "@/lib/i18n";
+import { routePath, t } from "@/lib/i18n";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${t("schools.meta_title", lang)} | ${site.brand}`,
     description: t("schools.meta_description", lang),
-    alternates: { canonical: "/skoler" },
+    alternates: { canonical: routePath("schools", lang) },
     // Bevidst intet `robots`-felt: layoutets dark launch-noindex skal vinde.
   };
 }
@@ -49,7 +49,7 @@ export default async function SkolerPage() {
   const siteBase = await currentBaseUrl();
   const jsonLd = breadcrumbStructuredData([
     { name: t("crumb.home", lang), url: siteBase },
-    { name: t("schools.crumb", lang), url: `${siteBase}/skoler` },
+    { name: t("schools.crumb", lang), url: `${siteBase}${routePath("schools", lang)}` },
   ]);
 
   return (
@@ -75,7 +75,7 @@ export default async function SkolerPage() {
       <p className="text-muted text-base mb-3 max-w-2xl">
         {t("schools.intro_before", lang)}
         <Link
-          href={`/viden/${t("guides.divisions_slug", lang)}`}
+          href={`${routePath("guides", lang)}/${t("guides.divisions_slug", lang)}`}
           className="underline"
           style={{ color: "#BF0A30" }}
         >
@@ -109,7 +109,7 @@ export default async function SkolerPage() {
               {list.map((s) => (
                 <Link
                   key={s.id}
-                  href={getSchoolUrl(s.slug)}
+                  href={getSchoolUrl(s.slug, lang)}
                   className="flex items-start justify-between gap-3 p-4 rounded-lg border border-border
                              bg-paper hover:bg-surface transition-colors group"
                 >

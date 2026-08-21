@@ -4,7 +4,7 @@ import { getSportColor } from "@/lib/types";
 import { getSportContent, getSportSlugs } from "@/lib/sport-content";
 import { guidesFor, categoryLabels, type GuideCategory } from "@/lib/viden-content";
 import { currentLanguage, currentSite } from "@/lib/site-server";
-import { t } from "@/lib/i18n";
+import { t, routePath } from "@/lib/i18n";
 import { getPublishedGuides } from "@/lib/admin";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${t("guides.meta_title", lang)} | ${site.brand}`,
     description: t("guides.meta_description", lang),
-    alternates: { canonical: "/viden" },
+    alternates: { canonical: routePath("guides", lang) },
   };
 }
 
@@ -78,7 +78,7 @@ export default async function VidenPage() {
               {inCat.map((guide) => (
                 <Link
                   key={guide.slug}
-                  href={`/viden/${guide.slug}`}
+                  href={`${routePath("guides", lang)}/${guide.slug}`}
                   className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group"
                 >
                   <h3 className="text-base font-bold text-ink mb-1 group-hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
@@ -101,7 +101,7 @@ export default async function VidenPage() {
           {t("guides.lookup_heading", lang)}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link href="/skoler" className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
+          <Link href={routePath("schools", lang)} className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
             <h3 className="text-base font-bold text-ink mb-1 group-hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
               {t("guides.schools_card_title", lang)}
             </h3>
@@ -109,7 +109,7 @@ export default async function VidenPage() {
               {t("guides.schools_card_body", lang)}
             </p>
           </Link>
-          <Link href="/atleter" className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
+          <Link href={routePath("athletes", lang)} className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
             <h3 className="text-base font-bold text-ink mb-1 group-hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
               {t("guides.athletes_card_title", lang)}
             </h3>

@@ -4,7 +4,7 @@ import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 
-import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
 import { countryProfile } from "@/lib/countries";
 import { currentLanguage, currentSite } from "@/lib/site-server";
@@ -118,7 +118,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
       <div className="max-w-5xl mx-auto px-6 md:px-8 py-10">
         <Breadcrumb crumbs={[
           { label: t("crumb.home", lang), href: "/" },
-          { label: t("nav.athletes", lang), href: "/atleter" },
+          { label: t("nav.athletes", lang), href: routePath("athletes", lang) },
           { label: athlete.name },
         ]} />
 

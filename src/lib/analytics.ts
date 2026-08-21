@@ -6,16 +6,23 @@
  * besøgende kan tælles som unik pr. dag uden at kunne identificeres eller
  * spores på tværs af dage.
  */
-import { sportKeyFromSlug } from "./i18n";
+import { sportKeyFromSlug, routeKeyFromSlug } from "./i18n";
 
 // ── Sidetype-klassificering (flyttet fra middleware.ts) ──────────────────────
 
-/** Faste sektioner. Alt andet med ét segment PRØVES som en sportsgren. */
+/**
+ * Faste sektioner. Alt andet med ét segment PRØVES som en sportsgren.
+ *
+ * Nøglen er sprogfri, og opslaget går gennem `routeKeyFromSlug`, som kender
+ * ALLE sprogs stier: /atleter og /athletes skal tælle som samme sidetype,
+ * ellers falder britisk trafik i "other" og statistikken kan ikke sammenlignes
+ * på tværs af sitene.
+ */
 const SECTIONS: Record<string, string> = {
-  atleter: "athlete",
-  skoler: "school",
-  viden: "guide",
-  artikler: "archive",
+  athletes: "athlete",
+  schools: "school",
+  guides: "guide",
+  archive: "archive",
 };
 
 /**
@@ -35,8 +42,8 @@ export function classify(path: string, lang: string): { pageType: string; sport:
   const parts = path.split("/").filter(Boolean);
   if (parts.length === 0) return { pageType: "home", sport: null };
 
-  const section = SECTIONS[parts[0]];
-  if (section) return { pageType: section, sport: null };
+  const routeKey = routeKeyFromSlug(parts[0]);
+  if (routeKey) return { pageType: SECTIONS[routeKey], sport: null };
 
   // Sport-slugs er læservendte (/fodbold), nøglen i basen er kanonisk (soccer).
   // Sproget SKAL med: «football» er amerikansk fodbold på .dk og soccer på

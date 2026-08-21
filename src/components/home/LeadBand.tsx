@@ -1,6 +1,6 @@
 import type { Article } from "@/lib/types";
 import { ArticleCard } from "@/components/ArticleCard";
-import { ARCHIVE_PATH } from "@/lib/routes";
+import { archivePath } from "@/lib/routes";
 import { currentLanguage } from "@/lib/site-server";
 import { t } from "@/lib/i18n";
 
@@ -28,7 +28,7 @@ export async function LeadBand({ lead, rail }: { lead: Article; rail: Article[] 
           <ArticleCard key={a.id} article={a} variant="compact" />
         ))}
         <a
-          href={ARCHIVE_PATH}
+          href={archivePath(lang)}
           data-track="internal"
           className="block mt-auto px-4 md:px-8 py-4 border-t border-border text-sm font-semibold hover:bg-surface transition-colors"
           style={{ color: "#00205B" }}

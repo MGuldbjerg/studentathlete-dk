@@ -6,6 +6,7 @@ import { AdminEditButton } from "@/components/AdminEditButton";
 import { getOgImageUrl, breadcrumbStructuredData, formatDate} from "@/lib/seo";
 import { getPublishedGuideBySlug } from "@/lib/admin";
 import { currentSite, currentBaseUrl, siteRobots } from "@/lib/site-server";
+import { routePath, t } from "@/lib/i18n";
 import {
   getGuide,
   guideToMarkdown,
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const g = await resolveGuide(slug);
   if (!g) return { title: "Side ikke fundet" };
-  const canonical = `${base}/viden/${slug}`;
+  const canonical = `${base}${routePath("guides", site.language)}/${slug}`;
   const ogImage = getOgImageUrl({ title: g.title, subtitle: site.brand, type: "article" });
   return {
     title: `${g.title} | ${site.brand}`,
@@ -83,7 +84,7 @@ export default async function GuidePage({ params }: { params: Params }) {
   const g = await resolveGuide(slug);
   if (!g) notFound();
 
-  const url = `${base}/viden/${slug}`;
+  const url = `${base}${routePath("guides", site.language)}/${slug}`;
   const categoryLabel =
     g.category && g.category in CATEGORY_LABELS
       ? CATEGORY_LABELS[g.category as GuideCategory]
@@ -116,7 +117,7 @@ export default async function GuidePage({ params }: { params: Params }) {
       <Breadcrumb
         crumbs={[
           { label: "Forside", href: "/" },
-          { label: "Viden", href: "/viden" },
+          { label: t("guides.crumb", site.language), href: routePath("guides", site.language) },
           { label: g.title },
         ]}
       />

@@ -3,6 +3,9 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { track } from "@/lib/track";
+// Kilde-parameteren hedder ?kilde= på .dk og ?source= på .co.uk. Klienten tager
+// imod begge, så et delt link ikke mister sin kilde på det andet site.
+import { sourceParamAliases } from "@/lib/routes";
 
 /**
  * First-party analytics-beacon. Renderes én gang i layout.
@@ -24,7 +27,7 @@ export function Analytics() {
     let source: string | undefined;
     try {
       const qs = new URLSearchParams(window.location.search);
-      source = qs.get("kilde") ?? qs.get("utm_source") ?? undefined;
+      source = sourceParamAliases().map((n) => qs.get(n)).find(Boolean) ?? qs.get("utm_source") ?? undefined;
     } catch {
       /* ignorér */
     }

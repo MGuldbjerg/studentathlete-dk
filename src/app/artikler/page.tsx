@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ArticleCard } from "@/components/ArticleCard";
 import { getArticles, countArticles } from "@/lib/db";
-import { ARCHIVE_PATH, PAGE_PARAM } from "@/lib/routes";
+import { archivePath, pageParam, pageParamAliases } from "@/lib/routes";
 import { sportLabel, sportSlug, sportKeyFromSlug, sportNav, t } from "@/lib/i18n";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
@@ -22,12 +22,18 @@ const PER_PAGE = 24;
 
 export const revalidate = 300;
 
+/**
+ * Sidetallet hedder `?side=` på .dk og `?page=` på .co.uk. Typen er derfor
+ * åben, og LÆSNINGEN tager imod begge navne: et link delt fra det ene site må
+ * ikke miste sin side, fordi læseren åbner det på det andet.
+ */
 interface SearchParams {
-  side?: string;
   sport?: string;
+  [param: string]: string | undefined;
 }
 
-function parsePage(raw: string | undefined): number {
+function parsePage(params: SearchParams): number {
+  const raw = pageParamAliases().map((name) => params[name]).find(Boolean);
   const n = Number.parseInt(raw ?? "1", 10);
   return Number.isFinite(n) && n > 1 ? n : 1;
 }
@@ -37,8 +43,9 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<SearchParams>;
 }): Promise<Metadata> {
-  const { side, sport } = await searchParams;
-  const page = parsePage(side);
+  const params0 = await searchParams;
+  const { sport } = params0;
+  const page = parsePage(params0);
   const lang = await currentLanguage();
   const key = sport ? sportKeyFromSlug(sport, lang) : null;
   const name = key ? sportLabel(key, lang) : null;
@@ -52,13 +59,13 @@ export async function generateMetadata({
   // konkurrerer sider om samme URL i indekset.
   const params = new URLSearchParams();
   if (key) params.set("sport", sportSlug(key, lang));
-  if (page > 1) params.set(PAGE_PARAM, String(page));
+  if (page > 1) params.set(pageParam(lang), String(page));
   const qs = params.toString();
 
   return {
     title,
     description: t("archive.meta_description", lang, { sport: name ? name.toLowerCase() : "" }),
-    alternates: { canonical: `${await currentBaseUrl()}${ARCHIVE_PATH}${qs ? `?${qs}` : ""}` },
+    alternates: { canonical: `${await currentBaseUrl()}${archivePath(lang)}${qs ? `?${qs}` : ""}` },
   };
 }
 
@@ -67,8 +74,9 @@ export default async function ArchivePage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { side, sport } = await searchParams;
-  const page = parsePage(side);
+  const params0 = await searchParams;
+  const { sport } = params0;
+  const page = parsePage(params0);
   const lang = await currentLanguage();
   const sportKey = sport ? sportKeyFromSlug(sport, lang) : null;
   const filter = sportKey ?? "";
@@ -87,9 +95,9 @@ export default async function ArchivePage({
   function hrefFor(targetPage: number, targetSport: string | null): string {
     const params = new URLSearchParams();
     if (targetSport) params.set("sport", targetSport);
-    if (targetPage > 1) params.set(PAGE_PARAM, String(targetPage));
+    if (targetPage > 1) params.set(pageParam(lang), String(targetPage));
     const qs = params.toString();
-    return `${ARCHIVE_PATH}${qs ? `?${qs}` : ""}`;
+    return `${archivePath(lang)}${qs ? `?${qs}` : ""}`;
   }
 
   const currentSlug = sportKey ? sportSlug(sportKey, lang) : null;

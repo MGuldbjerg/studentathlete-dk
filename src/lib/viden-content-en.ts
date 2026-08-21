@@ -28,7 +28,7 @@
  * en læser hans visum. Guiden siger derfor at man skal søge rådgivning — ikke
  * hvad svaret er.
  *
- * SLUGS er engelske. Ruten hedder stadig /viden (dansk mappenavn) — se
+ * SLUGS er engelske. Ruten hedder stadig /guides (dansk mappenavn) — se
  * SETUP-uk-launch.md om engelske alias-ruter.
  */
 import type { VidenGuide, GuideCategory } from "./viden-content";
@@ -83,8 +83,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "Divisions in the NCAA", href: "/viden/ncaa-divisions" },
-      { label: "Academic requirements & eligibility", href: "/viden/academic-requirements" },
+      { label: "Divisions in the NCAA", href: "/guides/ncaa-divisions" },
+      { label: "Academic requirements & eligibility", href: "/guides/academic-requirements" },
     ],
     sources: [
       { label: "NCAA — official site", url: "https://www.ncaa.org/" },
@@ -146,8 +146,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "NCAA vs NAIA vs NJCAA", href: "/viden/ncaa-naia-njcaa" },
-      { label: "Transfer portal explained", href: "/viden/transfer-portal" },
+      { label: "NCAA vs NAIA vs NJCAA", href: "/guides/ncaa-naia-njcaa" },
+      { label: "Transfer portal explained", href: "/guides/transfer-portal" },
     ],
     sources: [{ label: "NCAA — divisional differences", url: "https://www.ncaa.org/sports/2021/2/16/about-resources-media-center-ncaa-101-what-differences-between-divisions-i-ii-and-iii.aspx" }],
     updated: "2026-08-04",
@@ -190,8 +190,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "Divisions in the NCAA", href: "/viden/ncaa-divisions" },
-      { label: "The NCAA season calendar", href: "/viden/season-calendar" },
+      { label: "Divisions in the NCAA", href: "/guides/ncaa-divisions" },
+      { label: "The NCAA season calendar", href: "/guides/season-calendar" },
     ],
     sources: [{ label: "NCAA — official site", url: "https://www.ncaa.org/" }],
     updated: "2026-08-04",
@@ -235,8 +235,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "Academic requirements & eligibility", href: "/viden/academic-requirements" },
-      { label: "Divisions in the NCAA", href: "/viden/ncaa-divisions" },
+      { label: "Academic requirements & eligibility", href: "/guides/academic-requirements" },
+      { label: "Divisions in the NCAA", href: "/guides/ncaa-divisions" },
     ],
     sources: [
       { label: "NAIA — official site", url: "https://www.naia.org/" },
@@ -294,8 +294,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "Academic requirements & eligibility", href: "/viden/academic-requirements" },
-      { label: "What is the NCAA?", href: "/viden/what-is-the-ncaa" },
+      { label: "Academic requirements & eligibility", href: "/guides/academic-requirements" },
+      { label: "What is the NCAA?", href: "/guides/what-is-the-ncaa" },
     ],
     sources: [{ label: "NCAA — official site", url: "https://www.ncaa.org/" }],
     updated: "2026-08-04",
@@ -347,8 +347,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "March Madness explained", href: "/viden/march-madness" },
-      { label: "College Football Playoff explained", href: "/viden/college-football-playoff" },
+      { label: "March Madness explained", href: "/guides/march-madness" },
+      { label: "College Football Playoff explained", href: "/guides/college-football-playoff" },
     ],
     sources: [{ label: "NCAA — championships", url: "https://www.ncaa.com/" }],
     updated: "2026-08-04",
@@ -414,8 +414,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "NCAA vs NAIA vs NJCAA", href: "/viden/ncaa-naia-njcaa" },
-      { label: "Redshirt and years of eligibility", href: "/viden/redshirt-and-eligibility" },
+      { label: "NCAA vs NAIA vs NJCAA", href: "/guides/ncaa-naia-njcaa" },
+      { label: "Redshirt and years of eligibility", href: "/guides/redshirt-and-eligibility" },
     ],
     sources: [
       {
@@ -470,8 +470,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "Redshirt and years of eligibility", href: "/viden/redshirt-and-eligibility" },
-      { label: "College sport glossary", href: "/viden/glossary" },
+      { label: "Redshirt and years of eligibility", href: "/guides/redshirt-and-eligibility" },
+      { label: "College sport glossary", href: "/guides/glossary" },
     ],
     sources: [{ label: "NCAA — transfer rules", url: "https://www.ncaa.org/sports/2021/5/20/transfer-terms.aspx" }],
     updated: "2026-08-04",
@@ -514,8 +514,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "Transfer portal explained", href: "/viden/transfer-portal" },
-      { label: "Academic requirements & eligibility", href: "/viden/academic-requirements" },
+      { label: "Transfer portal explained", href: "/guides/transfer-portal" },
+      { label: "Academic requirements & eligibility", href: "/guides/academic-requirements" },
     ],
     sources: [{ label: "NCAA — eligibility", url: "https://www.ncaa.org/sports/2014/10/6/remaining-eligible-academics.aspx" }],
     updated: "2026-08-04",
@@ -562,8 +562,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "What is the NCAA?", href: "/viden/what-is-the-ncaa" },
-      { label: "The NCAA season calendar", href: "/viden/season-calendar" },
+      { label: "What is the NCAA?", href: "/guides/what-is-the-ncaa" },
+      { label: "The NCAA season calendar", href: "/guides/season-calendar" },
     ],
     sources: [{ label: "NCAA — official site", url: "https://www.ncaa.org/" }],
     updated: "2026-08-04",
@@ -600,8 +600,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "The NCAA season calendar", href: "/viden/season-calendar" },
-      { label: "Conferences explained", href: "/viden/conferences" },
+      { label: "The NCAA season calendar", href: "/guides/season-calendar" },
+      { label: "Conferences explained", href: "/guides/conferences" },
     ],
     sources: [{ label: "NCAA — March Madness", url: "https://www.ncaa.com/march-madness-live" }],
     updated: "2026-08-04",
@@ -631,8 +631,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "The NCAA season calendar", href: "/viden/season-calendar" },
-      { label: "Conferences explained", href: "/viden/conferences" },
+      { label: "The NCAA season calendar", href: "/guides/season-calendar" },
+      { label: "Conferences explained", href: "/guides/conferences" },
     ],
     sources: [{ label: "College Football Playoff — official site", url: "https://collegefootballplayoff.com/" }],
     updated: "2026-08-04",
@@ -675,8 +675,8 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       },
     ],
     related: [
-      { label: "Academic requirements & eligibility", href: "/viden/academic-requirements" },
-      { label: "Transfer portal explained", href: "/viden/transfer-portal" },
+      { label: "Academic requirements & eligibility", href: "/guides/academic-requirements" },
+      { label: "Transfer portal explained", href: "/guides/transfer-portal" },
     ],
     sources: [{ label: "NCAA — National Letter of Intent", url: "https://www.ncaa.org/sports/2014/9/15/national-letter-of-intent.aspx" }],
     updated: "2026-08-04",

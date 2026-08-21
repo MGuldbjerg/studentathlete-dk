@@ -9,8 +9,8 @@ import { da } from "./da";
 import { en } from "./en";
 import { SPORT_KEYS, type SportKey, isSportKey } from "../sports";
 
-export type { LanguagePack, UiKey } from "./types";
-import type { UiKey } from "./types";
+export type { LanguagePack, UiKey, RouteKey, ParamKey } from "./types";
+import type { UiKey, RouteKey, ParamKey } from "./types";
 
 export const LANGUAGES: Record<string, LanguagePack> = { da, en };
 
@@ -100,6 +100,46 @@ export function sportKeyFromSlugAnyLanguage(slug: string, preferredLang: string)
 export function articleTypeLabel(type: string | null | undefined, lang: string): string {
   const key = (type ?? "").trim();
   return languagePack(lang).articleTypeLabel[key] ?? key;
+}
+
+/** Sektionsstien på et sprog: `routeSlug("athletes", "en")` → "athletes". */
+export function routeSlug(key: RouteKey, lang: string): string {
+  return languagePack(lang).routes[key];
+}
+
+/** Sektionens sti med skråstreg foran — det man skriver i et href. */
+export function routePath(key: RouteKey, lang: string): string {
+  return `/${routeSlug(key, lang)}`;
+}
+
+/**
+ * Sektions-slug → nøgle, uanset sprog. Bruges to steder: middlewaren, der
+ * skriver sitets egen sti om til app-routerens (danske) mappe og sender de
+ * andre sprogs stier videre med 308, og analytics, der skal kunne klassificere
+ * /athletes og /atleter som samme sidetype.
+ */
+export function routeKeyFromSlug(slug: string): RouteKey | null {
+  const s = slug.trim().toLowerCase();
+  for (const pack of Object.values(LANGUAGES)) {
+    for (const [key, value] of Object.entries(pack.routes)) {
+      if (value === s) return key as RouteKey;
+    }
+  }
+  return null;
+}
+
+/** Læservendt query-parameter på et sprog: `?side=` / `?page=`. */
+export function queryParam(key: ParamKey, lang: string): string {
+  return languagePack(lang).params[key];
+}
+
+/**
+ * Alle sprogs navne for en parameter. Læsesiden skal tage imod dem alle — et
+ * delt link med `?kilde=ig` må ikke miste sin kilde, fordi læseren landede på
+ * det engelske site.
+ */
+export function queryParamAliases(key: ParamKey): string[] {
+  return [...new Set(Object.values(LANGUAGES).map((p) => p.params[key]))];
 }
 
 /** Navigationslisten: sportsgrene i visningsrækkefølge på ét sprog. */

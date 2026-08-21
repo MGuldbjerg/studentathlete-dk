@@ -74,7 +74,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
           style={{ borderColor: "#E2E0DC" }}>
           <div className="flex items-center gap-2 text-muted">
             {athlete && (
-              <a href={getAthleteUrl(athlete.slug)}
+              <a href={getAthleteUrl(athlete.slug, lang)}
                 className="font-semibold text-ink hover:underline">
                 {athlete.name}
               </a>

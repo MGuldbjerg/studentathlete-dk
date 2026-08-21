@@ -14,10 +14,48 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  */
 import { siteFromHost } from "./lib/site";
 import { COUNTRIES, DEFAULT_COUNTRY, countryProfile } from "./lib/countries";
+import { routeKeyFromSlug, routeSlug, DEFAULT_LANGUAGE } from "./lib/i18n";
 
 /** Cookien admin-landevælgeren sætter, og headeren serverkoden læser. */
 const ADMIN_COUNTRY_COOKIE = "sa_country";
 const COUNTRY_HEADER = "x-sa-country";
+
+
+/**
+ * Sektionsstien tilhører SITET, mapperne i app-routeren er danske.
+ *
+ * To ting sker her:
+ *   1. Sitets egen sti skrives om til mappenavnet: `/athletes/x` → `/atleter/x`
+ *      på .co.uk. Læseren og Google ser kun den engelske adresse.
+ *   2. Et ANDET sprogs sti sendes videre med 308: `/atleter/x` → `/athletes/x`.
+ *      Det er de adresser vi selv linkede til indtil 21. august 2026.
+ *
+ * På .dk er sitets sti og mappenavnet det samme, så der sker ingenting —
+ * bortset fra at `/athletes` sendes hjem til `/atleter`.
+ */
+function localizedRoute(req: NextRequest, lang: string): NextResponse | null {
+  const segments = req.nextUrl.pathname.split("/").filter(Boolean);
+  if (segments.length === 0) return null;
+
+  const key = routeKeyFromSlug(segments[0]);
+  if (!key) return null;
+
+  const own = routeSlug(key, lang);
+  const physical = routeSlug(key, DEFAULT_LANGUAGE); // app-routerens mappenavn
+
+  if (segments[0] !== own) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/" + [own, ...segments.slice(1)].join("/");
+    return NextResponse.redirect(url, 308);
+  }
+
+  if (own !== physical) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/" + [physical, ...segments.slice(1)].join("/");
+    return NextResponse.rewrite(url);
+  }
+  return null;
+}
 
 function isAdminPath(pathname: string): boolean {
   return pathname === "/admin" || pathname.startsWith("/admin/") ||
@@ -152,6 +190,15 @@ export async function middleware(req: NextRequest) {
 
   const alias = await athleteAliasRedirect(req);
   if (alias) return NextResponse.redirect(alias, 301);
+
+  // Sektionsstier på sitets eget sprog (se localizedRoute).
+  const localized = localizedRoute(req, siteFromHost(host).language);
+  if (localized) {
+    if (siteFromHost(host).darkLaunch) {
+      localized.headers.set("X-Robots-Tag", "noindex, nofollow");
+    }
+    return localized;
+  }
 
   // Dark launch (se `darkLaunch` i landeprofilen): headeren gælder ALT hvad
   // sitet svarer med — også de sider der selv sætter `robots: index: true` i

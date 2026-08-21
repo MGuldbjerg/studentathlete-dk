@@ -532,6 +532,8 @@ export const da: LanguagePack = {
   locale: "da-DK",
   sportLabel,
   sportSlug,
+  routes: { athletes: "atleter", schools: "skoler", guides: "viden", archive: "artikler" },
+  params: { page: "side", source: "kilde" },
   articleTypeLabel,
   positionPhrase,
   transliterate,

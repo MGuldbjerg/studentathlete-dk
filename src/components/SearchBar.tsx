@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { track } from "@/lib/track";
+import { pageParamAliases } from "@/lib/routes";
 
 // Klientkomponent: kan ikke selv slå sproget op (ingen request-kontekst), så
 // teksten kommer som props fra den server-komponent der rendrer den.
@@ -29,7 +30,8 @@ export function SearchBar({
     } else {
       params.delete("q");
     }
-    params.delete("side");
+    // Nulstil sidetallet uanset hvad det hedder på dette site (?side= / ?page=).
+    for (const name of pageParamAliases()) params.delete(name);
     router.push(`/?${params.toString()}`);
   }
 

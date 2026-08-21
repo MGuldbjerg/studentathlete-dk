@@ -524,6 +524,8 @@ export const en: LanguagePack = {
   locale: "en-GB",
   sportLabel,
   sportSlug,
+  routes: { athletes: "athletes", schools: "schools", guides: "guides", archive: "articles" },
+  params: { page: "page", source: "source" },
   articleTypeLabel,
   positionPhrase,
   transliterate,

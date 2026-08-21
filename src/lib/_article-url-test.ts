@@ -14,8 +14,8 @@
  *
  * Kør: npx tsx src/lib/_article-url-test.ts
  */
-import { getArticleUrl } from "./seo";
-import { sportKeyFromSlugAnyLanguage, sportSlug } from "./i18n";
+import { getArticleUrl, getAthleteUrl, getSchoolUrl, getGuideUrl } from "./seo";
+import { sportKeyFromSlugAnyLanguage, sportSlug, routePath, routeSlug, routeKeyFromSlug, queryParam, queryParamAliases } from "./i18n";
 
 let passed = 0;
 let failed = 0;
@@ -62,6 +62,32 @@ expect("ukendt slug genkendes ikke", sportKeyFromSlugAnyLanguage("hockeystav", "
 expect("getArticleUrl bruger sprogpakkens slug",
   getArticleUrl({ slug: "x", sport: "swimming-and-diving" }, "en"),
   `/${sportSlug("swimming-and-diving", "en")}/x`);
+
+// ── Sektionsstier: også dem tilhører sitet ─────────────────────────────────
+expect("engelsk: atleter → /athletes", getAthleteUrl("chloe-brand", "en"), "/athletes/chloe-brand");
+expect("dansk: atleter → /atleter", getAthleteUrl("toke-amtrup", "da"), "/atleter/toke-amtrup");
+expect("engelsk: skoler → /schools", getSchoolUrl("rice", "en"), "/schools/rice");
+expect("dansk: skoler → /skoler", getSchoolUrl("rice", "da"), "/skoler/rice");
+expect("engelsk: viden → /guides", getGuideUrl("what-is-the-ncaa", "en"), "/guides/what-is-the-ncaa");
+expect("dansk: viden → /viden", getGuideUrl("hvad-er-ncaa", "da"), "/viden/hvad-er-ncaa");
+expect("arkivet på engelsk", routePath("archive", "en"), "/articles");
+expect("arkivet på dansk", routePath("archive", "da"), "/artikler");
+
+// Genkendelse på tværs (middlewarens 308 + analytics' klassificering)
+expect("«atleter» genkendes som athletes", routeKeyFromSlug("atleter"), "athletes");
+expect("«athletes» genkendes som athletes", routeKeyFromSlug("athletes"), "athletes");
+expect("«guides» genkendes", routeKeyFromSlug("guides"), "guides");
+expect("en sportsslug er ikke en sektion", routeKeyFromSlug("football"), null);
+
+// Mapperne i app-routeren er de danske navne — middlewaren skriver om til dem.
+expect("dansk er app-routerens fysiske navn", routeSlug("athletes", "da"), "atleter");
+
+// Query-parametre
+expect("sidetal på dansk", queryParam("page", "da"), "side");
+expect("sidetal på engelsk", queryParam("page", "en"), "page");
+expect("kilde på dansk", queryParam("source", "da"), "kilde");
+expect("kilde på engelsk", queryParam("source", "en"), "source");
+expect("begge navne accepteres ved læsning", queryParamAliases("source").sort().join(","), "kilde,source");
 
 console.log(`\narticle-url: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

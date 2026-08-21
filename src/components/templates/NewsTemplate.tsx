@@ -80,7 +80,7 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
           <div className="flex items-center justify-between py-3 text-sm flex-wrap gap-2">
             <div className="flex items-center gap-2 text-muted">
               {athlete && (
-                <a href={getAthleteUrl(athlete.slug)}
+                <a href={getAthleteUrl(athlete.slug, lang)}
                   className="font-semibold text-ink hover:underline decoration-flag-red">
                   {athlete.name}
                 </a>

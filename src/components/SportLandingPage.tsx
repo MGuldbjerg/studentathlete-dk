@@ -5,7 +5,7 @@ import { getAthleteUrl } from "@/lib/seo";
 import type { SportContent } from "@/lib/sport-content";
 import { ArticleCard } from "./ArticleCard";
 import { Breadcrumb } from "./ui/Breadcrumb";
-import { t } from "@/lib/i18n";
+import { t, routePath } from "@/lib/i18n";
 import { currentLanguage } from "@/lib/site-server";
 
 interface Props {
@@ -122,7 +122,7 @@ export async function SportLandingPage({ sport, content, articles, athletes, cou
             {athletes.map((athlete) => (
               <Link
                 key={athlete.id}
-                href={getAthleteUrl(athlete.slug)}
+                href={getAthleteUrl(athlete.slug, lang)}
                 data-track="internal"
                 className="flex items-center gap-4 p-4 rounded-lg border border-border
                            bg-paper hover:bg-surface transition-colors group"
@@ -159,7 +159,7 @@ export async function SportLandingPage({ sport, content, articles, athletes, cou
           {total > athletes.length && (
             <div className="mt-4 text-center">
               <Link
-                href="/atleter"
+                href={routePath("athletes", lang)}
                 className="text-sm text-muted hover:text-ink transition-colors"
               >
                 {t("sport.see_all_athletes", lang)}

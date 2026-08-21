@@ -6,7 +6,7 @@ import { getSportColor } from "@/lib/types";
 import { getAthleteUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { AlumniToggle } from "./AlumniToggle";
-import { t } from "@/lib/i18n";
+import { t, routePath } from "@/lib/i18n";
 import { currentLanguage, currentSite } from "@/lib/site-server";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${t("athletes.meta_title", lang)} | ${site.brand}`,
     description: t("athletes.meta_description", lang),
-    alternates: { canonical: "/atleter" },
+    alternates: { canonical: routePath("athletes", lang) },
   };
 }
 
@@ -72,7 +72,7 @@ function SortTabs({ sort, lang }: { sort: SortMode; lang: string }) {
 function AthleteCard({ athlete, faded, lang }: { athlete: Athlete; faded?: boolean; lang: string }) {
   return (
     <Link
-      href={getAthleteUrl(athlete.slug)}
+      href={getAthleteUrl(athlete.slug, lang)}
       className={`flex items-center gap-4 p-4 rounded-lg border border-border
                  bg-paper hover:bg-surface transition-colors group
                  ${faded ? "opacity-70" : ""}`}

@@ -98,7 +98,7 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
             {athletes.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {athletes.map((a) => (
-                  <a key={a.id} href={getAthleteUrl(a.slug)}
+                  <a key={a.id} href={getAthleteUrl(a.slug, lang)}
                     className="group flex items-center gap-4 p-4 transition-colors
                                hover:bg-surface"
                     style={{ border: "1px solid #E2E0DC" }}>

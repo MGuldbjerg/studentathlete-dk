@@ -5,6 +5,12 @@
  */
 import type { SportKey } from "../sports";
 
+/** Sektioner med egen sti. Nøglen er sprogfri; sluggen står i sprogpakken. */
+export type RouteKey = "athletes" | "schools" | "guides" | "archive";
+
+/** Læservendte query-parametre. */
+export type ParamKey = "page" | "source";
+
 export interface LanguagePack {
   /** ISO 639-1, fx "da". */
   code: string;
@@ -14,6 +20,17 @@ export interface LanguagePack {
   sportLabel: Record<SportKey, string>;
   /** Sportens URL-slug på dette sprog (del af sitets offentlige flade). */
   sportSlug: Record<SportKey, string>;
+  /**
+   * Sektionsstierne. Mapperne i `src/app/` hedder stadig det danske —
+   * middlewaren skriver sitets egen sti om til dem — men det læseren og Google
+   * ser, står her. Uden dette lå britiske sider på /atleter og /viden.
+   */
+  routes: Record<RouteKey, string>;
+  /**
+   * Query-parametre der er læservendte, fordi de står i delte links:
+   * `?side=2` / `?page=2` og `?kilde=ig` / `?source=ig`.
+   */
+  params: Record<ParamKey, string>;
   /**
    * Artikeltype som vist for læseren. Lå før som én dansk tabel i
    * `src/lib/types.ts` og sivede derfor uoversat ud på kort og i skabeloner.

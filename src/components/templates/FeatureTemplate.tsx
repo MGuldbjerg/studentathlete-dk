@@ -80,7 +80,7 @@ export async function FeatureTemplate({ article, athlete, relatedArticles = [] }
             {/* Byline i bunden */}
             <div className="flex items-center gap-3 text-sm text-white/50">
               {athlete && (
-                <a href={getAthleteUrl(athlete.slug)}
+                <a href={getAthleteUrl(athlete.slug, lang)}
                   className="text-white/80 font-semibold hover:text-white transition-colors">
                   {athlete.name}
                 </a>

@@ -1,7 +1,7 @@
 import type { SportGroup } from "@/lib/db";
 import { ArticleCard } from "@/components/ArticleCard";
 import { getSportColor } from "@/lib/types";
-import { sportLabel, sportSlug, t } from "@/lib/i18n";
+import { sportLabel, sportSlug, t, routePath } from "@/lib/i18n";
 import { currentLanguage } from "@/lib/site-server";
 
 /**
@@ -26,7 +26,7 @@ export async function SportListBand({ groups }: { groups: SportGroup[] }) {
         <h2 className="text-xl font-bold text-ink" style={{ fontFamily: "var(--font-serif)" }}>
           {t("band.by_sport", lang)}
         </h2>
-        <a href="/atleter" className="ml-auto text-sm text-muted hover:text-ink transition-colors">
+        <a href={routePath("athletes", lang)} className="ml-auto text-sm text-muted hover:text-ink transition-colors">
           {t("band.all_athletes", lang)} →
         </a>
       </div>

@@ -18,7 +18,7 @@ import { currentLanguage, currentSite, currentBaseUrl, siteRobots } from "@/lib/
 import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl} from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
-import { sportLabel, t, sportKeyFromSlugAnyLanguage } from "@/lib/i18n";
+import { sportLabel, t, sportKeyFromSlugAnyLanguage, routeSlug } from "@/lib/i18n";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
@@ -110,9 +110,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   // ── 2 segmenter ─────────────────────────────────────────────────────────
   if (segments.length === 2) {
     const [prefix, slug] = segments;
+    const lang = await currentLanguage();
 
-    // /atleter/{slug} → atlet-profil
-    if (prefix === "atleter") {
+    // Middlewaren skriver sitets egen sti om til app-routerens (danske) navn,
+    // så `prefix` er normalt "atleter"/"skoler" her. Sitets eget navn
+    // accepteres OGSÅ direkte, så en manglende rewrite giver den rigtige side
+    // frem for en 404.
+    const isRoute = (key: "athletes" | "schools" | "guides" | "archive", physical: string) =>
+      prefix === physical || prefix === routeSlug(key, lang);
+
+    // /atleter|/athletes/{slug} → atlet-profil
+    if (isRoute("athletes", "atleter")) {
       const athlete = await getAthleteBySlug(slug);
       if (athlete) {
         const description =
@@ -134,7 +142,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [{ url: ogImage, width: 1200, height: 630, alt: athlete.name }],
             type: "profile",
             siteName: brand,
-            url: `${base}${getAthleteUrl(slug)}`,
+            url: `${base}${getAthleteUrl(slug, lang)}`,
           },
           twitter: {
             card: "summary_large_image",
@@ -142,14 +150,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             description,
             images: [ogImage],
           },
-          alternates: { canonical: `${base}${getAthleteUrl(slug)}` },
+          alternates: { canonical: `${base}${getAthleteUrl(slug, lang)}` },
           robots: await siteRobots(),
         };
       }
     }
 
-    // /skoler/{slug} → skole-profil
-    if (prefix === "skoler") {
+    // /skoler|/schools/{slug} → skole-profil
+    if (isRoute("schools", "skoler")) {
       const school = await getSchoolBySlug(slug);
       if (school) {
         const where = `${school.name}${school.state ? `, ${school.state}` : ""}`;
@@ -162,9 +170,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             description,
             type: "website",
             siteName: brand,
-            url: `${base}${getSchoolUrl(slug)}`,
+            url: `${base}${getSchoolUrl(slug, lang)}`,
           },
-          alternates: { canonical: `${base}${getSchoolUrl(slug)}` },
+          alternates: { canonical: `${base}${getSchoolUrl(slug, lang)}` },
           robots: await siteRobots(),
         };
       }
@@ -279,28 +287,36 @@ export default async function DynamicPage({ params }: { params: Params }) {
 
     // Legacy: /{slug} → /atleter/{slug} (301 permanent redirect)
     const athlete = await getAthleteBySlug(slug);
-    if (athlete) permanentRedirect(getAthleteUrl(athlete.slug));
+    if (athlete) permanentRedirect(getAthleteUrl(athlete.slug, lang));
 
     // Nedlagt atlet-slug (navneskift/fletning) → atletens nuværende URL
     const aliasTarget = await getAthleteSlugByAlias(slug);
-    if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget));
+    if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget, lang));
 
     // Legacy: /{slug} → /skoler/{slug} (301 permanent redirect)
     const school = await getSchoolBySlug(slug);
-    if (school) permanentRedirect(getSchoolUrl(school.slug));
+    if (school) permanentRedirect(getSchoolUrl(school.slug, lang));
   }
 
   // ── 2 segmenter ─────────────────────────────────────────────────────────
   if (segments.length === 2) {
     const [prefix, slug] = segments;
+    const lang = await currentLanguage();
 
-    // /atleter/{slug} → atlet-profil
-    if (prefix === "atleter") {
+    // Middlewaren skriver sitets egen sti om til app-routerens (danske) navn,
+    // så `prefix` er normalt "atleter"/"skoler" her. Sitets eget navn
+    // accepteres OGSÅ direkte, så en manglende rewrite giver den rigtige side
+    // frem for en 404.
+    const isRoute = (key: "athletes" | "schools", physical: string) =>
+      prefix === physical || prefix === routeSlug(key, lang);
+
+    // /atleter|/athletes/{slug} → atlet-profil
+    if (isRoute("athletes", "atleter")) {
       const athlete = await getAthleteBySlug(slug);
       if (!athlete) {
         // Gammel slug efter navneskift eller fletning → 301 til den nuværende
         const aliasTarget = await getAthleteSlugByAlias(slug);
-        if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget));
+        if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget, lang));
       }
       if (athlete) {
         const [articles, events] = await Promise.all([
@@ -316,8 +332,8 @@ export default async function DynamicPage({ params }: { params: Params }) {
       }
     }
 
-    // /skoler/{slug} → skole-profil
-    if (prefix === "skoler") {
+    // /skoler|/schools/{slug} → skole-profil
+    if (isRoute("schools", "skoler")) {
       const school = await getSchoolBySlug(slug);
       if (school) {
         const [athletes, articles] = await Promise.all([
@@ -339,7 +355,6 @@ export default async function DynamicPage({ params }: { params: Params }) {
 
     // /{sport}/{slug} → artikel
     const article = await getArticleBySlug(slug);
-    const lang = await currentLanguage();
     const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport", lang);
 
     // Adressen tilhører sitets sprog. Kommer læseren (eller Google) med det

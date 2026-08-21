@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs } from "@/lib/db";
 import { getSportSlugs } from "@/lib/sport-content";
-import { getArticleUrl } from "@/lib/seo";
+import { getArticleUrl, getAthleteUrl, getSchoolUrl } from "@/lib/seo";
 import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
-import { ARCHIVE_PATH } from "@/lib/routes";
+import { archivePath } from "@/lib/routes";
+import { routePath } from "@/lib/i18n";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -24,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${base}${ARCHIVE_PATH}`,
+      url: `${base}${archivePath(lang)}`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.8,
@@ -59,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const dbGuides = await getPublishedGuides();
   const guideSlugs = dbGuides.length ? dbGuides.map((g) => g.slug) : getGuideSlugs(await currentLanguage());
   const guidePages: MetadataRoute.Sitemap = guideSlugs.map((slug) => ({
-    url: `${base}/viden/${slug}`,
+    url: `${base}${routePath("guides", lang)}/${slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
@@ -87,14 +88,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const athletePages: MetadataRoute.Sitemap = athletes.map((a) => ({
-    url: `${base}/atleter/${a.slug}`,
+    url: `${base}${getAthleteUrl(a.slug, lang)}`,
     lastModified: new Date(a.updated_at),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
 
   const schoolPages: MetadataRoute.Sitemap = schools.map((s) => ({
-    url: `${base}/skoler/${s.slug}`,
+    url: `${base}${getSchoolUrl(s.slug, lang)}`,
     changeFrequency: "monthly" as const,
     priority: 0.5,
   }));

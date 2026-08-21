@@ -109,6 +109,10 @@ const BANNED: Array<{ pattern: RegExp; why: string }> = [
   { pattern: /inLanguage:\s*["']da["']/, why: "JSON-LD låst til dansk — brug sitets sprog" },
   { pattern: /name:\s*["']Denmark["']/, why: "nationalitet hardkodet — brug site.nationalityName" },
   { pattern: /["']dansk["']/, why: "«dansk» som nøgleord/tag — brug sitets landekode" },
+  // Sektionsstierne er sprogbestemte fra 2026-08-21: /athletes på .co.uk,
+  // /atleter på .dk. Står de som streng i motoren, er de danske på begge.
+  { pattern: /["'`]\/(atleter|skoler|viden|artikler)(\/|["'`])/, why: "sektionssti hardkodet — brug routePath(key, lang)" },
+  { pattern: /["'](side|kilde)["']\s*[,)]/, why: "query-parameter hardkodet — brug queryParam(key, lang)" },
 ];
 
 const files = [...walk("src/lib"), ...walk("src/components"), ...walk("src/app")].filter(

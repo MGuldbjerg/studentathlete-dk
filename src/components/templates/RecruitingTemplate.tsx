@@ -137,7 +137,7 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
                       </div>
                     ))}
                   </dl>
-                  <a href={getAthleteUrl(athlete.slug)}
+                  <a href={getAthleteUrl(athlete.slug, lang)}
                     className="inline-block mt-5 text-xs font-bold tracking-[0.12em] uppercase hover:underline"
                     style={{ color: "#BF0A30" }}>
                     Se fuld profil →

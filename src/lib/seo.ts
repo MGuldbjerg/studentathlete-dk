@@ -3,7 +3,7 @@ import { dbSportToUrlSlug } from "./types";
 import { countryProfile } from "./countries";
 import type { CountryProfile } from "./countries/types";
 import { siteBaseUrl } from "./site";
-import { sportLabel, t, languagePack } from "./i18n";
+import { sportLabel, t, languagePack, routePath } from "./i18n";
 
 /**
  * Standardsitets base-URL. Værten står ét sted — landeprofilen — så et nyt site
@@ -106,12 +106,17 @@ export function getArticleUrl(article: Pick<Article, "slug" | "sport">, lang: st
   return `/${sport}/${article.slug}`;
 }
 
-export function getAthleteUrl(slug: string): string {
-  return `/atleter/${slug}`;
+export function getAthleteUrl(slug: string, lang: string): string {
+  return `${routePath("athletes", lang)}/${slug}`;
 }
 
-export function getSchoolUrl(slug: string): string {
-  return `/skoler/${slug}`;
+export function getSchoolUrl(slug: string, lang: string): string {
+  return `${routePath("schools", lang)}/${slug}`;
+}
+
+/** Guide-siden (viden/guides) på sitets sprog. */
+export function getGuideUrl(slug: string, lang: string): string {
+  return `${routePath("guides", lang)}/${slug}`;
 }
 
 // ─── OG-billeder ─────────────────────────────────────────────────────────────
@@ -167,7 +172,7 @@ export function articleStructuredData(
       ? {
           "@type": "Person",
           name: athlete.name,
-          url: `${base}${getAthleteUrl(athlete.slug)}`,
+          url: `${base}${getAthleteUrl(athlete.slug, lang)}`,
           sport: sportLabel(athlete.sport, lang),
           affiliation: { "@type": "CollegeOrUniversity", name: athlete.university },
         }
@@ -190,7 +195,7 @@ export function athleteStructuredData(
     "@context": "https://schema.org",
     "@type": "ProfilePage",
     name: `${athlete.name} – ${site.brand}`,
-    url: `${base}${getAthleteUrl(athlete.slug)}`,
+    url: `${base}${getAthleteUrl(athlete.slug, lang)}`,
     mainEntity: {
       "@type": "Person",
       name: athlete.name,
@@ -221,7 +226,7 @@ export function schoolStructuredData(school: School, site: CountryProfile): obje
     "@context": "https://schema.org",
     "@type": "CollegeOrUniversity",
     name: school.name,
-    url: school.website ?? `${siteBaseUrl(site)}${getSchoolUrl(school.slug)}`,
+    url: school.website ?? `${siteBaseUrl(site)}${getSchoolUrl(school.slug, site.language)}`,
     address: school.state
       ? { "@type": "PostalAddress", addressRegion: school.state, addressCountry: "US" }
       : undefined,
