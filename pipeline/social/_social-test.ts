@@ -2,7 +2,7 @@
  * Unit-tests for social-modulets rene logik (pacing + copy).
  * Kør: npx tsx pipeline/social/_social-test.ts
  */
-import { cardReadyClause, distributionAllowed } from "./post-social";
+import { cardReadyClause, distributionAllowed, profileAllowsDistribution } from "./post-social";
 import { bluesky } from "./channels/bluesky";
 import { facebook } from "./channels/facebook";
 import {
@@ -132,7 +132,9 @@ expect("config: expiry 48t", DEFAULT_PACING.expiryMinutes, 48 * 60);
 expect("kanal: bluesky er en dansk konto", bluesky.country, "DK");
 expect("kanal: facebook er en dansk konto", facebook.country, "DK");
 expect("distribution: DK er tilladt", distributionAllowed("DK"), true);
-expect("distribution: UK er dark launch → spærret", distributionAllowed("UK"), false);
+expect("distribution: dark launch spærrer", profileAllowsDistribution({ darkLaunch: true }), false);
+expect("distribution: uden flag er distribution tilladt", profileAllowsDistribution({}), true);
+expect("distribution: UK er ikke længere dark launch (21/8)", distributionAllowed("UK"), true);
 expect("distribution: ukendt land falder tilbage på standardsitet", distributionAllowed("ZZ"), true);
 
 // ── Kort før opslag (Amtrup 2026-08-18, #108 2026-08-20) ─────────────────────

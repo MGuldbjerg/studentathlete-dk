@@ -41,7 +41,17 @@ const ALL_CHANNELS: SocialChannel[] = [bluesky, facebook];
  * fordi den skal gælde selv hvis nogen senere opretter en konto for landet.
  */
 export function distributionAllowed(country: string): boolean {
-  return countryProfile(country).darkLaunch !== true;
+  return profileAllowsDistribution(countryProfile(country));
+}
+
+/**
+ * Selve reglen, adskilt fra opslaget i landetabellen — så testen kan holde fast
+ * i MEKANISMEN og ikke i hvilke lande der tilfældigvis er dark launch i dag.
+ * (UK var det fra 5. til 21. august; en test der hårdkodede «UK er spærret»
+ * ville have holdt op med at måle noget den dag flaget blev slået fra.)
+ */
+export function profileAllowsDistribution(profile: { darkLaunch?: boolean }): boolean {
+  return profile.darkLaunch !== true;
 }
 const MAX_ATTEMPTS = 3;
 

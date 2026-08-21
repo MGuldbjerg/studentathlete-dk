@@ -127,10 +127,16 @@ export const uk: CountryProfile = {
   code: "UK",
   language: "en",
   host: "student-athlete.co.uk",
-  // Dark launch fra 2026-08-05: domænet er live, men sitet har endnu ingen
-  // britiske artikler, og de læservendte forespørgsler filtrerer endnu ikke på
-  // land — uden dette ville .co.uk blive indekseret som en dublet af .dk.
-  darkLaunch: true,
+  // Dark launch 2026-08-05 → 2026-08-21. Begge grunde er væk: forespørgslerne
+  // filtrerer nu på land (`a.country` / `home_country` i src/lib/db.ts), og
+  // sitet har sit eget indhold. Verificeret før flaget blev slået fra: en dansk
+  // atlet svarer 404 på .co.uk, en britisk artikel 404 på .dk, sitemappet på
+  // .co.uk er britisk (2.092 atleter), og canonical peger på .co.uk selv.
+  //
+  // Flaget spærrede TO ting (playbook §5): indeksering OG distribution. Med det
+  // væk er UK også tilladt i social-køen — der er blot ingen britisk konto
+  // endnu, og kanalerne poster kun deres eget lands artikler.
+  darkLaunch: false,
   brand: "Student-Athlete.co.uk",
   contactEmail: "info@student-athlete.co.uk",
   cities,
