@@ -331,15 +331,24 @@ async function main(): Promise<void> {
     if (!args.json) {
       console.log(`\n══ ${profile.brand} — ${property}`);
       console.log(`   ${start} → ${end} (${args.days} dage; data halter 2-3 dage)`);
-      if (!known && available.length > 0) {
-        console.log(
-          `   ! Service-kontoen har IKKE adgang til denne property.\n` +
-            `     Tilføj ${(await readKeyEmail()) ?? "service-kontoens e-mail"} under\n` +
-            `     Indstillinger → Brugere og tilladelser, eller opret propertyen.\n` +
-            `     Kontoen ser i dag: ${available.join(", ") || "(ingen)"}`,
-        );
-        continue;
-      }
+    }
+
+    // Ingen adgang → sig HVAD der skal gøres. Google svarer 403 med en tom
+    // property-liste både når kontoen mangler som bruger, og når propertyen slet
+    // ikke findes; forskellen kan vi ikke se, men handlingen er den samme.
+    if (!known) {
+      const msg =
+        `Service-kontoen har ikke adgang til ${property}.\n` +
+        `     Search Console → propertyen → Indstillinger → Brugere og tilladelser →\n` +
+        `     Tilføj bruger → ${(await readKeyEmail()) ?? "service-kontoens e-mail"}\n` +
+        `     («Fuld» hvis den også skal indsende sitemap, ellers «Begrænset»).\n` +
+        `     Kontoen ser i dag: ${available.join(", ") || "(ingen properties)"}` +
+        (available.length === 0
+          ? `\n     Er domænet overhovedet verificeret? Det kan kun et menneske gøre.`
+          : "");
+      (report.sites as Record<string, unknown>)[code] = { property, hasAccess: false, error: msg };
+      if (!args.json) console.log(`   ! ${msg}`);
+      continue;
     }
 
     const siteReport: Record<string, unknown> = { property, hasAccess: known };
