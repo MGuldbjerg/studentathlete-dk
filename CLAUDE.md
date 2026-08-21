@@ -57,6 +57,25 @@ Atletdata tilføjes i `pipeline/seed/seed-data.json` og indsættes med `bash scr
 | `npm run dev` | Start lokal dev-server |
 | `npm run deploy` | Deploy til Cloudflare |
 
+## SEO: plan først, indhold bestemmer (Mikkels regler, 2026-08-21)
+
+1. **Aldrig SEO-arbejde uden en plan, Mikkel har set og udtrykkeligt godkendt.**
+2. Er planen godkendt: små ændringer må laves selvstændigt — **store aldrig**.
+3. **Indholdet er rammen.** Giver et nøgleord mening teknisk, men ikke for
+   sidens faktiske indhold, så vinder indholdet. Eksemplet er Mikkels egen:
+   for **Temple University** peger relaterede søgeord på templer i USA og
+   religiøse templer — men siden handler om universitetet, og så er det dét,
+   den skal handle om.
+
+**Grænsen mod drift**: tekniske fejl er ikke «SEO-arbejde» og må rettes uden
+plan — 404'er, døde sitemaps, forkerte canonicals, manglende hreflang, sprog-
+og landelækager. Det er ændringer i TEKST og STRUKTUR med et søgeformål
+(titler, meta-beskrivelser, overskrifter, intern linkning, URL-struktur, nye
+sider mod et søgeord) der kræver en godkendt plan.
+
+Tallene hentes med `./scripts/search-console.sh` (se `SETUP-search-console.md`).
+Fund afleveres som forslag med begrundelse, ikke som en ændring.
+
 ## Roster-scraping: spørg skolen, gæt ikke (VIGTIGST)
 
 **Inden du ændrer roster- eller discovery-logik**: holdlisten er DATA, ikke et gæt.

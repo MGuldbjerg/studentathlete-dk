@@ -25,6 +25,7 @@
  *   npx tsx pipeline/report/search-console.ts --dimension=page --limit=25
  *   npx tsx pipeline/report/search-console.ts --sitemaps         # er sitemappet læst?
  *   npx tsx pipeline/report/search-console.ts --submit-sitemap   # kræver «Fuld»
+ *   npx tsx pipeline/report/search-console.ts --remove-sitemap=https://…  # fjern dødt sitemap
  *   npx tsx pipeline/report/search-console.ts --inspect https://…  # indekseringsstatus
  *   npx tsx pipeline/report/search-console.ts --json             # maskinlæsbart
  *
@@ -232,6 +233,24 @@ async function submitSitemap(token: string, property: string, feedUrl: string): 
   );
 }
 
+/**
+ * Fjern et sitemap fra propertyen.
+ *
+ * Et sitemap der er væk fra serveren, forsvinder IKKE af sig selv fra Search
+ * Console: `sitemap_index.xml` på .dk stod med 1 fejl og 2 advarsler og var
+ * sidst hentet 7. august 2025, længe efter at URL'en var blevet en 404.
+ * Rapporten er kun brugbar, hvis den ikke er fuld af døde poster.
+ *
+ * Reversibelt: et fjernet sitemap kan indsendes igen med --submit-sitemap.
+ */
+async function removeSitemap(token: string, property: string, feedUrl: string): Promise<void> {
+  await api<void>(
+    token,
+    `${API}/sites/${encodeURIComponent(property)}/sitemaps/${encodeURIComponent(feedUrl)}`,
+    { method: "DELETE" },
+  );
+}
+
 // ── URL-inspektion ──────────────────────────────────────────────────────────
 
 interface InspectionResult {
@@ -284,6 +303,7 @@ interface Args {
   limit: number;
   showSitemaps: boolean;
   submit: boolean;
+  removeSitemapUrl: string | null;
   inspectUrl: string | null;
   json: boolean;
 }
@@ -300,8 +320,11 @@ export function parseArgs(argv: string[]): Args {
     days: Number.parseInt(get("days") ?? "28", 10) || 28,
     dimension: get("dimension") ?? "query",
     limit: Number.parseInt(get("limit") ?? "10", 10) || 10,
-    showSitemaps: argv.includes("--sitemaps"),
+    showSitemaps: argv.includes("--sitemaps") || argv.some((a) => a.startsWith("--remove-sitemap")),
     submit: argv.includes("--submit-sitemap"),
+    removeSitemapUrl:
+      get("remove-sitemap") ??
+      (argv.includes("--remove-sitemap") ? argv[argv.indexOf("--remove-sitemap") + 1] ?? null : null),
     inspectUrl: get("inspect") ?? (argv.includes("--inspect") ? argv[argv.indexOf("--inspect") + 1] ?? null : null),
     json: argv.includes("--json"),
   };
@@ -378,6 +401,10 @@ async function main(): Promise<void> {
 
       if (args.showSitemaps || args.submit) {
         const feedUrl = `https://${host}/sitemap.xml`;
+        if (args.removeSitemapUrl && args.removeSitemapUrl.includes(host)) {
+          await removeSitemap(token, property, args.removeSitemapUrl);
+          if (!args.json) console.log(`\n   Sitemap fjernet: ${args.removeSitemapUrl}`);
+        }
         if (args.submit) {
           await submitSitemap(token, property, feedUrl);
           if (!args.json) console.log(`\n   Sitemap indsendt: ${feedUrl}`);
