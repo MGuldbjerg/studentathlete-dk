@@ -30,7 +30,7 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
   const typeLabel = articleTypeLabel(article.article_type, lang);
   const sportColor = getSportColor(article.sport);
   const readingTime = getReadingTime(article.content);
-  const relTime = formatRelativeTime(article.published_at);
+  const relTime = formatRelativeTime(article.published_at, lang);
 
   if (variant === "compact") {
     return (

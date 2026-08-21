@@ -1,12 +1,13 @@
 import type { Article } from "@/lib/types";
 import { formatDate } from "@/lib/seo";
+import { t } from "@/lib/i18n";
 
 /**
  * Synlig rettelses-boks på publicerede artikler (presseetik — indfrier
  * /presseetik-løftet). Vises kun når redaktøren har udfyldt correction_note
  * i admin; corrected_at stemples automatisk (se updateArticle).
  */
-export function CorrectionNotice({ article }: { article: Article }) {
+export function CorrectionNotice({ article, lang }: { article: Article; lang: string }) {
   if (!article.correction_note) return null;
   return (
     <aside
@@ -14,7 +15,7 @@ export function CorrectionNotice({ article }: { article: Article }) {
       style={{ borderLeftColor: "#002868" }}
     >
       <strong className="text-ink">
-        Rettet{article.corrected_at ? ` ${formatDate(article.corrected_at)}` : ""}:
+        {t("correction.prefix", lang)}{article.corrected_at ? ` ${formatDate(article.corrected_at, lang)}` : ""}:
       </strong>{" "}
       <span className="text-muted">{article.correction_note}</span>
     </aside>

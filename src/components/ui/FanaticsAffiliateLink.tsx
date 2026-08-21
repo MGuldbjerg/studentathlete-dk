@@ -1,6 +1,6 @@
 import {
-  FANATICS_DISCLOSURE,
-  FANATICS_CUSTOMS_NOTE,
+  fanaticsDisclosure,
+  fanaticsCustomsNote,
   buildFanaticsAffiliateUrl,
   type FanaticsRegion,
 } from "@/lib/fanatics";
@@ -37,9 +37,11 @@ interface Props {
   banner?: FanaticsBanner;
 }
 
+import { currentSite } from "@/lib/site-server";
+
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
-export function FanaticsAffiliateLink({
+export async function FanaticsAffiliateLink({
   schoolName,
   slug,
   region,
@@ -47,13 +49,15 @@ export function FanaticsAffiliateLink({
   subId,
   banner,
 }: Props) {
+  // Mærkning og told-note er læservendte → sitets sprog og brand.
+  const site = await currentSite();
   const href = buildFanaticsAffiliateUrl(slug, region, subId);
   const color = primaryColor && HEX.test(primaryColor) ? primaryColor : "#00205B";
 
   return (
     <aside className="mt-8 border border-border rounded-lg overflow-hidden bg-surface/40">
       <p className="text-[10px] font-bold tracking-[0.12em] uppercase text-muted px-4 pt-3">
-        {FANATICS_DISCLOSURE}
+        {fanaticsDisclosure(site.language, site.brand)}
       </p>
 
       <a
@@ -86,7 +90,7 @@ export function FanaticsAffiliateLink({
 
       {region === "us" && (
         <p className="text-[11px] text-muted px-4 pb-3 leading-relaxed">
-          {FANATICS_CUSTOMS_NOTE}
+          {fanaticsCustomsNote(site.language, site.nationalityName)}
         </p>
       )}
     </aside>

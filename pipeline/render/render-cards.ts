@@ -104,7 +104,7 @@ async function main(): Promise<void> {
 
   // Samme joins som /api/og getCardData — kun publicerede artikler pre-renderes
   const rows = await db.query<CardRow>(
-    `SELECT a.id, a.title, a.created_at, at.name as athlete_name, at.sport, at.university,
+    `SELECT a.id, a.title, a.created_at, a.country, at.name as athlete_name, at.sport, at.university,
             sc.primary_color, s.fact_sheet
      FROM articles a
      LEFT JOIN athletes at ON a.athlete_id = at.id

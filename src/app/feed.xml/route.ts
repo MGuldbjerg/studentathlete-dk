@@ -1,4 +1,5 @@
-import { currentBaseUrl, currentLanguage } from "@/lib/site-server";
+import { currentBaseUrl, currentLanguage, currentSite } from "@/lib/site-server";
+import { t } from "@/lib/i18n";
 import { getLatestArticles } from "@/lib/db";
 import { getArticleUrl, formatDate} from "@/lib/seo";
 
@@ -14,6 +15,7 @@ function escapeXml(str: string): string {
 export async function GET() {
   const base = await currentBaseUrl();
   const lang = await currentLanguage();
+  const site = await currentSite();
   const articles = await getLatestArticles(30);
 
   const items = articles
@@ -44,10 +46,10 @@ export async function GET() {
   xmlns:dc="http://purl.org/dc/elements/1.1/"
   xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>StudentAthlete.dk</title>
+    <title>${escapeXml(site.brand)}</title>
     <link>${base}</link>
-    <description>Dansk dækning af danske student athletes i USA</description>
-    <language>da</language>
+    <description>${escapeXml(t("feed.description", lang, { country: site.nationalityName }))}</description>
+    <language>${lang}</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <atom:link href="${base}/feed.xml" rel="self" type="application/rss+xml"/>
 ${items}

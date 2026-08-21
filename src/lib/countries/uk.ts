@@ -138,6 +138,7 @@ export const uk: CountryProfile = {
   // endnu, og kanalerne poster kun deres eget lands artikler.
   darkLaunch: false,
   brand: "Student-Athlete.co.uk",
+  nationalityName: "United Kingdom",
   contactEmail: "info@student-athlete.co.uk",
   cities,
   countryMarkers: [

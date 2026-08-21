@@ -191,7 +191,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           type: "article",
           publishedTime: article.published_at ?? undefined,
           modifiedTime: article.updated_at,
-          tags: [article.sport ? sportLabel(article.sport, lang) : null, article.article_type, "student athlete", "dansk"]
+          // Her stod "dansk" hårdkodet — også på britiske artikler. Landet
+          // kommer fra artiklen/sitet, ikke fra standardsitet.
+          tags: [article.sport ? sportLabel(article.sport, lang) : null, article.article_type, "student athlete", site.code.toLowerCase()]
             .filter(Boolean) as string[],
           siteName: brand,
           url: canonicalUrl,

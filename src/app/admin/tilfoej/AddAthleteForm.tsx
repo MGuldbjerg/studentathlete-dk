@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { sportNav } from "@/lib/i18n";
+import { ADMIN_LANG, sportNav } from "@/lib/i18n";
 // Værdien der gemmes er den kanoniske nøgle ("soccer"); teksten i dropdownen
 // er sprogpakkens label ("Fodbold"). Før stod de danske ord som VÆRDIER, så en
 // manuelt tilføjet atlet fik en anden sport-nøgle end scraperen ville give.
-const SPORT_OPTIONS = sportNav();
+const SPORT_OPTIONS = sportNav(ADMIN_LANG);
 
 const DIVISIONS = ["NCAA D1", "NCAA D2", "NCAA D3", "NAIA", "NJCAA"];
 

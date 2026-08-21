@@ -11,7 +11,7 @@ import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
 import { countryProfile } from "@/lib/countries";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -20,10 +20,11 @@ interface Props {
 
 export async function RecruitingTemplate({ article, athlete, relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
+  const site = await currentSite();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(articleStructuredData(article, athlete))
+        __html: JSON.stringify(articleStructuredData(article, athlete, site))
       }} />
 
       <article>
@@ -87,7 +88,7 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
             {/* Dato */}
             {article.published_at && (
               <p className="text-white/30 text-xs tracking-widest mt-10">
-                <time dateTime={article.published_at}>{formatDate(article.published_at)}</time>
+                <time dateTime={article.published_at}>{formatDate(article.published_at, lang)}</time>
                 {article.author && <> · Af {article.author}</>}
               </p>
             )}
@@ -106,7 +107,7 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
 
           <div className="h-px mb-10 mt-8" style={{ backgroundColor: "#E2E0DC" }} />
           <ArticleBody content={article.content} />
-          <CorrectionNotice article={article} />
+          <CorrectionNotice article={article} lang={lang} />
           <SourceBox sourceUrl={article.source_url} />
           {article.author_role !== "human" && <AiDisclaimer />}
 

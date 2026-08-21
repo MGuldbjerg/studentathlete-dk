@@ -9,7 +9,7 @@ import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -18,12 +18,13 @@ interface Props {
 
 export async function FeatureTemplate({ article, athlete, relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
+  const site = await currentSite();
   const readTime = getReadingTime(article.content);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(articleStructuredData(article, athlete))
+        __html: JSON.stringify(articleStructuredData(article, athlete, site))
       }} />
 
       <article>
@@ -89,7 +90,7 @@ export async function FeatureTemplate({ article, athlete, relatedArticles = [] }
                 <>
                   <span>·</span>
                   <time dateTime={article.published_at} className="text-white/40">
-                    {formatDate(article.published_at)}
+                    {formatDate(article.published_at, lang)}
                   </time>
                 </>
               )}
@@ -110,7 +111,7 @@ export async function FeatureTemplate({ article, athlete, relatedArticles = [] }
         <div className="max-w-4xl mx-auto px-6 md:px-8 py-10 flex gap-8">
           <div className="flex-1 max-w-3xl article-drop-cap">
             <ArticleBody content={article.content} />
-            <CorrectionNotice article={article} />
+            <CorrectionNotice article={article} lang={lang} />
             <SourceBox sourceUrl={article.source_url} />
             {article.author_role !== "human" && <AiDisclaimer />}
 

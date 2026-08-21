@@ -127,7 +127,7 @@ function SportIcon({ icon, size = 16 }: { icon: string; size?: number }) {
 }
 
 // Klientkomponent: sproget kommer som prop fra layoutet (ingen request-kontekst her).
-export function CategoryNav({ lang, allLabel }: { lang?: string; allLabel?: string }) {
+export function CategoryNav({ lang, allLabel }: { lang: string; allLabel?: string }) {
   const searchParams = useSearchParams();
   const activeSport = searchParams.get("sport") ?? "";
 

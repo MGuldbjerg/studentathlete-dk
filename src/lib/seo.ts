@@ -1,8 +1,9 @@
 import type { Article, Athlete, School } from "./types";
 import { dbSportToUrlSlug } from "./types";
 import { countryProfile } from "./countries";
+import type { CountryProfile } from "./countries/types";
 import { siteBaseUrl } from "./site";
-import { sportLabel } from "./i18n";
+import { sportLabel, t, languagePack } from "./i18n";
 
 /**
  * Standardsitets base-URL. Værten står ét sted — landeprofilen — så et nyt site
@@ -19,8 +20,17 @@ export function getReadingTime(content: string): number {
   return Math.max(1, Math.round(wordCount / 200));
 }
 
+/**
+ * Datoer er læservendte — og derfor sprogbestemte.
+ *
+ * Her stod `"da-DK"` hårdkodet, så det britiske site skrev «19. august 2026».
+ * Locale'en ligger i sprogpakken (`da-DK` / `en-GB`), præcis som navne og
+ * slugs gør. `lang` er påkrævet: en glemt parameter må ikke kunne blive til
+ * dansk på et engelsk site (se `LÆSERVENDT.md`).
+ */
 export function formatDate(
   dateStr: string | null,
+  lang: string,
   options: Intl.DateTimeFormatOptions = {
     day: "numeric",
     month: "long",
@@ -28,14 +38,14 @@ export function formatDate(
   }
 ): string {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("da-DK", options);
+  return new Date(dateStr).toLocaleDateString(languagePack(lang).locale, options);
 }
 
-export function formatDateShort(dateStr: string | null): string {
-  return formatDate(dateStr, { day: "numeric", month: "short", year: "numeric" });
+export function formatDateShort(dateStr: string | null, lang: string): string {
+  return formatDate(dateStr, lang, { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function formatRelativeTime(dateStr: string | null): string {
+export function formatRelativeTime(dateStr: string | null, lang: string): string {
   if (!dateStr) return "";
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -44,11 +54,11 @@ export function formatRelativeTime(dateStr: string | null): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMin < 1) return "Lige nu";
-  if (diffMin < 60) return `${diffMin} min. siden`;
-  if (diffHours < 24) return `${diffHours}t siden`;
-  if (diffDays < 7) return `${diffDays}d siden`;
-  return formatDate(dateStr, { day: "numeric", month: "short" });
+  if (diffMin < 1) return t("time.now", lang);
+  if (diffMin < 60) return t("time.minutes_ago", lang, { n: diffMin });
+  if (diffHours < 24) return t("time.hours_ago", lang, { n: diffHours });
+  if (diffDays < 7) return t("time.days_ago", lang, { n: diffDays });
+  return formatDate(dateStr, lang, { day: "numeric", month: "short" });
 }
 
 // ─── URL-hjælpere ────────────────────────────────────────────────────────────
@@ -91,7 +101,7 @@ export function getArticleCoverUrl(article: Pick<Article, "id">): string {
  * skabelonkomponenter får det ind som prop (samme regel som for oversatte
  * strenge), og pipelinen via landeprofilen.
  */
-export function getArticleUrl(article: Pick<Article, "slug" | "sport">, lang?: string): string {
+export function getArticleUrl(article: Pick<Article, "slug" | "sport">, lang: string): string {
   const sport = dbSportToUrlSlug(article.sport ?? "sport", lang);
   return `/${sport}/${article.slug}`;
 }
@@ -121,11 +131,19 @@ export function getOgImageUrl(params: {
 }
 
 // ─── JSON-LD structured data ─────────────────────────────────────────────────
+//
+// JSON-LD er det Google LÆSER — og indtil 2026-08-21 var hver eneste linje her
+// dansk uanset site: absolutte URL'er på .dk (`BASE_URL`), `inLanguage: "da"`,
+// `nationality: Denmark` på britiske atleter og "StudentAthlete.dk" i navnet.
+// Derfor tager de nu sitet ind som argument. `site` er IKKE valgfri.
 
 export function articleStructuredData(
   article: Article,
-  athlete?: Athlete | null
+  athlete: Athlete | null | undefined,
+  site: CountryProfile,
 ): object {
+  const base = siteBaseUrl(site);
+  const lang = site.language;
   return {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
@@ -133,47 +151,50 @@ export function articleStructuredData(
     description: article.summary ?? undefined,
     datePublished: article.published_at ?? undefined,
     dateModified: article.updated_at,
-    url: `${BASE_URL}${getArticleUrl(article)}`,
+    url: `${base}${getArticleUrl(article, lang)}`,
     image: article.cover_image_url
       ? [{ "@type": "ImageObject", url: article.cover_image_url }]
       : undefined,
     publisher: {
       "@type": "Organization",
-      name: "StudentAthlete.dk",
-      url: BASE_URL,
+      name: site.brand,
+      url: base,
     },
     author: article.author
       ? { "@type": "Person", name: article.author }
-      : { "@type": "Organization", name: "StudentAthlete.dk" },
+      : { "@type": "Organization", name: site.brand },
     about: athlete
       ? {
           "@type": "Person",
           name: athlete.name,
-          url: `${BASE_URL}${getAthleteUrl(athlete.slug)}`,
-          sport: sportLabel(athlete.sport),
+          url: `${base}${getAthleteUrl(athlete.slug)}`,
+          sport: sportLabel(athlete.sport, lang),
           affiliation: { "@type": "CollegeOrUniversity", name: athlete.university },
         }
       : undefined,
-    keywords: [article.sport, article.article_type, "student athlete", "dansk"]
+    keywords: [article.sport, article.article_type, "student athlete", site.code.toLowerCase()]
       .filter(Boolean)
       .join(", "),
-    inLanguage: "da",
+    inLanguage: lang,
   };
 }
 
 export function athleteStructuredData(
   athlete: Athlete,
-  articles: Article[]
+  articles: Article[],
+  site: CountryProfile,
 ): object {
+  const base = siteBaseUrl(site);
+  const lang = site.language;
   return {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    name: `${athlete.name} – StudentAthlete.dk`,
-    url: `${BASE_URL}${getAthleteUrl(athlete.slug)}`,
+    name: `${athlete.name} – ${site.brand}`,
+    url: `${base}${getAthleteUrl(athlete.slug)}`,
     mainEntity: {
       "@type": "Person",
       name: athlete.name,
-      sport: sportLabel(athlete.sport),
+      sport: sportLabel(athlete.sport, lang),
       image: athlete.photo_url ?? undefined,
       description: athlete.profile_summary ?? undefined,
       affiliation: {
@@ -184,23 +205,23 @@ export function athleteStructuredData(
       homeLocation: athlete.hometown
         ? { "@type": "Place", name: athlete.hometown }
         : undefined,
-      nationality: { "@type": "Country", name: "Denmark" },
+      nationality: { "@type": "Country", name: site.nationalityName },
     },
     about: articles.map((a) => ({
       "@type": "NewsArticle",
       headline: a.title,
-      url: `${BASE_URL}${getArticleUrl(a)}`,
+      url: `${base}${getArticleUrl(a, lang)}`,
     })),
-    inLanguage: "da",
+    inLanguage: lang,
   };
 }
 
-export function schoolStructuredData(school: School): object {
+export function schoolStructuredData(school: School, site: CountryProfile): object {
   return {
     "@context": "https://schema.org",
     "@type": "CollegeOrUniversity",
     name: school.name,
-    url: school.website ?? `${BASE_URL}${getSchoolUrl(school.slug)}`,
+    url: school.website ?? `${siteBaseUrl(site)}${getSchoolUrl(school.slug)}`,
     address: school.state
       ? { "@type": "PostalAddress", addressRegion: school.state, addressCountry: "US" }
       : undefined,

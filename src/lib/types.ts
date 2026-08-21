@@ -103,12 +103,12 @@ export function getSportColor(sport: string | null | undefined): string {
 }
 
 /** URL-slug → den nøgle databasen gemmer. Erstatter urlSlugToDbSport(). */
-export function urlSlugToDbSport(slug: string, lang?: string): string {
+export function urlSlugToDbSport(slug: string, lang: string): string {
   return keyFromSlug(slug, lang) ?? slug;
 }
 
 /** DB-nøgle → URL-slug på sitets sprog. Erstatter dbSportToUrlSlug(). */
-export function dbSportToUrlSlug(sport: string, lang?: string): string {
+export function dbSportToUrlSlug(sport: string, lang: string): string {
   return sportSlugFor(sport, lang);
 }
 

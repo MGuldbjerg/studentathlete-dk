@@ -1,5 +1,5 @@
 import type { Article } from "@/lib/types";
-import { ARTICLE_TYPE_LABELS } from "@/lib/types";
+import { articleTypeLabel } from "@/lib/i18n";
 import { formatDateShort, getArticleUrl } from "@/lib/seo";
 
 // Titel OG sprog sendes ALTID ind: komponenten kender ikke sitets sprog, og
@@ -25,13 +25,13 @@ export function RelatedArticles({ articles, title, lang }: {
             <div className="flex-1 min-w-0">
               <span className="text-xs font-semibold uppercase tracking-wider"
                 style={{ color: "#BF0A30" }}>
-                {ARTICLE_TYPE_LABELS[a.article_type] ?? a.article_type}
+                {articleTypeLabel(a.article_type, lang)}
               </span>
               <p className="text-sm font-semibold text-ink leading-snug mt-0.5 group-hover:underline line-clamp-3"
                 style={{ fontFamily: "var(--font-serif)" }}>
                 {a.title}
               </p>
-              <p className="text-xs text-muted mt-1">{formatDateShort(a.published_at)}</p>
+              <p className="text-xs text-muted mt-1">{formatDateShort(a.published_at, lang)}</p>
             </div>
           </a>
         ))}

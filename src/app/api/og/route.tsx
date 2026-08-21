@@ -103,7 +103,7 @@ async function getCardData(articleId: number): Promise<CardData | null> {
     if (!db) return null;
     const r = await db
       .prepare(
-        `SELECT a.title, a.created_at, at.name as athlete_name, at.sport, at.university,
+        `SELECT a.title, a.created_at, a.country, at.name as athlete_name, at.sport, at.university,
                 sc.primary_color, s.fact_sheet
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id

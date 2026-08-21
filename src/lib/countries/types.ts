@@ -11,6 +11,12 @@ export interface CountryProfile {
   host: string;
   /** Sitets navn i UI, feeds og user-agents. */
   brand: string;
+  /**
+   * Landets navn på ENGELSK, til schema.org (`nationality`). Her stod
+   * «Denmark» hårdkodet i JSON-LD, så britiske atleter blev udgivet som
+   * danskere til Google.
+   */
+  nationalityName: string;
   contactEmail: string;
   /** Byer der udpeger en atlet som hjemmehørende (hele ord, med lokale tegn). */
   cities: string[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { sportNav } from "@/lib/i18n";
+import { DEFAULT_LANGUAGE, sportNav } from "@/lib/i18n";
 
 /**
  * "Spil i USA"-formular. POSTer til /api/lead med attribution (source_path +
@@ -97,7 +97,7 @@ export function LeadForm() {
         <label className="block text-xs font-semibold text-muted mb-1">Sportsgren</label>
         <select value={sport} onChange={(e) => setSport(e.target.value)} className={inputClass}>
           <option value="">Vælg sportsgren…</option>
-          {sportNav().filter((s) => s.key !== "other").map((s) => (
+          {sportNav(DEFAULT_LANGUAGE).filter((s) => s.key !== "other").map((s) => (
             <option key={s.slug} value={s.label}>
               {s.label}
             </option>

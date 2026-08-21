@@ -5,7 +5,7 @@ import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminActions } from "./AdminActions";
 
-import { sportLabel } from "@/lib/i18n";
+import { ADMIN_LANG, sportLabel } from "@/lib/i18n";
 export default async function AdminArticlePage({
   params,
 }: {
@@ -29,7 +29,7 @@ export default async function AdminArticlePage({
               className="text-[11px] font-semibold uppercase tracking-wider text-white px-2 py-0.5 rounded"
               style={{ backgroundColor: getSportColor(article.sport) }}
             >
-              {sportLabel(article.sport)}
+              {sportLabel(article.sport, ADMIN_LANG)}
             </span>
           )}
           <span className="text-xs text-muted">

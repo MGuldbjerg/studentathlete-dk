@@ -7,7 +7,7 @@ import type { AthleteEventRow } from "@/lib/athlete-events";
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
 import { countryProfile } from "@/lib/countries";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props { athlete: Athlete; articles: Article[]; events?: AthleteEventRow[] }
 
 const STAT_ROWS = (a: Athlete, lang: string) => [
@@ -34,10 +34,11 @@ const STAT_ROWS = (a: Athlete, lang: string) => [
 
 export async function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
   const lang = await currentLanguage();
+  const site = await currentSite();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(athleteStructuredData(athlete, articles))
+        __html: JSON.stringify(athleteStructuredData(athlete, articles, site))
       }} />
 
       {/* ── Hero ───────────────────────────────────────────────── */}
@@ -208,7 +209,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
                           {a.title}
                         </p>
                         <p className="text-xs text-muted mt-1">
-                          {formatDateShort(a.published_at)}
+                          {formatDateShort(a.published_at, lang)}
                         </p>
                       </div>
                     </a>

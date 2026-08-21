@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { currentLanguage } from "@/lib/site-server";
 import type { NextRequest } from "next/server";
 import { isbot } from "isbot";
 import { getDB, getEnv } from "@/lib/db";
@@ -52,8 +53,10 @@ export async function POST(req: NextRequest) {
     const db = await getDB();
     if (!db) return ack();
 
-    // Server udleder selv sidetype/sport (stol ikke på klienten).
-    const { pageType, sport } = classify(path);
+    // Server udleder selv sidetype/sport (stol ikke på klienten) — og gør det
+    // på det site kaldet kom FRA: sport-sluggen i stien er sitets, ikke
+    // standardsitets.
+    const { pageType, sport } = classify(path, await currentLanguage());
     const country = req.headers.get("cf-ipcountry");
     const device = deviceFromUA(ua);
     const ip = req.headers.get("cf-connecting-ip") ?? "0.0.0.0";

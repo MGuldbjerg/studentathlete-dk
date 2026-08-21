@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { PhotoSuggestion } from "@/lib/admin";
 
-import { sportLabel } from "@/lib/i18n";
+import { ADMIN_LANG, sportLabel } from "@/lib/i18n";
 function SuggestionCard({ suggestion }: { suggestion: PhotoSuggestion }) {
   const [credit, setCredit] = useState(suggestion.credit);
   const [busy, setBusy] = useState(false);
@@ -52,7 +52,7 @@ function SuggestionCard({ suggestion }: { suggestion: PhotoSuggestion }) {
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-ink">{suggestion.athlete_name}</p>
           <p className="text-xs text-muted">
-            {suggestion.university} · {sportLabel(suggestion.sport)}
+            {suggestion.university} · {sportLabel(suggestion.sport, ADMIN_LANG)}
           </p>
           <a
             href={suggestion.source_url}

@@ -166,6 +166,7 @@ export const dk: CountryProfile = {
   language: "da",
   host: "studentathlete.dk",
   brand: "StudentAthlete.dk",
+  nationalityName: "Denmark",
   contactEmail: "info@studentathlete.dk",
   cities,
   cityAliases,

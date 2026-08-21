@@ -9,7 +9,7 @@ import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -24,13 +24,14 @@ function getSeason(dateStr: string | null): string {
 
 export async function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
+  const site = await currentSite();
   const readTime = getReadingTime(article.content);
   const season = getSeason(article.published_at);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(articleStructuredData(article, athlete))
+        __html: JSON.stringify(articleStructuredData(article, athlete, site))
       }} />
 
       <article className="max-w-2xl mx-auto px-5 md:px-0 py-10">
@@ -82,7 +83,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
           </div>
           <div className="flex items-center gap-2 text-muted tracking-wide">
             {article.published_at && (
-              <time dateTime={article.published_at}>{formatDate(article.published_at)}</time>
+              <time dateTime={article.published_at}>{formatDate(article.published_at, lang)}</time>
             )}
             <span style={{ color: "#E2E0DC" }}>·</span>
             <span>{readTime} min.</span>
@@ -97,7 +98,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
         </figure>
 
         <ArticleBody content={article.content} />
-        <CorrectionNotice article={article} />
+        <CorrectionNotice article={article} lang={lang} />
         <SourceBox sourceUrl={article.source_url} />
         {article.author_role !== "human" && <AiDisclaimer />}
 

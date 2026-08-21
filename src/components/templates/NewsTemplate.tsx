@@ -9,7 +9,7 @@ import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -18,13 +18,14 @@ interface Props {
 
 export async function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
+  const site = await currentSite();
   const readTime = getReadingTime(article.content);
   const typeLabel = articleTypeLabel(article.article_type, lang) || t("tpl.news_plural", lang);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(articleStructuredData(article, athlete))
+        __html: JSON.stringify(articleStructuredData(article, athlete, site))
       }} />
 
       <div className="max-w-4xl mx-auto flex gap-8">
@@ -91,7 +92,7 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
             <div className="flex items-center gap-3 text-muted text-xs tracking-wide">
               {article.published_at && (
                 <time dateTime={article.published_at}>
-                  {formatDate(article.published_at)}
+                  {formatDate(article.published_at, lang)}
                 </time>
               )}
               <span className="text-border">·</span>
@@ -116,7 +117,7 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
 
         {/* ── Kilde ──────────────────────────────────────────────── */}
         <div className="px-5 md:px-0">
-          <CorrectionNotice article={article} />
+          <CorrectionNotice article={article} lang={lang} />
           <SourceBox sourceUrl={article.source_url} />
           {article.author_role !== "human" && <AiDisclaimer />}
         </div>

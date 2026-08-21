@@ -14,7 +14,8 @@
  *  - hver div med >1 barn skal have display:flex
  */
 import { sportColor, sportEmoji } from "./sports";
-import { sportLabel as sportLabelFor } from "./i18n";
+import { sportLabel as sportLabelFor, languagePack } from "./i18n";
+import { countryProfile } from "./countries";
 
 export const FALLBACK_COLOR = "#00205B";
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
@@ -30,6 +31,8 @@ export function getSportColorSafe(sport: string | null): string {
 
 export interface CardData {
   title: string;
+  /** Artiklens site (ISO alpha-2). Bestemmer sprog på chip og dato. */
+  country: string | null;
   athlete_name: string | null;
   sport: string | null;
   university: string | null;
@@ -87,6 +90,10 @@ export function buildMatchCardElement(
   logoDataUri: string,
   scale: 0.5 | 1,
 ): OgElement {
+  // Kortet er det eneste stykke site der rejser ud på andres platforme, og
+  // sproget kommer fra ARTIKLENS land — ikke fra standardsitet. Uden dette
+  // stod der «FODBOLD» og «19. august 2026» på britiske artiklers delekort.
+  const lang = countryProfile(data.country ?? undefined).language;
   const facts = parseCardFacts(data.fact_sheet);
   const color =
     data.primary_color && HEX_RE.test(data.primary_color)
@@ -95,11 +102,11 @@ export function buildMatchCardElement(
   const emoji = getSportEmoji(data.sport);
   // Kampkortets tekst er læservendt → sprogpakkens navn, ikke den rå nøgle.
   const sportLabel = data.sport
-    ? sportLabelFor(data.sport)
+    ? sportLabelFor(data.sport, lang)
     : null;
   const dateLabel =
     facts.date ??
-    new Date(data.created_at).toLocaleDateString("da-DK", {
+    new Date(data.created_at).toLocaleDateString(languagePack(lang).locale, {
       day: "numeric",
       month: "long",
       year: "numeric",

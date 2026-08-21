@@ -1,5 +1,5 @@
 import { t, articleTypeLabel } from "@/lib/i18n";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 import type { School, Athlete, Article } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
@@ -8,10 +8,11 @@ interface Props { school: School; athletes: Athlete[]; articles: Article[] }
 
 export async function SchoolProfilePage({ school, athletes, articles }: Props) {
   const lang = await currentLanguage();
+  const site = await currentSite();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schoolStructuredData(school))
+        __html: JSON.stringify(schoolStructuredData(school, site))
       }} />
 
       {/* ── Hero ───────────────────────────────────────────────── */}
@@ -156,7 +157,7 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
                         {a.title}
                       </p>
                       <p className="text-xs text-muted mt-1">
-                        {formatDateShort(a.published_at)}
+                        {formatDateShort(a.published_at, lang)}
                       </p>
                     </div>
                   </a>

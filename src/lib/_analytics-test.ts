@@ -16,32 +16,40 @@ function eq(a: unknown, b: unknown, msg: string) {
 }
 
 // classify
-eq(classify("/"), { pageType: "home", sport: null }, "forside");
-eq(classify("/atleter/foo"), { pageType: "athlete", sport: null }, "atlet");
-eq(classify("/skoler/foo"), { pageType: "school", sport: null }, "skole");
-eq(classify("/golf"), { pageType: "sport", sport: "golf" }, "sport-landing");
-eq(classify("/golf/rasmus-vinder"), { pageType: "article", sport: "golf" }, "artikel");
-eq(classify("/a/b/c"), { pageType: "other", sport: null }, "andet");
+eq(classify("/", "da"), { pageType: "home", sport: null }, "forside");
+eq(classify("/atleter/foo", "da"), { pageType: "athlete", sport: null }, "atlet");
+eq(classify("/skoler/foo", "da"), { pageType: "school", sport: null }, "skole");
+eq(classify("/golf", "da"), { pageType: "sport", sport: "golf" }, "sport-landing");
+eq(classify("/golf/rasmus-vinder", "da"), { pageType: "article", sport: "golf" }, "artikel");
+eq(classify("/a/b/c", "da"), { pageType: "other", sport: null }, "andet");
+
+// Sproget afgør hvad en sport-slug betyder. «football» er amerikansk fodbold på
+// .dk og soccer på .co.uk — uden sproget blev britiske fodboldartikler talt
+// under den forkerte sportsgren.
+eq(classify("/football/chloe-brand", "en"), { pageType: "article", sport: "soccer" }, "engelsk /football = soccer");
+eq(classify("/football/mads", "da"), { pageType: "article", sport: "football" }, "dansk /football = amerikansk fodbold");
+eq(classify("/fodbold/mads", "da"), { pageType: "article", sport: "soccer" }, "dansk /fodbold = soccer");
+eq(classify("/athletics/storm", "en"), { pageType: "article", sport: "track-and-field" }, "engelsk /athletics");
 
 // Sektioner må ALDRIG blive til opfundne sportsgrene (fejlen der loggede
 // /viden som sporten "viden" og den nedlagte /ig som sporten "ig").
-eq(classify("/viden"), { pageType: "guide", sport: null }, "viden-hub er ikke en sport");
-eq(classify("/viden/hvad-er-ncaa"), { pageType: "guide", sport: null }, "guide er ikke en artikel");
-eq(classify("/artikler"), { pageType: "archive", sport: null }, "arkivet");
-eq(classify("/atleter"), { pageType: "athlete", sport: null }, "atlet-oversigt");
-eq(classify("/ig"), { pageType: "other", sport: null }, "ukendt ét-segment → other, ikke sport");
-eq(classify("/noget-vrøvl"), { pageType: "other", sport: null }, "ukendt navn opfinder ingen sport");
-eq(classify("/noget/vrøvl"), { pageType: "other", sport: null }, "ukendt sport → ikke artikel");
+eq(classify("/viden", "da"), { pageType: "guide", sport: null }, "viden-hub er ikke en sport");
+eq(classify("/viden/hvad-er-ncaa", "da"), { pageType: "guide", sport: null }, "guide er ikke en artikel");
+eq(classify("/artikler", "da"), { pageType: "archive", sport: null }, "arkivet");
+eq(classify("/atleter", "da"), { pageType: "athlete", sport: null }, "atlet-oversigt");
+eq(classify("/ig", "da"), { pageType: "other", sport: null }, "ukendt ét-segment → other, ikke sport");
+eq(classify("/noget-vrøvl", "da"), { pageType: "other", sport: null }, "ukendt navn opfinder ingen sport");
+eq(classify("/noget/vrøvl", "da"), { pageType: "other", sport: null }, "ukendt sport → ikke artikel");
 
 // Læser-slug oversættes til den kanoniske nøgle, så analytics taler samme
 // sprog som databasen (/fodbold er soccer, ikke "fodbold").
-eq(classify("/fodbold"), { pageType: "sport", sport: "soccer" }, "dansk slug → kanonisk nøgle");
+eq(classify("/fodbold", "da"), { pageType: "sport", sport: "soccer" }, "dansk slug → kanonisk nøgle");
 eq(
-  classify("/fodbold/emil-bak-scorer"),
+  classify("/fodbold/emil-bak-scorer", "da"),
   { pageType: "article", sport: "soccer" },
   "artikel under dansk sport-slug",
 );
-eq(classify("/svoemning"), { pageType: "sport", sport: "swimming-and-diving" }, "svømning");
+eq(classify("/svoemning", "da"), { pageType: "sport", sport: "swimming-and-diving" }, "svømning");
 
 // normalizeSource
 eq(normalizeSource("ig"), "ig", "simpel kilde");

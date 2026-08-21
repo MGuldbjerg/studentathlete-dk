@@ -95,7 +95,7 @@ export default async function GuidePage({ params }: { params: Params }) {
       "@type": "Article",
       headline: g.title,
       description: g.description || undefined,
-      inLanguage: "da",
+      inLanguage: site.language,
       dateModified: g.updated,
       mainEntityOfPage: url,
       url,

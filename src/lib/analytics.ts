@@ -30,7 +30,7 @@ const SECTIONS: Record<string, string> = {
  * NB: gamle rækker beholder deres oprindelige værdier — tallene er først
  * sammenlignelige fremadrettet.
  */
-export function classify(path: string): { pageType: string; sport: string | null } {
+export function classify(path: string, lang: string): { pageType: string; sport: string | null } {
   if (path === "/") return { pageType: "home", sport: null };
   const parts = path.split("/").filter(Boolean);
   if (parts.length === 0) return { pageType: "home", sport: null };
@@ -39,7 +39,9 @@ export function classify(path: string): { pageType: string; sport: string | null
   if (section) return { pageType: section, sport: null };
 
   // Sport-slugs er læservendte (/fodbold), nøglen i basen er kanonisk (soccer).
-  const sport = sportKeyFromSlug(parts[0]);
+  // Sproget SKAL med: «football» er amerikansk fodbold på .dk og soccer på
+  // .co.uk. Uden det blev britiske fodboldartikler talt som amerikansk fodbold.
+  const sport = sportKeyFromSlug(parts[0], lang);
 
   // /[sport]/[slug] → artikel   /[sport] → sport-landingsside
   if (parts.length === 2 && sport) return { pageType: "article", sport };

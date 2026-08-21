@@ -75,7 +75,8 @@ ok(daShowing !== showing, "dansk og engelsk giver forskellig tekst");
 
 // Ukendt sprog må aldrig give en tom side — fald tilbage til standardsproget.
 ok(t("home.latest", "xx") === t("home.latest", "da"), "ukendt sprog → standardsprog");
-ok(t("home.latest") === t("home.latest", "da"), "intet sprog → standardsprog");
+// «intet sprog» kan ikke længere lade sig gøre: `t()` KRÆVER et sprog, så en
+// glemt parameter er en typefejl i stedet for en dansk streng på et engelsk site.
 
 // Manglende variabel skal efterlade pladsholderen synlig frem for "undefined":
 // en synlig {n} i UI'et er en fejl man opdager, "undefined" ligner en tekst.

@@ -21,7 +21,7 @@ export interface CarouselStrings {
 function fill(tpl: string, n: number): string {
   return tpl.replace("{n}", String(n));
 }
-function SportTag({ sport, type, lang }: { sport?: string | null; type?: string; lang?: string }) {
+function SportTag({ sport, type, lang }: { sport?: string | null; type?: string; lang: string }) {
   const label = sport ? sportLabel(sport, lang) : type ? articleTypeLabel(type, lang) : null;
   if (!label) return null;
   const color = getSportColor(sport);
@@ -88,7 +88,7 @@ export function Carousel({ articles, strings, lang }: CarouselProps) {
   }
 
   const slide = articles[current];
-  const relTime = formatRelativeTime(slide.published_at);
+  const relTime = formatRelativeTime(slide.published_at, lang);
   const readTime = getReadingTime(slide.content);
 
   return (

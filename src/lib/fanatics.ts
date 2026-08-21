@@ -15,6 +15,7 @@
  *   EU-skoler → fanatics.de (EUR, EU-leveret). Alt andet → fanatics.com (+ told).
  */
 
+import { t } from "./i18n";
 export type FanaticsRegion = "us" | "eu";
 
 interface ProgramConfig {
@@ -42,13 +43,19 @@ export const FANATICS: Record<
   },
 };
 
-/** Påkrævet annonce-mærkning (FTC + EU). */
-export const FANATICS_DISCLOSURE =
-  "Annonce · StudentAthlete.dk kan tjene en kommission, hvis du handler via linket.";
+/**
+ * Påkrævet annonce-mærkning (FTC + EU) — og told-noten — er LÆSERVENDTE og
+ * derfor sprogbestemte. De stod som danske konstanter med standardsitets brand
+ * og told-land indbygget; på .co.uk ville en britisk læser have fået dansk
+ * tekst om dansk moms.
+ */
+export function fanaticsDisclosure(lang: string, brand: string): string {
+  return t("ads.disclosure", lang, { brand });
+}
 
-/** Vises kun for US-butikken (told/moms ved levering til DK). */
-export const FANATICS_CUSTOMS_NOTE =
-  "Sendes fra USA — told og moms kan blive opkrævet ved levering til Danmark.";
+export function fanaticsCustomsNote(lang: string, country: string): string {
+  return t("ads.customs", lang, { country });
+}
 
 /** Rå butiks-URL for en skole (slug delt på tværs af .com/.de). */
 export function buildFanaticsStoreUrl(slug: string, region: FanaticsRegion): string {
