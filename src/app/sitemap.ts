@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs } from "@/lib/db";
 import { getSportSlugs } from "@/lib/sport-content";
+import { getArticleUrl } from "@/lib/seo";
 import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
 import { ARCHIVE_PATH } from "@/lib/routes";
@@ -8,6 +9,7 @@ import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = await currentBaseUrl();
+  const lang = await currentLanguage();
   const [articles, athletes, schools] = await Promise.all([
     getAllArticleSlugs(),
     getAllAthleteSlugs(),
@@ -64,17 +66,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // Sport-landingssider (pillar pages)
-  const sportPages: MetadataRoute.Sitemap = getSportSlugs(await currentLanguage()).map((slug) => ({
+  const sportPages: MetadataRoute.Sitemap = getSportSlugs(lang).map((slug) => ({
     url: `${base}/${slug}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.9,
   }));
 
+  // Adressen SKAL bygges med `getArticleUrl` — samme funktion som links og
+  // canonical. Her stod DB-nøglen direkte ("soccer"), mens sitet serverer
+  // sprogets slug ("fodbold"/"football"): hver eneste fodboldartikel i
+  // sitemappet pegede på en 404 (verificeret på .dk 2026-08-21).
   const articlePages: MetadataRoute.Sitemap = articles.map((a) => {
-    const sport = (a.sport ?? "sport").toLowerCase().replace(/\s+/g, "-");
     return {
-      url: `${base}/${sport}/${a.slug}`,
+      url: `${base}${getArticleUrl(a, lang)}`,
       lastModified: new Date(a.updated_at),
       changeFrequency: "weekly" as const,
       priority: 0.8,

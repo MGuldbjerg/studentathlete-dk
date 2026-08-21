@@ -147,7 +147,7 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
           )}
 
           <AdSlot slot="article-footer" className="my-6" />
-          <RelatedArticles articles={relatedArticles} title={t("tpl.more_recruiting", lang)} />
+          <RelatedArticles articles={relatedArticles} title={t("tpl.more_recruiting", lang)} lang={lang} />
         </div>
       </article>
     </>

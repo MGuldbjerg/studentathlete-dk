@@ -67,6 +67,25 @@ export function sportKeyFromSlug(slug: string, lang?: string): SportKey | null {
 }
 
 /**
+ * URL-slug → kanonisk nøgle, uanset HVILKET sprogs tabel sluggen kommer fra.
+ *
+ * Bruges når en adresse skal genkendes for at kunne sendes videre til sitets
+ * egen: `/fodbold/…` på det engelske site er ikke en gyldig adresse, men den er
+ * genkendelig, og en 301 er bedre end en 404. Sitets EGET sprog spørges først,
+ * så en slug der betyder to ting (dansk "football" = amerikansk fodbold,
+ * engelsk "football" = soccer) altid tolkes som læseren på dette site ville.
+ */
+export function sportKeyFromSlugAnyLanguage(slug: string, preferredLang?: string): SportKey | null {
+  const first = sportKeyFromSlug(slug, preferredLang);
+  if (first) return first;
+  for (const code of Object.keys(LANGUAGES)) {
+    const hit = sportKeyFromSlug(slug, code);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/**
  * Artikeltype som vist for læseren ("Nyhed" / "News").
  * Ukendt type returneres uændret — vi opfinder ikke en etikette.
  */

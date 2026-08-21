@@ -35,7 +35,7 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
   if (variant === "compact") {
     return (
       <a
-        href={getArticleUrl(article)}
+        href={getArticleUrl(article, lang)}
         data-track="internal"
         className="group grid grid-cols-[3px_1fr] gap-3 px-4 md:px-8 py-3.5 border-t border-border hover:bg-surface transition-colors"
       >
@@ -64,7 +64,7 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
   if (variant === "lead") {
     return (
       <a
-        href={getArticleUrl(article)}
+        href={getArticleUrl(article, lang)}
         data-track="internal"
         className="group flex flex-col bg-white hover:bg-surface transition-colors"
       >
@@ -126,7 +126,7 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
   if (variant === "featured") {
     return (
       <a
-        href={getArticleUrl(article)}
+        href={getArticleUrl(article, lang)}
         data-track="internal"
         className={`group relative flex flex-col ${
           reverse ? "md:flex-row-reverse" : "md:flex-row"
@@ -194,7 +194,7 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
 
   return (
     <a
-      href={getArticleUrl(article)}
+      href={getArticleUrl(article, lang)}
       data-track="internal"
       className="group flex flex-col bg-white hover:shadow-md transition-shadow duration-300"
     >

@@ -136,7 +136,7 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
             ))}
           </div>
 
-          <RelatedArticles articles={relatedArticles} title={t("tpl.related", lang)} />
+          <RelatedArticles articles={relatedArticles} title={t("tpl.related", lang)} lang={lang} />
         </div>
       </article>
 

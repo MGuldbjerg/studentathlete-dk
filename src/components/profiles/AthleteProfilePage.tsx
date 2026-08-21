@@ -190,7 +190,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
                 </p>
                 <div className="flex flex-col">
                   {articles.map((a, i) => (
-                    <a key={a.id} href={getArticleUrl(a)}
+                    <a key={a.id} href={getArticleUrl(a, lang)}
                       className="group flex gap-4 items-start py-5 hover:bg-surface -mx-3 px-3
                                  transition-colors"
                       style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>

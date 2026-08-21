@@ -55,8 +55,12 @@ async function main(): Promise<void> {
       [args.recent],
     );
     for (const r of rows.results) {
-      const base = `https://${countryProfile(r.country ?? undefined).host}`;
-      urls.push(`${base}${getArticleUrl({ slug: r.slug, sport: r.sport })}`);
+      // Sproget kommer fra landeprofilen: adressen er `/football/…` på .co.uk
+      // og `/fodbold/…` på .dk, og en genscrape af den forkerte adresse
+      // fornyer et kort ingen deler.
+      const profile = countryProfile(r.country ?? undefined);
+      const base = `https://${profile.host}`;
+      urls.push(`${base}${getArticleUrl({ slug: r.slug, sport: r.sport }, profile.language)}`);
     }
   }
 

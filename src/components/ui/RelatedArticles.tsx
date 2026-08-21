@@ -2,10 +2,12 @@ import type { Article } from "@/lib/types";
 import { ARTICLE_TYPE_LABELS } from "@/lib/types";
 import { formatDateShort, getArticleUrl } from "@/lib/seo";
 
-// Titlen sendes ALTID ind: komponenten kender ikke sitets sprog.
-export function RelatedArticles({ articles, title }: {
+// Titel OG sprog sendes ALTID ind: komponenten kender ikke sitets sprog, og
+// adressen på artiklen er sprogbestemt (/football/… vs /fodbold/…).
+export function RelatedArticles({ articles, title, lang }: {
   articles: Article[];
   title: string;
+  lang: string;
 }) {
   if (!articles.length) return null;
   return (
@@ -18,7 +20,7 @@ export function RelatedArticles({ articles, title }: {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {articles.map((a) => (
-          <a key={a.id} href={getArticleUrl(a)}
+          <a key={a.id} href={getArticleUrl(a, lang)}
             className="group flex gap-3 items-start p-3 hover:bg-surface transition-colors">
             <div className="flex-1 min-w-0">
               <span className="text-xs font-semibold uppercase tracking-wider"

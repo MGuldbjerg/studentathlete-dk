@@ -104,8 +104,10 @@ async function expireStale(db: D1Client): Promise<number> {
 function buildContent(row: QueuedRow, channel: SocialChannel["name"]): PostContent {
   // Artiklens EGET site — ikke modul-konstanten. Den britiske artikel blev
   // postet med et .dk-link, som ikke engang findes på det site.
-  const base = siteBaseUrl(countryProfile(row.country));
-  const url = base + getArticleUrl({ slug: row.slug, sport: row.sport });
+  const profile = countryProfile(row.country);
+  const base = siteBaseUrl(profile);
+  // Sproget skal med: sport-sluggen i adressen er sitets, ikke standardsitets.
+  const url = base + getArticleUrl({ slug: row.slug, sport: row.sport }, profile.language);
   const imageUrl = base + getArticleCoverUrl({ id: row.article_id });
   return {
     text: buildPostText({ title: row.title, summary: row.summary, url }, channel),

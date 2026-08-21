@@ -1,4 +1,4 @@
-import { currentBaseUrl } from "@/lib/site-server";
+import { currentBaseUrl, currentLanguage } from "@/lib/site-server";
 import { getLatestArticles } from "@/lib/db";
 import { getArticleUrl, formatDate} from "@/lib/seo";
 
@@ -13,11 +13,12 @@ function escapeXml(str: string): string {
 
 export async function GET() {
   const base = await currentBaseUrl();
+  const lang = await currentLanguage();
   const articles = await getLatestArticles(30);
 
   const items = articles
     .map((a) => {
-      const url = `${base}${getArticleUrl(a)}`;
+      const url = `${base}${getArticleUrl(a, lang)}`;
       const pubDate = a.published_at
         ? new Date(a.published_at).toUTCString()
         : new Date(a.created_at).toUTCString();

@@ -139,7 +139,7 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
               </p>
               <div className="flex flex-col">
                 {articles.map((a, i) => (
-                  <a key={a.id} href={getArticleUrl(a)}
+                  <a key={a.id} href={getArticleUrl(a, lang)}
                     className="group flex gap-3 py-4 hover:bg-surface -mx-3 px-3 transition-colors"
                     style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}

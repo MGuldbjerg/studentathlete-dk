@@ -18,7 +18,7 @@ import { currentLanguage, currentSite, currentBaseUrl, siteRobots } from "@/lib/
 import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl} from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
-import { sportLabel, t } from "@/lib/i18n";
+import { sportLabel, t, sportKeyFromSlugAnyLanguage } from "@/lib/i18n";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
@@ -172,9 +172,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
     // /{sport}/{slug} → artikel
     const article = await getArticleBySlug(slug);
-    const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport");
+    const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport", lang);
     if (article && normalizedSport === prefix) {
-      const canonicalUrl = `${base}${getArticleUrl(article)}`;
+      const canonicalUrl = `${base}${getArticleUrl(article, lang)}`;
       // Brug det genererede 16:9 kampkort som og:image (skarpt + ensartet),
       // ikke et evt. stamplet portræt-headshot fra cover_image_url.
       const ogImage = `${base}${getArticleCoverUrl(article)}`;
@@ -217,11 +217,16 @@ export default async function DynamicPage({ params }: { params: Params }) {
   // ── 1 segment: /{sport} eller legacy-redirect ───────────────────────────
   if (segments.length === 1) {
     const slug = segments[0];
+    const lang = await currentLanguage();
 
     // Sport-landingsside
     const sportContent = await resolveSportContent(slug);
     if (sportContent) {
-      const dbSport = urlSlugToDbSport(slug);
+      // SPROGET SKAL MED. Uden det slås sluggen op i standardsitets tabel, og
+      // «football» betyder ikke det samme i de to: på .co.uk er det soccer, på
+      // .dk er det amerikansk fodbold. Resultatet var en engelsk side med
+      // overskriften "Football" (soccer) fyldt med amerikansk fodbold-atleter.
+      const dbSport = urlSlugToDbSport(slug, lang);
       const [articles, athletes, counts] = await Promise.all([
         getArticlesBySport(dbSport, 7),
         getAthletesBySport(dbSport, 30),
@@ -258,6 +263,14 @@ export default async function DynamicPage({ params }: { params: Params }) {
           <AdminEditButton href={`/admin/sider/${slug}`} label="Rediger side" />
         </main>
       );
+    }
+
+    // Sport-slug fra det ANDET sprog (fx /fodbold på .co.uk): ikke vores
+    // adresse, men genkendelig — send videre frem for at ende i 404.
+    const crossLangSport = sportKeyFromSlugAnyLanguage(slug, lang);
+    if (crossLangSport) {
+      const own = dbSportToUrlSlug(crossLangSport, lang);
+      if (own !== slug) redirect(`/${own}`);
     }
 
     // Legacy: /{slug} → /atleter/{slug} (301 permanent redirect)
@@ -322,7 +335,21 @@ export default async function DynamicPage({ params }: { params: Params }) {
 
     // /{sport}/{slug} → artikel
     const article = await getArticleBySlug(slug);
-    const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport");
+    const lang = await currentLanguage();
+    const normalizedSport = dbSportToUrlSlug(article?.sport ?? "sport", lang);
+
+    // Adressen tilhører sitets sprog. Kommer læseren (eller Google) med det
+    // ANDET sprogs slug — fx `/fodbold/…` på .co.uk, som var det vi selv
+    // linkede til indtil 21. august 2026 — så send videre i stedet for at give
+    // 404. Kun når sluggen betyder PRÆCIS samme sportsgren: dansk "football"
+    // (amerikansk fodbold) må aldrig kunne sende en soccer-artikel videre.
+    if (article && normalizedSport !== prefix) {
+      const asKey = sportKeyFromSlugAnyLanguage(prefix, lang);
+      if (asKey && asKey === (article.sport ?? "").toLowerCase()) {
+        redirect(getArticleUrl(article, lang));
+      }
+    }
+
     if (article && normalizedSport === prefix) {
       const [athlete, relatedArticles] = await Promise.all([
         article.athlete_slug ? getAthleteBySlug(article.athlete_slug) : null,

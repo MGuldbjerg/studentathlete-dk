@@ -82,8 +82,17 @@ export function getArticleCoverUrl(article: Pick<Article, "id">): string {
   return `/api/og?type=card&article=${article.id}&v=${CARD_VERSION}`;
 }
 
-export function getArticleUrl(article: Pick<Article, "slug" | "sport">): string {
-  const sport = dbSportToUrlSlug(article.sport ?? "sport");
+/**
+ * Artiklens adresse på SITETS sprog: `/football/…` på .co.uk, `/fodbold/…` på .dk.
+ *
+ * `lang` er ikke valgfri i praksis — udelades den, får man standardsitets slug,
+ * og så stod britiske artikler på danske adresser (rettet 2026-08-21). Kalderen
+ * kender altid sproget: server-komponenter via `currentLanguage()`, klient- og
+ * skabelonkomponenter får det ind som prop (samme regel som for oversatte
+ * strenge), og pipelinen via landeprofilen.
+ */
+export function getArticleUrl(article: Pick<Article, "slug" | "sport">, lang?: string): string {
+  const sport = dbSportToUrlSlug(article.sport ?? "sport", lang);
   return `/${sport}/${article.slug}`;
 }
 

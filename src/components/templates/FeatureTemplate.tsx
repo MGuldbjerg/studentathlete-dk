@@ -117,7 +117,7 @@ export async function FeatureTemplate({ article, athlete, relatedArticles = [] }
             <AdSlot slot="article-footer" className="my-6" />
 
             <div className="mt-12 pt-8 border-t border-border">
-              <RelatedArticles articles={relatedArticles} title={t("tpl.read_also", lang)} />
+              <RelatedArticles articles={relatedArticles} title={t("tpl.read_also", lang)} lang={lang} />
             </div>
           </div>
 

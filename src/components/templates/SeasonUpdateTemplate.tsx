@@ -142,7 +142,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
         )}
 
         <AdSlot slot="article-footer" className="my-6" />
-        <RelatedArticles articles={relatedArticles} title={t("tpl.previous_updates", lang)} />
+        <RelatedArticles articles={relatedArticles} title={t("tpl.previous_updates", lang)} lang={lang} />
       </article>
     </>
   );
