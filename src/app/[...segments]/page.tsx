@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import {
   getAthleteBySlug,
   getAthleteSlugByAlias,
@@ -267,23 +267,25 @@ export default async function DynamicPage({ params }: { params: Params }) {
 
     // Sport-slug fra det ANDET sprog (fx /fodbold på .co.uk): ikke vores
     // adresse, men genkendelig — send videre frem for at ende i 404.
+    // `permanentRedirect` (308) og ikke `redirect` (307): adressen er flyttet
+    // for altid, og kun en permanent kode flytter en indeksering med.
     const crossLangSport = sportKeyFromSlugAnyLanguage(slug, lang);
     if (crossLangSport) {
       const own = dbSportToUrlSlug(crossLangSport, lang);
-      if (own !== slug) redirect(`/${own}`);
+      if (own !== slug) permanentRedirect(`/${own}`);
     }
 
     // Legacy: /{slug} → /atleter/{slug} (301 permanent redirect)
     const athlete = await getAthleteBySlug(slug);
-    if (athlete) redirect(getAthleteUrl(athlete.slug));
+    if (athlete) permanentRedirect(getAthleteUrl(athlete.slug));
 
     // Nedlagt atlet-slug (navneskift/fletning) → atletens nuværende URL
     const aliasTarget = await getAthleteSlugByAlias(slug);
-    if (aliasTarget) redirect(getAthleteUrl(aliasTarget));
+    if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget));
 
     // Legacy: /{slug} → /skoler/{slug} (301 permanent redirect)
     const school = await getSchoolBySlug(slug);
-    if (school) redirect(getSchoolUrl(school.slug));
+    if (school) permanentRedirect(getSchoolUrl(school.slug));
   }
 
   // ── 2 segmenter ─────────────────────────────────────────────────────────
@@ -296,7 +298,7 @@ export default async function DynamicPage({ params }: { params: Params }) {
       if (!athlete) {
         // Gammel slug efter navneskift eller fletning → 301 til den nuværende
         const aliasTarget = await getAthleteSlugByAlias(slug);
-        if (aliasTarget) redirect(getAthleteUrl(aliasTarget));
+        if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget));
       }
       if (athlete) {
         const [articles, events] = await Promise.all([
@@ -346,7 +348,7 @@ export default async function DynamicPage({ params }: { params: Params }) {
     if (article && normalizedSport !== prefix) {
       const asKey = sportKeyFromSlugAnyLanguage(prefix, lang);
       if (asKey && asKey === (article.sport ?? "").toLowerCase()) {
-        redirect(getArticleUrl(article, lang));
+        permanentRedirect(getArticleUrl(article, lang));
       }
     }
 
