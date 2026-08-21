@@ -7,6 +7,30 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🔎 Search Console for begge sites (2026-08-21) — venter på en nøgle
+
+`pipeline/report/search-console.ts` + `./scripts/search-console.sh` henter
+søgetal for **.dk og .co.uk i samme kørsel**, så de kan sammenlignes — det kan
+dashboardet ikke. Søgninger, sider, klik/visninger/CTR/position, sitemap-status
+(indsendt vs. indekseret), URL-inspektion og indsendelse af sitemap.
+
+**Adgang: service-konto, ikke browser-login.** JWT signeres med `jose` (allerede
+en afhængighed) og veksles til et access token — ingen `googleapis`-pakke for ét
+kald. Opsætningen står i `SETUP-search-console.md`; verifikationen af domænet
+skal Mikkel selv lave, for en service-konto kan læse en property, men aldrig
+oprette eller verificere den.
+
+**Fælder der er kodet ind, fordi de koster en fejlsøgning hver:**
+- Property-navnet: `sc-domain:vært` ≠ `https://vært/`. Rapporten spørger
+  `/sites` om hvad kontoen FAKTISK har adgang til frem for at gætte, og siger
+  det højt hvis den mangler adgang (403 ligner en nøglefejl, men er det ikke).
+- Vinduet slutter **i går**: data halter 2-3 døgn, og ellers ligner hver kørsel
+  et fald i trafikken.
+- `type: "web"` — Discover/News blandes ikke i søgetallene.
+
+`_search-console-test.ts` (29, i CI) dækker property-matchning (.dk og .co.uk må
+aldrig forveksles), datovinduet hen over månedsskifte og argumentparsingen.
+
 ## 🇬🇧 Sitene er adskilte hele vejen ud (2026-08-21, sidste runde)
 
 Sektionsstierne og query-parametrene var det sidste danske på .co.uk. De er nu
