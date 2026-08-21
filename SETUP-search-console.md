@@ -95,6 +95,21 @@ redaktionel og laves af et menneske (eller Claude, som forslag):
 **Ændringer kræver en godkendt plan** (se `CLAUDE.md`). Gennemgangen afleverer et
 forslag; den retter ikke selv.
 
+### Den kører af sig selv: fredag 01:15
+
+```
+15 1 * * 5  cd ~/projekter/studentathlete-dk && ./scripts/seo-friday.sh >> logs/seo-friday.log 2>&1
+```
+
+`scripts/seo-friday.sh` henter data for begge sites, lader Claude læse
+kandidaterne OG siderne, og skriver et forslag i `logs/seo/forslag-<dato>.md`
+plus et Discord-ping. Er maskinen slukket kl. 01:15, springes ugen over — cron
+indhenter ikke, og det er aftalt. Kør den i hånden når som helst med
+`./scripts/seo-friday.sh`.
+
+Er der ingen sider i båndet, stopper den før vurderingen: en stille uge skal
+koste nul.
+
 ## Det du skal vide om tallene
 
 - **Data halter 2-3 døgn.** Vinduet slutter derfor i går, ikke i dag — ellers
