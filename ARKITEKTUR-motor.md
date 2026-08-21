@@ -29,6 +29,16 @@ Læs dette før du tilføjer noget der handler om sprog, land eller sportsgrene.
    første gang, netop fordi det er let at glemme.
 5. **Vi gætter aldrig.** Ukendt position-kode → skolens egen tekst. Ukendt
    sportsnøgle → `other`. Stilhed er bedre end en opfundet oplysning.
+6. **Sproget er PÅKRÆVET i alt læservendt** (tilføjet 2026-08-21). `t()`,
+   `sportLabel()`, `sportSlug()`, `articleTypeLabel()`, `getArticleUrl()`,
+   `formatDate()`, `getSportContent()`, guides — ingen af dem har et valgfrit
+   `lang` længere. Grunden er at et valgfrit sprog ALTID falder tilbage til
+   standardsitet, og fejlen viser sig kun på det andet site, tit et sted et
+   menneske ikke kigger: sitemap, JSON-LD, delekort, RSS. Compileren fandt 18
+   sådanne steder den dag spærren blev sat. `src/lib/_no-danish-default-test.ts`
+   (i CI) håndhæver reglen — og forbyder hardkodet `da-DK`, `inLanguage: "da"`,
+   `Denmark` og brandet som streng uden for sprogpakker og landeprofiler.
+   Admin er dansk med VILJE og skriver `ADMIN_LANG` for at sige det højt.
 
 ## Sådan tilføjer du et sprog
 

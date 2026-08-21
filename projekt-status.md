@@ -1,11 +1,55 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-21 (UK ud af dark launch; 13 britiske kladder rettet i alt)
+**Sidst opdateret**: 2026-08-21 (dansk er ikke længere et fallback: hele den læservendte flade gennemgået + spærret)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🔒 Dansk er ikke længere et fallback (2026-08-21)
+
+Mikkel, efter tredje gang: «The audience is separate, so the sites should be
+separate — only the motor is shared. Is anything outside of this plan? Will
+there be any future issues like this?»
+
+Planen var rigtig og skrevet ned; det var HÅNDHÆVELSEN der manglede. Alle tre
+fejl havde samme form: et **valgfrit `lang` med dansk som stiltiende standard**.
+Koden kompilerede, .dk så rigtig ud, og fejlen viste sig kun på det andet site.
+
+**Gennemgangen fandt ni mere — alle live på .co.uk indtil i dag:**
+
+| Hvor | Hvad der stod |
+|------|---------------|
+| JSON-LD (det Google læser) | `inLanguage: "da"`, `nationality: Denmark` på britiske atleter, udgiver «StudentAthlete.dk», og alle absolutte URL'er på .dk-domænet |
+| Delekortet (OG-billedet) | «FODBOLD» og «19. august 2026» — verificeret ved at rendre kortet |
+| Datoer overalt | `"da-DK"` hardkodet i `formatDate` |
+| Relativ tid | «Lige nu», «3t siden» som danske strenge i koden |
+| Relaterede artikler | artikeltypen fra den danske `ARTICLE_TYPE_LABELS` |
+| Rettelsesboksen | ordet «Rettet» |
+| RSS | kanaltitel «StudentAthlete.dk», dansk beskrivelse, `<language>da</language>` |
+| OG-tags | nøgleordet «dansk» på britiske artikler |
+| Analytics | sport-sluggen slået op i standardsitets tabel → britisk fodbold talt som amerikansk fodbold |
+| Annoncemærkning (Fanatics) | dansk tekst, dansk brand, dansk moms |
+
+**Så det ikke kan gentage sig** — fire spærrer, ikke fire rettelser:
+
+1. `lang` er **påkrævet** i alle læservendte opslag. En glemt parameter er en
+   TYPEFEJL. Compileren pegede selv på 18 steder, da spærren blev sat.
+2. `ADMIN_LANG` gør admins dansk til et valg, ikke et fallback.
+3. `nationalityName` + `demonym` på landeprofilen: schema.orgs nationalitet og
+   prosaens tillægsord kan ikke længere være danske for en brite.
+4. `_no-danish-default-test.ts` i CI: intet `lang?` i de læservendte moduler, og
+   ingen hardkodet `da-DK` / `inLanguage: "da"` / `Denmark` / «dansk» / brand
+   uden for sprogpakker og landeprofiler. Kommentarer tæller ikke med, så testen
+   ikke fejler på sine egne forklaringer.
+
+**Tilbage — og det kræver en beslutning fra Mikkel**: sektionsstierne
+`/atleter`, `/skoler`, `/viden`, `/artikler` og query-parametrene `?side=` og
+`?kilde=` er danske på ALLE sites. De er fysiske mapper i app-routeren + 138
+hardkodede steder, så det er en rute-tabel pr. sprog + middleware-rewrite +
+308'ere fra de gamle stier. `src/lib/routes.ts` har hele tiden sagt at de hørte
+hjemme i sprogpakken «når site nummer to lander».
 
 ## 🔗 Engelske adresser på det engelske site (2026-08-21)
 
