@@ -48,7 +48,7 @@ export async function GET() {
   <channel>
     <title>${escapeXml(site.brand)}</title>
     <link>${base}</link>
-    <description>${escapeXml(t("feed.description", lang, { country: site.nationalityName }))}</description>
+    <description>${escapeXml(t("feed.description", lang, { demonym: site.demonym }))}</description>
     <language>${lang}</language>
     <lastBuildDate>${lastBuildDate}</lastBuildDate>
     <atom:link href="${base}/feed.xml" rel="self" type="application/rss+xml"/>

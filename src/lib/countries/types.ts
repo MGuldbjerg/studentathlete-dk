@@ -17,6 +17,12 @@ export interface CountryProfile {
    * danskere til Google.
    */
   nationalityName: string;
+  /**
+   * Tillægsordet på SITETS eget sprog ("danske" / "British"). Landenavnet duer
+   * til schema.org, men ikke til en sætning: «student athletes from United
+   * Kingdom» mangler en artikel, og «fra Denmark» er ikke dansk.
+   */
+  demonym: string;
   contactEmail: string;
   /** Byer der udpeger en atlet som hjemmehørende (hele ord, med lokale tegn). */
   cities: string[];

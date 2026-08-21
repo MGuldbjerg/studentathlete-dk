@@ -398,9 +398,9 @@ const ui: LanguagePack["ui"] = {
   "archive.older": "Ældre →",
 
   "correction.prefix": "Rettet",
-  "feed.description": "Dansk dækning af student athletes fra {country} i USA",
+  "feed.description": "Dækning af {demonym} student athletes i USA",
   "ads.disclosure": "Annonce · {brand} kan tjene en kommission, hvis du handler via linket.",
-  "ads.customs": "Sendes fra USA — told og moms kan blive opkrævet ved levering til {country}.",
+  "ads.customs": "Sendes fra USA — told og moms kan blive opkrævet ved levering.",
   "time.now": "Lige nu",
   "time.minutes_ago": "{n} min. siden",
   "time.hours_ago": "{n}t siden",

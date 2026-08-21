@@ -139,6 +139,7 @@ export const uk: CountryProfile = {
   darkLaunch: false,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
+  demonym: "British",
   contactEmail: "info@student-athlete.co.uk",
   cities,
   countryMarkers: [

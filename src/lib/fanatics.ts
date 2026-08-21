@@ -53,8 +53,8 @@ export function fanaticsDisclosure(lang: string, brand: string): string {
   return t("ads.disclosure", lang, { brand });
 }
 
-export function fanaticsCustomsNote(lang: string, country: string): string {
-  return t("ads.customs", lang, { country });
+export function fanaticsCustomsNote(lang: string): string {
+  return t("ads.customs", lang);
 }
 
 /** Rå butiks-URL for en skole (slug delt på tværs af .com/.de). */

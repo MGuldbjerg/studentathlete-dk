@@ -90,7 +90,7 @@ export async function FanaticsAffiliateLink({
 
       {region === "us" && (
         <p className="text-[11px] text-muted px-4 pb-3 leading-relaxed">
-          {fanaticsCustomsNote(site.language, site.nationalityName)}
+          {fanaticsCustomsNote(site.language)}
         </p>
       )}
     </aside>
