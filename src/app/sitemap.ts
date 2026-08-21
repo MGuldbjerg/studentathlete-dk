@@ -31,19 +31,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${base}/atleter`,
+      url: `${base}${routePath("athletes", lang)}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${base}/viden`,
+      url: `${base}${routePath("guides", lang)}`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${base}/skoler`,
+      url: `${base}${routePath("schools", lang)}`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
