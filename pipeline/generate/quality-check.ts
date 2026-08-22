@@ -82,6 +82,21 @@ function degenitive(word: string): string {
   return word.replace(/['’]s$/, "").replace(/['’]$/, "").replace(/s$/, "");
 }
 
+/**
+ * Dansk sætter fællesnavnet efter en bindestreg på egennavnet: «Seton
+ * Hall-spiller», «Hermann Trophy-liste», «BIG EAST-trænernes». Uden det her
+ * blev hele sammensætningen læst som ét ukendt navn, og HVER dansk artikel fik
+ * et falsk fund — værre end ingen kontrol, for falske fund lærer læseren at
+ * ignorere listen. Vi prøver derfor også leddet FØR bindestregen.
+ *
+ * Det svækker ikke kontrollen: prefikset skal stadig stå i kilden, så
+ * «Opdigtet Navn-mål» bliver stadig fanget.
+ */
+function compoundHead(word: string): string | null {
+  const i = word.lastIndexOf("-");
+  return i > 0 ? word.slice(0, i) : null;
+}
+
 function normalise(s: string): string {
   return s
     .toLowerCase()
@@ -296,7 +311,12 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
     if (parts.every((p) => athleteTokens.has(degenitive(p)))) continue;
     // Delvist match tæller: kilden skriver måske "Big West Conference" hvor
     // kladden skriver "Big West" — og genitiv-s må ikke stå i vejen.
-    if (parts.every((p) => haystack.includes(p) || haystack.includes(degenitive(p)))) continue;
+    const known = (p: string): boolean => {
+      if (haystack.includes(p) || haystack.includes(degenitive(p))) return true;
+      const head = compoundHead(p);
+      return head !== null && (haystack.includes(head) || haystack.includes(degenitive(head)));
+    };
+    if (parts.every(known)) continue;
     // Et længere navn der indeholder et allerede flaget, er samme fund.
     if (missingNames.some((m) => n.includes(m))) continue;
     missingNames.push(n);

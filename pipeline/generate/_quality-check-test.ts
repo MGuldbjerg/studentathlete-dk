@@ -182,5 +182,41 @@ ok(cats(en).includes("pronouns"), "engelsk: «she» om en mand flages");
 // Opsummering skal være læsbar i én linje.
 ok(summarise(amtrup).includes("tal uden kilde"), "opsummering navngiver kategorien");
 
+// ── Danske sammensætninger (2026-08-22) ────────────────────────────────────
+// «Seton Hall-spiller» og «Hermann Trophy-liste» er ét ord på dansk. Tjekket
+// læste hele sammensætningen som et ukendt NAVN, så hver dansk artikel fik et
+// falsk fund — og falske fund lærer læseren at ignorere listen.
+const SETON_SOURCE =
+  "Seton Hall junior forward Mikkel Lejbowicz was named to the 2026 United " +
+  "Soccer Coaches MAC Hermann Trophy Forwards to Watch list.";
+
+const danishCompound = checkDraft({
+  title: "Mikkel Lejbowicz på liste over sæsonens forwards",
+  content: "Han er den anden Seton Hall-spiller på en Hermann Trophy-liste i år.",
+  factSheet: JSON.stringify({ quotes: [], stats: [] }),
+  sourceText: SETON_SOURCE,
+  athlete: { name: "Mikkel Lejbowicz", gender: "m", classYear: "Jr.", university: "Seton Hall University", hometown: "Farum, Denmark" },
+  language: "da",
+}, NOW);
+eq(
+  danishCompound.filter((f) => f.category === "names").length,
+  0,
+  "dansk sammensætning af et navn fra kilden er ikke et ukendt navn",
+);
+
+// Men prefikset skal stadig stå i kilden — ellers var kontrollen væk.
+const fakeCompound = checkDraft({
+  title: "Mikkel Lejbowicz på liste over sæsonens forwards",
+  content: "Han er den anden Opdigtet Klub-spiller på listen.",
+  factSheet: JSON.stringify({ quotes: [], stats: [] }),
+  sourceText: SETON_SOURCE,
+  athlete: { name: "Mikkel Lejbowicz", gender: "m", classYear: "Jr.", university: "Seton Hall University", hometown: "Farum, Denmark" },
+  language: "da",
+}, NOW);
+ok(
+  fakeCompound.some((f) => f.category === "names"),
+  "et opdigtet navn med dansk endelse fanges stadig",
+);
+
 console.log(`\n${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);
