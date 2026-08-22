@@ -58,6 +58,8 @@ export interface CheckInput {
     classYear: string | null;
     university: string | null;
     hometown: string | null;
+    /** Skolens egen transfer-oplysning (athletes.previous_school). */
+    previousSchool?: string | null;
   } | null;
   /** Sprog — styrer stedord og tids-markører. */
   language: "da" | "en";
@@ -275,6 +277,11 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
       input.athlete?.name ?? "",
       input.athlete?.university ?? "",
       input.athlete?.hometown ?? "",
+      // Forrige skole er skolens EGEN oplysning om atleten (som hjemby og
+      // universitet) — et verificeret faktum, ikke noget kladden har fundet på.
+      // Uden den her ville «efter to år på Florida Tech» blive flaget som et
+      // opdigtet navn, selvom det står i registret.
+      input.athlete?.previousSchool ?? "",
     ].join("\n"),
   );
   const draft = `${input.title}\n${input.content}`;

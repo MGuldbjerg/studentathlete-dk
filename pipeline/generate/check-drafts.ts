@@ -43,6 +43,7 @@ interface DraftRow {
   class_year: string | null;
   university: string | null;
   hometown: string | null;
+  previous_school: string | null;
 }
 
 interface Args { article: number | null; force: boolean; notify: boolean; limit: number }
@@ -101,6 +102,7 @@ export async function checkOne(
           classYear: row.class_year,
           university: row.university,
           hometown: row.hometown,
+          previousSchool: row.previous_school,
         }
       : null,
     language,
@@ -135,7 +137,7 @@ async function main(): Promise<void> {
             s.fact_sheet, s.content_raw, s.summary, s.headline,
             ath.preferred_name,
             ath.name AS athlete_name, ath.gender, ath.class_year,
-            ath.university, ath.hometown
+            ath.university, ath.hometown, ath.previous_school
      FROM articles a
      LEFT JOIN stories s ON s.id = a.story_id
      LEFT JOIN athletes ath ON ath.id = a.athlete_id

@@ -35,6 +35,19 @@ skiftet et faktum der må bruges — men debuten skal stadig stå i kilden.
 det bliver kun udfyldt for skoler på JSON-API'et (42% af D1). **Tomt betyder
 «ved ikke» — ikke «ingen transfer».** Det står i gennemgangspakken med de ord.
 
+**Sagen der beviste pointen**: Katie Ormerod (#124) står som junior, og jeg
+skar en «debut»-formulering væk med den begrundelse. Loyolas egen bioside siger
+«Prev School: Florida Tech» og «Played two seasons at Florida Tech» — 2026 ER
+hendes første sæson på Loyola, og kampen 12. august var Loyolas sæsonpremiere.
+Kladden havde altså ret i sagen; jeg havde uret i logikken. Rækken er rettet
+(`previous_school = 'Florida Tech'`), og oplysningen er nu tilbage i artiklen —
+denne gang med belæg.
+
+**Bemærk hullet**: Loyola kører HTML-roster, hvor «Prev School» kun står på den
+enkelte atlets bioside. Scraperen henter kun holdlisten, så feltet udfyldes ikke
+automatisk for HTML-skoler. Skal de med, kræver det et opslag pr. atlet — ikke
+gjort, og prisen (2.335 hentninger) skal vejes mod værdien.
+
 ## 🧪 Faktaarket forurenede sig selv — spærren sidder nu i koden (2026-08-22)
 
 Fem nye kladder gennemgået og omskrevet (#124-#128, tre britiske og to danske).
