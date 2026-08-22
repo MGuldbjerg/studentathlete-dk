@@ -317,6 +317,17 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
       return head !== null && (haystack.includes(head) || haystack.includes(degenitive(head)));
     };
     if (parts.every(known)) continue;
+    // Dansk sætter titlen FORAN navnet uden komma: «Holdkammeraten Til
+    // Kauschke», «Angriberen Mikkel Lejbowicz». Står navnet selv i kilden som
+    // en sammenhængende ordfølge, er sammensætningen ikke et ukendt navn.
+    // Mindst TO ord skal matche, så «Cheftræner Mark Carr» stadig fanges når
+    // kun «Cheftræner» findes i kilden.
+    if (
+      parts.length > 2 &&
+      parts.some((_, i) => i > 0 && parts.length - i >= 2 && haystack.includes(parts.slice(i).join(" ")))
+    ) {
+      continue;
+    }
     // Et længere navn der indeholder et allerede flaget, er samme fund.
     if (missingNames.some((m) => n.includes(m))) continue;
     missingNames.push(n);

@@ -259,6 +259,27 @@ export function renderBoxScoreBlock(fs: FactSheet): string | null {
  * @returns rendered = om en render blev forsøgt (kalderen tæller budget);
  *          found = om box-score-tal faktisk blev flettet ind.
  */
+/**
+ * Handler historien overhovedet om en KAMP?
+ *
+ * Sidearm-sider bærer en «Box Score»-genvej i kampprogram-widgetten — også på
+ * sider der intet har med en kamp at gøre. Berigelsen fulgte linket alligevel
+ * og hældte en FREMMED kamps tal ind i faktaarket:
+ *
+ *   #109 preseason-udtagelse   → «Maine 0 Final 1 Vermont» + 3 skud
+ *   #120 watch list            → «Drexel 0 - Hofstra 2» + 90 minutter
+ *   #126 anførermeddelelse     → «Rutgers 1, Michigan 2» + 0 redninger
+ *
+ * Hver gang skulle et menneske opdage det bagefter. Prosaen ved bedre: er der
+ * ingen modstander og intet resultat i det faktaark der blev udtrukket af
+ * TEKSTEN, er der ingen kamp at berige — og så skal vi holde fingrene væk.
+ */
+export function looksLikeMatchStory(fs: FactSheet): boolean {
+  if (fs.event?.opponent) return true;
+  if (fs.result?.final_score) return true;
+  return false;
+}
+
 export async function enrichFactSheetWithBoxScore(
   fs: FactSheet,
   source: { sourceUrl: string | null; athleteName: string; sport: string },
@@ -267,6 +288,8 @@ export async function enrichFactSheetWithBoxScore(
 ): Promise<{ factSheet: FactSheet; rendered: boolean; found: boolean }> {
   const unchanged = { factSheet: fs, rendered: false, found: false };
   if (!source.sourceUrl) return unchanged;
+  // Ingen kamp i prosaen → intet at berige. Sparer også en render.
+  if (!looksLikeMatchStory(fs)) return unchanged;
 
   const html = await deps.fetchHtml(source.sourceUrl);
   if (!html) return unchanged;

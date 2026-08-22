@@ -1,11 +1,51 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-21 (dansk er ikke længere et fallback: hele den læservendte flade gennemgået + spærret)
+**Sidst opdateret**: 2026-08-22 (fem kladder omskrevet; box-score-forureningen spærret ved roden)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🧪 Faktaarket forurenede sig selv — spærren sidder nu i koden (2026-08-22)
+
+Fem nye kladder gennemgået og omskrevet (#124-#128, tre britiske og to danske).
+Fejlene var de sædvanlige — men tre af dem havde SAMME tekniske årsag, og den er
+nu lukket i stedet for at blive rettet i hånden en gang til.
+
+**Årsagen**: `enrichFactSheetWithBoxScore` fulgte ethvert «Box Score»-link på
+kildesiden. På Sidearm-sider ligger sådan et link i kampprogram-widgetten — også
+på sider uden kamp. Berigelsen hentede derfor en FREMMED kamps tal ind i
+faktaarket, og generatoren skrev videre på dem:
+
+| Kladde | Historien handlede om | Hvad faktaarket fik |
+|---|---|---|
+| #109 | preseason-udtagelse | «Maine 0 Final 1 Vermont» + 3 skud |
+| #120 | watch list | «Drexel 0 - Hofstra 2» + 90 minutter |
+| #126 | anførermeddelelse | «Rutgers 1, Michigan 2» + 0 redninger |
+
+`looksLikeMatchStory()` spærrer nu: er der hverken modstander eller resultat i
+det faktaark der blev udtrukket af TEKSTEN, er der ingen kamp at berige — og så
+hentes siden slet ikke (det sparer også en browser-render). Otte tests, og
+fixturet er ændret til at være en kamp, fordi det er dét berigelsen gælder.
+
+**To falske fund i navnetjekket, begge danske sproglige former:**
+- «Seton Hall-spiller», «Hermann Trophy-liste» — sammensætning med bindestreg.
+  Tjekket prøver nu også leddet før bindestregen.
+- «Holdkammeraten Til Kauschke» — dansk sætter titlen foran navnet uden komma.
+  Står navnet selv i kilden som sammenhængende ordfølge (mindst to ord), er
+  sammensætningen ikke et ukendt navn. «Cheftræner Mark Carr» fanges stadig,
+  fordi Mark Carr ikke står i kilden — den test er der stadig.
+
+**Kladderne**: #124 gjorde uafgjort til sejr og gav Ormerod målmandens tre
+redninger. #125 var 6.500 tegn på ét watch list-notat, med opdigtet alder,
+«Lancashire» og to forkerte MAC Hermann-vindere; den er nu 390 tegn. #126 gav
+Beattie holdkammeratens målstatistik og digtede en Michigan-kamp. #127 og #128
+handler om samme atlet, men er to RIGTIGE historier en dag fra hinanden
+(preseason-holdet 11/8 og watch list-listen 10/8) — begge kladder blandede dem
+sammen, og #128 gjorde tyskeren Til Kauschke til dansker.
+
+Alle fem står nu med nul mekaniske fund og er stadig upublicerede.
 
 ## 🔎 Search Console for begge sites (2026-08-21) — venter på en nøgle
 

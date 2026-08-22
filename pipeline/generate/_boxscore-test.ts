@@ -7,6 +7,7 @@
 
 import {
   findBoxScoreUrl,
+  looksLikeMatchStory,
   extractBoxScoreStats,
   mergeBoxScoreIntoFactSheet,
   renderBoxScoreBlock,
@@ -31,12 +32,17 @@ function assert(label: string, condition: boolean, detail?: string): void {
   }
 }
 
-/** Minimalt komplet faktaark; overrides flettes ovenpå. */
+/**
+ * Minimalt komplet faktaark; overrides flettes ovenpå.
+ *
+ * Standarden er en KAMP, for berigelsen gælder kun kampe (se
+ * `looksLikeMatchStory`). Testene af selve spærren sætter event/result til null.
+ */
 function makeFs(overrides: Partial<FactSheet> = {}): FactSheet {
   return {
     has_substance: true,
-    event: null,
-    result: null,
+    event: { type: "soccer match", date: "2026-08-16", opponent: "UNCG", competition: null },
+    result: { final_score: "2-2", outcome: "draw", placement: null },
     stats: [],
     qualitative: [],
     quotes: [],
@@ -158,7 +164,11 @@ async function testMerge(): Promise<void> {
   console.log("\n— mergeBoxScoreIntoFactSheet —");
 
   {
-    const fs = makeFs({ stats: [{ text: "spillede fra start", source: "prose" }] });
+    // Prosaen har kampen, men ikke slutresultatet — det er dét box scoren må udfylde.
+    const fs = makeFs({
+      stats: [{ text: "spillede fra start", source: "prose" }],
+      result: { final_score: null, outcome: null, placement: null },
+    });
     const merged = mergeBoxScoreIntoFactSheet(
       fs,
       { found: true, final_score: "Duke 2, UNC 1", stat_line: ["1 goal", "90 minutes"] },
@@ -288,6 +298,59 @@ async function testEnrich(): Promise<void> {
   }
 }
 
+
+/**
+ * Spærren: berig kun KAMPE (2026-08-22).
+ *
+ * Sidearm-sider bærer en «Box Score»-genvej i kampprogram-widgetten, også på
+ * sider uden kamp. Berigelsen fulgte den og hældte en FREMMED kamps tal ind i
+ * faktaarket — #109 (preseason-udtagelse), #120 (watch list), #126
+ * (anførermeddelelse). Hver gang skulle et menneske opdage det bagefter.
+ */
+async function testMatchGuard(): Promise<void> {
+  console.log("\n— berig kun kampe —");
+  assert("kamp med modstander → berig", looksLikeMatchStory(makeFs()) === true);
+  assert(
+    "udtagelse uden kamp → berig IKKE",
+    looksLikeMatchStory(makeFs({ event: null, result: null })) === false,
+  );
+  assert(
+    "hæder med tom modstander → berig IKKE",
+    looksLikeMatchStory(
+      makeFs({
+        event: { type: "award", date: "2026-08-11", opponent: null, competition: "BIG EAST" },
+        result: null,
+      }),
+    ) === false,
+  );
+  assert(
+    "resultat fra prosaen tæller også som kamp",
+    looksLikeMatchStory(
+      makeFs({ event: null, result: { final_score: "3-1", outcome: "loss", placement: null } }),
+    ) === true,
+  );
+
+  let fetched = 0;
+  let rendered = 0;
+  const res = await enrichFactSheetWithBoxScore(
+    makeFs({ event: null, result: null }),
+    { sourceUrl: "https://example.com/award", athleteName: "X", sport: "fodbold" },
+    chainReturning("{}"),
+    makeDeps({
+      fetchHtml: async () => {
+        fetched++;
+        return '<a href="/boxscore.aspx?id=1">Box Score</a>';
+      },
+      renderPage: async () => {
+        rendered++;
+        return "<html></html>";
+      },
+    }),
+  );
+  assert("uden kamp: faktaarket røres ikke", res.found === false && res.rendered === false);
+  assert("uden kamp: hverken hentning eller render", fetched === 0 && rendered === 0);
+}
+
 // ── Runner ─────────────────────────────────────────────────────────────────
 
 async function runTests(): Promise<void> {
@@ -297,6 +360,7 @@ async function runTests(): Promise<void> {
   await testMerge();
   await testRenderBlock();
   await testEnrich();
+  await testMatchGuard();
   console.log(`\n--- ${passed + failed} tests: ${passed} passed, ${failed} failed ---\n`);
   if (failed > 0) process.exit(1);
 }
