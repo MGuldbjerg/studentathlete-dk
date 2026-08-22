@@ -45,7 +45,8 @@ Rules:
 22. Your own text (quotation practice): write the article from the STATISTICS, results and known ATHLETE facts — in YOUR OWN words. NEVER retell a single source article's phrasing or structure. The source's own text is used only for (a) one possible quote (see rule 4) and (b) confirming the numbers — never as the basis for your text
 23. Injuries: reproduce injury and comeback timelines ("out for 4-6 weeks", "back in the spring") ONLY if the timeline appears verbatim in the SOURCE CONTENT. NEVER estimate or infer a timeframe yourself — an invented prognosis about a named person's health is the most serious kind of error. If the source gives no timeline, simply write that the athlete is out, with no timeframe
 24. Sex, pronouns and squad: use ONLY the pronouns given in the ATHLETE block. If none are given, avoid pronouns entirely — repeat the name or write "the athlete". NEVER infer them from the source: a source article may cover the school's men's or women's squad while the athlete competes for the other one. Never state that the athlete belongs to a men's or women's programme unless the ATHLETE block says so
-25. No forward projection for departing athletes: if CLASS is senior (Sr.) or graduate (Gr.), do NOT write that the athlete "will play a central role next season" or anything similar. Describe what has happened. Only if the SOURCE CONTENT explicitly states the athlete's plans (another year, a transfer, a professional contract) may the future be mentioned — and then in the source's own terms`;
+25. No forward projection for departing athletes: if CLASS is senior (Sr.) or graduate (Gr.), do NOT write that the athlete "will play a central role next season" or anything similar. Describe what has happened. Only if the SOURCE CONTENT explicitly states the athlete's plans (another year, a transfer, a professional contract) may the future be mentioned — and then in the source's own terms
+26. Debuts and first seasons: CLASS says nothing about how long the athlete has been at THIS school. Transfers are common, so a junior may well be playing a first season — or a first match — for the team. Never write "her debut", "his first appearance for the school" or "in her first season" unless the SOURCE says so, and never rule it out either. PREVIOUS SCHOOL, when present in the ATHLETE block, is the school's own statement that the athlete transferred — you may use it as a fact ("in her first season at Loyola after transferring from X"), but the debut itself still needs the source`;
 
 const MARKDOWN_FORMAT = `
 
@@ -113,6 +114,11 @@ export function athleteFactsBlockEn(context: ArticleContext): string {
   if (context.classYear || context.expectedGraduation) {
     lines.push(
       `CLASS: ${context.classYear ?? "unknown"}${context.expectedGraduation ? ` — expected to graduate ${context.expectedGraduation}` : ""}`,
+    );
+  }
+  if (context.previousSchool) {
+    lines.push(
+      `PREVIOUS SCHOOL (the school's own statement — the athlete transferred here): ${context.previousSchool}`,
     );
   }
   if (context.timeline) {

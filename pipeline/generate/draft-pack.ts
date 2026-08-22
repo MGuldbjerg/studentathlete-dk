@@ -38,6 +38,7 @@ interface Row {
   position: string | null;
   university: string | null;
   hometown: string | null;
+  previous_school: string | null;
   mech_summary: string | null;
   mech_findings: string | null;
 }
@@ -46,7 +47,7 @@ const SELECT = `
   SELECT a.id, a.title, a.content, a.country, a.article_type, s.source_url,
          s.fact_sheet, s.content_raw, s.summary,
          ath.name AS athlete_name, ath.gender, ath.class_year, ath.expected_graduation,
-         ath.sport, ath.position, ath.university, ath.hometown,
+         ath.sport, ath.position, ath.university, ath.hometown, ath.previous_school,
          (SELECT dr.summary FROM draft_reviews dr
            WHERE dr.article_id = a.id AND dr.reviewer = 'mechanical'
            ORDER BY dr.id DESC LIMIT 1) AS mech_summary,
@@ -120,6 +121,7 @@ mennesker (#101, #102) slap igennem netop fordi de lød rigtige.
 | Position | ${r.position ?? "?"} |
 | Universitet | ${r.university ?? "?"} |
 | Hjemby | ${r.hometown ?? "?"} |
+| Forrige skole | ${r.previous_school ?? "ingen registreret (siger IKKE at der ikke er en)"} |
 
 ## Kilden (${r.source_url ?? "ukendt URL"})
 
@@ -155,7 +157,10 @@ Tjek især:
 2. **Belæg** — står hver påstand (tal, hæder, rolle, holdtilhør) i faktaarket
    eller kilden? Alt andet er opdigtet, også når det lyder plausibelt.
 3. **Tid** — er begivenheden overstået? Ingen datid om noget der ikke er sket.
-4. **Årgang** — fremskrives en sæson for en atlet der dimitterer?
+4. **Årgang** — fremskrives en sæson for en atlet der dimitterer? Bemærk: årgang
+   siger INTET om, hvor længe atleten har været på skolen. Transfers er
+   almindelige, så en junior kan sagtens have debut for holdet. En debut-påstand
+   kræver kilden — men den kan ikke afvises med årgangen alene.
 5. **Sprog** — ${lang}, nøgternt, ingen floskler ("markerer et vigtigt skridt",
    "fuld tillid fra trænerstaben"), ingen tillagte holdninger.
 

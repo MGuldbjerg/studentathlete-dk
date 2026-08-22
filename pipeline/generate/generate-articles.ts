@@ -32,6 +32,7 @@ interface StoryWithAthlete extends Story {
   position: string | null;
   division: string | null;
   class_year: string | null;
+  previous_school: string | null;
   expected_graduation: string | null;
   fact_sheet: string | null;
   sensitive: string | null;
@@ -95,6 +96,7 @@ function buildPrompt(
     position: story.position,
     division: story.division,
     classYear: story.class_year,
+    previousSchool: story.previous_school,
     expectedGraduation: story.expected_graduation,
     gender: story.gender,
     sourceUrl: story.source_url,
@@ -221,6 +223,7 @@ async function main(): Promise<void> {
   const result = await db.query<StoryWithAthlete>(
     `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown,
             a.position, a.division, a.class_year, a.expected_graduation, a.home_country,
+            a.previous_school,
             a.gender
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id

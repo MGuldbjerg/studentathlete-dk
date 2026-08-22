@@ -595,6 +595,10 @@ async function main(): Promise<void> {
                    hometown = COALESCE(hometown, ?),
                    bio_url = COALESCE(?, bio_url),
                    gender = COALESCE(gender, ?),
+                   -- Transfers ER en ændring: skifter en atlet skole, skal den
+                   -- nye forrige-skole-oplysning vinde over den gamle. Derfor
+                   -- ikke COALESCE — men en tom værdi må ikke slette det vi har.
+                   previous_school = COALESCE(?, previous_school),
                    active = 1, updated_at = datetime('now')
                WHERE id = ?`,
               [
@@ -604,6 +608,7 @@ async function main(): Promise<void> {
                 classYear, expectedGraduation, yearEnrolled,
                 athlete.hometown, bioUrl,
                 gender,
+                athlete.previousSchool ?? null,
                 existing.id,
               ],
             );
@@ -655,8 +660,8 @@ async function main(): Promise<void> {
             `INSERT OR IGNORE INTO athletes
              (name, slug, roster_name, roster_key, home_country, sport, position, hometown,
               university, university_state, division,
-              class_year, expected_graduation, year_enrolled, bio_url, gender)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              class_year, expected_graduation, year_enrolled, bio_url, gender, previous_school)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               athlete.name,
               slug,
@@ -678,6 +683,9 @@ async function main(): Promise<void> {
               // Kildens eget felt først (JSON-API'et), ellers holdets URL: bio-URL'en
               // er mest præcis, roster-URL'en er faldback.
               gender,
+              // Skolens egen transfer-oplysning. Kun JSON-API'et har den; på
+              // HTML-rosters er den undefined og feltet forbliver tomt.
+              athlete.previousSchool ?? null,
             ],
           );
 

@@ -1,0 +1,16 @@
+-- Migration 045: transfers er DATA, ikke noget vi gætter os til.
+--
+-- Mikkel, 2026-08-22: «Mind you that there are transfers. It's not uncommon for
+-- a junior to have a debut on that particular team.» Han har ret — og indtil nu
+-- kunne motoren ikke vide det. Årgangen siger intet om, hvorvidt en atlet er ny
+-- på HOLDET, og en kladde der påstår (eller benægter) en debut, gætter.
+--
+-- Oplysningen har hele tiden ligget i det svar vi allerede henter: Sidearms
+-- roster-API har feltet `previousSchool` (verificeret mod acusports.com
+-- 2026-08-22 — 8 af 12 stikprøver havde det udfyldt, fx «Texas Tech / Houston»).
+-- Vi kastede den bare væk.
+--
+-- Feltet gemmes RÅT, som skolen skriver det, inkl. flere skoler adskilt med "/".
+-- Det er skolens oplysning, ikke vores fortolkning — samme princip som
+-- `hometown` og `roster_name`.
+ALTER TABLE athletes ADD COLUMN previous_school TEXT;

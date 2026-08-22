@@ -7,6 +7,34 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🔄 Transfers er data nu (2026-08-22) — migration 045
+
+Mikkel, da jeg havde afvist en «debut»-formulering med at atleten er junior:
+«Mind you that there are transfers. It's not uncommon for a junior to have a
+debut on that particular team.»
+
+Han har ret, og fejlen var min logik. Årgang fortæller hvor langt atleten er i
+sit STUDIE — ikke hvor længe hun har været på HOLDET. En debut kan hverken
+bekræftes eller afvises med årgangen.
+
+**Oplysningen lå i det svar vi allerede henter.** Sidearms roster-API har feltet
+`previousSchool` — verificeret mod acusports.com 2026-08-22, hvor 8 af 12
+stikprøver havde det udfyldt («Texas Tech / Houston», «UNT», «Central Arkansas»).
+Parserens eget filhoved har hele tiden nævnt «forrige skole (transfers)» som en
+af grundene til at bruge API'et. Vi kastede feltet væk.
+
+Nu: `RosterEntry.previousSchool` → `athletes.previous_school` (migration 045,
+kørt) → ATLET-blokken i begge promptsæt → gennemgangspakkens atlettabel.
+Værdien gemmes RÅT som skolen skriver den, flere skoler adskilt med "/" inklusive.
+
+**Regel 26** (begge sprog): debut og «første sæson» kræver KILDEN. Årgangen kan
+ikke bruges som argument i nogen af retningerne. Er FORRIGE SKOLE udfyldt, er
+skiftet et faktum der må bruges — men debuten skal stadig stå i kilden.
+
+**Feltet er tomt for alle 2.335 aktive atleter indtil næste roster-scrape**, og
+det bliver kun udfyldt for skoler på JSON-API'et (42% af D1). **Tomt betyder
+«ved ikke» — ikke «ingen transfer».** Det står i gennemgangspakken med de ord.
+
 ## 🧪 Faktaarket forurenede sig selv — spærren sidder nu i koden (2026-08-22)
 
 Fem nye kladder gennemgået og omskrevet (#124-#128, tre britiske og to danske).

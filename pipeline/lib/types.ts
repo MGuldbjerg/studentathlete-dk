@@ -66,6 +66,15 @@ export interface RosterEntry {
    * de gamle parsere ikke skal ændres.
    */
   gender?: "m" | "f" | null;
+  /**
+   * Skolens egen angivelse af atletens FORRIGE skole — altså en transfer.
+   * Kun JSON-API'et har feltet; HTML-parserne lader det være udefineret.
+   *
+   * Gemmes råt som skolen skriver det, inkl. flere skoler adskilt med "/"
+   * («Texas Tech / Houston»). Uden det kan hverken vi eller en kladde vide, om
+   * en junior er ny på HOLDET — årgangen siger det ikke.
+   */
+  previousSchool?: string | null;
 }
 
 export interface RosterCheck {

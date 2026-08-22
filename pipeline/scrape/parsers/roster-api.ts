@@ -78,6 +78,7 @@ interface ApiPlayer {
   positionLong?: unknown;
   positionShort?: unknown;
   academicYearShort?: unknown;
+  previousSchool?: unknown;
   academicYearLong?: unknown;
   rosterPlayerId?: unknown;
   gender?: unknown;
@@ -164,6 +165,7 @@ export function parseApiRoster(json: unknown, origin: string): ApiRoster | null 
       name,
       position: str(p.positionLong) ?? str(p.positionShort),
       hometown: str(p.hometown),
+      previousSchool: str(p.previousSchool),
       year: str(p.academicYearShort) ?? str(p.academicYearLong),
       bioUrl,
       // Køn er DATA her, ikke udledt af en URL — det er hele pointen med API'et.

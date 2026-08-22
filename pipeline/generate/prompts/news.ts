@@ -14,6 +14,11 @@ export interface ArticleContext {
   position?: string | null;
   division?: string | null;
   classYear?: string | null;
+  /**
+   * Skolens egen oplysning om atletens forrige skole (transfer). Årgangen siger
+   * intet om, hvor længe atleten har været på DETTE hold — det gør dette felt.
+   */
+  previousSchool?: string | null;
   expectedGraduation?: string | null;
   /** "f" | "m" | null — udledt af holdets URL, se src/lib/gender.ts. */
   gender?: string | null;
@@ -47,6 +52,11 @@ export function athleteFactsBlock(context: ArticleContext): string {
   if (context.classYear || context.expectedGraduation) {
     lines.push(
       `ÅRGANG: ${context.classYear ?? "ukendt"}${context.expectedGraduation ? ` — forventet afgang ${context.expectedGraduation}` : ""}`,
+    );
+  }
+  if (context.previousSchool) {
+    lines.push(
+      `FORRIGE SKOLE (skolens egen oplysning — atleten er skiftet hertil): ${context.previousSchool}`,
     );
   }
   if (context.timeline) {
