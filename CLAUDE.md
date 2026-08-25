@@ -119,3 +119,25 @@ Relevante filer: `pipeline/scrape/scrape-rosters.ts`, `pipeline/discover/check-s
 3. Brug Playwright MCP til at tage screenshot og verificere visuelt
 4. Justér baseret på hvad du ser
 5. Gentag indtil resultatet er rigtigt
+
+## Claudes grænse mod live (aftalt med Mikkel 2026-08-25)
+
+Claude har i forvejen alt, der skal til for at ændre det levende site:
+`CLOUDFLARE_API_TOKEN` + konto-id i `~/.bashrc` og et `gh`-login med `repo` og
+`workflow`. Grænsen er derfor ikke teknisk — den er aftalt. Den står her, så en
+ny session arver den i stedet for at genopdage nøglerne og antage frit spil.
+
+**Uden at spørge — kode:**
+- rette kode, køre typecheck og tests, committe og pushe til `main`
+- deploye med `bash scripts/deploy-live.sh` — og kun via det script
+
+**Spørg først — alt der rører data eller læsere:**
+- skrivninger i D1: `wrangler d1 execute --remote`, `scripts/migrate.sh`, seed
+- `gh workflow run` / `workflow_dispatch` — flere workflows genererer og poster selv
+- `pages` og `site_content`: der er INGEN kladdetilstand, så en rettelse er
+  offentlig i samme sekund den gemmes
+- alt der udgiver: kladde til `published`, social-post, udsendelser
+
+Skellet er ikke «stort vs. småt», men **hvad der kan fortrydes**. Et kodedeploy
+kan rulles tilbage med et nyt deploy, og CI har set koden. En udgivelse kan ikke
+rulles tilbage — den er læst, og sitet skriver om navngivne mennesker.
