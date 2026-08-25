@@ -10,17 +10,28 @@
  * Kør:  npx tsx pipeline/checks/false-transfers.ts           (kun liste)
  *       npx tsx pipeline/checks/false-transfers.ts --apply   (sletter)
  *
- * Uden --apply skrives INTET. Rækker hvis sætning ikke kan parses bliver
- * rapporteret for sig — de slettes aldrig på et gæt.
+ * Uden --apply skrives INTET. Med --apply skrives FØRST en fuld
+ * sikkerhedskopi af de rækker der slettes — en DELETE mod produktion kan
+ * ellers ikke fortrydes, og transfers detekteres kun én gang (næste scrape
+ * ser de to navne som ens og logger intet). Rækker hvis sætning ikke kan
+ * parses rapporteres for sig og røres aldrig.
  */
+import { mkdirSync, writeFileSync } from "node:fs";
 import { createD1Client } from "../lib/d1-client";
 import { sameInstitution } from "../../src/lib/school-name";
 
 interface EventRow {
   id: number;
   athlete_id: number;
-  name: string;
+  occurred_on: string | null;
+  season: string | null;
+  kind: string;
+  award_name: string | null;
   summary: string;
+  significance: string | null;
+  source_url: string | null;
+  created_at: string | null;
+  name: string;
 }
 
 /** "Skiftede fra X til Y." / "Transferred from X to Y." → [X, Y] eller null. */
@@ -43,46 +54,53 @@ export function parseTransfer(summary: string): [string, string] | null {
   return null;
 }
 
+interface Judged {
+  row: EventRow;
+  from: string;
+  to: string;
+}
+
 async function main(): Promise<void> {
   const apply = process.argv.includes("--apply");
   const db = createD1Client();
 
   const rows = await db.query<EventRow>(
-    `SELECT e.id, e.athlete_id, a.name, e.summary
+    `SELECT e.id, e.athlete_id, e.occurred_on, e.season, e.kind, e.award_name,
+            e.summary, e.significance, e.source_url, e.created_at, a.name
        FROM athlete_events e
        JOIN athletes a ON a.id = e.athlete_id
       WHERE e.kind = 'transfer'
       ORDER BY e.id`,
   );
 
-  const falses: Array<{ id: number; name: string; from: string; to: string }> = [];
-  const reals: Array<{ id: number; name: string; from: string; to: string }> = [];
+  const falses: Judged[] = [];
+  const reals: Judged[] = [];
   const unparsed: EventRow[] = [];
 
-  for (const r of rows.results) {
-    const parsed = parseTransfer(r.summary);
+  for (const row of rows.results ?? []) {
+    const parsed = parseTransfer(row.summary);
     if (!parsed) {
-      unparsed.push(r);
+      unparsed.push(row);
       continue;
     }
     const [from, to] = parsed;
-    (sameInstitution(from, to) ? falses : reals).push({ id: r.id, name: r.name, from, to });
+    (sameInstitution(from, to) ? falses : reals).push({ row, from, to });
   }
 
-  console.log(`${rows.results.length} transfer-begivenheder i alt`);
+  console.log(`${(rows.results ?? []).length} transfer-begivenheder i alt`);
   console.log(`  ${falses.length} er samme lærested (falske)`);
   console.log(`  ${reals.length} ser ud til at være ægte skift`);
   console.log(`  ${unparsed.length} kunne ikke parses\n`);
 
   console.log("=== FALSKE — foreslået slettet ===");
   for (const f of falses) {
-    console.log(`  ${String(f.id).padStart(4)}  ${f.name}`);
+    console.log(`  ${String(f.row.id).padStart(4)}  ${f.row.name}`);
     console.log(`        ${f.from}  →  ${f.to}`);
   }
 
   console.log("\n=== BEHOLDES (ægte skift) ===");
   for (const r of reals) {
-    console.log(`  ${String(r.id).padStart(4)}  ${r.name}: ${r.from} → ${r.to}`);
+    console.log(`  ${String(r.row.id).padStart(4)}  ${r.row.name}: ${r.from} → ${r.to}`);
   }
 
   if (unparsed.length) {
@@ -94,12 +112,29 @@ async function main(): Promise<void> {
     console.log("\n(tørløb — intet slettet. Kør med --apply for at slette de falske.)");
     return;
   }
+  if (falses.length === 0) {
+    console.log("\nIntet at slette.");
+    return;
+  }
+
+  // Sikkerhedskopi FØR sletning. Filen indeholder alle kolonner, så rækkerne
+  // kan genindsættes uændret hvis en vurdering viser sig forkert.
+  mkdirSync("logs", { recursive: true });
+  const stamp = new Date().toISOString().split(":").join("-");
+  const backup = `logs/false-transfers-${stamp}.json`;
+  writeFileSync(backup, JSON.stringify(falses.map((f) => f.row), null, 2), "utf8");
+  console.log(`\nSikkerhedskopi af ${falses.length} rækker: ${backup}`);
+
+  // Atleter hvis profiludkast nu er forældet — udkastet indeholder en sætning
+  // hvis kilde er væk. Listen bruges af scripts/cleanup-false-transfers.sh.
+  const affected = [...new Set(falses.map((f) => f.row.athlete_id))].sort((a, b) => a - b);
+  writeFileSync("logs/affected-athletes.txt", affected.join("\n") + "\n", "utf8");
+  console.log(`${affected.length} atleter har fået et forældet udkast: logs/affected-athletes.txt`);
 
   for (const f of falses) {
-    await db.execute(`DELETE FROM athlete_events WHERE id = ?`, [f.id]);
+    await db.execute(`DELETE FROM athlete_events WHERE id = ?`, [f.row.id]);
   }
   console.log(`\n${falses.length} falske begivenheder slettet.`);
-  console.log("Husk at genskabe profiludkastene: npx tsx pipeline/profiles/build-profile-drafts.ts");
 }
 
 if (process.argv[1] && process.argv[1].endsWith("false-transfers.ts")) {
