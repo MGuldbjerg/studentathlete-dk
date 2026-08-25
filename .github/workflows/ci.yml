@@ -58,6 +58,7 @@ jobs:
             pipeline/profiles/_profile-drafts-test.ts \
             src/lib/_analytics-test.ts \
             src/lib/_article-url-test.ts \
+            src/lib/_school-name-test.ts \
             src/lib/_no-danish-default-test.ts \
             src/lib/_article-blocks-test.ts \
             src/lib/_gender-test.ts \
