@@ -10,6 +10,8 @@ import { createHash } from "crypto";
 import { createD1Client } from "../lib/d1-client";
 import {
   extractStoriesForSchool,
+  matchAthletes,
+  type SchoolStoryMatch,
   fetchStoryContent,
 } from "./extract-story";
 
@@ -96,45 +98,82 @@ async function checkSchoolFeeds(
         athletes,
       );
 
-      let foundInSchool = 0;
+      // Gruppér per URL. Matcheren udsender ÉN post pr. (artikel, atlet), så en
+      // artikel der nævner to holdkammerater gav før to gennemløb — og dermed to
+      // hentninger af præcis samme side. Nu hentes hver artikel én gang.
+      const byUrl = new Map<string, SchoolStoryMatch[]>();
       for (const story of stories) {
-        const urlHash = createHash("sha256").update(story.url).digest("hex");
+        const list = byUrl.get(story.url);
+        if (list) list.push(story);
+        else byUrl.set(story.url, [story]);
+      }
 
-        // Berig med fuldt indhold
-        let contentRaw = story.content;
-        if (!contentRaw && story.url) {
-          contentRaw = await fetchStoryContent(story.url);
+      let foundInSchool = 0;
+      for (const [url, group] of byUrl) {
+        const first = group[0];
+
+        // Berig med fuldt indhold — én gang pr. artikel, ikke én gang pr. atlet.
+        let contentRaw = first.content;
+        if (!contentRaw && url) {
+          contentRaw = await fetchStoryContent(url);
           await new Promise((r) => setTimeout(r, 500));
         }
 
-        // INSERT OR IGNORE kaster IKKE ved dublet-url_hash — den indsætter bare 0 rækker.
-        // Tæl derfor kun via meta.changes (faktisk indsatte rækker); ellers tælles de
-        // samme gen-matchede RSS-items som "nye" ved HVER kørsel (feedet beholder dem
-        // i dagevis), og Discord rapporterer "fandt N" uden at noget nyt er gemt.
-        try {
-          const res = await db.execute(
-            `INSERT OR IGNORE INTO stories
-             (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-              story.athlete_id,
-              story.url,
-              urlHash,
-              story.headline,
-              story.summary,
-              contentRaw,
-              `school_feed_${school.news_feed_type}`,
-              story.relevance_score,
-              story.sensitive,
-            ],
-          );
-          if (res.meta.changes > 0) {
-            foundInSchool++;
-            totalFound++;
+        // Feedet matchede kun på titel og resumé. Et kampreferat nævner typisk
+        // flere af skolens atleter længere nede i brødteksten: Daniel Helle lagde
+        // op til Macfarlanes mål uden at stå i resuméet og fik derfor aldrig sin
+        // egen vinkel. Teksten er hentet alligevel, så gen-matchningen er gratis.
+        //
+        // KRAV: kun FULDE navne (score 90). Et efternavn alene står i hver eneste
+        // målprotokol og holdopstilling — det er ikke en historie om personen.
+        const perAthlete = new Map<number, SchoolStoryMatch>();
+        for (const s of group) perAthlete.set(s.athlete_id, s);
+        if (contentRaw) {
+          for (const m of matchAthletes(contentRaw, athletes)) {
+            if (m.relevance_score < 90) continue;
+            if (perAthlete.has(m.athlete.id)) continue;
+            perAthlete.set(m.athlete.id, {
+              ...first,
+              athlete_id: m.athlete.id,
+              relevance_score: m.relevance_score,
+            });
           }
-        } catch (err) {
-          // Ægte indsæt-fejl (dubletter ignorerer OR IGNORE stille). Log — ikke tavst.
-          console.error(`  Insert fejlede [${story.url}]: ${err instanceof Error ? err.message : String(err)}`);
+        }
+
+        for (const story of perAthlete.values()) {
+          // Hashen er pr. ATLET. Var den global pr. URL — som før — kunne en
+          // artikel kun tilhøre ÉN atlet: den anden blev tavst droppet af
+          // INSERT OR IGNORE (0 rækker, ingen fejl, intet i loggen).
+          const urlHash = createHash("sha256")
+            .update(`${story.athlete_id}:${url}`)
+            .digest("hex");
+
+          try {
+            const res = await db.execute(
+              `INSERT OR IGNORE INTO stories
+               (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                story.athlete_id,
+                url,
+                urlHash,
+                story.headline,
+                story.summary,
+                contentRaw,
+                `school_feed_${school.news_feed_type}`,
+                story.relevance_score,
+                story.sensitive,
+              ],
+            );
+            if (res.meta.changes > 0) {
+              foundInSchool++;
+              totalFound++;
+            }
+          } catch (err) {
+            console.error(
+              `  Insert fejlede [${url}]: ${err instanceof Error ? err.message : String(err)}`,
+            );
+          }
         }
       }
 

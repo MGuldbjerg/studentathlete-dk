@@ -9,6 +9,7 @@
  */
 
 import { createD1Client } from "../lib/d1-client";
+import { stripForwardLooking } from "./forward-looking";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import { fetchHtml } from "../discover/extract-story";
 import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
@@ -159,7 +160,9 @@ export async function buildFactSheet(
   story: Pick<StoryRow, "headline" | "summary" | "content_raw" | "athlete_name" | "sport" | "university">,
   chain: ChainLike,
 ): Promise<{ factSheet: FactSheet | null; status: "built" | "no_substance" | "failed" }> {
-  const source = (story.content_raw ?? story.summary ?? story.headline ?? "").slice(0, 8000);
+  // Kildens «UP NEXT» er sand når referatet skrives, men ikke når vi genererer
+  // dage senere. Fjern den FØR faktaarket bygges — se forward-looking.ts.
+  const source = stripForwardLooking(story.content_raw ?? story.summary ?? story.headline ?? "").slice(0, 8000);
   if (!source.trim()) return { factSheet: null, status: "no_substance" };
 
   const prompt = [
