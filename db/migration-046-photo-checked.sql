@@ -1,0 +1,19 @@
+-- Migration 046: fotokøen skal ROTERE, ikke stå stille.
+--
+-- Mikkel, 2026-08-25: «photos on co.uk only find players starting with A».
+-- Det var ikke en kvote og ikke en rate limit. `suggest-photos.ts` valgte
+-- kandidater med ORDER BY a.name LIMIT 50 og udelukkede kun atleter der havde
+-- et åbent eller godkendt forslag. En atlet hvis bio-side IKKE gav et headshot
+-- fik ingen markering overhovedet — og lå derfor forrest i køen igen næste nat.
+-- Vinduet rykkede sig kun med antallet af SUCCESER, mens fejlene hobede sig op
+-- i toppen af alfabetet. Efter UK-importen (1252 atleter 18/8 + 431 19/8, alle
+-- indsat alfabetisk foran markøren) kom køen aldrig forbi A'erne igen:
+-- 2094 aktive britiske atleter, 319 med foto, hvoraf 146 hedder noget med A.
+--
+-- Under det ligger en ægte begrænsning: de fastlåste bio-sider svarer 200, men
+-- indeholder slet ikke headshottet (moderne Sidearm renderer det klientside).
+-- Almindelig fetch kan aldrig løse dem. Derfor er et FORSØG værd at huske —
+-- ikke kun et resultat. Kolonnen stemples ved hvert forsøg, uanset udfald.
+--
+-- Samme rotationsmønster som roster_checks.checked_at (scrape-js-rosters.ts).
+ALTER TABLE athletes ADD COLUMN photo_checked_at TEXT;

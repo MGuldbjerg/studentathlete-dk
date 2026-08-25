@@ -150,7 +150,8 @@ async function main(): Promise<void> {
          SELECT 1 FROM photo_suggestions ps
          WHERE ps.athlete_id = a.id AND ps.status IN ('pending', 'approved')
        )
-     ORDER BY a.name LIMIT ?`,
+     ORDER BY a.photo_checked_at ASC NULLS FIRST, a.name
+     LIMIT ?`,
     [limit],
   );
 
@@ -160,6 +161,16 @@ async function main(): Promise<void> {
   for (const athlete of athletes.results) {
     const html = await fetchPage(athlete.bio_url);
     const imageUrl = html ? extractHeadshotUrl(html, athlete.bio_url, athlete.name) : null;
+    // Stemples ved HVERT forsøg, også når intet blev fundet. Uden det bliver
+    // atleten liggende forrest i køen og optager de samme 50 pladser hver nat
+    // (se migration-046). Mange bio-sider kan aldrig løses med almindelig
+    // fetch — de skal rotere bagud, ikke blokere.
+    if (!dryRun) {
+      await db.execute(
+        `UPDATE athletes SET photo_checked_at = datetime('now') WHERE id = ?`,
+        [athlete.id],
+      );
+    }
     if (!imageUrl) {
       console.log(`– ${athlete.name}: intet headshot fundet på bio-siden`);
       continue;
