@@ -42,6 +42,7 @@ jobs:
             pipeline/generate/_quality-check-test.ts \
             pipeline/generate/_draft-pack-test.ts \
             pipeline/checks/_false-transfers-test.ts \
+            pipeline/checks/_localised-source-urls-test.ts \
             pipeline/discover/_extract-story-test.ts \
             pipeline/discover/_sensitive-test.ts \
             pipeline/discover/_honors-test.ts \

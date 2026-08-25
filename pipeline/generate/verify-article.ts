@@ -101,7 +101,16 @@ export async function verifyArticle(
 
   let text: string;
   try {
-    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 400, json: true });
+    // Dommeren skal være en ANDEN og helst STÆRKERE model end skribenten.
+    // Uden NVIDIA_API_KEY er provideren utilgængelig, og kæden falder
+    // tilbage til normal rækkefølge — så dette er sikkert uden nøgle.
+    const res = await chain.generate({
+      system: SYSTEM_MESSAGE,
+      prompt,
+      max_tokens: 400,
+      json: true,
+      preferProvider: "nvidia",
+    });
     text = res.text;
   } catch {
     return null;

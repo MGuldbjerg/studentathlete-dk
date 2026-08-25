@@ -10,6 +10,7 @@ import { MistralProvider } from "./provider-mistral";
 import { GeminiProvider } from "./provider-gemini";
 import { GroqProvider } from "./provider-groq";
 import { CloudflareAIProvider } from "./provider-cloudflare-ai";
+import { NvidiaProvider } from "./provider-nvidia";
 import { AnthropicProvider } from "./provider-anthropic";
 
 const DAILY_LIMITS: Record<string, number> = {
@@ -17,6 +18,9 @@ const DAILY_LIMITS: Record<string, number> = {
   gemini: 200,
   groq: 800,
   "cloudflare-ai": 150,
+  // NIM giver 10.000/dag gratis; vi holder os et godt stykke under,
+  // som med de øvrige. Verifikation er lavvolumen.
+  nvidia: 1000,
   anthropic: 999999,
 };
 
@@ -63,6 +67,8 @@ export class ProviderChain {
       new GeminiProvider(),
       new GroqProvider(),
       new CloudflareAIProvider(),
+      // Sidst i kæden: NIM er tilføjet som DOMMER, ikke som skribent.
+      new NvidiaProvider(),
       new AnthropicProvider(),
     ];
   }
