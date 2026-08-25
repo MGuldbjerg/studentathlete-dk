@@ -23,6 +23,7 @@ import { sportKeyFromSource } from "../../src/lib/sports";
 import { generateSlug } from "../../src/lib/slug";
 import { samePerson, rosterKey } from "../lib/athlete-identity";
 import { genderFromTeamUrl } from "../../src/lib/gender";
+import { sameInstitution } from "../../src/lib/school-name";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { cleanPosition, cleanRosterName } from "../../src/lib/roster-clean";
 import { seasonFromDate } from "../../src/lib/athlete-events";
@@ -559,7 +560,7 @@ async function main(): Promise<void> {
           );
 
           if (existing) {
-            const transferred = existing.university !== check.name;
+            const transferred = !sameInstitution(existing.university, check.name);
 
             // Skolen har ændret navnet (fx Filucca Daugaard → Filucca Andersen).
             // Vi følger rosteren — MEN aldrig oven på en manuel rettelse
@@ -628,7 +629,7 @@ async function main(): Promise<void> {
             }
             if (transferred) {
               console.log(
-                `  ⇄ ${existing.name}: ${existing.university} → ${check.name} (transfer/navne-variant)`,
+                `  ⇄ ${existing.name}: ${existing.university} → ${check.name} (transfer)`,
               );
               // Skiftet gemmes som athlete_event (kind='transfer') så det kan
               // nævnes i profilteksten (basis-udkast + sommer-udvidelsens LLM-
