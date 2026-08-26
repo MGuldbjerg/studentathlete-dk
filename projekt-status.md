@@ -1,11 +1,60 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-26 (tre flaskehalse løsnet: foto-køen, artikelblandingen, atlet-oversigten)
+**Sidst opdateret**: 2026-08-26 (flaskehalse + /athletes som knudepunkt + Sidearm-kolonnefejl)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🧭 /athletes er nu et knudepunkt (2026-08-26)
+
+Mikkel: sektionsforsiden skal ligge et niveau OVER de målrettede sider.
+
+| Adresse | Rolle |
+|---|---|
+| `/athletes` · `/atleter` | Knudepunkt: alfabetet med antal, vej til hele listen, badge-forklaring. **26 links, ikke 2.343.** |
+| `/athletes/all` · `/atleter/alle` | Hele listen med sorteringsfanerne (sport/navn/skole) + alumni |
+| `/athletes/a` · `/atleter/a` | Ét forbogstav |
+
+Sluggen «all»/«alle» ligger i sprogpakken som `subroutes` (`SubRouteKey`), ikke
+som en konstant — samme grund som `routes`: den er læservendt. Den slås op FØR
+både bogstav og profil, så rækkefølgen i ruten ikke afgør hvem der vinder, og
+en test fastholder at «all»/«alle» aldrig kan læses som et bogstav.
+
+Fundet undervejs: `groupBy` sorterede grupperne med `localeCompare(..., "da")`
+— dansk kollation af britiske skolenavne. Retter sig nu efter sitets locale.
+
+## 🐛 Sidearm-parseren læste kolonner på hardkodede indekser (2026-08-26)
+
+`parsers/sidearm.ts` antog `#, Name, Pos, Yr, Hometown` — mønstret på en
+holdsport-roster med trøjenummer forrest. **Iona University's golf-roster har
+ingen nummerkolonne** (`Name, Yr., Ht., Wt., Hometown / High School, Major`),
+så alt rykkede én plads:
+
+| Felt | Blev læst som | Var i virkeligheden |
+|---|---|---|
+| `name` | "Jr." | Freddie Tucker |
+| `position` | "6-0" | hans højde |
+| `class_year` | "175" | hans vægt |
+
+Han lå på sitet som en profil ved navn **«Jr.»** i to uger, med i sitemappet.
+
+Kolonnerne findes nu via tabellens EGEN overskriftsrække; hardkodningen er
+bevaret som fallback når der ikke er noget `thead`, for dér er den stadig det
+rigtige gæt. Overskrifterne matches præcist nok til at «Ht.» ikke kan forveksles
+med «Hometown». 27 tests i `parsers/_sidearm-test.ts`, herunder Ionas faktiske
+tabel og en klassisk nummereret roster.
+
+Rækken er rettet i D1 (id 815 → Freddie Tucker, `Jr.`, 2028, ingen position) og
+`athlete_aliases` har `jr` → 815, så den gamle adresse sender videre.
+
+⚠️ **Kun ét sted var ramt** — verificeret: ingen andre aktive atleter har en
+højde i `position` eller en vægt i `class_year`. Men fejlen ramte kun rosters
+UDEN nummerkolonne, altså individuelle sportsgrene (golf, tennis, svømning,
+atletik, cross country) på Sidearm-tabeller. Der kan være hold hvor
+konsekvensen var at spilleren slet ikke blev fundet frem for at blive
+fejllæst — næste roster-scrape viser det.
 
 ## 🚦 Tre flaskehalse løsnet (2026-08-26) — ingen af dem var kvoter
 
