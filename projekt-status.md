@@ -1,11 +1,96 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-22 (fem kladder omskrevet; box-score-forureningen spærret ved roden)
+**Sidst opdateret**: 2026-08-26 (tre flaskehalse løsnet: foto-køen, artikelblandingen, atlet-oversigten)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🚦 Tre flaskehalse løsnet (2026-08-26) — ingen af dem var kvoter
+
+Mikkel: fotos tager kun en brøkdel pr. kørsel og kommer aldrig forbi A;
+"udtaget til preseason all-conference second team"-artiklerne er ikke gode nok;
+der er langt færre kampreferater end der burde være, og kladdernes kilder er
+fem dage gamle.
+
+**Alle tre var vores egne indstillinger.** Målt forbrug på gratis-kæden var
+2-32 LLM-kald/dag ud af ~2.650 tilgængelige, D1 fylder 62 MB af 5 GB, og
+repoet er offentligt, så GitHub Actions-minutter er gratis og ubegrænsede.
+
+**1. Foto-køen kom aldrig forbi A.** `suggest-photos` kørte med `--limit 50`
+og sorterer `photo_checked_at ASC NULLS FIRST, name`. 2.057 af 2.121 atleter i
+køen havde ALDRIG været tjekket, delte derfor `NULL`, og sorteringen faldt
+tilbage på navnet — A-navne nat efter nat, og 42 nætter pr. runde. Trinnet er
+en almindelig `fetch()` af bio-siden: ingen browser-render, ingen LLM, ingen
+kvote. Grænsen er 400, og køen har fået sin egen workflow
+(`photos-daily.yml`, 09:40 + 16:40 UTC). 2.339 af 2.343 britiske atleter har
+`bio_url`, så den gamle flaskehals er væk.
+
+**2. Vi bad selv om forsæsons-notitserne.** `HONORS_BOOST = 15` løftede enhver
+hædersbevisning til 100, mens et referat topper på 90 (fuldt navn). Begge køer
+sorterer `relevance_score DESC`, så det var ikke en tie-break — hver eneste
+hædersbevisning slog hvert eneste referat, hver kørsel. Med fem artikler pr.
+kørsel nåede referaterne aldrig frem, selvom de LÅ der: "Women's Soccer Defeats
+Rhode Island, 3-0" stod som `new` med score 90 og blev aldrig skrevet.
+
+Boostet er fjernet. `pipeline/discover/story-kind.ts` rangerer nu efter type:
+**referat +15, forsæson/watch list/poll −25, hædersbevisning i sæsonen neutral.**
+Vi filtrerer ikke — en forsæsons-notits kan stadig blive skrevet når køen er
+tom. Straffen er valgt så et fuldt navn (90 → 65) stadig er over
+`MIN_RELEVANCE_GENERATE`, mens et efternavns-match (35 → 10) falder under
+`MIN_RELEVANCE` og slet ikke gemmes. 37 tests på ægte overskrifter fra
+`stories`.
+
+> De tre kladder box-score-fejlen forurenede 22. august (#109 preseason,
+> #120 watch list, #126 anførermeddelelse) var alle af samme slags: historier
+> uden kamp. Den kategori er nu også bagerst i køen.
+
+**3. De fem dage gamle kilder var kø, ikke forsinket discovery.** Discovery er
+fin (564 skoler med feeds, ~800 tjek/dag i kapacitet). Men 20 færdige faktaark
+ventede på 5 pladser om dagen. Nu `MAX_ARTICLES_PER_RUN` 5 → 12, tre kørsler
+dagligt (07:30/13:30/19:30 UTC, oven på discover 00/06/12/18), faktaark-grænsen
+20 → 60. **Det rigtige loft er `MAX_PENDING_DRAFTS` (20)** — gennemgangskøen,
+ikke tokens: løber kladderne op, pauser genereringen af sig selv.
+
+⚠️ Rangeringen gælder **nye fund**. Historier der allerede ligger i D1 beholder
+den score de blev gemt med.
+
+## 🔤 Bogstavsider til atleterne (2026-08-26) — og hvorfor .co.uk ikke er indekseret
+
+`/athletes` var 2.343 links på én upagineret side, og den eneste vej ind til
+profilerne. Nu har hvert forbogstav sin egen side (`/athletes/a` · `/atleter/a`)
+med egen overskrift, indledning, metadata og alfabet-navigation; oversigten har
+fået alfabetet og en kort indledning.
+
+- Alfabetet er **sprogpakkens** (`alphabet` i `LanguagePack`) — dansk slutter på
+  Æ Ø Å, og Ø bliver til `/atleter/oe` gennem samme translitteration som
+  atleternes egne slugs. Engelsk stopper ved Z.
+- Bogstavet slås op **FØR** profilen i `[...segments]`. Ufarligt: en atlet-slug
+  er altid `fornavn-efternavn`, og `letterFromSlug` accepterer kun bogstaver der
+  står i sprogets alfabet.
+- Opdelingen sker i JS, ikke SQL: SQLite's `upper()` er ASCII-only og ville
+  lægge "Østergaard" uden for alfabetet.
+- **Bogstaver uden atleter er tekst, ikke links, udelades af sitemappet og
+  404'er hvis adressen gættes.** En tom side med 200 er en soft-404.
+
+**Hvorfor sitemappet har ~3.000 sider og næsten ingen er indekseret:** det er
+ikke teknisk. robots.txt tillader (dark launch er slået fra), canonicals er
+selvrefererende og rigtige, sitemappet er meldt korrekt, og der er NUL
+slug-overlap med .dk — altså intet dublet-problem. Problemet er hvad siderne
+indeholder: af 2.343 britiske atleter har **355 et foto (15%), 16 en artikel
+(0,7%) og 9 en profiltekst (0,4%)**. Resten er navn + skole + sportsgren på en
+skabelon, på et domæne der er tre uger gammelt. Det er lærebogs-"Crawled –
+currently not indexed". Bogstavsiderne og foto-køen er de to greb der flytter
+det; profilteksterne er begrænset af godkendelseskøen, ikke af generering.
+
+⚠️ **`GOOGLE_SEARCH_CONSOLE_KEY` er stadig ikke sat**, så ovenstående er udledt
+af sidernes indhold, ikke læst hos Google. `./scripts/search-console.sh` ville
+give status pr. URL direkte.
+
+🧹 **Datafund undervejs**: `athletes` har en aktiv række ved navn "Jr."
+(id 815, slug `jr`, home_country UK) — et parser-artefakt. Den optræder i
+sitemappet som en rigtig profil. Kræver en D1-skrivning, så den ligger urørt.
 
 ## 🔄 Transfers er data nu (2026-08-22) — migration 045
 
