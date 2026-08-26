@@ -167,7 +167,6 @@ export type UiKey =
   | "athletes.letter_meta_description"
   | "athletes.letter_intro"
   | "athletes.letter_count"
-  | "athletes.letter_none"
   | "athletes.letter_back"
   // Universitetsoversigten
   | "schools.meta_title"

@@ -48,11 +48,8 @@ export function AthleteLetterPage({
 
       <AthleteLetterNav alphabet={alphabet} counts={counts} active={letter} lang={lang} />
 
-      {athletes.length > 0 ? (
-        <CardGrid athletes={athletes} lang={lang} />
-      ) : (
-        <p className="text-muted py-20 text-center">{t("athletes.letter_none", lang)}</p>
-      )}
+      {/* Ingen tom-tilstand: ruten 404'er et bogstav uden atleter. */}
+      <CardGrid athletes={athletes} lang={lang} />
     </main>
   );
 }

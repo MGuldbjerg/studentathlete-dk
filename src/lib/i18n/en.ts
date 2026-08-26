@@ -446,7 +446,6 @@ const ui: LanguagePack["ui"] = {
   "athletes.letter_intro":
     "Every British athlete we follow whose name begins with {letter}. Open an athlete for their university, sport and the articles we have written.",
   "athletes.letter_count": "{n} athletes",
-  "athletes.letter_none": "No athletes with this initial yet.",
   "athletes.letter_back": "All athletes",
 
   "schools.meta_title": "Universities with British athletes",

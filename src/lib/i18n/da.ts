@@ -456,7 +456,6 @@ const ui: LanguagePack["ui"] = {
   "athletes.letter_intro":
     "Alle danske atleter vi følger, hvis navn begynder med {letter}. Klik en atlet for skole, sportsgren og de artikler vi har skrevet.",
   "athletes.letter_count": "{n} atleter",
-  "athletes.letter_none": "Ingen atleter med dette forbogstav endnu.",
   "athletes.letter_back": "Alle atleter",
 
   "schools.meta_title": "Universiteter med danske atleter",

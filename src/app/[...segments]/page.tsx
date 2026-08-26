@@ -134,7 +134,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     // kun bogstaver der står i sprogets eget alfabet.
     if (isRoute("athletes", "atleter")) {
       const letter = letterFromSlug(slug, lang);
-      if (letter) {
+      if (letter && countByLetter(await getAllAthletes(), lang).get(letter)) {
         const url = `${base}${getAthleteLetterUrl(letter, lang)}`;
         const description = t("athletes.letter_meta_description", lang, { letter });
         return {
@@ -352,10 +352,15 @@ export default async function DynamicPage({ params }: { params: Params }) {
         // oversigten. Opdelingen sker i JS, fordi SQLite's `upper()` er
         // ASCII-only og ville lægge "Østergaard" uden for alfabetet.
         const all = await getAllAthletes();
+        const forLetter = athletesForLetter(all, letter, lang);
+        // Et bogstav uden atleter er en tom side der svarer 200 — en soft-404.
+        // Sitemappet udelader dem og alfabetet linker ikke til dem, men
+        // adressen kan stadig gættes, og så skal svaret være ærligt.
+        if (forLetter.length === 0) notFound();
         return (
           <AthleteLetterPage
             letter={letter}
-            athletes={athletesForLetter(all, letter, lang)}
+            athletes={forLetter}
             counts={countByLetter(all, lang)}
             alphabet={alphabetFor(lang)}
             lang={lang}
