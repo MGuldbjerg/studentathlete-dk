@@ -446,7 +446,14 @@ const ui: LanguagePack["ui"] = {
   "athletes.letter_intro":
     "Every British athlete we follow whose name begins with {letter}. Open an athlete for their university, sport and the articles we have written.",
   "athletes.letter_count": "{n} athletes",
-  "athletes.letter_back": "All athletes",
+  "athletes.letter_back": "Athlete overview",
+  "athletes.all_link": "See the full list",
+  "athletes.all_h1": "All British athletes",
+  "athletes.all_meta_title": "All British athletes",
+  "athletes.all_meta_description":
+    "The full list of British student athletes at American universities — sort by sport, name or university.",
+  "athletes.all_intro":
+    "The full list on one page. Sort by sport, name or university, or go back and jump in at an initial.",
 
   "schools.meta_title": "Universities with British athletes",
   "schools.meta_description":
@@ -540,6 +547,7 @@ export const en: LanguagePack = {
   sportLabel,
   sportSlug,
   routes: { athletes: "athletes", schools: "schools", guides: "guides", archive: "articles" },
+  subroutes: { athletesAll: "all" },
   params: { page: "page", source: "source" },
   articleTypeLabel,
   positionPhrase,

@@ -57,6 +57,7 @@ jobs:
             pipeline/scrape/_team-discovery-test.ts \
             pipeline/scrape/_athletics-site-test.ts \
             pipeline/scrape/parsers/_roster-api-test.ts \
+            pipeline/scrape/parsers/_sidearm-test.ts \
             pipeline/social/_social-test.ts \
             pipeline/report/_search-console-test.ts \
             pipeline/profiles/_profile-drafts-test.ts \

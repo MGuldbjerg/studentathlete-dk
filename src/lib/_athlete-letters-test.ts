@@ -11,6 +11,7 @@ import {
   countByLetter,
   athletesForLetter,
   getAthleteLetterUrl,
+  athletesAllPath,
 } from "./athlete-letters";
 import type { Athlete } from "./types";
 
@@ -85,6 +86,14 @@ eq(athletesForLetter(roster, "Q", "da").length, 0, "tomt bogstav giver tom liste
 // countByLetter tager en let projektion, ikke en hel Athlete — sitemappet
 // tæller uden at hente hele rækken.
 eq(countByLetter([{ name: "Test Testesen" }], "da").get("T"), 1, "projektion er nok");
+
+// ── Hele listen ligger på sprogets eget ord ────────────────────────────
+eq(athletesAllPath("en"), "/athletes/all", "engelsk: /athletes/all");
+eq(athletesAllPath("da"), "/atleter/alle", "dansk: /atleter/alle");
+// Sluggen må ikke kunne forveksles med et bogstav — ellers ville rækkefølgen
+// i ruten afgøre hvilken side der vandt.
+eq(letterFromSlug("all", "en"), null, "'all' er ikke et bogstav");
+eq(letterFromSlug("alle", "da"), null, "'alle' er ikke et bogstav");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

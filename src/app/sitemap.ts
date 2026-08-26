@@ -6,7 +6,7 @@ import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
 import { archivePath } from "@/lib/routes";
 import { routePath } from "@/lib/i18n";
-import { alphabetFor, countByLetter, getAthleteLetterUrl } from "@/lib/athlete-letters";
+import { alphabetFor, athletesAllPath, countByLetter, getAthleteLetterUrl } from "@/lib/athlete-letters";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -36,6 +36,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
+    },
+    {
+      url: `${base}${athletesAllPath(lang)}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.6,
     },
     {
       url: `${base}${routePath("guides", lang)}`,

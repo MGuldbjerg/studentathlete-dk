@@ -77,24 +77,96 @@ export function parseSidearm(html: string): RosterEntry[] {
 
   // Fallback: Sidearm table-baserede rosters
   if (players.length === 0) {
-    $("table.sidearm-table tbody tr, table[class*='roster'] tbody tr").each(
-      (_, row) => {
-        const cells = $(row).find("td");
-        if (cells.length < 2) return;
+    $("table.sidearm-table, table[class*='roster']").each((_, table) => {
+      const headers: string[] = [];
+      $(table)
+        .find("thead th, thead td, tr:first-child th")
+        .each((_, th) => {
+          headers.push($(th).text());
+        });
+      const columns = mapColumns(headers);
 
-        // Typisk rækkefølge: #, Name, Pos, Yr, Hometown, HS
-        const name = cells.eq(1).text().trim();
-        const position = cells.length > 2 ? cells.eq(2).text().trim() : null;
-        const year = cells.length > 3 ? cells.eq(3).text().trim() : null;
-        const hometown = cells.length > 4 ? cells.eq(4).text().trim() : null;
-        const bioUrl = cells.eq(1).find("a").first().attr("href")?.trim() || null;
+      $(table)
+        .find("tbody tr")
+        .each((_, row) => {
+          const cells = $(row).find("td");
+          if (cells.length < 2) return;
 
-        if (name && name !== "Name") {
-          players.push({ name, position, hometown, year, bioUrl });
-        }
-      },
-    );
+          const cell = (idx: number | null): string | null => {
+            if (idx === null || idx < 0 || idx >= cells.length) return null;
+            const text = cells.eq(idx).text().trim();
+            return text || null;
+          };
+
+          const name = cell(columns.name);
+          if (!name || name === "Name") return;
+
+          const bioUrl =
+            (columns.name !== null
+              ? cells.eq(columns.name).find("a").first().attr("href")?.trim()
+              : undefined) || null;
+
+          players.push({
+            name,
+            position: cell(columns.position),
+            year: cell(columns.year),
+            hometown: cell(columns.hometown),
+            bioUrl,
+          });
+        });
+    });
   }
 
   return players;
+}
+
+/** Kolonner vi kan bruge. `null` = kolonnen findes ikke i denne tabel. */
+export interface RosterColumns {
+  name: number | null;
+  position: number | null;
+  year: number | null;
+  hometown: number | null;
+}
+
+/** Normalisér en overskrift: små bogstaver, ingen tegnsætning eller mellemrum. */
+function normalizeHeader(text: string): string {
+  return text.toLowerCase().replace(/[^a-z]/g, "");
+}
+
+/**
+ * Find kolonnerne ud fra tabellens EGEN overskriftsrække.
+ *
+ * Her lå en rigtig fejl indtil 2026-08-26: kolonnerne var hardkodet til
+ * `#, Name, Pos, Yr, Hometown` — mønstret på en holdsport-roster med
+ * trøjenummer forrest. Iona University's golf-roster har ingen nummerkolonne
+ * (`Name, Yr., Ht., Wt., Hometown / High School, Major`), så hver eneste
+ * værdi rykkede én plads: Freddie Tucker blev indlæst som atleten "Jr." med
+ * positionen "6-0" (hans højde) og årgangen "175" (hans vægt). Han lå på
+ * sitet som en profil ved navn "Jr." i to uger.
+ *
+ * Overskrifterne matches PRÆCIST nok til at "Ht." (højde) ikke kan forveksles
+ * med "Hometown", og "Wt." ikke med noget som helst.
+ */
+export function mapColumns(rawHeaders: string[]): RosterColumns {
+  const headers = rawHeaders.map(normalizeHeader);
+
+  const find = (test: (h: string) => boolean): number | null => {
+    const idx = headers.findIndex(test);
+    return idx === -1 ? null : idx;
+  };
+
+  const columns: RosterColumns = {
+    name: find((h) => h === "name" || h === "player" || h === "athlete" || h === "fullname"),
+    position: find((h) => h === "pos" || h === "position"),
+    year: find((h) => h === "yr" || h === "cl" || h === "class" || h === "year" || h === "academicyear"),
+    hometown: find((h) => h.startsWith("hometown") || h.startsWith("homecity")),
+  };
+
+  // Ingen brugbar overskrift (tabellen har intet thead) → det gamle mønster.
+  // Det er stadig det rigtige gæt for en nummereret holdsport-roster.
+  if (columns.name === null) {
+    return { name: 1, position: 2, year: 3, hometown: 4 };
+  }
+
+  return columns;
 }

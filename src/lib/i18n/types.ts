@@ -11,6 +11,13 @@ export type RouteKey = "athletes" | "schools" | "guides" | "archive";
 /** Læservendte query-parametre. */
 export type ParamKey = "page" | "source";
 
+/**
+ * Undersider med eget slug under en sektion. `athletesAll` er hele
+ * atletlisten (`/athletes/all` · `/atleter/alle`) — sektionsforsiden er et
+ * niveau over den og præsenterer akserne i stedet for listen selv.
+ */
+export type SubRouteKey = "athletesAll";
+
 export interface LanguagePack {
   /** ISO 639-1, fx "da". */
   code: string;
@@ -26,6 +33,8 @@ export interface LanguagePack {
    * ser, står her. Uden dette lå britiske sider på /atleter og /viden.
    */
   routes: Record<RouteKey, string>;
+  /** Undersider med eget slug. Læservendt — derfor sprogpakkens ansvar. */
+  subroutes: Record<SubRouteKey, string>;
   /**
    * Query-parametre der er læservendte, fordi de står i delte links:
    * `?side=2` / `?page=2` og `?kilde=ig` / `?source=ig`.
@@ -168,6 +177,11 @@ export type UiKey =
   | "athletes.letter_intro"
   | "athletes.letter_count"
   | "athletes.letter_back"
+  | "athletes.all_link"
+  | "athletes.all_h1"
+  | "athletes.all_meta_title"
+  | "athletes.all_meta_description"
+  | "athletes.all_intro"
   // Universitetsoversigten
   | "schools.meta_title"
   | "schools.meta_description"

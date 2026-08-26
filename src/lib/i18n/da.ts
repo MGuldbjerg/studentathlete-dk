@@ -456,7 +456,14 @@ const ui: LanguagePack["ui"] = {
   "athletes.letter_intro":
     "Alle danske atleter vi følger, hvis navn begynder med {letter}. Klik en atlet for skole, sportsgren og de artikler vi har skrevet.",
   "athletes.letter_count": "{n} atleter",
-  "athletes.letter_back": "Alle atleter",
+  "athletes.letter_back": "Atlet-oversigten",
+  "athletes.all_link": "Se hele listen",
+  "athletes.all_h1": "Alle danske atleter",
+  "athletes.all_meta_title": "Alle danske atleter",
+  "athletes.all_meta_description":
+    "Hele listen over danske student athletes på amerikanske universiteter — sortér efter sportsgren, navn eller skole.",
+  "athletes.all_intro":
+    "Hele listen på én side. Sortér efter sportsgren, navn eller skole, eller gå tilbage og spring ind på et forbogstav.",
 
   "schools.meta_title": "Universiteter med danske atleter",
   "schools.meta_description":
@@ -551,6 +558,7 @@ export const da: LanguagePack = {
   sportLabel,
   sportSlug,
   routes: { athletes: "atleter", schools: "skoler", guides: "viden", archive: "artikler" },
+  subroutes: { athletesAll: "alle" },
   params: { page: "side", source: "kilde" },
   articleTypeLabel,
   positionPhrase,

@@ -13,7 +13,7 @@
  * sortering/opdeling i JS håndterer Æ/Ø/Å rigtigt. SQLite's `upper()` er
  * ASCII-only og ville lægge "Østergaard" i en rest-bunke.
  */
-import { languagePack, routePath } from "./i18n";
+import { languagePack, routePath, subRoutePath } from "./i18n";
 import { generateSlug } from "./slug";
 import type { Athlete } from "./types";
 
@@ -100,4 +100,9 @@ export function athletesForLetter(
  */
 export function getAthleteLetterUrl(letter: string, lang: string): string {
   return `${routePath("athletes", lang)}/${letterSlug(letter, lang)}`;
+}
+
+/** Hele listen: `/athletes/all` · `/atleter/alle`. */
+export function athletesAllPath(lang: string): string {
+  return subRoutePath("athletesAll", lang);
 }

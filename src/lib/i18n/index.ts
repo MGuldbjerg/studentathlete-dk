@@ -9,8 +9,8 @@ import { da } from "./da";
 import { en } from "./en";
 import { SPORT_KEYS, type SportKey, isSportKey } from "../sports";
 
-export type { LanguagePack, UiKey, RouteKey, ParamKey } from "./types";
-import type { UiKey, RouteKey, ParamKey } from "./types";
+export type { LanguagePack, UiKey, RouteKey, ParamKey, SubRouteKey } from "./types";
+import type { UiKey, RouteKey, ParamKey, SubRouteKey } from "./types";
 
 export const LANGUAGES: Record<string, LanguagePack> = { da, en };
 
@@ -126,6 +126,19 @@ export function routeKeyFromSlug(slug: string): RouteKey | null {
     }
   }
   return null;
+}
+
+/** Undersidens slug på et sprog: `subRouteSlug("athletesAll", "da")` → "alle". */
+export function subRouteSlug(key: SubRouteKey, lang: string): string {
+  return languagePack(lang).subroutes[key];
+}
+
+/**
+ * Undersidens fulde sti. `athletesAll` hænger under atlet-sektionen, så
+ * stien er sektionens sti + undersidens slug — begge sprogets egne.
+ */
+export function subRoutePath(key: SubRouteKey, lang: string): string {
+  return `${routePath("athletes", lang)}/${subRouteSlug(key, lang)}`;
 }
 
 /** Læservendt query-parameter på et sprog: `?side=` / `?page=`. */

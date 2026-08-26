@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
   getAllAthletes,
+  getAlumniAthletes,
   getAthleteBySlug,
   getAthleteSlugByAlias,
   getArticlesByAthleteId,
@@ -24,11 +26,14 @@ import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { AthleteLetterPage } from "@/components/athletes/AthleteLetterPage";
 import {
   alphabetFor,
+  athletesAllPath,
   athletesForLetter,
   countByLetter,
   getAthleteLetterUrl,
   letterFromSlug,
 } from "@/lib/athlete-letters";
+import { AthleteFullList, parseSort } from "@/components/athletes/AthleteFullList";
+import { subRouteSlug, routePath } from "@/lib/i18n";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
 import { NewsTemplate } from "@/components/templates/NewsTemplate";
@@ -39,6 +44,7 @@ import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminEditButton } from "@/components/AdminEditButton";
 
 type Params = Promise<{ segments: string[] }>;
+type Search = Promise<{ sort?: string }>;
 
 // Sport-landingsindhold: D1-override (redigerbar i admin) over kode-default.
 async function resolveSportContent(slug: string): Promise<SportContent | null> {
@@ -127,6 +133,26 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     // frem for en 404.
     const isRoute = (key: "athletes" | "schools" | "guides" | "archive", physical: string) =>
       prefix === physical || prefix === routeSlug(key, lang);
+
+    // /atleter|/athletes/{all|alle} → hele listen. Slås op FØRST: sluggen er
+    // sprogets eget ord, og den må aldrig kunne skygges af en atlet.
+    if (isRoute("athletes", "atleter") && slug === subRouteSlug("athletesAll", lang)) {
+      const url = `${base}${athletesAllPath(lang)}`;
+      const description = t("athletes.all_meta_description", lang);
+      return {
+        title: `${t("athletes.all_meta_title", lang)} | ${brand}`,
+        description,
+        openGraph: {
+          title: `${t("athletes.all_meta_title", lang)} | ${brand}`,
+          description,
+          type: "website",
+          siteName: brand,
+          url,
+        },
+        alternates: { canonical: url },
+        robots: await siteRobots(),
+      };
+    }
 
     // /atleter|/athletes/{bogstav} → bogstavside.
     // Slås op FØR profilen: en atlet-slug er altid "fornavn-efternavn", så et
@@ -255,7 +281,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return { title: "Side ikke fundet" };
 }
 
-export default async function DynamicPage({ params }: { params: Params }) {
+export default async function DynamicPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: Search;
+}) {
   const { segments } = await params;
 
   // ── 1 segment: /{sport} eller legacy-redirect ───────────────────────────
@@ -343,6 +375,38 @@ export default async function DynamicPage({ params }: { params: Params }) {
     // frem for en 404.
     const isRoute = (key: "athletes" | "schools", physical: string) =>
       prefix === physical || prefix === routeSlug(key, lang);
+
+    // /atleter|/athletes/{all|alle} → hele listen (før bogstav og profil)
+    if (isRoute("athletes", "atleter") && slug === subRouteSlug("athletesAll", lang)) {
+      const [active, alumni, sp] = await Promise.all([
+        getAllAthletes(),
+        getAlumniAthletes(),
+        searchParams,
+      ]);
+      return (
+        <main className="max-w-5xl mx-auto px-4 md:px-8 py-10">
+          <p className="mb-4 text-sm">
+            <Link href={routePath("athletes", lang)} className="text-muted hover:text-ink hover:underline">
+              ← {t("athletes.letter_back", lang)}
+            </Link>
+          </p>
+          <h1 className="text-3xl font-bold text-ink mb-2" style={{ fontFamily: "var(--font-serif)" }}>
+            {t("athletes.all_h1", lang)}
+          </h1>
+          <p className="text-muted text-sm mb-4">
+            {t("athletes.active_count", lang, { n: String(active.length) })}
+            {alumni.length > 0 ? ` · ${t("athletes.alumni_count", lang, { n: String(alumni.length) })}` : ""}
+          </p>
+          <p className="text-ink text-sm mb-8 max-w-2xl">{t("athletes.all_intro", lang)}</p>
+          <AthleteFullList
+            active={active}
+            alumni={alumni}
+            sort={parseSort(sp.sort)}
+            lang={lang}
+          />
+        </main>
+      );
+    }
 
     // /atleter|/athletes/{bogstav} → bogstavside (før profilen, se ovenfor)
     if (isRoute("athletes", "atleter")) {
