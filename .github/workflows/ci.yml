@@ -51,6 +51,7 @@ jobs:
             pipeline/lib/_hometown-test.ts \
             pipeline/lib/_hometown-uk-test.ts \
             pipeline/lib/_athlete-identity-test.ts \
+            pipeline/lib/_d1-client-test.ts \
             pipeline/lib/_notify-test.ts \
             pipeline/lib/_robots-test.ts \
             pipeline/lib/_robots-txt-site-test.ts \

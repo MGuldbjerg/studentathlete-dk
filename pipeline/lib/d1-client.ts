@@ -18,6 +18,42 @@ export interface D1QueryResult<T = Record<string, unknown>> {
   meta: { changes: number; duration: number };
 }
 
+/** Fejl fra selve HTTP-laget bærer statuskoden med sig, så den kan vurderes. */
+interface D1HttpError extends Error {
+  status?: number;
+}
+
+/**
+ * Er fejlen forbigående — altså værd at prøve igen?
+ *
+ * Projektets egen regel for roster-scraping (se CLAUDE.md, «Fejl er ikke ét
+ * begreb») har altid sagt: 429/5xx/timeout er forbigående og SKAL prøves igen.
+ * D1-klienten fulgte ikke reglen. Den prøvede kun igen ved fejl på
+ * TRANSPORT-laget (ECONNRESET o.l.), mens et HTTP-svar på 502 fra Cloudflares
+ * kant blev kastet videre med det samme, uden ét eneste forsøg.
+ *
+ * Det væltede foto-kørslen 2026-08-26 kl. 18:33 UTC: tolv minutter inde, midt
+ * i et opslag, kom der ét `502 Bad Gateway`, og hele kørslen døde. Et enkelt
+ * blip på Cloudflares side er ikke en programmeringsfejl og skal ikke koste
+ * en kørsel — slet ikke en der behandler hundredvis af atleter i træk.
+ *
+ * 4xx (bortset fra 429) prøves IKKE igen: en forkert nøgle eller en ugyldig
+ * SQL bliver ikke rigtig af at blive sendt tre gange.
+ */
+export function isTransient(err: unknown): boolean {
+  if (err instanceof TypeError) return true;
+  if (!(err instanceof Error)) return false;
+
+  const status = (err as D1HttpError).status;
+  if (typeof status === "number") {
+    return status === 429 || status >= 500;
+  }
+
+  return /ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|socket hang up|fetch failed|network/i.test(
+    err.message,
+  );
+}
+
 export class D1Client {
   private baseUrl: string;
 
@@ -54,7 +90,9 @@ export class D1Client {
 
         if (!response.ok) {
           const text = await response.text();
-          throw new Error(`D1 API fejl (${response.status}): ${text}`);
+          const err = new Error(`D1 API fejl (${response.status}): ${text}`);
+          (err as D1HttpError).status = response.status;
+          throw err;
         }
 
         const data = (await response.json()) as D1Response<T>;
@@ -65,15 +103,10 @@ export class D1Client {
 
         return data.result[0];
       } catch (err) {
-        const isNetworkError =
-          err instanceof TypeError ||
-          (err instanceof Error &&
-            /ECONNRESET|ETIMEDOUT|fetch failed|network/i.test(err.message));
-
-        if (isNetworkError && attempt < maxRetries - 1) {
+        if (isTransient(err) && attempt < maxRetries - 1) {
           const delay = 1000 * 2 ** attempt;
           console.warn(
-            `  D1 netværksfejl (forsøg ${attempt + 1}/${maxRetries}), prøver igen om ${delay}ms...`,
+            `  D1 forbigående fejl (forsøg ${attempt + 1}/${maxRetries}), prøver igen om ${delay}ms...`,
           );
           await new Promise((r) => setTimeout(r, delay));
           continue;
