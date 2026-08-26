@@ -435,6 +435,19 @@ const ui: LanguagePack["ui"] = {
   "athletes.hide": "▲ Hide",
   "athletes.unknown_school": "University unknown",
   "athletes.graduated_title": "Graduated {year}",
+  "athletes.intro":
+    "Every athlete has their own page with their university, sport and any articles we have written about them. If the list runs long, jump in at an initial.",
+  "athletes.letter_nav_label": "Browse by initial",
+  "athletes.letter_all": "All",
+  "athletes.letter_h1": "British athletes whose name begins with {letter}",
+  "athletes.letter_meta_title": "British athletes — {letter}",
+  "athletes.letter_meta_description":
+    "British student athletes at American universities whose name begins with {letter}. University, sport and articles for each athlete.",
+  "athletes.letter_intro":
+    "Every British athlete we follow whose name begins with {letter}. Open an athlete for their university, sport and the articles we have written.",
+  "athletes.letter_count": "{n} athletes",
+  "athletes.letter_none": "No athletes with this initial yet.",
+  "athletes.letter_back": "All athletes",
 
   "schools.meta_title": "Universities with British athletes",
   "schools.meta_description":
@@ -519,6 +532,9 @@ const articleTypeLabel: Record<string, string> = {
   recruiting: "Recruitment",
 };
 
+/** The English alphabet. No Æ/Ø/Å — a British name never starts with one. */
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
 export const en: LanguagePack = {
   code: "en",
   locale: "en-GB",
@@ -529,5 +545,6 @@ export const en: LanguagePack = {
   articleTypeLabel,
   positionPhrase,
   transliterate,
+  alphabet,
   ui,
 };

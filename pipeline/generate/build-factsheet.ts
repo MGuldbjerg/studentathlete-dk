@@ -64,7 +64,10 @@ const SCHEMA_HINT = `{
 
 function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxScore: boolean; boxScoreBudget: number } {
   const args = process.argv.slice(2);
-  let limit = 20;
+  // 20 → 60 (2026-08-26): faktaark-bygningen fodrer generate-articles, og med
+  // 12 artikler pr. kørsel × flere kørsler skal der være ark nok at vælge
+  // imellem. Udtrækket er ét LLM-kald pr. historie, og vi bruger ~1% af kvoten.
+  let limit = 60;
   let maxAgeDays = 14;
   let dryRun = false;
   let boxScore = true; // box-score-berigelse via CF render (slå fra med --no-boxscore)

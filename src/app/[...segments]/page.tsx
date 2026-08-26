@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
+  getAllAthletes,
   getAthleteBySlug,
   getAthleteSlugByAlias,
   getArticlesByAthleteId,
@@ -20,6 +21,14 @@ import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { sportLabel, t, sportKeyFromSlugAnyLanguage, routeSlug } from "@/lib/i18n";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
+import { AthleteLetterPage } from "@/components/athletes/AthleteLetterPage";
+import {
+  alphabetFor,
+  athletesForLetter,
+  countByLetter,
+  getAthleteLetterUrl,
+  letterFromSlug,
+} from "@/lib/athlete-letters";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
 import { NewsTemplate } from "@/components/templates/NewsTemplate";
@@ -118,6 +127,31 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     // frem for en 404.
     const isRoute = (key: "athletes" | "schools" | "guides" | "archive", physical: string) =>
       prefix === physical || prefix === routeSlug(key, lang);
+
+    // /atleter|/athletes/{bogstav} → bogstavside.
+    // Slås op FØR profilen: en atlet-slug er altid "fornavn-efternavn", så et
+    // enkelt bogstav kan ikke være en profil — og `letterFromSlug` accepterer
+    // kun bogstaver der står i sprogets eget alfabet.
+    if (isRoute("athletes", "atleter")) {
+      const letter = letterFromSlug(slug, lang);
+      if (letter) {
+        const url = `${base}${getAthleteLetterUrl(letter, lang)}`;
+        const description = t("athletes.letter_meta_description", lang, { letter });
+        return {
+          title: `${t("athletes.letter_meta_title", lang, { letter })} | ${brand}`,
+          description,
+          openGraph: {
+            title: `${t("athletes.letter_meta_title", lang, { letter })} | ${brand}`,
+            description,
+            type: "website",
+            siteName: brand,
+            url,
+          },
+          alternates: { canonical: url },
+          robots: await siteRobots(),
+        };
+      }
+    }
 
     // /atleter|/athletes/{slug} → atlet-profil
     if (isRoute("athletes", "atleter")) {
@@ -309,6 +343,26 @@ export default async function DynamicPage({ params }: { params: Params }) {
     // frem for en 404.
     const isRoute = (key: "athletes" | "schools", physical: string) =>
       prefix === physical || prefix === routeSlug(key, lang);
+
+    // /atleter|/athletes/{bogstav} → bogstavside (før profilen, se ovenfor)
+    if (isRoute("athletes", "atleter")) {
+      const letter = letterFromSlug(slug, lang);
+      if (letter) {
+        // Den fulde liste er ét indekseret opslag og hentes alligevel af
+        // oversigten. Opdelingen sker i JS, fordi SQLite's `upper()` er
+        // ASCII-only og ville lægge "Østergaard" uden for alfabetet.
+        const all = await getAllAthletes();
+        return (
+          <AthleteLetterPage
+            letter={letter}
+            athletes={athletesForLetter(all, letter, lang)}
+            counts={countByLetter(all, lang)}
+            alphabet={alphabetFor(lang)}
+            lang={lang}
+          />
+        );
+      }
+    }
 
     // /atleter|/athletes/{slug} → atlet-profil
     if (isRoute("athletes", "atleter")) {

@@ -23,7 +23,12 @@ interface AthleteRow {
 
 function parseArgs(): { limit: number; dryRun: boolean } {
   const args = process.argv.slice(2);
-  let limit = 25;
+  // 25 → 400 (2026-08-26). Trinnet er en almindelig fetch() af atletens
+  // bio-side — ingen browser-render, ingen LLM, ingen kvote. Med 50 pr. nat og
+  // 2.057 atleter der ALDRIG var tjekket, tog én runde 42 nætter, og fordi
+  // usete atleter alle deler `photo_checked_at IS NULL`, faldt sorteringen
+  // tilbage på navnet: køen viste A-navne nat efter nat (Mikkel, 2026-08-26).
+  let limit = 400;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) {
       const n = parseInt(args[i + 1], 10);

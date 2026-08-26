@@ -46,6 +46,7 @@ jobs:
             pipeline/discover/_extract-story-test.ts \
             pipeline/discover/_sensitive-test.ts \
             pipeline/discover/_honors-test.ts \
+            pipeline/discover/_story-kind-test.ts \
             pipeline/learn/_mine-edits-test.ts \
             pipeline/lib/_hometown-test.ts \
             pipeline/lib/_hometown-uk-test.ts \
@@ -67,6 +68,7 @@ jobs:
             src/lib/_gender-test.ts \
             src/lib/_site-content-test.ts \
             src/lib/_ui-strings-test.ts \
+            src/lib/_athlete-letters-test.ts \
             src/lib/_youtube-test.ts \
             src/lib/_profile-baseline-test.ts \
             src/lib/_profile-baseline-en-test.ts \

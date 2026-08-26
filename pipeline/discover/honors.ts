@@ -2,10 +2,16 @@
  * Honors-detektor: genkender ugentlige konference-hædersbevisninger
  * ("Player of the Week" m.fl.) i en nyhedsoverskrift/-tekst.
  *
- * Hvorfor: hædersbevisninger er stærke artikel-triggere — de er individuelle,
- * navngiver atleten og er knyttet til en navngiven konference. Vi BOOSTER derfor
- * deres relevance_score (se extract-story.extractStoriesForSchool), så
- * generate-articles prioriterer dem fremfor rutine-referater.
+ * Hvorfor: hædersbevisninger navngiver atleten og er knyttet til en navngiven
+ * konference, så de er nemme at verificere. Detektoren bruges nu KUN til at
+ * klassificere historien (se story-kind.ts) — den giver ikke længere et
+ * relevance-boost.
+ *
+ * Boostet (HONORS_BOOST = 15) er fjernet 2026-08-26. Det løftede enhver
+ * hædersbevisning til 100 og dermed forbi ethvert referat (maks 90), hver
+ * eneste kørsel. Med fem artikler pr. kørsel betød det, at kladdekøen blev
+ * forsæsons-notitser og aldrig kampreferater. Rangeringen ligger nu i
+ * story-kind.ts, hvor referatet er det der boostes.
  *
  * Kilde: skolens eget nyhedsfeed (allerede overvåget i check-sources) — skolen
  * poster typisk selv "X kåret til Conference Player of the Week". Konference-feeds
@@ -68,11 +74,3 @@ export function detectHonor(text: string | null | undefined): HonorMatch | null 
   }
   return null;
 }
-
-/**
- * Relevance-boost der lægges oven i navne-matchets score når historien er en
- * hædersbevisning. Kappes ved 100 af kalderen. 15 er nok til at løfte en
- * "kun efternavn"-match (35) komfortabelt over MIN_RELEVANCE og til at lade
- * honors-historier slå rutine-referater (fuldt navn = 90) i prioritet.
- */
-export const HONORS_BOOST = 15;

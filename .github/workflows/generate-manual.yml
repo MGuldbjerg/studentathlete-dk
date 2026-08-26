@@ -3,7 +3,13 @@ name: Generer artikler
 on:
   # Automatisk: én gang dagligt kl. 07:00 UTC (efter morgen-discovery)
   schedule:
+    # Tre gange dagligt siden 2026-08-26 (var: kun 07:30). Discover kører
+    # 00/06/12/18 UTC, så 07:30/13:30/19:30 skriver oven på et friskt fund i
+    # stedet for at lade det ligge et døgn. Gennemgangskøen er den reelle
+    # bremse — generate-articles pauser selv ved MAX_PENDING_DRAFTS (20).
     - cron: '30 7 * * *'
+    - cron: '30 13 * * *'
+    - cron: '30 19 * * *'
   # Manuelt: kan altid trigges fra GitHub eller admin-panelet
   workflow_dispatch:
     inputs:

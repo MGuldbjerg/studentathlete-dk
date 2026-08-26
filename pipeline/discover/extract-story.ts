@@ -4,7 +4,8 @@
  */
 
 import * as cheerio from "cheerio";
-import { detectHonor, HONORS_BOOST } from "./honors";
+import { detectHonor } from "./honors";
+import { detectStoryKind, relevanceAdjustment } from "./story-kind";
 import { detectSensitive } from "./sensitive";
 import { pipelineUserAgent } from "../../src/lib/site";
 
@@ -511,9 +512,13 @@ export async function extractStoriesForSchool(
     const searchText = `${item.title} ${item.description} ${item.link}`;
     const matches = matchAthletes(searchText, athletes);
 
-    // Hædersbevisninger ("Player of the Week" m.fl.) er stærke artikel-triggere
-    // → boost relevance så generate-articles prioriterer dem. Se honors.ts.
+    // Historie-typen styrer rangeringen i begge køer. Indtil 2026-08-26
+    // boostede vi hædersbevisninger (+15), hvilket gjorde dem strukturelt
+    // bedre end ethvert referat — og med fem artikler pr. kørsel nåede
+    // referaterne aldrig frem. Nu er det omvendt: referatet forrest,
+    // forsæsons-notitsen bagerst. Se story-kind.ts.
     const honor = detectHonor(`${item.title} ${item.description}`);
+    const kind = detectStoryKind(`${item.title} ${item.description}`, honor !== null);
     // Presseetik-flag: anholdelse/disciplin/spilleberettigelse/dødsfald m.m.
     // kræver ekstra kritisk review + nøgtern generering. Se sensitive.ts.
     const sensitive = detectSensitive(`${item.title} ${item.description}`);
@@ -530,9 +535,10 @@ export async function extractStoriesForSchool(
         summary: item.description || null,
         content: null,
         athlete_id: athlete.id,
-        relevance_score: honor
-          ? Math.min(100, relevance_score + HONORS_BOOST)
-          : relevance_score,
+        relevance_score: Math.min(
+          100,
+          relevance_score + relevanceAdjustment(kind.kind),
+        ),
         sensitive: sensitive?.type ?? null,
       });
     }

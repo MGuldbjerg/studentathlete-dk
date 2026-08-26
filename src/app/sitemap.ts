@@ -6,6 +6,7 @@ import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
 import { archivePath } from "@/lib/routes";
 import { routePath } from "@/lib/i18n";
+import { alphabetFor, countByLetter, getAthleteLetterUrl } from "@/lib/athlete-letters";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -87,6 +88,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
+  // Bogstavsiderne (/athletes/a). KUN bogstaver der faktisk har aktive
+  // atleter — et sitemap der peger på tomme sider er soft-404'er, og dem har
+  // et ungt domæne ikke råd til. Alumni tæller ikke med: bogstavsiden viser
+  // den aktive liste, præcis som oversigten.
+  const letterCounts = countByLetter(athletes.filter((a) => a.active === 1), lang);
+  const letterPages: MetadataRoute.Sitemap = alphabetFor(lang)
+    .filter((letter) => (letterCounts.get(letter) ?? 0) > 0)
+    .map((letter) => ({
+      url: `${base}${getAthleteLetterUrl(letter, lang)}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+
   const athletePages: MetadataRoute.Sitemap = athletes.map((a) => ({
     url: `${base}${getAthleteUrl(a.slug, lang)}`,
     lastModified: new Date(a.updated_at),
@@ -100,5 +115,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticPages, ...guidePages, ...sportPages, ...articlePages, ...athletePages, ...schoolPages];
+  return [...staticPages, ...guidePages, ...sportPages, ...letterPages, ...articlePages, ...athletePages, ...schoolPages];
 }

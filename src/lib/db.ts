@@ -652,21 +652,26 @@ export async function getAllArticleSlugs(country?: string): Promise<
   } catch { return []; }
 }
 
+/**
+ * Alle atlet-slugs til sitemappet — bÅDE aktive og alumni, for begge har en
+ * profilside. `name` og `active` er med, fordi sitemappet også skal kunne
+ * udlede hvilke BOGSTAVSIDER der findes (kun bogstaver med aktive atleter).
+ */
 export async function getAllAthleteSlugs(country?: string): Promise<
-  { slug: string; updated_at: string }[]
+  { slug: string; updated_at: string; name: string; active: number }[]
 > {
   const db = await getDB();
   if (!db) {
     return MOCK_ATHLETES
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((a) => ({ slug: a.slug, updated_at: a.updated_at }));
+      .map((a) => ({ slug: a.slug, updated_at: a.updated_at, name: a.name, active: a.active }));
   }
   try {
     const r = await db
-      .prepare("SELECT slug, updated_at FROM athletes WHERE home_country = ? ORDER BY name")
+      .prepare("SELECT slug, updated_at, name, active FROM athletes WHERE home_country = ? ORDER BY name")
       .bind(await siteCountry(country))
       .all();
-    return (r.results ?? []) as { slug: string; updated_at: string }[];
+    return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number }[];
   } catch { return []; }
 }
 

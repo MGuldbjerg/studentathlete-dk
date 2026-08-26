@@ -62,7 +62,7 @@ jobs:
       - run: npm ci
 
       - name: Foreslå atletfotos fra bio-sider
-        run: npx tsx pipeline/scrape/suggest-photos.ts --limit 50
+        run: npx tsx pipeline/scrape/suggest-photos.ts --limit 200
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -34,7 +34,7 @@ jobs:
       - name: Foreslå profilbilleder fra nye bio-links
         # Plain fetch (ingen browser-kvote) → henter og:image-headshot fra de bio-sider
         # scraperen lige har udfyldt, og lægger dem i godkendelseskøen (admin → Fotos).
-        run: npx tsx pipeline/scrape/suggest-photos.ts --limit 50
+        run: npx tsx pipeline/scrape/suggest-photos.ts --limit 200
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

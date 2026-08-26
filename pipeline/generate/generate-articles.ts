@@ -117,8 +117,14 @@ function buildPrompt(
 }
 
 // ─── Sikkerhedsnet ──────────────────────────────────────────────────────────
-// Maks antal artikler per kørsel (forhindrer løbsk token-forbrug)
-const MAX_ARTICLES_PER_RUN = 5;
+// Maks antal artikler per kørsel (forhindrer løbsk token-forbrug).
+// Hævet 5 → 12 den 2026-08-26. Fem pladser om dagen var langt under BÅDE
+// gratis-kvoten (målt forbrug var 2-32 LLM-kald/dag mod ~2.650 tilgængelige)
+// og køens længde: 20 færdige faktaark ventede, så en historie lå fire-fem
+// dage før den blev skrevet — derfor de gamle kilder i kladderne.
+// Det RIGTIGE loft er MAX_PENDING_DRAFTS nedenfor: gennemgangskøen, ikke
+// tokens. Løber kladderne op, pauser genereringen af sig selv.
+const MAX_ARTICLES_PER_RUN = 12;
 // Maks antal kladder der må ligge ugodkendt (pause hvis for mange hober sig op)
 const MAX_PENDING_DRAFTS = 20;
 

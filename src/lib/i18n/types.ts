@@ -42,6 +42,13 @@ export interface LanguagePack {
   /** Tegn der skal skrives om i slugs (æ→ae, ü→ue, …). */
   transliterate: Record<string, string>;
   /**
+   * Sprogets alfabet, i sprogets egen rækkefølge. Driver bogstavsiderne
+   * (/athletes/a). Dansk slutter på Æ Ø Å; engelsk stopper ved Z. Et bogstav
+   * der ikke står her, får ingen side — derfor er listen sprogpakkens ansvar
+   * og ikke en A-Z-løkke i en komponent.
+   */
+  alphabet: string[];
+  /**
    * Læservendte UI-strenge. Nøglerne er sprogfri id'er; teksten står her.
    *
    * Bevidst FLAD og eksplicit frem for indlejrede objekter: `_ui-test.ts`
@@ -152,6 +159,16 @@ export type UiKey =
   | "athletes.hide"
   | "athletes.unknown_school"
   | "athletes.graduated_title"
+  | "athletes.intro"
+  | "athletes.letter_nav_label"
+  | "athletes.letter_all"
+  | "athletes.letter_h1"
+  | "athletes.letter_meta_title"
+  | "athletes.letter_meta_description"
+  | "athletes.letter_intro"
+  | "athletes.letter_count"
+  | "athletes.letter_none"
+  | "athletes.letter_back"
   // Universitetsoversigten
   | "schools.meta_title"
   | "schools.meta_description"

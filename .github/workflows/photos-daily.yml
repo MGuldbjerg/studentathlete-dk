@@ -1,0 +1,60 @@
+name: Foto-forslag
+
+# Dræner foto-køen. Egen workflow siden 2026-08-26: trinnet lå før kun som en
+# hale på weekly-scrape og daily-js-scrape med `--limit 50`, og med 2.057
+# atleter der aldrig var tjekket tog én runde 42 nætter. Fordi alle usete
+# atleter deler `photo_checked_at IS NULL`, faldt sorteringen tilbage på
+# navnet — køen viste A-navne nat efter nat.
+#
+# Trinnet er en almindelig fetch() af atletens bio-side: ingen browser-render,
+# ingen LLM, ingen kvote. Det eneste loft er kørselstid.
+#
+# 09:40 og 16:40 UTC — frit af js-scrape (03:00), morgen-klyngen (06:30/07:00/
+# 07:30), discover (00/06/12/18), katalog (21:00) og weekly-scrape (22:00).
+on:
+  schedule:
+    - cron: '40 9 * * *'
+    - cron: '40 16 * * *'
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Antal atleter at tjekke i denne kørsel"
+        required: false
+        default: '400'
+
+jobs:
+  suggest:
+    runs-on: ubuntu-latest
+    # Rigeligt til 400 hentninger. Et timeout er ufarligt: `photo_checked_at`
+    # stemples PR. ATLET undervejs, så en afbrudt kørsel taber ikke fremdrift —
+    # næste kørsel fortsætter bagfra i køen.
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Foreslå headshots fra bio-sider
+        run: npx tsx pipeline/scrape/suggest-photos.ts --limit ${{ inputs.limit || '400' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      # Kun ved fejl. Forslagene er dashboard-elementer (admin → Fotos) og
+      # taler for sig selv — samme princip som discover-daily.
+      - name: Discord-notifikation ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Foto-forslag fejlede\",\"description\":\"Køen i admin → Fotos blev ikke fyldt op. [Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

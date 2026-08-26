@@ -445,6 +445,19 @@ const ui: LanguagePack["ui"] = {
   "athletes.hide": "▲ Skjul",
   "athletes.unknown_school": "Ukendt skole",
   "athletes.graduated_title": "Færdiguddannet {year}",
+  "athletes.intro":
+    "Hver atlet har sin egen side med skole, sportsgren og de artikler vi har skrevet om dem. Er listen lang, så spring ind på forbogstavet.",
+  "athletes.letter_nav_label": "Find på forbogstav",
+  "athletes.letter_all": "Alle",
+  "athletes.letter_h1": "Danske atleter med forbogstavet {letter}",
+  "athletes.letter_meta_title": "Danske atleter — {letter}",
+  "athletes.letter_meta_description":
+    "Danske student athletes på amerikanske universiteter med forbogstavet {letter}. Skole, sportsgren og artikler for hver atlet.",
+  "athletes.letter_intro":
+    "Alle danske atleter vi følger, hvis navn begynder med {letter}. Klik en atlet for skole, sportsgren og de artikler vi har skrevet.",
+  "athletes.letter_count": "{n} atleter",
+  "athletes.letter_none": "Ingen atleter med dette forbogstav endnu.",
+  "athletes.letter_back": "Alle atleter",
 
   "schools.meta_title": "Universiteter med danske atleter",
   "schools.meta_description":
@@ -527,6 +540,12 @@ const articleTypeLabel: Record<string, string> = {
   recruiting: "Rekruttering",
 };
 
+/** Det danske alfabet: A-Z plus Æ Ø Å, i dansk rækkefølge. */
+const alphabet = [
+  ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+  "Æ", "Ø", "Å",
+];
+
 export const da: LanguagePack = {
   code: "da",
   locale: "da-DK",
@@ -537,5 +556,6 @@ export const da: LanguagePack = {
   articleTypeLabel,
   positionPhrase,
   transliterate,
+  alphabet,
   ui,
 };
