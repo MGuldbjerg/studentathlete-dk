@@ -7,6 +7,46 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🔍 Search Console svarer nu — og svaret var et andet end vi troede (2026-08-26)
+
+Propertyerne er verificeret og service-kontoen har adgang til begge.
+`./scripts/search-console.sh` virker. Første kørsel rettede to antagelser:
+
+**1. «0 indekseret» i sitemap-rapporten betyder ingenting.** .dk står med
+«518 indsendt, **0 indekseret**» — og .dk er åbenlyst indekseret: 112 klik og
+2.467 visninger på 28 dage. Feltet `indexed` i Googles sitemaps-API har været
+dødt i årevis. **Læs det aldrig som et indekseringstal.** Brug `--inspect`.
+
+**2. .co.uk-profilerne er ikke «vurderet for tynde» — Google har aldrig set dem.**
+
+| URL | Googles svar |
+|---|---|
+| `student-athlete.co.uk/` | **Submitted and indexed**, crawlet 22-08 |
+| `/athletes/freddie-tucker` | **URL is unknown to Google** · aldrig crawlet |
+| `/athletes/a` | URL is unknown to Google (udrullet samme dag) |
+
+«Unknown to Google» er noget helt andet end «Crawled – currently not indexed».
+Det første er et **opdagelses-problem**, det andet en kvalitetsdom. Vi har det
+første. Forsiden er inde; ruten videre ind i sitet har bare ikke båret.
+
+Hvorfor: indtil i dag gik den ENESTE interne vej til en profil gennem én side
+med 2.343 links, som Google sjældent gennemgår helt. Sitemappet stod dermed
+alene om opdagelsen — 2.703 URL'er på et tre uger gammelt domæne uden
+autoritet, hvor crawl-budgettet er minimalt.
+
+**Knudepunkt-opdelingen nedenfor er altså det rigtige greb, men af en anden
+grund end antaget**: den hjælper OPDAGELSEN (to hop gennem små sider), ikke
+den oplevede kvalitet. Tyndt indhold er stadig et tema for hvad der sker EFTER
+crawlet — men det er ikke det der spærrer nu.
+
+**Modbeviset for at det skulle være strukturelt**: .dk's egne top-søgninger er
+udelukkende ATLETNAVNE — «sebastian gubi», «magnus møller», «valdemar pape
+tennis» — på position 3,8-7,7. Profil-som-pillar virker, når siderne bliver
+opdaget. .dk har 518 URL'er og er gammelt; .co.uk har 2.703 og er tre uger.
+
+⚠️ Indexing API kan IKKE bruges til almindelige sider (kun job-opslag og
+livestreams). Sitemap + intern linkning er vejen — se `SETUP-search-console.md`.
+
 ## 🧭 /athletes er nu et knudepunkt (2026-08-26)
 
 Mikkel: sektionsforsiden skal ligge et niveau OVER de målrettede sider.
