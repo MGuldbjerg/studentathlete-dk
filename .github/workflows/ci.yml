@@ -39,6 +39,7 @@ jobs:
             pipeline/generate/_identity-guard-test.ts \
             pipeline/generate/_event-timing-test.ts \
             pipeline/generate/_forward-looking-test.ts \
+            pipeline/generate/_group-stories-test.ts \
             pipeline/generate/_quality-check-test.ts \
             pipeline/generate/_draft-pack-test.ts \
             pipeline/checks/_false-transfers-test.ts \

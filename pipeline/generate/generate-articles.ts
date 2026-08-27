@@ -20,6 +20,7 @@ import { timelineForGeneration, currentSeasonStart, type AthleteEvent } from "./
 import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
 import { checkStoryIdentity, hasUnsourcedQuote } from "./identity-guard";
 import { checkEventTiming } from "./event-timing";
+import { groupBySourceAndCountry } from "./group-stories";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
 
@@ -72,11 +73,43 @@ function selectArticleType(story: StoryWithAthlete): string {
   return "news";
 }
 
+/**
+ * Instruks når ÉN kilde dækker flere af vores atleter fra SAMME land.
+ * Garantien er MEKANISK — der laves kun én artikel pr. (kilde, land) — og
+ * denne blok afgør kun HVORDAN de øvrige omtales.
+ */
+function teammatesBlock(names: string[], language: string): string {
+  const list = names.join(", ");
+  if (language === "da") {
+    return [
+      "FLERE AF VORES ATLETER I SAMME BEGIVENHED",
+      `Kilden dækker også: ${list}.`,
+      "Skriv ÉN artikel om begivenheden, ikke én pr. spiller. Nævn hver af dem",
+      "med præcis den rolle faktaarket giver dem — hverken mere eller mindre.",
+      "Giver faktaarket dem ingen rolle, så nævn dem ikke.",
+      "Overskriften skal handle om begivenheden, medmindre faktaarket viser at",
+      "ÉN var afgørende. Skriv aldrig at nogen «sikrede» eller «fyrede» holdet",
+      "frem, hvis det var en anden der scorede.",
+    ].join("\n");
+  }
+  return [
+    "SEVERAL OF OUR ATHLETES IN THE SAME EVENT",
+    `This source also covers: ${list}.`,
+    "Write ONE article about the event, not one per player. Give each of them",
+    "exactly the role the fact sheet gives them — no more, no less. If the fact",
+    "sheet gives them no role, do not mention them.",
+    "The headline must be about the event unless the fact sheet shows ONE was",
+    "decisive. Never write that someone sealed or fired the team to anything if",
+    "someone else scored.",
+  ].join("\n");
+}
+
 function buildPrompt(
   story: StoryWithAthlete,
   articleType: string,
   prompts: PromptSet,
   timeline = "",
+  teammates: StoryWithAthlete[] = [],
 ): string {
   // KILDEINDHOLD = faktaarket (fase 1). Det er det ENESTE skrivefasen må bruge.
   let factsBlock = "";
@@ -112,6 +145,9 @@ function buildPrompt(
   // review (rød badge i admin via stories.sensitive).
   if (story.sensitive) {
     prompt += `\n\n${sensitiveCareBlock(story.sensitive as SensitiveType)}`;
+  }
+  if (teammates.length > 0) {
+    prompt += `\n\n${teammatesBlock(teammates.map((t) => t.athlete_name), prompts.language)}`;
   }
   return prompt;
 }
@@ -248,6 +284,15 @@ async function main(): Promise<void> {
 
   const stories = result.results;
 
+  // Én artikel pr. (kilde, land) — se group-stories.ts for hvorfor landet er
+  // skillelinjen og ikke atleten.
+  const { primaries, companions } = groupBySourceAndCountry(stories);
+  if (primaries.length < stories.length) {
+    console.log(
+      `  ${stories.length} historier samles til ${primaries.length} artikel(er) — samme kilde og land.`,
+    );
+  }
+
   if (stories.length === 0) {
     console.log("Ingen nye historier at generere artikler fra.");
     if ((diag?.too_old ?? 0) > 0) {
@@ -267,7 +312,7 @@ async function main(): Promise<void> {
   const failuresByCountry = new Map<string, string[]>();
   let blockedByGuard = 0;
 
-  for (const story of stories) {
+  for (const story of primaries) {
     // Sikkerhedsnet 3: Tjek om der allerede findes en artikel for denne story
     const existing = await db.query<{ cnt: number }>(
       "SELECT COUNT(*) as cnt FROM articles WHERE story_id = ?",
@@ -344,7 +389,8 @@ async function main(): Promise<void> {
     // kladder fra gratis-modeller. parseArticleOutputSmart falder tilbage til
     // linjeformatet hvis en provider alligevel svarer med rå markdown.
     const systemPrompt = prompts.buildSystemPrompt(corrections, { jsonOutput: true });
-    const prompt = buildPrompt(story, articleType, prompts, timeline);
+    const mates = companions.get(story.id) ?? [];
+    const prompt = buildPrompt(story, articleType, prompts, timeline, mates);
 
     const contentSource = story.content_raw ? "content_raw" : story.summary ? "summary" : "headline only";
     console.log(
@@ -435,6 +481,21 @@ async function main(): Promise<void> {
         'UPDATE stories SET status = ?, processed_at = datetime("now") WHERE id = ?',
         ["drafted", story.id],
       );
+
+      // Søskende-historierne er DÆKKET af artiklen ovenfor. Lukkes de ikke,
+      // bliver de valgt igen næste kørsel og giver dubletten vi lige undgik.
+      // Kun ved SUCCES: fejler eller blokeres kladden, skal de kunne prøve igen.
+      for (const mate of mates) {
+        await db.execute(
+          'UPDATE stories SET status = ?, processed_at = datetime("now") WHERE id = ?',
+          ["drafted", mate.id],
+        );
+      }
+      if (mates.length > 0) {
+        console.log(
+          `    + dækker også ${mates.map((m) => m.athlete_name).join(", ")}`,
+        );
+      }
 
       generated++;
       totalTokens += response.tokens_input + response.tokens_output;
