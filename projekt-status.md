@@ -1,11 +1,62 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-26 (flaskehalse + /athletes som knudepunkt + Sidearm-kolonnefejl)
+**Sidst opdateret**: 2026-08-29 (tre kampreferater udgivet på .co.uk; dansk fjernet fra det britiske site)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 📰 Første kampreferater på .co.uk (2026-08-28) — og hvad dobbelttjekket fandt
+
+Tre referater udgivet: Corris (St. Thomas 1-1 Green Bay), Steel (Bonnies 2-0
+Niagara), Frost (Western Illinois 3-2 Quincy). Alle tre omskrevet mod kilden og
+kørt gennem `verify-article.ts` (alle «low») før udgivelse.
+
+**Tre kladder blev AFVIST**, alle med samme rod: modellen skal skrive om en
+atlet som kilden knap nævner, og fylder hullet.
+
+| Kladde | Hvorfor |
+|---|---|
+| 147 Worsfold-Gregg | Han står slet ikke i kilden. Assist på et straffespark, opdigtet stadion, og teksten indeholdt stadig pladsholderen `[head coach's name not provided in source]` |
+| 152 Ryan Holt | Opdigtet målmand («Alex Bono») og anfører («Luke Haakenson»), forkert dag, forkert hjemme/ude, forkert næste kamp — og samme kamp som Steel-referatet |
+| 160 Iesha Rollins | Rammet som sæsonpremiere og hendes «første optræden»; NSU stod 0-4 og det var hendes første MÅL. Straffesparket faldt i det 70. minut EFTER ULL's to, ikke i det 29. før dem |
+
+### Dobbelttjekket fandt tre fejl mere — to i motoren
+
+**Dansk under hver eneste britiske artikel, siden .co.uk gik live 5. august.**
+«Kilde» (SourceBox), «Sæson {season}» (SeasonUpdateTemplate) og «Sådan bruger
+vi Ai» (AiDisclaimer) stod hardkodet — uden `lang` overhovedet. Samme skanning
+fandt tre til: fejlsiden, atletprofilens «Karriere-højdepunkter» og hele
+cookie-banneret.
+
+Ny spærre: `src/lib/_no-danish-in-jsx-test.ts` skanner læservendte komponenter
+for dansk tekst i selve opmærkningen. ⚠️ **Den leder efter æ/ø/å og er en NEDRE
+grænse** — «Noget gik galt» stod lige ved siden af «Prøv igen» og slap igennem.
+
+**Sæson-badgen var et år bagud i hele efterårssæsonen.** `getSeason` gav
+`${year-1}–${year}` uanset måned, så et referat fra 20. august 2026 fik
+«Sæson 2025-26» — sæsonen FØR kampen. Grænsen ligger nu i august, hvor den
+amerikanske idrætssæson begynder. 11 tests.
+
+**Kildekonflikt i teksten**: Corris-referatet krediterede assisten til
+Agogliati og Salamanca Lopez efter skolens artikel — men skolens EGEN box score
+siger Agogliati og **Owen Marshall**. Den anden mand er ude af artiklen;
+Agogliati står i begge. Mikkel afgør om box scoren skal veje tungest ved navne
+(reglen i dag siger kun at den er grundsandhed for TAL).
+
+### Faktaarket dækker ikke selve kampen
+
+Min første omskrivning af Corris-referatet brugte hele kildesiden — sted,
+Green Bays udligning, målmandens debut, holdstatistikken. `verify-article`
+flagede den **high**, fordi den måler mod FAKTAARKET, og faktaarket indeholdt
+intet af det: det fangede hans mål og hans minutter, men **ikke at Green Bay
+scorede overhovedet**. Artiklen blev derfor skåret ned til det faktaarket bærer
+— invarianten «en artikel må kun indeholde det fase 1 udtrak» holdes, og
+review-loggen forbliver ærlig evidens.
+
+Men det er selve grunden til at kampreferater driver ud i opdigtet kulør: der
+er ikke nok i faktaarket til at fylde en artikel.
 
 ## 🔍 Search Console svarer nu — og svaret var et andet end vi troede (2026-08-26)
 
