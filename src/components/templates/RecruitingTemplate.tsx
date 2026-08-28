@@ -108,7 +108,7 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
           <div className="h-px mb-10 mt-8" style={{ backgroundColor: "#E2E0DC" }} />
           <ArticleBody content={article.content} />
           <CorrectionNotice article={article} lang={lang} />
-          <SourceBox sourceUrl={article.source_url} />
+          <SourceBox sourceUrl={article.source_url} lang={lang} />
           {article.author_role !== "human" && <AiDisclaimer />}
 
           {/* Atletfaktaboks */}

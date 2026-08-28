@@ -166,7 +166,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
             {events.length > 0 && (
               <section className="mb-10">
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-5">
-                  Karriere-højdepunkter
+                  {t("profile.career_highlights", lang)}
                 </p>
                 <ul className="flex flex-col gap-2">
                   {events.map((e) => (

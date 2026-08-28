@@ -1,13 +1,19 @@
 /**
  * Kildeboks der vises i bunden af artikler.
  * Linker til den originale kilde for transparens.
+ *
+ * Overskriften stod hardkodet som «Kilde» og lå derfor på DANSK under hver
+ * eneste britiske artikel, fra .co.uk gik live 5. august 2026 til den blev
+ * fanget 29. august. Sproget er påkrævet — se regel 6 i ARKITEKTUR-motor.md.
  */
+import { t } from "@/lib/i18n";
 
 interface SourceBoxProps {
   sourceUrl: string | null | undefined;
+  lang: string;
 }
 
-export function SourceBox({ sourceUrl }: SourceBoxProps) {
+export function SourceBox({ sourceUrl, lang }: SourceBoxProps) {
   if (!sourceUrl) return null;
 
   // Vis domæne som label
@@ -24,7 +30,7 @@ export function SourceBox({ sourceUrl }: SourceBoxProps) {
       style={{ borderLeftColor: "#00205B" }}
     >
       <p className="text-xs font-bold tracking-[0.15em] uppercase text-muted mb-1">
-        Kilde
+        {t("article.source", lang)}
       </p>
       <a
         href={sourceUrl}

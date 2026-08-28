@@ -16,10 +16,23 @@ interface Props {
   relatedArticles?: Article[];
 }
 
-function getSeason(dateStr: string | null): string {
+/**
+ * Sæsonen en dato hører til. Den amerikanske idrætssæson løber hen over
+ * årsskiftet og begynder i AUGUST — derfor er august-december år Y sæson
+ * Y–Y+1, mens januar-juli er (Y-1)–Y.
+ *
+ * Stod før som `${year - 1}–${year}` uanset måned. Det var rigtigt et halvt
+ * år ad gangen og forkert det andet: en kampreferat fra 20. august 2026 fik
+ * badgen «2025–26», altså sæsonen FØR den kamp den handlede om. Hele
+ * efterårssæsonen — fodbold, hockey, amerikansk fodbold — lå i det forkerte år.
+ */
+export function getSeason(dateStr: string | null): string {
   if (!dateStr) return "";
-  const year = new Date(dateStr).getFullYear();
-  return `${year - 1}–${String(year).slice(2)}`;
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "";
+  const year = d.getFullYear();
+  const start = d.getMonth() >= 7 ? year : year - 1; // getMonth(): 7 = august
+  return `${start}–${String(start + 1).slice(2)}`;
 }
 
 export async function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }: Props) {
@@ -46,7 +59,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
           {season && (
             <span className="text-[10px] font-black tracking-[0.2em] uppercase px-2.5 py-1.5"
               style={{ color: "#00205B", border: "1.5px solid #00205B" }}>
-              Sæson {season}
+              {t("article.season", lang, { season })}
             </span>
           )}
           {article.sport && (
@@ -99,7 +112,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
 
         <ArticleBody content={article.content} />
         <CorrectionNotice article={article} lang={lang} />
-        <SourceBox sourceUrl={article.source_url} />
+        <SourceBox sourceUrl={article.source_url} lang={lang} />
         {article.author_role !== "human" && <AiDisclaimer />}
 
         {/* ── Atletdatakort ─────────────────────────────────────── */}
@@ -118,7 +131,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
               </div>
               <span className="text-[10px] font-black tracking-[0.2em] uppercase px-2 py-1"
                 style={{ color: "#BF0A30", border: "1px solid #BF0A30" }}>
-                Sæson {season}
+                {t("article.season", lang, { season })}
               </span>
             </div>
 

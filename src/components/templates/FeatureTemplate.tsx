@@ -112,7 +112,7 @@ export async function FeatureTemplate({ article, athlete, relatedArticles = [] }
           <div className="flex-1 max-w-3xl article-drop-cap">
             <ArticleBody content={article.content} />
             <CorrectionNotice article={article} lang={lang} />
-            <SourceBox sourceUrl={article.source_url} />
+            <SourceBox sourceUrl={article.source_url} lang={lang} />
             {article.author_role !== "human" && <AiDisclaimer />}
 
             <AdSlot slot="article-footer" className="my-6" />

@@ -111,7 +111,7 @@ export default async function RootLayout({
         <AdSlot slot="pre-footer" className="my-6" />
         <Footer />
         <Analytics />
-        <CookieConsent enabled={settings["consent.enabled"] === "true"} />
+        <CookieConsent enabled={settings["consent.enabled"] === "true"} lang={lang} />
       </body>
     </html>
   );

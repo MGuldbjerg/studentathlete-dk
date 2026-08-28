@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "@/lib/i18n";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -29,7 +31,7 @@ function writeConsent(marketing: boolean) {
  * er ligestillet med "Accepter alle" (forudgående, frit, lige let at afvise).
  * Fremtidige ad-scripts skal læse `sa_consent`.marketing før de loades.
  */
-export function CookieConsent({ enabled }: { enabled: boolean }) {
+export function CookieConsent({ enabled, lang }: { enabled: boolean; lang: string }) {
   const [show, setShow] = useState(false);
   // Start "ubesluttet" → SSR renderer intet; useEffect afgør ud fra cookien
   // (undgår et glimt af gen-åbn-knappen før vi har tjekket samtykke).
@@ -56,7 +58,7 @@ export function CookieConsent({ enabled }: { enabled: boolean }) {
         onClick={() => setShow(true)}
         className="fixed bottom-3 left-3 z-40 text-xs px-3 py-1.5 rounded-full bg-paper border border-border text-muted hover:text-ink shadow-sm"
       >
-        Cookieindstillinger
+        {t("cookies.settings", lang)}
       </button>
     ) : null;
   }
@@ -65,10 +67,9 @@ export function CookieConsent({ enabled }: { enabled: boolean }) {
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-border shadow-lg">
       <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center gap-3">
         <p className="text-sm text-ink leading-relaxed flex-1">
-          Vi bruger nødvendige cookies, for at sitet fungerer. Med din accept bruger vi også cookies
-          til annoncer. Læs mere i vores{" "}
+          {t("cookies.banner", lang)}
           <Link href="/cookies" className="underline" style={{ color: "#BF0A30" }}>
-            cookiepolitik
+            {t("cookies.policy_link", lang)}
           </Link>
           .
         </p>
@@ -77,14 +78,14 @@ export function CookieConsent({ enabled }: { enabled: boolean }) {
             onClick={() => choose(false)}
             className="px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
-            Kun nødvendige
+            {t("cookies.necessary_only", lang)}
           </button>
           <button
             onClick={() => choose(true)}
             className="px-4 py-2 text-sm font-semibold rounded-lg text-white"
             style={{ backgroundColor: "#00205B" }}
           >
-            Accepter alle
+            {t("cookies.accept_all", lang)}
           </button>
         </div>
       </div>

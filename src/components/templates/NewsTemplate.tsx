@@ -118,7 +118,7 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
         {/* ── Kilde ──────────────────────────────────────────────── */}
         <div className="px-5 md:px-0">
           <CorrectionNotice article={article} lang={lang} />
-          <SourceBox sourceUrl={article.source_url} />
+          <SourceBox sourceUrl={article.source_url} lang={lang} />
           {article.author_role !== "human" && <AiDisclaimer />}
         </div>
 
