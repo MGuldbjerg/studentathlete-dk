@@ -1,11 +1,89 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-29 (tre kampreferater udgivet på .co.uk; dansk fjernet fra det britiske site)
+**Sidst opdateret**: 2026-08-29 (2.196 profiltekster udgivet; skolenavne = brugsnavne; sitemap-lastmod rettet)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 👤 Profilteksterne er udgivet (2026-08-29) — 2.196 stk.
+
+**Politik-ændring, Mikkel:** «I think you were right to suggest that I only
+approve the template, not all texts.» Baseline-profilteksten er deterministisk
+(ingen LLM), så når skabelonen er gennemgået, udgives køen samlet. Gælder KUN
+`baselineProfile`/`baselineProfileEn` — artikler og LLM-udvidede profiler
+(`--expand`) kræver stadig godkendelse pr. stk.
+
+UK-atleter med profiltekst: **9 → 2.092**.
+
+### Skolenavne: `common_name` fandtes, men INTET læste den
+
+`schools.common_name` var udfyldt for alle 1.761 skoler. Profilteksten skrev
+`athletes.university` — registernavnet. Derfor «University of North Carolina at
+Chapel Hill» og «The University of Vermont and State Agricultural College».
+
+⚠️ **Reglen kan ikke være mekanisk.** «Klip alt efter *at*» ville lave
+University of Alabama at Birmingham om til «University of Alabama» — to
+forskellige læresteder. Samme fælde: UNC Asheville, ULM, UNC Pembroke.
+`src/lib/school-display-name.ts` har derfor en **kurateret tabel** (18 navne
+verificeret mod NCAA.com, skolernes egne atletiksites og Wikipedia), dernæst
+`common_name` hvis den ser hel ud, dernæst det officielle navn. Vi gætter aldrig.
+
+Seed-scriptets `replace(/ University| College/g, "")` havde ødelagt flere navne
+— «State of New York at Canton» er ikke et sted. `looksMangled()` afviser dem.
+
+Prisen for korte sportsnavne er delstats-dubletten («North Carolina in North
+Carolina»); `nameContainsState()` udelader delstaten når navnet ER den.
+
+### Fem andre skabelonfejl, fundet ved at rendere mod 250 rigtige atleter
+
+| Fejl | Eksempel |
+|---|---|
+| sportsnøglen læst højt | «has competed **in other** for Lake Forest» |
+| årgang brugt som ROLLE | «as a **Sr.-3L**», «as a **Third Year**» |
+| highschool i hjembyen | «is from Hampshire, England  **/ Wellington College**» |
+| land i parentes | «Milnrow, Lancashire **(UK)**» |
+| disciplin som personbetegnelse | «as a **breaststroke/individual medley**» |
+
+Plus dobbelt mellemrum i roster-navne («Leo  Jaukovic»), som teksten nu
+normaliserer. **Datafejlen består i `athletes.name`** og ses stadig i sidens
+overskrift — ikke rettet, det er en bulk-skrivning.
+
+`refresh-pending-drafts.ts` genberegner ventende udkast efter en
+skabelonændring; baseline-kørslen rører dem aldrig selv.
+
+## 🔍 Hvorfor .co.uk stadig ikke er indekseret (2026-08-29)
+
+Google **henter** sitemappet (senest 28-08 21:31, 3.007 URL'er) og har
+indekseret forsiden og `/athletes`. Men:
+
+| URL | Status |
+|---|---|
+| `/athletes` (knudepunkt) | **Submitted and indexed**, crawlet 27-08 |
+| `/athletes/a` | Discovered – currently **not indexed**, aldrig crawlet |
+| en artikel | Discovered – currently **not indexed**, aldrig crawlet |
+| `/athletes/jack-steel` | **Unknown to Google** — selvom den STÅR i sitemappet |
+
+Tragten er altså: sitemap → discovered → *(står stille)* → crawlet → indekseret.
+Det er **crawl-budget**, ikke en spærre: et tre uger gammelt domæne uden ét
+eneste indgående link får meget lidt. Knudepunkt-opdelingen virkede (den blev
+crawlet og indekseret dagen efter), men bogstavsiderne under den er ikke hentet
+endnu.
+
+To ting vi selv kunne rette:
+
+1. **Tyndt indhold** — 9 af 2.343 profiler havde tekst. Rettet i dag (2.092).
+   Google ser det først ved næste crawl.
+2. **Sitemappets `lastModified` var «lige nu»** på hver hentning for ~70
+   statiske sider — et tidsstempel for HENTNINGEN, ikke for indholdet. Et
+   sitemap der altid råber «alt er nyt» lærer Google at ignorere feltet, og
+   crawl-budget er præcis det vi mangler. Rettet: statiske sider har ingen
+   lastmod, bogstavsider får nyeste atlet-`updated_at`.
+
+**Det der reelt mangler er et indgående link.** Ingen backlinks = ingen
+autoritet = minimalt crawl-budget. Bluesky er live og er den billigste kilde.
+Indexing API kan IKKE bruges til almindelige sider.
 
 ## 📰 Første kampreferater på .co.uk (2026-08-28) — og hvad dobbelttjekket fandt
 
