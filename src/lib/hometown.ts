@@ -106,9 +106,20 @@ export function localizeHometown(
   const markers = new Set(profile.countryMarkers.map((m) => m.toLowerCase()));
   const aliases = profile.cityAliases ?? {};
 
-  return hometown
+  // Rosterens felt hedder «Hometown / High School», og skolen følger med i
+  // strengen. Uden dette blev profilteksten til «Jonathan is from Hampshire,
+  // England  / Wellington College.» Vi tager alt FØR skråstregen — hjembyen.
+  let clean = hometown.split("/")[0];
+
+  // Landet står nogle gange i parentes: «Bolton, Greater Manchester (England)»,
+  // «Milnrow, Lancashire (UK)». Parentesen fjernes når den ER landet.
+  clean = clean.replace(/\s*\(([^)]+)\)/g, (whole, inner: string) =>
+    markers.has(inner.trim().toLowerCase()) ? "" : whole,
+  );
+
+  return clean
     .split(",")
-    .map((seg) => seg.trim())
+    .map((seg) => seg.replace(/\s+/g, " ").trim())
     .filter((seg) => seg.length > 0 && !markers.has(seg.toLowerCase()))
     .map((seg) => aliases[seg.toLowerCase()] ?? seg)
     .join(", ");

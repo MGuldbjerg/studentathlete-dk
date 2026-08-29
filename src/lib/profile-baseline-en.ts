@@ -17,9 +17,11 @@ import {
   STATE_NAMES,
   meaningfulPosition,
   currentSeasonStart,
+  tidyName,
   type BaselineAthlete,
 } from "./profile-baseline";
 import { localizeHometown } from "./hometown";
+import { displaySchoolName, nameContainsState } from "./school-display-name";
 import { countryProfile } from "./countries";
 
 // Delstatstabellen er engelsk i forvejen — kun det danske eksonym afviger.
@@ -82,7 +84,15 @@ const GYM_ROLES: Record<string, string> = {
 
 function normalizeRole(sport: string, role: string): string {
   const key = role.toLowerCase();
-  if (sport === "swimming-and-diving") return SWIM_ROLES[key] ?? role;
+  if (sport === "swimming-and-diving") {
+    const known = SWIM_ROLES[key];
+    if (known) return known;
+    // Sammensatte discipliner («breaststroke/individual medley») står ikke i
+    // tabellen, og uden dette blev sætningen «has swum ... as a
+    // breaststroke/individual medley» — en disciplin brugt som personbetegnelse.
+    if (/\b(swimmer|diver)\b/i.test(key)) return role;
+    return `${role} swimmer`;
+  }
   if (sport === "rowing") return ROWING_ROLES[key] ?? role;
   if (sport === "gymnastics") return GYM_ROLES[key] ?? `${role} specialist`;
   return role;
@@ -176,6 +186,12 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
     }
     return { present: "competes", past: "competed", participle: "competed", object: `in ${sportNoun("track-and-field")}`, posNoun: null };
   }
+  // `other` er nøglen for «vi kender ikke sportsgrenen» (se SOURCE_ALIASES i
+  // sports.ts). Uden dette blev sætningen «has competed in other for Lake
+  // Forest» — nøglen læst højt. Vi nævner den bare ikke.
+  if (sport === "other") {
+    return { present: "competes", past: "competed", participle: "competed", object: "", posNoun: role(position) };
+  }
   // Fallback (gymnastik + fremtidige sportsgrene): "competes in X" er korrekt
   // for stort set alle individuelle idrætter.
   return { present: "competes", past: "competed", participle: "competed", object: `in ${sportNoun(sport)}`, posNoun: role(position) };
@@ -190,13 +206,18 @@ function withObject(verbForm: string, object: string): string {
  * fakta-sidebaren — teksten kan aldrig påstå noget nyt.
  */
 export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): string {
-  const firstName = a.preferred_name ?? a.name.split(" ")[0];
+  const fullName = tidyName(a.name);
+  const firstName = a.preferred_name ?? fullName.split(" ")[0];
   const position = expandPosition(a.sport, cleanPosition(a.position), "en");
   const v = sportVerb(a.sport, position);
   const posSuffix = v.posNoun ? ` as ${article(v.posNoun)} ${v.posNoun}` : "";
-  const where = a.university_state
-    ? `${a.university} in ${stateName(a.university_state)}`
-    : a.university;
+  // Se den danske pendant: brugsnavn frem for registernavn, og ingen
+  // «in {state}» når navnet allerede ER delstaten («Texas in Texas»).
+  const school = displaySchoolName(a.university, a.university_common_name);
+  const state = a.university_state ? stateName(a.university_state) : null;
+  const where = state && !nameContainsState(school, state)
+    ? `${school} in ${state}`
+    : school;
 
   // Samme dimissions-skæring som den danske bygger (1. juni i dimissionsåret).
   const hasGraduated =
@@ -204,15 +225,15 @@ export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): s
 
   let main: string;
   if (hasGraduated) {
-    main = `${a.name} ${withObject(v.past, v.object)} for ${where}${posSuffix} and graduated in ${a.expected_graduation}.`;
+    main = `${fullName} ${withObject(v.past, v.object)} for ${where}${posSuffix} and graduated in ${a.expected_graduation}.`;
   } else if (!a.active) {
-    main = `${a.name} previously ${withObject(v.past, v.object)} for ${where}${posSuffix}.`;
+    main = `${fullName} previously ${withObject(v.past, v.object)} for ${where}${posSuffix}.`;
   } else if (a.year_enrolled != null && a.year_enrolled >= currentSeasonStart(now)) {
-    main = `${a.name} started at ${a.university} in the autumn of ${a.year_enrolled} and ${withObject(v.present, v.object)}${posSuffix}.`;
+    main = `${fullName} started at ${school} in the autumn of ${a.year_enrolled} and ${withObject(v.present, v.object)}${posSuffix}.`;
   } else if (a.year_enrolled != null) {
-    main = `${a.name} has ${withObject(v.participle, v.object)} for ${where}${posSuffix} since ${a.year_enrolled}.`;
+    main = `${fullName} has ${withObject(v.participle, v.object)} for ${where}${posSuffix} since ${a.year_enrolled}.`;
   } else {
-    main = `${a.name} ${withObject(v.present, v.object)} for ${where}${posSuffix}.`;
+    main = `${fullName} ${withObject(v.present, v.object)} for ${where}${posSuffix}.`;
   }
 
   const parts = [main];

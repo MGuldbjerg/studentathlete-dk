@@ -16,6 +16,7 @@ import { BALL_SPORT_KEYS } from "./sports";
 import { sportLabel } from "./i18n";
 import { localizeHometown } from "./hometown";
 import { countryProfile } from "./countries";
+import { displaySchoolName, nameContainsState } from "./school-display-name";
 
 // Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
 // forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
@@ -43,6 +44,13 @@ export interface BaselineAthlete {
   preferred_name: string | null;
   university: string;
   university_state: string | null;
+  /**
+   * Skolens `common_name`. Profilteksten skriver det navn folk BRUGER, ikke
+   * registernavnet — «North Carolina», ikke «University of North Carolina at
+   * Chapel Hill». Se school-display-name.ts; tom værdi er ufarlig, så falder
+   * vi tilbage på det officielle navn.
+   */
+  university_common_name?: string | null;
   sport: string;
   position: string | null;
   hometown: string | null;
@@ -101,6 +109,20 @@ interface SportVerb {
 // og vises derfor aldrig som " som X".
 const HEIGHT_RE = /^\d+'\d*"?$/;
 const ROSTER_TIER_RE = /^(varsity|novice|junior varsity|jv|freshman|redshirt)$/i;
+/**
+ * ÅRGANGSKODER der er havnet i position-feltet. Rosterne blander kolonnerne, og
+ * uden dette skrev profilteksten «plays golf for Lamar in Texas as a Sr.-3L» —
+ * en påstand om en rolle atleten ikke har. Dækker «Sr.», «R-Jr.», «Gr.» og
+ * roningens år-på-holdet-suffiks («Sr.-3L», «So.-2L»).
+ */
+const CLASS_YEAR_RE = /^(r-)?(fr|so|jr|sr|gr|fy)\.?(-\d+l)?$/i;
+/**
+ * Bredere årgangs-markører: «2nd Year (2029-30)», «1st Year», «Class of 2028».
+ * Et felt der indeholder et årstal eller et ordenstal + «year» er en årgang,
+ * ikke en rolle — uanset hvordan skolen har skrevet det.
+ */
+const CLASS_YEAR_LOOSE_RE =
+  /\b(19|20)\d{2}\b|\b\d+(st|nd|rd|th)\s+year\b|\bclass of\b|\b(first|second|third|fourth|fifth|sixth)\s+year\b/i;
 // "Rower" gentager blot verbet "ror/roede/roet" og tilføjer intet — kun støj
 // for roning; andre sportsgrenes ord filtreres ikke af denne (sport-specifik).
 const REDUNDANT_ROLE_BY_SPORT: Record<string, RegExp> = { rowing: /^rower$/i };
@@ -110,7 +132,8 @@ const REDUNDANT_ROLE_BY_SPORT: Record<string, RegExp> = { rowing: /^rower$/i };
 export function meaningfulPosition(sport: string, position: string | null): string | null {
   if (!position) return null;
   const p = position.trim();
-  if (!p || HEIGHT_RE.test(p) || ROSTER_TIER_RE.test(p)) return null;
+  if (!p || HEIGHT_RE.test(p) || ROSTER_TIER_RE.test(p) || CLASS_YEAR_RE.test(p)) return null;
+  if (CLASS_YEAR_LOOSE_RE.test(p)) return null;
   if (REDUNDANT_ROLE_BY_SPORT[sport]?.test(p)) return null;
   return p;
 }
@@ -208,6 +231,11 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
   // Fallback (Gymnastik + evt. fremtidige sportsgrene i SPORTS): "dyrke" er
   // grammatisk korrekt for stort set alle individuelle idrætter — i modsætning
   // til "spille", som kun boldspil bruger.
+  // `other` = «vi kender ikke sportsgrenen». Nøglen må ikke læses højt
+  // («dyrker other for Lake Forest») — så nævner vi den ikke.
+  if (sport === "other") {
+    return { present: "dyrker", preteritum: "dyrkede", participle: "dyrket", object: "", posNoun: meaningfulPosition(sport, position) };
+  }
   return { present: "dyrker", preteritum: "dyrkede", participle: "dyrket", object: sportNoun(sport), posNoun: meaningfulPosition(sport, position) };
 }
 
@@ -219,17 +247,28 @@ function withObject(verbForm: string, object: string): string {
  * Basis-profiltekst på dansk. Bruger KUN felter der allerede vises i
  * fakta-sidebaren — teksten kan aldrig påstå noget nyt.
  */
+/** Roster-navne bærer af og til dobbelt mellemrum («Leo  Jaukovic»). */
+export function tidyName(name: string): string {
+  return name.replace(/\s+/g, " ").trim();
+}
+
 export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): string {
-  const firstName = a.preferred_name ?? a.name.split(" ")[0];
+  const fullName = tidyName(a.name);
+  const firstName = a.preferred_name ?? fullName.split(" ")[0];
   // Udvid skolens forkortelse FØR alt andet: så bliver "F" til "forward",
   // "Midfielder" til "midtbanespiller", og atletik-koder som "SP" til det
   // engelske disciplinnavn, som disciplin-genkendelsen nedenfor forstår.
   const position = expandPosition(a.sport, cleanPosition(a.position));
   const v = sportVerb(a.sport, position);
   const posSuffix = v.posNoun ? ` som ${v.posNoun}` : "";
-  const where = a.university_state
-    ? `${a.university} i ${stateName(a.university_state)}`
-    : a.university;
+  // Skolens BRUGSNAVN, ikke registernavnet. Og navngiver det korte navn
+  // allerede delstaten, udelades «i {delstat}» — ellers står der «North
+  // Carolina i North Carolina». Se school-display-name.ts.
+  const school = displaySchoolName(a.university, a.university_common_name);
+  const state = a.university_state ? stateName(a.university_state) : null;
+  const where = state && !nameContainsState(school, state)
+    ? `${school} i ${state}`
+    : school;
 
   // Dimitteret = forbi 1. juni i dimissionsåret (samme skæring som 🎓-badgen,
   // men uden badge-vinduets slutdato — teksten skal forblive i datid).
@@ -238,16 +277,16 @@ export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): str
 
   let main: string;
   if (hasGraduated) {
-    main = `${a.name} ${withObject(v.preteritum, v.object)} for ${where}${posSuffix} og dimitterede i ${a.expected_graduation}.`;
+    main = `${fullName} ${withObject(v.preteritum, v.object)} for ${where}${posSuffix} og dimitterede i ${a.expected_graduation}.`;
   } else if (!a.active) {
-    main = `${a.name} ${v.preteritum} tidligere${v.object ? ` ${v.object}` : ""} for ${where}${posSuffix}.`;
+    main = `${fullName} ${v.preteritum} tidligere${v.object ? ` ${v.object}` : ""} for ${where}${posSuffix}.`;
   } else if (a.year_enrolled != null && a.year_enrolled >= currentSeasonStart(now)) {
     // Freshman-vindue: optaget i den igangværende (eller kommende) sæson.
-    main = `${a.name} startede på ${a.university} i efteråret ${a.year_enrolled} og ${withObject(v.present, v.object)}${posSuffix}.`;
+    main = `${fullName} startede på ${school} i efteråret ${a.year_enrolled} og ${withObject(v.present, v.object)}${posSuffix}.`;
   } else if (a.year_enrolled != null) {
-    main = `${a.name} har siden ${a.year_enrolled} ${withObject(v.participle, v.object)} for ${where}${posSuffix}.`;
+    main = `${fullName} har siden ${a.year_enrolled} ${withObject(v.participle, v.object)} for ${where}${posSuffix}.`;
   } else {
-    main = `${a.name} ${withObject(v.present, v.object)} for ${where}${posSuffix}.`;
+    main = `${fullName} ${withObject(v.present, v.object)} for ${where}${posSuffix}.`;
   }
 
   const parts = [main];

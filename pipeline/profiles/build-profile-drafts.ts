@@ -58,8 +58,11 @@ export interface EventRow {
 }
 
 const ATHLETE_COLS =
-  "id, name, preferred_name, university, university_state, sport, position, " +
-  "hometown, year_enrolled, expected_graduation, active, home_country, profile_summary";
+  "a.id, a.name, a.preferred_name, a.university, a.university_state, a.sport, a.position, " +
+  "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, a.profile_summary, " +
+  // Skolens brugsnavn. LEFT JOIN: en atlet hvis skole ikke findes i `schools`
+  // skal stadig få et udkast — så falder navnet tilbage på det officielle.
+  "s.common_name AS university_common_name";
 
 // ── Prompt-input (eksporteret til test) ──────────────────────────────────────
 
@@ -206,9 +209,9 @@ export function verifyDraft(draft: string, corpus: string, athleteName: string):
 async function runBaseline(db: D1Client, dryRun: boolean, onlyAthlete: number | null): Promise<void> {
   // draft_at IS NULL = aldrig afvist; baseline genforeslår ikke afviste udkast.
   const where = onlyAthlete
-    ? `id = ${onlyAthlete}`
-    : "active = 1 AND profile_summary IS NULL AND profile_draft IS NULL AND profile_draft_at IS NULL";
-  const r = await db.query<AthleteRow>(`SELECT ${ATHLETE_COLS} FROM athletes WHERE ${where}`);
+    ? `a.id = ${onlyAthlete}`
+    : "a.active = 1 AND a.profile_summary IS NULL AND a.profile_draft IS NULL AND a.profile_draft_at IS NULL";
+  const r = await db.query<AthleteRow>(`SELECT ${ATHLETE_COLS} FROM athletes a LEFT JOIN schools s ON s.name = a.university WHERE ${where}`);
   const rows = r.results ?? [];
   let queued = 0;
   for (const a of rows) {
@@ -241,8 +244,10 @@ async function runExpand(
 ): Promise<void> {
   const where = onlyAthlete ? `AND a.id = ${onlyAthlete}` : "";
   const r = await db.query<AthleteRow & { event_count: number }>(
-    `SELECT ${ATHLETE_COLS.split(", ").map((c) => `a.${c}`).join(", ")}, COUNT(e.id) AS event_count
-     FROM athletes a JOIN athlete_events e ON e.athlete_id = a.id
+    `SELECT ${ATHLETE_COLS}, COUNT(e.id) AS event_count
+     FROM athletes a
+     JOIN athlete_events e ON e.athlete_id = a.id
+     LEFT JOIN schools s ON s.name = a.university
      WHERE a.profile_draft IS NULL ${where}
      GROUP BY a.id ORDER BY event_count DESC LIMIT ?`,
     [limit],
