@@ -19,6 +19,7 @@ import { createD1Client } from "../lib/d1-client";
 import { type BaselineAthlete } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { countryProfile } from "../../src/lib/countries";
+import { correctionFromText, looksTransliterated } from "./danish-names";
 
 /** Tæl HELE mængden; eksemplerne hentes med LIMIT, men tallet må ikke være kappet. */
 async function countOf(db: ReturnType<typeof createD1Client>, where: string): Promise<number> {
@@ -139,6 +140,37 @@ async function main(): Promise<void> {
     count: stale.length,
     examples: stale.slice(0, 3).map((p) => `#${p.id} ${p.name}: «${p.profile_summary.slice(0, 70)}…»`),
     fix: "npx tsx pipeline/profiles/queue-stale-profiles.ts --apply → lægger dem i godkendelseskøen",
+  });
+
+  // ── 7. Danske navne der har mistet æ/ø/å ─────────────────────────────
+  // Amerikanske rosters skriver ASCII, så «Jørgensen» bliver «Jorgensen» —
+  // og det navn står i sidens overskrift og i JSON-LD. To tiers: BEVIS (den
+  // rigtige stavemåde findes allerede i vores egen tekst) og MØNSTER (led
+  // hvor dansk aldrig skriver bart «o»). Se danish-names.ts for hvorfor
+  // «aa»/«ae» bevidst ikke er med i mønstret.
+  const danes = await db.query<{ id: number; name: string; profile_summary: string | null; profile_draft: string | null }>(
+    `SELECT id, name, profile_summary, profile_draft FROM athletes WHERE home_country = 'DK'`);
+
+  const evidence = danes.results
+    .map((d) => ({ d, fix: correctionFromText(d.name, d.profile_summary) ?? correctionFromText(d.name, d.profile_draft) }))
+    .filter((x) => x.fix);
+  add({
+    key: "danske-navne-bevis",
+    what: "danske navne hvor vores EGEN tekst staver navnet rigtigt, men athletes.name ikke gør",
+    count: evidence.length,
+    examples: evidence.slice(0, 3).map((x) => `#${x.d.id} «${x.d.name}» → «${x.fix}»`),
+    fix: "npx tsx pipeline/profiles/fix-danish-names.ts --apply (retter navnet og sætter name_locked)",
+  });
+
+  const pattern = danes.results
+    .map((d) => ({ d, hits: looksTransliterated(d.name) }))
+    .filter((x) => x.hits.length > 0 && !evidence.some((e) => e.d.id === x.d.id));
+  add({
+    key: "danske-navne-mønster",
+    what: "danske navne med led hvor dansk aldrig skriver bart «o» (Jorgensen, Moller, Ostergaard …)",
+    count: pattern.length,
+    examples: pattern.slice(0, 3).map((x) => `#${x.d.id} «${x.d.name}» — jf. ${x.hits.join(", ")}`),
+    fix: "kræver et menneske: bekræft stavemåden mod skolens bioside, ret i /admin og sæt name_locked",
   });
 
   // ── Rapport ──────────────────────────────────────────────────────────
