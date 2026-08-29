@@ -78,20 +78,21 @@ async function main(): Promise<void> {
     fix: "UPDATE athletes SET name = trim(replace(name,'  ',' ')) — bulk-skrivning, kræver Mikkels ord",
   });
 
-  // ── 3. Flere kladder fra ÉN kildeartikel ─────────────────────────────
-  // matchAthletes udsender én historie pr. (artikel, atlet), så et kampreferat
-  // der nævner tre af vores atleter bliver til tre næsten ens artikler — og
-  // det er dér opdigtningen opstår (2026-08-26).
-  const dupes = await db.query<{ source_url: string; n: number; ids: string }>(
-    `SELECT s.source_url, COUNT(*) n, GROUP_CONCAT(a.id) ids
+  // ── 3. Flere kladder fra ÉN kildeartikel PÅ SAMME SITE ───────────────
+  // Grupperingen er (source_url, country) — ikke source_url alene. Samme kamp
+  // ER to legitime artikler på .dk og .co.uk: to sprog, to publikum. Kun to
+  // kladder på SAMME site er dubletten. `group-stories.ts` (27-08-2026)
+  // forhindrer dem fremover; det her fanger efterslæbet og et evt. tilbagefald.
+  const dupes = await db.query<{ source_url: string; country: string; n: number; ids: string }>(
+    `SELECT s.source_url, a.country, COUNT(*) n, GROUP_CONCAT(a.id) ids
      FROM articles a JOIN stories s ON s.id = a.story_id
-     WHERE a.published = 0 GROUP BY s.source_url HAVING n > 1`);
+     WHERE a.published = 0 GROUP BY s.source_url, a.country HAVING n > 1`);
   add({
     key: "kladde-dubletter",
-    what: "flere kladder skrevet ud fra SAMME kildeartikel",
+    what: "flere kladder fra samme kildeartikel PÅ SAMME SITE (to sites er tilladt)",
     count: dupes.results.reduce((sum, r) => sum + r.n, 0),
-    examples: dupes.results.slice(0, 3).map((r) => `${r.n} kladder (#${r.ids}) fra ${r.source_url.slice(0, 70)}`),
-    fix: "vælg én kladde pr. kilde og afvis resten — eller byg dedupe i generate-articles",
+    examples: dupes.results.slice(0, 3).map((r) => `${r.n} kladder (#${r.ids}) på ${r.country} fra ${r.source_url.slice(0, 60)}`),
+    fix: "efterslæb fra før group-stories.ts (27-08) — afvis alle på nær én pr. site",
   });
 
   // ── 4. Kladder med høj opdigtnings-risiko der bliver liggende ────────
