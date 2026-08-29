@@ -7,6 +7,31 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🔎 Kontrol: faktaark der tilskriver atleten en anden persons kendsgerning (2026-08-29)
+
+`pipeline/checks/factsheet-attribution.ts`, i det ugentlige fejeblad.
+
+Baggrunden er #162: Moercks faktaark bar «Fifth-year student» — Bartells
+egenskab. **Det er en anden fejlklasse end den vi hidtil har vogtet:**
+citatvagten og `verify-article` måler artiklen mod faktaarket, men her ER
+artiklen dækket af sit faktaark. Fejlen sad i grundsandheden, og så er der
+ingen nedstrøms kontrol der kan fange den. Kontrollen sammenligner derfor med
+det VI selv ved — rosterens årgang.
+
+**20 fund på 60 dage, og de er værre end forventet:**
+
+| Story | Fund |
+|---|---|
+| #2774 Freddie Tucker (golf, Jr.) | faktaarket siger «Senior», «Position: Defense», «the back line» — en **helt anden persons profil** |
+| #2919 Bex Guy (So.) | faktaarket indeholder «Senior punter **Dante Atton** is one of 21 FBS punters…» — en navngiven fremmed |
+
+Første udgave larmede: to af de tre første fund var «Big South Freshman of the
+Year» (prisnavn) og «must be a sophomore, junior or senior» (berettigelsesregel).
+Prisnavne, «Senior Night» og opremsede årgange filtreres nu fra.
+
+Én kendt uskarphed står tilbage: en historisk oplysning («the only freshman
+that year») ligner en påstand om nu. Det står i fix-teksten.
+
 ## ❌ DK-kladdekøen tømt — intet udgivet (2026-08-29)
 
 Fem danske kladder, **ingen af dem et publicerbart kampreferat.**
