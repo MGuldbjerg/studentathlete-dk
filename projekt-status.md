@@ -7,6 +7,38 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## 🔤 Danske navne uden æ/ø/å — fast kontrol (2026-08-29)
+
+Mikkel: «make it a thing you check regularly — the actual spelling of Danish
+names.» Amerikanske rosters skriver ASCII, og `athletes.name` er sidens
+overskrift, delekortet og JSON-LD'en.
+
+**Bevis-tier (rettet):** den rigtige stavemåde stod allerede i vores egen
+godkendte profiltekst — et menneske havde skrevet den ind dér, men den lå i
+den forkerte kolonne og forsvandt hver gang teksten blev genberegnet. Fem
+rettet og låst (`name_locked = 1`, som scraperen respekterer):
+
+| Var | Er |
+|---|---|
+| Noah Norgaard | **Noah Nørgaard** |
+| Marcus Jorgensen | **Marcus Jørgensen** |
+| Simon Blaesdahl | **Simon Blæsdahl** |
+| Malthe Bogebjerg | **Malthe Bøgebjerg** |
+| Veronica Kjaer Sorensen | **Veronica Kjær Sørensen** |
+
+**Mønster-tier (flages, rettes ikke):** led hvor dansk aldrig skriver bart
+«o». Fire tilbage — Oliver Moller-Jensen, Oscar Bjornskov, Oliver Jorgensen
+m.fl. Et menneske skal bekræfte mod skolens bioside.
+
+⚠️ **«aa» og «ae» er bevidst UDE af mønstret.** Aagaard, Kjaergaard og Baagøe
+er lovlige danske stavemåder som mange bærer i deres dåbsattest. At «rette»
+dem ville være at omdøbe et menneske.
+
+⚠️ **Sluggen røres ikke** ved en navnerettelse. Adressen er allerede
+indekseret, og crawl-budget er lige nu det knappeste vi har.
+
+Kontrollen kører ugentligt i kvalitets-fejebladet (`danish-names.ts`).
+
 ## 🏅 Profilteksten siger HOLDET (2026-08-29)
 
 Mikkel: «since this is about athletes, say the sports name. Miami Hurricanes,
