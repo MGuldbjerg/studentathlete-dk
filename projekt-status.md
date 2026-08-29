@@ -1,11 +1,56 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-29 (profilteksten siger HOLDET; ugentligt kvalitets-fejeblad)
+**Sidst opdateret**: 2026-08-29 (alle fotos godkendt; ugedagen udregnes; kladdekøen tom)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 📅 Ugedagen blev gættet — 4 fejl ud af 5 (2026-08-29)
+
+Alle ti britiske kladder fra 27.-28. august afvist. Fem navngav en ugedag,
+fire var forkerte: «Wednesday evening» om en torsdag, «Thursday» om en fredag.
+
+Faktaarket gav DATOEN, ikke dagen, så modellen regnede selv. Ingen nedstrøms
+kontrol kan fange det — faktaarket sagde ikke noget forkert, det sagde bare
+ingenting, og så er artiklen «dækket» af sit faktaark.
+
+`weekdayOf()` udregner dagen ind i faktaarket («Aug. 27, 2026 (Thursday)»).
+Kan datoen ikke forstås («July 2026»), skrives der ingen dag.
+
+⚠️ Min første udgave var selv forkert: `"2026-08-27"` tolkes som UTC-midnat,
+`"Aug. 27, 2026"` som LOKAL midnat — samme dag, to forskellige svar. Nu
+normaliseres begge til UTC-middag; testene kører grønt i tre tidszoner.
+
+### De ti afvisninger — hvad de fejlede
+
+| Kladde | Fejl |
+|---|---|
+| #170 McLean | vendte kampens forløb om: McLean bragte holdet FORAN 2-1, kladden skrev at han udlignede — og Geggs åbningsmål mangler helt |
+| #171 Fletcher | forkert ugedag; «defender» om en spiller kilden kalder noget andet |
+| #172 Njekwe | kilden er en FIBA U20-turnering; kladden påstår han «joins Post University» |
+| #173 Cotton | kaldte et 5-1-nederlag «the narrow scoreline» |
+| #174 Hollis | kilden nævner ham for ét skud på mål — «makes his mark» bærer ikke en artikel |
+| #175 Cash | «midfielder» om en forward; opdigtet målbeskrivelse og oplæg |
+| #176 Garden | forkert ugedag; 15 redninger (var 5); modstanderens redninger 6 (var 4) |
+| #177 Williams | Fain scorede FØRSTE mål i 33., ikke udligningen før Williams' vinder |
+| #178 Kelly | assisten lå i 12. minut (var 58:46); forkert ugedag |
+| #179 Wright | målmand med to redninger; kilden handler om Orzechowskis to mål |
+
+**Alle ti fejlede.** Det er ikke tilfældigt: ni af dem er kampreferater, og
+det er præcis dér faktaarket er tyndest — se «Faktaarket dækker ikke selve
+kampen» længere nede.
+
+## 📸 Alle fotoforslag godkendt (2026-08-29)
+
+Mikkel gennemgik køen og afviste dem uden atleten på. Resten er godkendt:
+**1.878 britiske og 182 danske atleter har nu et foto**, køen er tom.
+
+⚠️ Til protokollen: Mikkel afgjorde 141 forslag i admin den dag, og de
+resterende 1.454 blev godkendt samlet på hans ord. Fotoet hentes fra atletens
+EGEN bio-side (`bio_url`), så identiteten følger af kilden — men det er en
+bulk-godkendelse, ikke 1.454 enkeltvurderinger.
 
 ## 🔎 Kontrol: faktaark der tilskriver atleten en anden persons kendsgerning (2026-08-29)
 
