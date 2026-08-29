@@ -195,6 +195,35 @@ async function main(): Promise<void> {
     fix: "læs kilden. Står ordet om en ANDEN navngiven person, er faktaarket forurenet og kladden kan ikke bruges. Handler det om en TIDLIGERE sæson ('the only freshman that year'), er det blot historik",
   });
 
+  // ── 9. Skolefeeds der aldrig giver noget ─────────────────────────────
+  // Auditten 2026-08-30: kun 100 af 564 skoler med atleter gav en historie på
+  // 30 dage — men ALLE feeds bliver tjekket til tiden. En stikprøve på 30
+  // RSS-feeds fandt at ~1 af 30 svarer HTTP 200 med NUL indslag; sådan et
+  // feed er ikke til at skelne fra «ingen nyheder» uden at kigge.
+  //
+  // 90 dage er valgt bevidst: en skole kan sagtens gå en måned uden at nævne
+  // vores atleter (feedet er 10 indslag bredt for hele afdelingen), men et
+  // helt kvartal uden ét eneste hit peger på feedet, ikke på tavshed.
+  const silent = await db.query<{ name: string; url: string; atleter: number }>(
+    `SELECT s.name, s.news_feed_url AS url, COUNT(a.id) AS atleter
+     FROM schools s
+     JOIN athletes a ON a.university = s.name AND a.active = 1
+     WHERE s.news_feed_url IS NOT NULL
+       AND NOT EXISTS (
+         SELECT 1 FROM stories st
+         WHERE st.athlete_id = a.id AND st.discovered_at >= date('now', '-90 days')
+       )
+     GROUP BY s.id
+     HAVING atleter >= 5
+     ORDER BY atleter DESC`);
+  add({
+    key: "tavse-feeds",
+    what: "skoler med mindst 5 aktive atleter hvis feed ikke har givet ÉN historie i 90 dage",
+    count: silent.results.length,
+    examples: silent.results.slice(0, 3).map((r) => `${r.name} (${r.atleter} atleter) — ${r.url}`),
+    fix: "hent feedet i hånden: svarer det 200 med nul indslag, er det dødt og skal skiftes ud",
+  });
+
   // ── Rapport ──────────────────────────────────────────────────────────
   if (asJson) {
     console.log(JSON.stringify({ ran_at: new Date().toISOString(), findings }, null, 2));
