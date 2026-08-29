@@ -20,6 +20,7 @@ import { type BaselineAthlete } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { countryProfile } from "../../src/lib/countries";
 import { correctionFromText, looksTransliterated } from "./danish-names";
+import { classYearConflict } from "./factsheet-attribution";
 
 /** Tæl HELE mængden; eksemplerne hentes med LIMIT, men tallet må ikke være kappet. */
 async function countOf(db: ReturnType<typeof createD1Client>, where: string): Promise<number> {
@@ -171,6 +172,27 @@ async function main(): Promise<void> {
     count: pattern.length,
     examples: pattern.slice(0, 3).map((x) => `#${x.d.id} «${x.d.name}» — jf. ${x.hits.join(", ")}`),
     fix: "kræver et menneske: bekræft stavemåden mod skolens bioside, ret i /admin og sæt name_locked",
+  });
+
+  // ── 8. Faktaark der tilskriver atleten en anden persons kendsgerning ──
+  // Fase 2 kan ikke fange det: artiklen ER dækket af sit faktaark. Fejlen sad
+  // i grundsandheden. Vi sammenligner derfor med det VI selv ved — rosteren.
+  const sheets = await db.query<{ id: number; name: string; class_year: string | null; fact_sheet: string; article_id: number | null }>(
+    `SELECT s.id, a.name, a.class_year, s.fact_sheet,
+            (SELECT ar.id FROM articles ar WHERE ar.story_id = s.id LIMIT 1) AS article_id
+     FROM stories s JOIN athletes a ON a.id = s.athlete_id
+     WHERE s.fact_status = 'built' AND s.fact_sheet IS NOT NULL
+       AND s.discovered_at >= date('now', '-60 days')`);
+  const conflicts = sheets.results
+    .map((r) => ({ r, flag: classYearConflict(r.fact_sheet, r.class_year) }))
+    .filter((x) => x.flag);
+  add({
+    key: "faktaark-tilskrivning",
+    what: "faktaark der siger én årgang om atleten, mens rosteren siger en anden — typisk en holdkammerats oplysning",
+    count: conflicts.length,
+    examples: conflicts.slice(0, 3).map((x) =>
+      `story #${x.r.id}${x.r.article_id ? ` (kladde #${x.r.article_id})` : ""} ${x.r.name}: faktaark «${x.flag!.claimed}», roster «${x.flag!.roster}»`),
+    fix: "læs kilden. Står ordet om en ANDEN navngiven person, er faktaarket forurenet og kladden kan ikke bruges. Handler det om en TIDLIGERE sæson ('the only freshman that year'), er det blot historik",
   });
 
   // ── Rapport ──────────────────────────────────────────────────────────
