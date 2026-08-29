@@ -99,12 +99,50 @@ export function displaySchoolName(
   return official;
 }
 
+/** Sammenlign navne uden tegnsætning og med Saint/St. som samme ord. */
+function flatName(v: string): string {
+  return v
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\bsaint\b/g, "st")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 /**
- * Navngiver skolenavnet allerede delstaten? Så skal «i {delstat}» udelades.
+ * Hvor ligger skolen? «Byen, delstaten» — ikke bare delstaten.
  *
- * Uden det bliver den kurerede forkortelse til noget pjattet: «North Carolina
- * in North Carolina», «Texas in Texas», «California in California». Det er
- * prisen for at bruge sportsverdenens korte navne, og den betales her.
+ * Mikkel, 2026-08-29: «the school will always be in a city or town in a state,
+ * so it could be Charlotte in North Carolina.» Han har ret, og min første
+ * løsning var forkert: jeg UDELOD delstaten når skolenavnet var den («North
+ * Carolina in North Carolina»), i stedet for at skrive hvor skolen faktisk
+ * ligger. Byen er den oplysning læseren manglede.
+ *
+ * To spærrer mod at sige det samme to gange:
+ *   - Er byen skolens navn (St. Bonaventure ligger i Saint Bonaventure, NY),
+ *     springes byen over.
+ *   - Er delstaten skolens navn OG vi har ingen by, springes delstaten over.
+ *
+ * Returnerer stedet UDEN ledende præposition — kalderen sætter «i»/«in».
+ */
+export function schoolLocation(
+  displayName: string,
+  city: string | null | undefined,
+  stateName: string | null | undefined,
+): string {
+  const school = (displayName ?? "").trim();
+  const town = (city ?? "").trim();
+  const state = (stateName ?? "").trim();
+
+  const townUsable = town && flatName(town) !== flatName(school);
+  if (townUsable && state) return `${town}, ${state}`;
+  if (townUsable) return town;
+  if (state && flatName(state) !== flatName(school)) return state;
+  return "";
+}
+
+/**
+ * Navngiver skolenavnet allerede delstaten? Beholdt fordi den er den præcise
+ * spærre `schoolLocation` bruger, og fordi den er testet for sig.
  */
 export function nameContainsState(displayName: string, stateName: string): boolean {
   if (!displayName || !stateName) return false;

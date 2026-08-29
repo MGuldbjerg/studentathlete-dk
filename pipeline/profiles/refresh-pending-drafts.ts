@@ -16,8 +16,14 @@
  * ⚠️ Udvidede udkast (--expand, LLM-skrevne karriere-resuméer) må ikke
  * overskrives. De er lange; grænsen nedenfor holder dem ude.
  *
- *   npx tsx pipeline/profiles/refresh-pending-drafts.ts           # dry-run
+ * `--published-since ÅÅÅÅ-MM-DD` genberegner i stedet de UDGIVNE tekster der
+ * blev sat den dag eller senere. Det er kun forsvarligt fordi Mikkel godkender
+ * SKABELONEN (2026-08-29), og datoen er spærren: håndredigerede profiler fra
+ * før den dato røres aldrig.
+ *
+ *   npx tsx pipeline/profiles/refresh-pending-drafts.ts           # dry-run, udkast
  *   npx tsx pipeline/profiles/refresh-pending-drafts.ts --apply
+ *   npx tsx pipeline/profiles/refresh-pending-drafts.ts --published-since 2026-08-29 --apply
  */
 import { createD1Client } from "../lib/d1-client";
 import { type BaselineAthlete } from "../../src/lib/profile-baseline";
@@ -29,41 +35,49 @@ const BASELINE_MAX_CHARS = 400;
 
 interface Row extends BaselineAthlete {
   id: number;
-  profile_draft: string;
+  /** Den tekst der skal genberegnes — udkast eller udgivet, alt efter tilstand. */
+  current: string;
 }
 
 const COLS =
   "a.id, a.name, a.preferred_name, a.university, a.university_state, a.sport, a.position, " +
   "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, " +
-  "a.profile_draft, s.common_name AS university_common_name";
+  "s.common_name AS university_common_name, s.city AS university_city";
 
 async function main(): Promise<void> {
   const apply = process.argv.includes("--apply");
+  const sinceIdx = process.argv.indexOf("--published-since");
+  const since = sinceIdx !== -1 ? process.argv[sinceIdx + 1] : null;
+  const field = since ? "profile_summary" : "profile_draft";
   const db = createD1Client();
 
   const r = await db.query<Row>(
-    `SELECT ${COLS} FROM athletes a
+    `SELECT ${COLS}, a.${field} AS current FROM athletes a
      LEFT JOIN schools s ON s.name = a.university
-     WHERE a.profile_draft IS NOT NULL AND length(a.profile_draft) <= ?`,
-    [BASELINE_MAX_CHARS],
+     WHERE a.${field} IS NOT NULL AND length(a.${field}) <= ?
+       ${since ? "AND date(a.updated_at) >= date(?)" : ""}`,
+    since ? [BASELINE_MAX_CHARS, since] : [BASELINE_MAX_CHARS],
   );
   const rows = r.results ?? [];
-  console.log(`${rows.length} ventende baseline-udkast${apply ? "" : " (DRY-RUN)"}\n`);
+  console.log(
+    `${rows.length} ${since ? `udgivne tekster fra ${since} og frem` : "ventende baseline-udkast"}` +
+    `${apply ? "" : " (DRY-RUN)"}\n`,
+  );
 
   let changed = 0;
   let unchanged = 0;
   for (const row of rows) {
     const lang = countryProfile(row.home_country ?? undefined).language;
     const next = profileBuilder(lang)(row);
-    if (next === row.profile_draft) { unchanged++; continue; }
+    if (next === row.current) { unchanged++; continue; }
     changed++;
     if (changed <= 8) {
       console.log(`#${row.id} ${row.name}`);
-      console.log(`  før:  ${row.profile_draft}`);
+      console.log(`  før:  ${row.current}`);
       console.log(`  nu:   ${next}\n`);
     }
     if (apply) {
-      await db.execute("UPDATE athletes SET profile_draft = ? WHERE id = ?", [next, row.id]);
+      await db.execute(`UPDATE athletes SET ${field} = ? WHERE id = ?`, [next, row.id]);
     }
   }
 

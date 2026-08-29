@@ -7,7 +7,7 @@
  * forkortelse flytter atleten til et andet lærested.
  */
 
-import { displaySchoolName, looksMangled, nameContainsState } from "./school-display-name";
+import { displaySchoolName, looksMangled, nameContainsState, schoolLocation } from "./school-display-name";
 
 let passed = 0;
 let failed = 0;
@@ -74,6 +74,27 @@ assert(nameContainsState("California", "California"), "California i California")
 assert(!nameContainsState("Ohio State", "Ohio"), "«Ohio State i Ohio» er FINT — det er to ting");
 assert(!nameContainsState("Buffalo", "New York"), "Buffalo i New York er fint");
 assert(!nameContainsState("UAB", "Alabama"), "UAB i Alabama er fint");
+
+// ── Hvor ligger skolen? Byen i delstaten, ikke delstaten alene ─────────
+// Mikkel: «the school will always be in a city or town in a state, so it
+// could be Charlotte in North Carolina.»
+eq(schoolLocation("North Carolina", "Chapel Hill", "North Carolina"),
+   "Chapel Hill, North Carolina", "UNC ligger i Chapel Hill, ikke «i North Carolina»");
+eq(schoolLocation("Texas", "Austin", "Texas"), "Austin, Texas", "Texas ligger i Austin");
+eq(schoolLocation("California", "Berkeley", "California"), "Berkeley, California", "Cal ligger i Berkeley");
+eq(schoolLocation("Iona", "New Rochelle", "New York"), "New Rochelle, New York", "almindeligt tilfælde");
+
+// Byen ER skolens navn → spring byen over, brug delstaten.
+eq(schoolLocation("St. Bonaventure", "Saint Bonaventure", "New York"), "New York",
+   "St. Bonaventure ligger i Saint Bonaventure — sig det ikke to gange");
+
+// Ingen by → delstaten, med mindre den ER navnet.
+eq(schoolLocation("Ohio State", null, "Ohio"), "Ohio", "uden by bruges delstaten");
+eq(schoolLocation("North Carolina", null, "North Carolina"), "",
+   "uden by og med navnet = delstaten siger vi ingenting");
+eq(schoolLocation("Montana", "", "Montana"), "", "tom by tæller som ingen by");
+eq(schoolLocation("Duke", "Durham", null), "Durham", "by uden delstat");
+eq(schoolLocation("Duke", null, null), "", "hverken by eller delstat");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

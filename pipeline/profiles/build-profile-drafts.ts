@@ -62,7 +62,7 @@ const ATHLETE_COLS =
   "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, a.profile_summary, " +
   // Skolens brugsnavn. LEFT JOIN: en atlet hvis skole ikke findes i `schools`
   // skal stadig få et udkast — så falder navnet tilbage på det officielle.
-  "s.common_name AS university_common_name";
+  "s.common_name AS university_common_name, s.city AS university_city";
 
 // ── Prompt-input (eksporteret til test) ──────────────────────────────────────
 
