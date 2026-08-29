@@ -6,7 +6,7 @@ import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
 import { archivePath } from "@/lib/routes";
 import { routePath } from "@/lib/i18n";
-import { alphabetFor, athletesAllPath, countByLetter, getAthleteLetterUrl } from "@/lib/athlete-letters";
+import { alphabetFor, athletesAllPath, countByLetter, getAthleteLetterUrl, letterOf } from "@/lib/athlete-letters";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -21,43 +21,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: base,
-      lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1.0,
     },
     {
       url: `${base}${archivePath(lang)}`,
-      lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.8,
     },
     {
       url: `${base}${routePath("athletes", lang)}`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${base}${athletesAllPath(lang)}`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.6,
     },
     {
       url: `${base}${routePath("guides", lang)}`,
-      lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${base}${routePath("schools", lang)}`,
-      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     ...["om", "kontakt", "ai-brug", "presseetik", "cookies"].map((slug) => ({
       url: `${base}/${slug}`,
-      lastModified: new Date(),
       changeFrequency: "yearly" as const,
       priority: 0.3,
     })),
@@ -68,7 +61,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const guideSlugs = dbGuides.length ? dbGuides.map((g) => g.slug) : getGuideSlugs(await currentLanguage());
   const guidePages: MetadataRoute.Sitemap = guideSlugs.map((slug) => ({
     url: `${base}${routePath("guides", lang)}/${slug}`,
-    lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
@@ -76,7 +68,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Sport-landingssider (pillar pages)
   const sportPages: MetadataRoute.Sitemap = getSportSlugs(lang).map((slug) => ({
     url: `${base}/${slug}`,
-    lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 0.9,
   }));
@@ -99,14 +90,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // et ungt domæne ikke råd til. Alumni tæller ikke med: bogstavsiden viser
   // den aktive liste, præcis som oversigten.
   const letterCounts = countByLetter(athletes.filter((a) => a.active === 1), lang);
+  // `lastModified` skal være et SIGNAL, ikke et tidsstempel for hentningen.
+  // Stod som `new Date()`, altså «ændret lige nu» hver eneste gang Google
+  // hentede sitemappet — for hele den statiske del af sitet. Et sitemap der
+  // altid råber «alt er nyt» lærer Google at ignorere feltet. Bogstavsiden
+  // ændrer sig når en atlet under bogstavet gør, så det er dét vi skriver.
+  const activeAthletes = athletes.filter((a) => a.active === 1);
   const letterPages: MetadataRoute.Sitemap = alphabetFor(lang)
     .filter((letter) => (letterCounts.get(letter) ?? 0) > 0)
-    .map((letter) => ({
-      url: `${base}${getAthleteLetterUrl(letter, lang)}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.6,
-    }));
+    .map((letter) => {
+      const newest = activeAthletes
+        .filter((a) => letterOf(a.name, lang) === letter)
+        .map((a) => a.updated_at)
+        .sort()
+        .at(-1);
+      return {
+        url: `${base}${getAthleteLetterUrl(letter, lang)}`,
+        ...(newest ? { lastModified: new Date(newest) } : {}),
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      };
+    });
 
   const athletePages: MetadataRoute.Sitemap = athletes.map((a) => ({
     url: `${base}${getAthleteUrl(a.slug, lang)}`,
