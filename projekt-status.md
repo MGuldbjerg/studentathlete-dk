@@ -1,11 +1,59 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-29 (2.196 profiltekster udgivet; skolenavne = brugsnavne; sitemap-lastmod rettet)
+**Sidst opdateret**: 2026-08-29 (skolen ligger i en BY; ugentligt kvalitets-fejeblad)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🧹 Ugentligt kvalitets-fejeblad (2026-08-29)
+
+Mikkel: «for the next 5 months I can use you more actively — cron jobs could be
+a way to regularly fix poor drafts or similar.»
+
+`pipeline/checks/quality-sweep.ts` + `.github/workflows/quality-sweep.yml`
+(mandag 06:00 UTC). Deterministisk, ingen LLM, **skriver intet**. Discord KUN
+ved fund. Hver kontrol svarer til en fejl der ER sluppet igennem — en kontrol
+uden et virkeligt fund bag sig larmer bare.
+
+Første kørsel:
+
+| Fund | Antal |
+|---|---|
+| roster-felter med forkert indhold (højde i `position`, vægt i `class_year`) | **269** |
+| atletnavne med dobbelt mellemrum | 22 |
+| flere kladder fra SAMME kildeartikel | 6 |
+| «high»-risiko-kladder ældre end tre dage | 2 |
+| godkendte profiltekster skabelonen nu ville skrive anderledes | 138 |
+
+⚠️ Tallene tælles særskilt fra eksemplerne. Første udgave rapporterede
+`results.length` og sagde derfor «40» om et fund på 269, fordi eksempel-
+forespørgslen har LIMIT. Et overvågningsværktøj der underdriver er værre end
+ingen.
+
+`queue-stale-profiles.ts` lægger forældede tekster i `profile_draft` —
+**aldrig oven i `profile_summary`**. 138 ligger i køen nu.
+
+**269 roster-felter er det største åbne spor**: højde i `position` rammer især
+svømning og roning, hvor rosteren har en højde-kolonne og ingen position.
+
+## 📍 Skolen ligger i en BY i en delstat (2026-08-29)
+
+Mikkel: «why would you end up with North Carolina in North Carolina? The school
+will always be in a city or town in a state.»
+
+Han havde ret, og min første løsning var forkert: jeg UDELOD delstaten når
+skolenavnet var den, i stedet for at skrive hvor skolen faktisk ligger.
+`schools.city` var udfyldt for 1.712 af 1.761 skoler hele tiden.
+
+Nu «for North Carolina in Chapel Hill, North Carolina». To spærrer: er byen
+skolens navn (St. Bonaventure ligger i Saint Bonaventure, NY) bruges delstaten;
+er delstaten navnet og der ingen by er, siges der ingenting.
+
+1.371 af dagens 2.196 tekster genberegnet. Profiler godkendt FØR i dag er
+urørt — `--published-since` er spærren mod at en skabelonændring overskriver
+en håndredigeret tekst.
 
 ## 👤 Profilteksterne er udgivet (2026-08-29) — 2.196 stk.
 
