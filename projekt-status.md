@@ -1,11 +1,58 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-29 (alle fotos godkendt; ugedagen udregnes; kladdekøen tom)
+**Sidst opdateret**: 2026-08-30 (faktaarket dækker nu KAMPEN, ikke kun atletens linje)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## ⚽ Faktaarket dækker nu KAMPEN (2026-08-30) — `match-facts.ts`
+
+Ti kampreferater i træk blev afvist, og fejlene var de samme hver gang.
+Årsagen var ikke generatoren: faktaarket fangede pålideligt ATLETENS linje
+(mål, minutter, skud), men ikke kampen omkring den. Bedt om at skrive et
+referat ud fra det, fylder modellen hullerne.
+
+Oplysningerne stod i kilden hele tiden, struktureret. Nu hentes de
+**regelbaseret** — ingen LLM, ingen browser-render, og kun én HTTP-hentning
+når den gemte kildetekst ikke allerede bærer oversigten (52 af 157 gør).
+
+Prompten ser nu:
+
+```
+Kampens mål (kildens egen oversigt — brug rækkefølgen som den står):
+- 33:00 Tatum Fain (ECKERD) — oplæg: Tristan Bassette
+- 45:41 Javier Gongora Andres (MGA)
+- 53:54 Sebastian Schmalbach (ECKERD) — oplæg: Nico Fischer
+- 71:43 Zaki Goes (MGA) — oplæg: Sean McCrudden
+- 86:05 Pharrell Williams (ECKERD) — oplæg: Tatum Fain
+
+Holdstatistik (MGA / ECKERD):
+- Shots on Goal: 6 - 4 · Saves: 1 - 4 · Corners: 5 - 2 …
+```
+
+Den afviste #177 påstod at Fain UDLIGNEDE før Williams' vinder. Faktaarket
+viser nu at Fain scorede ÅBNINGSMÅLET og LAGDE OP til vinderen — den fejl kan
+ikke længere skrives uden at modsige sit eget faktaark, og dét fanger
+`verify-article`.
+
+### ⚠️ To markup-varianter der vender tiden hver sin vej
+
+    A «Scoring Summary»  →  Score at 07:16  Jack Steel (1) … GOAL by SBU
+    B «Scoring Plays»    →  Oliver Corris (1) … GOAL by UST …  30:25
+
+Min første regex var bygget på A og parrede B's tider med den FORKERTE
+scorer — Corris' mål blev tilskrevet Radeke. Teksten skæres nu i bidder pr.
+variant. To andre former kostede også en runde: straffespark skrives uden
+«GOAL by», så en grådig navneregex slugte holdkoden («Iesha Rollins NSU
+Iesha»); et navneord er nu «stort forbogstav + småt», aldrig en versalkode.
+Et beskrivende mål uden holdangivelse giver `null`, ikke et gæt.
+
+19 tests på ordret tekst fra de sider der producerede de afviste kladder.
+
+**Næste skridt**: kør `generate-manual` og se om referaterne nu holder. Det er
+først dér vi ved om hullet var det eneste.
 
 ## 📅 Ugedagen blev gættet — 4 fejl ud af 5 (2026-08-29)
 
