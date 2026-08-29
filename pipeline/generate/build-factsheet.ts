@@ -130,11 +130,51 @@ export function normalizeFactSheet(raw: Record<string, unknown>): FactSheet {
  * writeren må bruge). Kvalitative observationer fremhæves som materiale til at
  * fortælle om præstationen — også når der ingen stats er.
  */
+/**
+ * Ugedagen for en kampdato — UDREGNET, ikke gættet.
+ *
+ * Modellen skrev ugedagen selv ud fra datoen og tog fejl 4 gange ud af 5 i
+ * kladderne fra 27.-28. august 2026: «Wednesday evening» om en torsdag,
+ * «Thursday» om en fredag. Den slags kan ingen nedstrøms kontrol fange —
+ * faktaarket sagde jo ikke noget forkert, det sagde bare ingenting.
+ *
+ * Nu står dagen i faktaarket, så skrivefasen kan læse den i stedet for at
+ * regne. Kan datoen ikke forstås, skrives der ingen dag — så er «onsdag»
+ * i det mindste ikke vores påfund.
+ */
+export function weekdayOf(dateText: string | null | undefined): string | null {
+  const raw = (dateText ?? "").trim();
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return null;
+  // Årstal uden dag ("July 2026") giver 1. i måneden og dermed en tilfældig
+  // ugedag — kræv derfor at datoteksten indeholder et dagtal.
+  if (!/\b\d{1,2}\b/.test(raw.replace(/\b(19|20)\d{2}\b/, ""))) return null;
+
+  // ⚠️ De to skrivemåder lander i HVER SIN tidszone: "2026-08-27" tolkes som
+  // UTC-midnat, "Aug. 27, 2026" som LOKAL midnat. Formateres de ens, skifter
+  // den ene dag — min første udgave svarede «Wednesday» på begge amerikanske
+  // formater. Vi normaliserer derfor til UTC-middag ud fra de lokale dele.
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+  const utc = iso
+    ? new Date(Date.UTC(+iso[1], +iso[2] - 1, +iso[3], 12))
+    : new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12));
+  return utc.toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" });
+}
+
 export function renderFactSheet(fs: FactSheet): string {
   const blocks: string[] = [];
   if (fs.event) {
     const e = fs.event;
-    const parts = [e.type, e.opponent ? `mod ${e.opponent}` : null, e.competition, e.date].filter(Boolean);
+    const weekday = weekdayOf(e.date);
+    const parts = [
+      e.type,
+      e.opponent ? `mod ${e.opponent}` : null,
+      e.competition,
+      // Ugedagen står EFTER datoen og er udregnet — modellen må ikke selv
+      // udlede den (4 fejl ud af 5 målt 2026-08-29).
+      e.date ? (weekday ? `${e.date} (${weekday})` : e.date) : null,
+    ].filter(Boolean);
     if (parts.length) blocks.push(`Begivenhed: ${parts.join(", ")}`);
   }
   if (fs.result && (fs.result.final_score || fs.result.outcome || fs.result.placement)) {
