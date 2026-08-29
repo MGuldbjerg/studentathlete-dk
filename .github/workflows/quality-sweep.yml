@@ -1,0 +1,85 @@
+name: Kvalitets-fejeblad
+
+# Mandag 06:00 UTC — før morgen-klyngen, efter søndagens roster-scrape, så
+# ugens nye roster-data er med. Kørslen SKRIVER INTET og koster ingen tokens:
+# den er ren SQL + den samme skabelon sitet selv bruger.
+#
+# Hver kontrol svarer til en fejl der ER sluppet igennem i produktion — ikke
+# til en jeg kunne forestille mig. Se pipeline/checks/quality-sweep.ts.
+#
+# Discord KUN når der er fund. En rapport der kommer hver uge uanset hvad,
+# holder man op med at læse.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      queue_stale_profiles:
+        description: "Læg forældede profiltekster i godkendelseskøen (skriver til profile_draft — ALDRIG til det der står live)"
+        type: boolean
+        default: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Kør fejebladet
+        id: sweep
+        run: |
+          npx tsx pipeline/checks/quality-sweep.ts 2>&1 | tee /tmp/sweep.txt
+          echo "findings=$(grep -oP 'SWEEP_FINDINGS=\K\d+' /tmp/sweep.txt || echo 0)" >> "$GITHUB_OUTPUT"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      - name: Gem rapporten
+        uses: actions/upload-artifact@v4
+        with:
+          name: kvalitets-fejeblad
+          path: /tmp/sweep.txt
+          retention-days: 30
+
+      # Kun manuelt, og kun når Mikkel sætter flueben: lægger forslag i
+      # godkendelseskøen. Overskriver ALDRIG en godkendt tekst.
+      - name: Læg forældede profiltekster i køen
+        if: inputs.queue_stale_profiles
+        run: npx tsx pipeline/profiles/queue-stale-profiles.ts --apply
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      - name: Discord — kun ved fund
+        if: steps.sweep.outputs.findings != '0'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          N: ${{ steps.sweep.outputs.findings }}
+        run: |
+          BODY=$(sed -n '/^▸/,$p' /tmp/sweep.txt | grep '^▸' | sed 's/^▸ /• /' | head -10)
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg b "$BODY" --arg u "$RUN_URL" --arg n "$N" '{embeds:[{
+                  title:("🧹 Kvalitets-fejeblad: " + $n + " fund"),
+                  description:($b + "\n\n[Hele rapporten](" + $u + ")"),
+                  color:16233263,
+                  footer:{text:"StudentAthlete — ugentlig kontrol"}}]}')"
+
+      - name: Discord ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Kvalitets-fejeblad fejlede\",\"description\":\"[Se loggen]($RUN_URL).\",\"color\":15158332}]}"
