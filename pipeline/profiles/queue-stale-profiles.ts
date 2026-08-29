@@ -24,7 +24,7 @@ const MAX_CHARS = 400;
 const COLS =
   "a.id, a.name, a.preferred_name, a.university, a.university_state, a.sport, a.position, " +
   "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, " +
-  "a.profile_summary, s.common_name AS university_common_name, s.city AS university_city";
+  "a.profile_summary, s.common_name AS university_common_name, s.city AS university_city, s.nickname AS university_nickname, a.gender";
 
 async function main(): Promise<void> {
   const apply = process.argv.includes("--apply");

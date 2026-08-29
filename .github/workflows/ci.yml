@@ -67,6 +67,7 @@ jobs:
             src/lib/_article-url-test.ts \
             src/lib/_school-name-test.ts \
             src/lib/_school-display-name-test.ts \
+            src/lib/_school-team-name-test.ts \
             src/lib/_no-danish-default-test.ts \
             src/lib/_no-danish-in-jsx-test.ts \
             src/lib/_season-badge-test.ts \

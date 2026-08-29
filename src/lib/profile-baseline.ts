@@ -17,6 +17,7 @@ import { sportLabel } from "./i18n";
 import { localizeHometown } from "./hometown";
 import { countryProfile } from "./countries";
 import { displaySchoolName, schoolLocation } from "./school-display-name";
+import { teamName } from "./school-team-name";
 
 // Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
 // forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
@@ -53,6 +54,10 @@ export interface BaselineAthlete {
   university_common_name?: string | null;
   /** Skolens by (`schools.city`) — «i Chapel Hill, North Carolina». */
   university_city?: string | null;
+  /** Holdets navn (`schools.nickname`) — «Gaels», «Stags and Athenas». */
+  university_nickname?: string | null;
+  /** Atletens køn — afgør Minutemen vs Minutewomen. Ukendt = intet holdnavn. */
+  gender?: string | null;
   sport: string;
   position: string | null;
   hometown: string | null;
@@ -267,12 +272,15 @@ export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): str
   // allerede delstaten, udelades «i {delstat}» — ellers står der «North
   // Carolina i North Carolina». Se school-display-name.ts.
   const school = displaySchoolName(a.university, a.university_common_name);
+  // Man SPILLER FOR et hold og STARTER PÅ et universitet. Holdnavnet hører
+  // derfor kun til den første slags sætning.
+  const team = teamName(school, a.university_nickname, a.gender) || school;
   const place = schoolLocation(
     school,
     a.university_city,
     a.university_state ? stateName(a.university_state) : null,
   );
-  const where = place ? `${school} i ${place}` : school;
+  const where = place ? `${team} i ${place}` : team;
 
   // Dimitteret = forbi 1. juni i dimissionsåret (samme skæring som 🎓-badgen,
   // men uden badge-vinduets slutdato — teksten skal forblive i datid).

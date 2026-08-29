@@ -125,7 +125,7 @@ async function main(): Promise<void> {
   const profCols =
     "a.id, a.name, a.preferred_name, a.university, a.university_state, a.sport, a.position, " +
     "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, " +
-    "a.profile_summary, s.common_name AS university_common_name, s.city AS university_city";
+    "a.profile_summary, s.common_name AS university_common_name, s.city AS university_city, s.nickname AS university_nickname, a.gender";
   const profiles = await db.query<BaselineAthlete & { id: number; profile_summary: string }>(
     `SELECT ${profCols} FROM athletes a LEFT JOIN schools s ON s.name = a.university
      WHERE a.active = 1 AND a.profile_summary IS NOT NULL AND length(a.profile_summary) <= 400`);

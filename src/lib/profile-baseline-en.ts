@@ -22,6 +22,7 @@ import {
 } from "./profile-baseline";
 import { localizeHometown } from "./hometown";
 import { displaySchoolName, schoolLocation } from "./school-display-name";
+import { teamName } from "./school-team-name";
 import { countryProfile } from "./countries";
 
 // Delstatstabellen er engelsk i forvejen — kun det danske eksonym afviger.
@@ -214,12 +215,16 @@ export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): s
   // Se den danske pendant: brugsnavn frem for registernavn, og ingen
   // «in {state}» når navnet allerede ER delstaten («Texas in Texas»).
   const school = displaySchoolName(a.university, a.university_common_name);
+  // «for THE Iona Gaels» — engelsk tager bestemt artikel foran et holdnavn,
+  // men ikke foran skolen selv («started at Iona»).
+  const teamRaw = teamName(school, a.university_nickname, a.gender);
+  const team = teamRaw ? `the ${teamRaw}` : school;
   const place = schoolLocation(
     school,
     a.university_city,
     a.university_state ? stateName(a.university_state) : null,
   );
-  const where = place ? `${school} in ${place}` : school;
+  const where = place ? `${team} in ${place}` : team;
 
   // Samme dimissions-skæring som den danske bygger (1. juni i dimissionsåret).
   const hasGraduated =

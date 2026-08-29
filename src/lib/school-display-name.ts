@@ -99,6 +99,15 @@ export function displaySchoolName(
   return official;
 }
 
+/** Navnet uden generiske lærestedsord — «University of Illinois» → «illinois». */
+function stripGenerics(v: string): string {
+  return v
+    .toLowerCase()
+    .replace(/\b(the|university|universities|college|colleges|of|at|in|and)\b/g, " ")
+    .normalize("NFD")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 /** Sammenlign navne uden tegnsætning og med Saint/St. som samme ord. */
 function flatName(v: string): string {
   return v
@@ -133,10 +142,18 @@ export function schoolLocation(
   const town = (city ?? "").trim();
   const state = (stateName ?? "").trim();
 
-  const townUsable = town && flatName(town) !== flatName(school);
+  // Byen springes over når skolenavnet allerede BÆRER den: «Cal Poly Pomona
+  // in Pomona», «SUNY Cortland in Cortland», «UC Berkeley in Berkeley».
+  // Lighed alene fangede kun St. Bonaventure.
+  const townUsable = Boolean(town) && !flatName(school).includes(flatName(town));
   if (townUsable && state) return `${town}, ${state}`;
   if (townUsable) return town;
-  if (state && flatName(state) !== flatName(school)) return state;
+  // Delstaten springes over når skolenavnet i praksis ER den: «University of
+  // Illinois» og «Vermont» siger allerede Illinois og Vermont. Men «Ohio
+  // State» er ikke Ohio — det ekstra ord bærer identitet, så dér beholdes
+  // delstaten. Derfor sammenlignes der EFTER at fyldordene er fjernet, ikke
+  // med indeholdelse.
+  if (state && stripGenerics(school) !== flatName(state)) return state;
   return "";
 }
 

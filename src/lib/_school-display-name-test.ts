@@ -89,7 +89,15 @@ eq(schoolLocation("St. Bonaventure", "Saint Bonaventure", "New York"), "New York
    "St. Bonaventure ligger i Saint Bonaventure — sig det ikke to gange");
 
 // Ingen by → delstaten, med mindre den ER navnet.
-eq(schoolLocation("Ohio State", null, "Ohio"), "Ohio", "uden by bruges delstaten");
+eq(schoolLocation("Ohio State", null, "Ohio"), "Ohio",
+   "«Ohio State» er ikke «Ohio» — det ekstra ord bærer identitet, så delstaten beholdes");
+eq(schoolLocation("University of Illinois", null, "Illinois"), "",
+   "«University of Illinois i Illinois» — fyldordene fjernet er navnet delstaten");
+eq(schoolLocation("University of Vermont", null, "Vermont"), "", "samme for Vermont");
+eq(schoolLocation("Cal Poly Pomona", "Pomona", "California"), "California",
+   "byen ligger i navnet → brug delstaten");
+eq(schoolLocation("SUNY Cortland", "Cortland", "New York"), "New York", "samme for Cortland");
+eq(schoolLocation("UC Berkeley", "Berkeley", "California"), "California", "samme for Berkeley");
 eq(schoolLocation("North Carolina", null, "North Carolina"), "",
    "uden by og med navnet = delstaten siger vi ingenting");
 eq(schoolLocation("Montana", "", "Montana"), "", "tom by tæller som ingen by");
