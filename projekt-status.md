@@ -1,11 +1,66 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-30 (faktaarket dækker nu KAMPEN, ikke kun atletens linje)
+**Sidst opdateret**: 2026-08-30 (audit af hele discovery→kladde-pipelinen)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🔬 AUDIT af discovery→kladde-pipelinen (2026-08-30)
+
+### Tragten, 30 dage
+
+| Trin | Antal |
+|---|---|
+| feeds overvåget | 1.066 |
+| skoler m. feed OG aktive atleter | 564 |
+| — heraf gav en historie | **100** |
+| historier fundet | 179 |
+| over genererings-tærskel (60) | 142 |
+| faktaark bygget | 142 (27 uden substans) |
+| kladder | 32 |
+| udgivet | 25 |
+
+### ⚠️ Hovedfundet er NEGATIVT: sproget skiller ikke
+
+57 afviste kladder målt mod 43 udgivne artikler:
+
+| signal | afvist | udgivet |
+|---|---|---|
+| overdrivelse i titel | 12% | 5% |
+| fremtids-fyld | 54% | 40% |
+| spekulativ vurdering | 44% | 26% |
+| **opfundet alder** | **18%** | **16%** |
+
+Ingen af dem skiller. Og `fabrication_risk` skiller heller ikke:
+**27 af 68 afvisninger var stemplet «low»** — den hyppigste karakter blandt de
+afviste. Verificeringen måler «påstande uden dækning i faktaarket», men de
+fejl der får en kladde afvist er påstande der ER dækket og alligevel forkerte.
+
+**Konsekvens: hold op med at lede efter dårligt sprog. Led efter forkerte tal.**
+
+`fact-cross-check.ts` sammenligner artiklen med kildens egen scoringsoversigt.
+Målt på auditens sager: **4 af 4 afviste fanges, 0 af 3 udgivne flages.** En
+modsigelse hæver til «high» uanset hvad modellen mente.
+
+⚠️ **Opfundne aldre står i 7 UDGIVNE artikler.** Vi gemmer ikke alder nogen
+steder. Det er ikke fanget af nogen kontrol og bør ses efter.
+
+### Discovery: 168 skoler er tavse
+
+Alle feeds tjekkes til tiden (0 mere end 3 dage bagud), så det er ikke
+planlægningen. To forklaringer:
+
+1. Feedet er **10 indslag bredt for hele atletikafdelingen**. Toledos seneste
+   ti handler om volleyball og kampprogram — ingen af vores fem atleter. Ærlig
+   tavshed.
+2. Men ~1 af 30 RSS-feeds svarer **HTTP 200 med nul indslag** (gobison.com),
+   og Missouri State returnerer 0 bytes. Et dødt feed kan ikke skelnes fra
+   «ingen nyheder».
+
+Ny kontrol: skoler med 5+ aktive atleter uden én historie i 90 dage.
+**168 skoler** — den største uudnyttede indgang i pipelinen.
 
 ## ⚽ Faktaarket dækker nu KAMPEN (2026-08-30) — `match-facts.ts`
 
