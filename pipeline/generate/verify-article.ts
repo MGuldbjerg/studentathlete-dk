@@ -11,6 +11,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
+import { crossCheck } from "./fact-cross-check";
 import { renderBoxScoreBlock } from "./box-score";
 
 export interface VerifyArticleInput {
@@ -198,6 +199,18 @@ async function main(): Promise<void> {
       boxScoreText,
     );
 
+    // DETERMINISTISK KRYDSTJEK oven på LLM-dommen. Auditten 2026-08-30 viste
+    // at `fabrication_risk` ikke skiller: 27 af 68 afvisninger var «low».
+    // Modsiger artiklen kildens scoringsoversigt, er det ikke en vurdering —
+    // det er en fejl, og den skal veje tungere end modellens skøn.
+    let matchFacts: FactSheet["match"] = null;
+    try {
+      matchFacts = (JSON.parse(ar.fact_sheet ?? "{}") as FactSheet).match ?? null;
+    } catch {
+      /* tomt faktaark */
+    }
+    const contradictions = crossCheck(`${ar.title}\n${ar.content}`, matchFacts);
+
     if (!verdict) {
       unverified++;
       console.log(`  [?]    ${ar.id} ${ar.title.slice(0, 55)} — uverificeret (LLM-fejl)`);
@@ -206,13 +219,25 @@ async function main(): Promise<void> {
     const tag = verdict.fabrication_risk === "high" ? "HIGH" : verdict.fabrication_risk === "medium" ? "med " : "low ";
     console.log(`  [${tag}] ${ar.id} ${ar.title.slice(0, 55)}${verdict.flags.length ? ` — ${verdict.flags.join("; ")}` : ""}`);
 
+    // En modsigelse af kilden hæver ALTID til «high». Modellen kan mene at en
+    // påstand er dækket; tallet er stadig forkert.
+    const risk = contradictions.length ? "high" : verdict.fabrication_risk;
+    const flags = [
+      ...verdict.flags,
+      ...contradictions.map((c) => `${c.kind}: artiklen påstår «${c.claim}» — ${c.source}`),
+    ];
+    if (contradictions.length) {
+      console.log(`         ↳ krydstjek mod kampens forløb: ${contradictions.length} modsigelse(r)`);
+      for (const c of contradictions) console.log(`           · ${c.claim} — ${c.source}`);
+    }
+
     if (!dryRun) {
       await db.execute(
         `UPDATE articles SET fabrication_risk = ?, fact_flags = ? WHERE id = ?`,
-        [verdict.fabrication_risk, JSON.stringify(verdict.flags), ar.id],
+        [risk, JSON.stringify(flags), ar.id],
       );
     }
-    if (verdict.fabrication_risk === "high") high++;
+    if (risk === "high") high++;
     else if (verdict.fabrication_risk === "medium") medium++;
     else low++;
   }
