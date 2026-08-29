@@ -37,6 +37,7 @@ jobs:
             pipeline/generate/_parse-output-test.ts \
             pipeline/generate/_boxscore-test.ts \
             pipeline/generate/_weekday-test.ts \
+            pipeline/generate/_match-facts-test.ts \
             pipeline/generate/_identity-guard-test.ts \
             pipeline/generate/_event-timing-test.ts \
             pipeline/generate/_forward-looking-test.ts \

@@ -12,8 +12,11 @@ import { createD1Client } from "../lib/d1-client";
 import { stripForwardLooking } from "./forward-looking";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import { fetchHtml } from "../discover/extract-story";
+import { parseMatchFacts, type MatchFacts } from "./match-facts";
 import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
-import { enrichFactSheetWithBoxScore, extractBoxScoreText } from "./box-score";
+import { enrichFactSheetWithBoxScore, extractBoxScoreText,
+  looksLikeMatchStory,
+} from "./box-score";
 
 interface StoryRow {
   id: number;
@@ -35,6 +38,13 @@ export interface FactSheet {
   quotes: Array<{ text: string; speaker: string; source: "prose" | "boxscore" }>;
   other_facts: Array<{ text: string; source: "prose" | "boxscore" }>;
   box_score_url: string | null;
+  /**
+   * KAMPEN SELV — scoringsoversigt og holdstatistik, læst regelbaseret ud af
+   * kilden (se match-facts.ts). Faktaarket fangede før kun ATLETENS egen
+   * linje, og det var netop dér de ti afviste kampreferater hentede deres
+   * fejl: forkert målrækkefølge, forkerte redningstal, opfundne oplæg.
+   */
+  match?: MatchFacts | null;
 }
 
 /** Minimal interface — accepterer ProviderChain eller en stub i tests. */
@@ -182,6 +192,29 @@ export function renderFactSheet(fs: FactSheet): string {
     const parts = [r.outcome, r.final_score, r.placement].filter(Boolean);
     blocks.push(`Resultat: ${parts.join(", ")}`);
   }
+  if (fs.match?.goals.length) {
+    // Rækkefølgen er kildens egen. Skrivefasen skal kunne se HVEM der scorede
+    // hvornår — uden det opfinder den forløbet.
+    blocks.push(
+      "Kampens mål (kildens egen oversigt — brug rækkefølgen som den står):\n" +
+        fs.match.goals
+          .map((g) => {
+            const who = g.team ? `${g.scorer} (${g.team})` : g.scorer;
+            const how = g.penalty ? " straffespark" : "";
+            const assist = g.assists.length ? ` — oplæg: ${g.assists.join(", ")}` : "";
+            return `- ${g.time} ${who}${how}${assist}`;
+          })
+          .join("\n"),
+    );
+  }
+  if (fs.match?.teamStats?.rows.length) {
+    const t = fs.match.teamStats;
+    const head = t.teams.length === 2 ? ` (${t.teams.join(" / ")})` : "";
+    blocks.push(
+      `Holdstatistik${head}:\n` +
+        t.rows.map((r) => `- ${r.label}: ${r.values.join(" - ")}`).join("\n"),
+    );
+  }
   if (fs.stats.length) blocks.push("Statistik:\n" + fs.stats.map((s) => `- ${s.text}`).join("\n"));
   if (fs.qualitative.length)
     blocks.push(
@@ -266,11 +299,32 @@ async function main(): Promise<void> {
   const stories = result.results;
   console.log(`Bygger faktaark for ${stories.length} historie(r)${dryRun ? " (DRY-RUN)" : ""}...\n`);
 
-  let built = 0, noSubstance = 0, failed = 0;
+  let built = 0, noSubstance = 0, failed = 0, matchFactsFound = 0;
   for (const story of stories) {
     const result = await buildFactSheet(story, chain);
     let factSheet = result.factSheet;
     const status = result.status;
+
+    // KAMPEN SELV, før alt andet: regelbaseret, ingen LLM, ingen browser-render.
+    // Prøv den gemte kildetekst først — en tredjedel af historierne bærer
+    // allerede oversigten — og hent kun siden hvis den ikke gør.
+    if (factSheet && status === "built" && looksLikeMatchStory(factSheet)) {
+      try {
+        let match = parseMatchFacts(story.content_raw ?? "");
+        if (!match.goals.length && story.source_url) {
+          const html = await fetchHtml(story.source_url);
+          if (html) match = parseMatchFacts(html);
+        }
+        if (match.goals.length || match.teamStats) {
+          factSheet = { ...factSheet, match };
+          matchFactsFound++;
+          console.log(`    + kampforløb: ${match.goals.length} mål${match.teamStats ? `, ${match.teamStats.rows.length} nøgletal` : ""}`);
+        }
+      } catch (err) {
+        // En manglende scoringsoversigt må aldrig vælte faktaarket.
+        console.warn(`  ⚠ Kampforløb [${story.id}]: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
 
     // Box-score-berigelse: grundsandhed for TAL (aldrig erstatning for kvalitativ prosa).
     // Kun for byggede faktaark, inden for render-budget, og kun hvis quota ikke er opbrugt.
@@ -318,6 +372,7 @@ async function main(): Promise<void> {
 
   console.log(
     `\nFærdig. Bygget: ${built} | Uden substans: ${noSubstance} | Fejlet: ${failed}` +
+    ` | Med kampforløb: ${matchFactsFound}` +
       (renderEnabled ? ` | Box scores: ${boxScoreFound} fundet (${rendersUsed}/${boxScoreBudget} render)` : ""),
   );
 }
