@@ -7,6 +7,33 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## ✅ UK-kladdekøen tømt (2026-08-29)
+
+Mikkel: «publish the high confidence game recaps. Reject everything else.»
+
+Af 17 britiske kladder kom **kun tre fra en faktisk kamp**. Resten var
+forsæsons-lister, hold-polls og previews — kilder uden et udfald at referere.
+
+**Udgivet (1):** #160 Iesha Rollins, Northwestern State 1-4 UL Lafayette.
+Omskrevet fra faktaarket, verificeret «low». Den oprindelige kladde havde
+straffesparket i det 29. minut (faktaarket giver intet minut), vendte
+målrækkefølgen om, kaldte kampen en sæsonpremiere (NSU stod 0-4) og vendte
+kampens skudtal fra «sæsonens højeste» til bevis på klasseforskel.
+
+**Afvist (16).** De to andre kamp-kladder var ikke til at redde:
+- #147 Worsfold-Gregg — atleten står slet ikke i kilden
+- #152 Ryan Holt — opdigtet målmand og anfører, og samme kamp som det
+  allerede udgivne Steel-referat
+
+Afvisningen gik gennem samme vej som /admin's knap (`deleteArticle`):
+teksten gemt i `review_log`, børnene slettet før forælderen. 53 afvisninger
+er nu logget i alt.
+
+⚠️ **Sluggen bar en påstand titlen ikke længere gjorde**:
+`…-fires-nsu-s-first-goal-in-tough-opener`. Den er rettet, mens artiklen var
+et minut gammel og endnu ikke crawlet. Værd at huske: en slug fryses ved
+udgivelse, så en forkert framing i den er dyrere at rette end i teksten.
+
 ## 🔤 Danske navne uden æ/ø/å — fast kontrol (2026-08-29)
 
 Mikkel: «make it a thing you check regularly — the actual spelling of Danish
