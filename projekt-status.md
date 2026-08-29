@@ -1,11 +1,57 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-29 (skolen ligger i en BY; ugentligt kvalitets-fejeblad)
+**Sidst opdateret**: 2026-08-29 (profilteksten siger HOLDET; ugentligt kvalitets-fejeblad)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🏅 Profilteksten siger HOLDET (2026-08-29)
+
+Mikkel: «since this is about athletes, say the sports name. Miami Hurricanes,
+Ohio State Buckeyes, Oregon Ducks.»
+
+> «Freddie Tucker plays golf for **the Iona Gaels** in New Rochelle, New York.»
+> «Amy Cornfield has played field hockey for **the UMass Minutewomen** in
+> Amherst, Massachusetts as a defender/midfielder since 2025.»
+
+`schools.nickname` var udfyldt for 1.712 skoler og blev aldrig læst. 548 af de
+580 skoler vi dækker har et holdnavn; resten falder tilbage på skolenavnet.
+
+⚠️ **Kønnet er fælden**, som Mikkel selv pegede på. Tre formater i data:
+- ni skoler bærer begge navne i ét felt («Stags and Athenas», «Statesmen &
+  Lady Statesmen») — **herrerne står altid først**, verificeret på alle ni
+- to har kun herrenavnet selvom damerne hedder noget andet: **UMass**
+  (Minutewomen) og **Washington College** (Shorewomen)
+- Lebanon Valley («Flying Dutchmen») og SNHU («Penmen») bruger ÉT navn til
+  begge — verificeret, ikke antaget, og derfor IKKE i tabellen
+
+**Er navnet kønnet og kønnet ukendt, dropper vi holdnavnet helt.** 270 af 2.588
+aktive atleter mangler køn, og «Minutemen» om en kvinde er en påstand om et
+navngivent menneske.
+
+Man SPILLER FOR et hold og STARTER PÅ et universitet — «started at Ohio State
+in the autumn of 2026» beholder skolenavnet. Engelsk tager bestemt artikel
+foran holdnavnet, dansk gør ikke.
+
+Sted-reglerne strammet samtidig (begge fundet ved at rendere mod 300 rigtige
+atleter): byen springes over når skolenavnet bærer den («Cal Poly Pomona in
+Pomona»), og delstaten når navnet uden fyldord ER den («University of Illinois
+i Illinois») — men «Ohio State» er ikke «Ohio», så dér beholdes delstaten.
+
+⚠️ **Regenerering taber menneskelige navnerettelser.** Marcus Jørgensen står som
+«Marcus Jorgensen» i `athletes.name`; det korrekte ø levede kun i den godkendte
+profiltekst. Forslaget i køen har derfor ASCII-stavemåden. Rettelsen hører
+hjemme i `athletes.name` + `name_locked`, ikke i teksten.
+
+## 🔁 Dedupen var allerede bygget
+
+`group-stories.ts` (commit e72406d, 27-08, anden session) grupperer på
+`(source_url, country)` og lukker søskende kun ved succes. Verificeret: 7
+kladder oprettet siden, 7 unikke grupper. Fejebladets dublet-kontrol talte
+oprindeligt pr. `source_url` alene og rapporterede derfor .dk- og
+.co.uk-udgaven af samme kamp som en dublet — rettet til samme nøgle.
 
 ## 🧹 Ugentligt kvalitets-fejeblad (2026-08-29)
 
