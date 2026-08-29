@@ -7,6 +7,39 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+## ❌ DK-kladdekøen tømt — intet udgivet (2026-08-29)
+
+Fem danske kladder, **ingen af dem et publicerbart kampreferat.**
+
+Tre kom slet ikke fra en kamp: #137 og #146 var ugentlige hædersbevisninger,
+#158 påstod et skifte til SMU som kilden (en Hermann Trophy-watchlist) ikke
+nævner med ét ord.
+
+De to der KOM fra en kamp var for forkerte:
+
+**#151 Daniel Helle** — opdigtet alder («den 22-årige», vi gemmer ikke alder),
+forkert ugedag (onsdag; kampen var torsdag), og holdets skudtal vendt om:
+«med blot tre skud og to chancer i hele kampen» — tre skud var HOLTS tal,
+holdet havde 11 skud og 7 på mål. Helles faktiske bidrag (en aflevering
+tilbage til Macfarlane i opløbet til 2-0) beskrives som defensivt.
+
+**#162 Victor Moerck** — forkert minut for modstandermålet (26. i stedet for
+32.), kampen kaldt hjemmebane (den var ude i Moon Township), et opdigtet mål i
+40. minut, og sejrsmålet placeret i 80. minut (Salvino scorede i 87.).
+
+### ⚠️ Faktaarket bar selv en forkert kendsgerning
+
+Moercks faktaark siger «Fifth-year student». Det er **Raphael Bartells**
+egenskab i kilden («Fifth-year student Raphael Bartell recorded a save and an
+assist»); vores egen roster siger `Sr.` om Moerck. Fase 1 flyttede altså en
+oplysning fra én navngiven person til en anden, og fase 2 skrev videre på den.
+
+Det er en anden fejlklasse end dem vi har set før: hidtil har generatoren
+opfundet ting faktaarket ikke indeholdt. Her var faktaarket selv forkert — og
+så hjælper hverken citatvagten eller `verify-article`, for artiklen ER
+dækket af sit faktaark. **Derfor blev #162 ikke omskrevet: et faktaark der
+mis-tilskriver én kendsgerning, kan ikke bruges som grundlag for de øvrige.**
+
 ## ✅ UK-kladdekøen tømt (2026-08-29)
 
 Mikkel: «publish the high confidence game recaps. Reject everything else.»
