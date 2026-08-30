@@ -1,11 +1,39 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-30 (audit af hele discovery→kladde-pipelinen)
+**Sidst opdateret**: 2026-08-30 (audit + fem opdigtede aldre rettet på udgivne artikler)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🎂 Fem UDGIVNE artikler bar en opdigtet alder — rettet (2026-08-30)
+
+Auditten fandt en alder i 18% af de afviste og 16% af de udgivne artikler.
+Ingen kontrol fangede den, og gennemgangen heller ikke: «den 21-årige danske
+golfspiller» læser fuldstændig naturligt.
+
+Fem artikler, seks påstande:
+
+| # | Atlet | Bevis |
+|---|---|---|
+| 58 | Valdemar Dubin | kildeteksten (11.793 tegn) nævner **ingen** alder |
+| 69 | Linus Bangert | kildeteksten (13.122 tegn) nævner **ingen** alder |
+| 56 / 70 / 72 | Bang, Madsen ×2 | Google News-kilder kan ikke opløses — og **#70 og #72 gav SAMME atlet to forskellige aldre (22 og 21)** |
+
+Alle seks fjernet, sætningerne bevaret på læseligt dansk, og hver artikel har
+fået en synlig `correction_note`. **Rettelses-mekanismen havde aldrig været
+brugt** — det her er præcis dens formål, og den står nu live på de fem sider.
+
+To spærrer:
+- **Regel 27 i BEGGE promptsæt**: skriv aldrig en alder. Vi har ingen
+  fødselsdato, skolerne skriver årgang, så «den 21-årige» kan kun være gættet.
+- **Kontrol i fejebladet** — den fandt straks en ny: kladde #182 fra samme dag
+  skriver «The 23-year-old arrives». Promptreglen virker først fra næste
+  kørsel; kontrollen er bagstopperen.
+
+⚠️ Mellemrummet i mønstret « aged 1» er ikke pynt — uden det matcher
+«managed just one shot on target».
 
 ## 🔬 AUDIT af discovery→kladde-pipelinen (2026-08-30)
 
