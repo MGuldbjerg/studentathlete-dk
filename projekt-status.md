@@ -1,11 +1,52 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-30 (audit + fem opdigtede aldre rettet på udgivne artikler)
+**Sidst opdateret**: 2026-08-30 (Core Web Vitals: CLS væk, kortene 86% lettere)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## ⚡ Core Web Vitals (2026-08-30)
+
+Serversiden var allerede god (TTFB 130-180 ms på artikler, OG-kort med
+cache-HIT). Alt af værdi lå på klienten.
+
+| Mål | Før | Efter |
+|---|---|---|
+| billeder uden mål (forsiden) | **8 af 8** | 0 af 8 |
+| preloadede kort | 3 (~750 KB) | 1 (det ægte LCP) |
+| kort-blobs i alt | 12.882 KB PNG | **1.864 KB WebP** |
+| forsidens billedvægt | ~1,5 MB | **184 KB** |
+| TTFB `/athletes/a` | 330-380 ms | ~228 ms |
+
+**CLS**: ingen af otte billeder havde mål — hvert kort reserverede nul plads
+til det landede. Alle har dem nu.
+
+**LCP**: kortene kodes som WebP i pipelinen (`sharp`, kvalitet 82). Konver-
+teringen sker i Actions, ikke i Workeren — `sharp` er native og hører ikke
+hjemme på kanten. Kolonnen hedder stadig `png_base64` og bærer nu begge
+formater, så Workeren **læser** formatet af de første bytes.
+
+⚠️ **To fælder undervejs, begge kostede en runde:**
+1. **Preloadene stod ingen steder i koden.** React 19 hejser selv billeder
+   UDEN `loading="lazy"` op som preloads. Lead-kortet var mærket
+   `fetchPriority="high"` og trak derfor 250 KB foran karrusellen, som er den
+   ægte LCP. To billeder mærket «high» kappes bare om forbindelsen.
+2. **Formatskiftet krævede et `CARD_VERSION`-bump.** Blobs var WebP, men
+   `/api/og` serverede PNG i op til en uge: nøglen og adressen deler
+   versionstallet, og uden bumpet holder Cloudflares kant den gamle fil.
+   v8 → v9, alle 45 kort genrenderet, de gamle PNG-blobs slettet (D1 fra
+   66 MB til 56 MB).
+
+**TTFB på bogstavsiderne var min egen fejl** fra 26-08: de hentede hele
+tabellen (2.343 rækker) og kastede ~90% væk i JS. Nu to målrettede
+forespørgsler; begge kasser af bogstavet bindes som parametre, fordi SQLite's
+`upper()` er ASCII-only og ikke kan se at «ø» og «Ø» er samme bogstav.
+
+**AdSense rørt jeg ikke.** Min anbefaling byggede på en antagelse om at
+annoncerne var slukket — de er tændt, og der ER slots på forsiden og
+artikelsiderne. Scriptet er allerede `async` og admin-styret.
 
 ## 🎂 Fem UDGIVNE artikler bar en opdigtet alder — rettet (2026-08-30)
 
