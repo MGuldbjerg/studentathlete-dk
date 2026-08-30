@@ -74,7 +74,11 @@ export function formatRelativeTime(dateStr: string | null, lang: string): string
 // før on-the-fly-fallbacket (600×315 — fuldsize on-the-fly (v6) sprængte
 // free-plan CPU). R2 var førstevalget men kræver dashboard-aktivering af
 // R2 på kontoen (fejl 10042) → D1-blobs, samme resultat på $0.
-export const CARD_VERSION = 8;
+// v9 (2026-08-30): kortene er WebP i stedet for PNG. Formatskiftet SKAL have
+// et versionsbump — nøglen i card_blobs og adressen i /api/og deler dette tal,
+// og uden bumpet serverer Cloudflares kant den gamle PNG i op til en uge
+// (s-maxage=604800), uanset hvad der ligger i basen.
+export const CARD_VERSION = 9;
 
 /** Nøgle i card_blobs for et pre-rendret kampkort (delt mellem Worker og pipeline). */
 export function cardBlobKey(articleId: number): string {
