@@ -224,6 +224,26 @@ async function main(): Promise<void> {
     fix: "hent feedet i hånden: svarer det 200 med nul indslag, er det dødt og skal skiftes ud",
   });
 
+  // ── 10. Aldersangivelser — vi gemmer ingen fødselsdato ───────────────
+  // Auditten 2026-08-30: en opfundet alder stod i 18% af de AFVISTE og 16% af
+  // de UDGIVNE artikler. Ingen kontrol fangede den, og den læser naturligt —
+  // derfor slap den forbi gennemgangen fem gange. Kilderne nævner sjældent
+  // alder; skolerne skriver årgang. Enhver alder i en artikel er derfor
+  // enten hentet fra en kilde vi kan pege på, eller opdigtet.
+  const ages = await db.query<{ id: number; published: number; title: string }>(
+    `SELECT id, published, title FROM articles
+     WHERE content LIKE '%-årige%' OR content LIKE '%-year-old%'
+        OR content LIKE '% år gammel%' OR content LIKE '% aged 1%' OR content LIKE '% aged 2%'`);
+  // ⚠️ Mellemrummet foran «aged» er ikke pynt: uden det matcher «managed just
+  // one shot on target», og kontrollen råber om en alder der ikke findes.
+  add({
+    key: "opfundet-alder",
+    what: "artikler der angiver en alder — vi registrerer ingen fødselsdato, så den kan ikke stamme fra os",
+    count: ages.results.length,
+    examples: ages.results.slice(0, 3).map((r) => `#${r.id}${r.published ? " UDGIVET" : ""} «${r.title.slice(0, 55)}»`),
+    fix: "efterprøv mod kilden. Står alderen ikke dér, skal den ud — og er artiklen udgivet, med correction_note",
+  });
+
   // ── Rapport ──────────────────────────────────────────────────────────
   if (asJson) {
     console.log(JSON.stringify({ ran_at: new Date().toISOString(), findings }, null, 2));
