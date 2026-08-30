@@ -75,7 +75,11 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
             alt={article.title}
             width={1200}
             height={630}
-            fetchPriority="high"
+            /* Dovent, IKKE høj prioritet: karrusellen står over dette kort og
+               er sidens LCP. To billeder mærket «high» kappes bare om
+               forbindelsen — og React hejser et ikke-dovent billede op som
+               preload, så lead-kortet trak 250 KB foran karrusellen. */
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div

@@ -21,6 +21,9 @@ export async function Footer() {
           <img
             src="/logo-white.svg"
             alt="StudentAthlete.dk"
+            width={180}
+            height={32}
+            loading="lazy"
             className="h-8 w-auto mb-3 opacity-90"
           />
           <p className="text-white/60 text-sm leading-relaxed">
