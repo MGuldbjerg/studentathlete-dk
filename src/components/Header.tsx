@@ -22,6 +22,8 @@ export async function Header() {
           <img
             src="/logo-white.svg"
             alt="StudentAthlete.dk"
+            width={180}
+            height={40}
             className="h-8 md:h-10 w-auto"
           />
         </a>

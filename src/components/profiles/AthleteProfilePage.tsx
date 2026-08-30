@@ -59,6 +59,9 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
             <div className="flex-shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={athlete.photo_url} alt={athlete.name}
+                width={176}
+                height={224}
+                fetchPriority="high"
                 className="w-36 h-44 md:w-44 md:h-56 object-cover"
                 style={{ border: "2px solid rgba(255,255,255,0.12)" }} />
               {athlete.photo_credit && (
@@ -197,6 +200,9 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
                       style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={getArticleCoverUrl(a)} alt=""
+                        width={80}
+                        height={56}
+                        loading="lazy"
                         className="w-20 h-14 object-cover flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <span className="text-[10px] font-bold tracking-[0.15em] uppercase"

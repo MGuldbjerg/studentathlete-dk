@@ -103,6 +103,8 @@ export function Carousel({ articles, strings, lang }: CarouselProps) {
       <img
         src={getArticleCoverUrl(slide)}
         alt=""
+        width={1200}
+        height={630}
         className="absolute inset-0 w-full h-full object-cover"
         fetchPriority={current === 0 ? "high" : "auto"}
         loading={current === 0 ? "eager" : "lazy"}

@@ -73,6 +73,9 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
           <img
             src={getArticleCoverUrl(article)}
             alt={article.title}
+            width={1200}
+            height={630}
+            fetchPriority="high"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div
@@ -138,6 +141,9 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
           <img
             src={getArticleCoverUrl(article)}
             alt={article.title}
+            width={1200}
+            height={630}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           {/* Sport-farvet accent */}
@@ -204,6 +210,8 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
         <img
           src={getArticleCoverUrl(article)}
           alt={article.title}
+          width={1200}
+          height={630}
           loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />

@@ -106,3 +106,27 @@ export function getAthleteLetterUrl(letter: string, lang: string): string {
 export function athletesAllPath(lang: string): string {
   return subRoutePath("athletesAll", lang);
 }
+
+/**
+ * Fold SQL'ens rå forbogstaver til alfabetets store bogstaver.
+ * SQLite grupperer «Ø» og «ø» hver for sig; her lægges de sammen.
+ */
+export function foldInitialCounts(
+  rows: Array<{ initial: string; n: number }>,
+  lang: string,
+): Map<string, number> {
+  const locale = languagePack(lang).locale;
+  const counts = new Map<string, number>();
+  for (const { initial, n } of rows) {
+    const key = (initial ?? "").trim().toLocaleUpperCase(locale);
+    if (!key) continue;
+    counts.set(key, (counts.get(key) ?? 0) + n);
+  }
+  return counts;
+}
+
+/** Bogstavets to kasser, som SQL skal binde. */
+export function letterCases(letter: string, lang: string): { upper: string; lower: string } {
+  const locale = languagePack(lang).locale;
+  return { upper: letter.toLocaleUpperCase(locale), lower: letter.toLocaleLowerCase(locale) };
+}

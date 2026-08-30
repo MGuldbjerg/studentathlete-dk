@@ -484,6 +484,59 @@ export async function getAllAthletes(country?: string): Promise<Athlete[]> {
   } catch { return []; }
 }
 
+/**
+ * Atleterne under ÉT forbogstav — filtreret i SQL, ikke i JavaScript.
+ *
+ * Bogstavsiderne hentede før HELE listen (2.343 rækker på .co.uk) og kastede
+ * ~90% væk i JS. Det kostede 330-380 ms TTFB mod 140 ms på en artikelside.
+ *
+ * Begge kasser af bogstavet bindes som parametre, fordi SQLite's `upper()` er
+ * ASCII-only: den kan ikke se at «ø» og «Ø» er samme bogstav, og et dansk
+ * efternavn ville falde ud af sin egen side.
+ */
+export async function getAthletesByLetter(
+  upper: string,
+  lower: string,
+  country?: string,
+): Promise<Athlete[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT * FROM athletes
+         WHERE home_country = ? AND active = 1
+           AND (substr(name, 1, 1) = ? OR substr(name, 1, 1) = ?)
+         ORDER BY name`,
+      )
+      .bind(await siteCountry(country), upper, lower)
+      .all();
+    return (r.results ?? []) as Athlete[];
+  } catch { return []; }
+}
+
+/**
+ * Antal aktive atleter pr. forbogstav — ét lille resultat i stedet for hele
+ * tabellen. Foldningen af store/små bogstaver sker i JS, hvor Unicode virker.
+ */
+export async function getAthleteInitialCounts(
+  country?: string,
+): Promise<Array<{ initial: string; n: number }>> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT substr(name, 1, 1) AS initial, COUNT(*) AS n
+         FROM athletes WHERE home_country = ? AND active = 1
+         GROUP BY initial`,
+      )
+      .bind(await siteCountry(country))
+      .all();
+    return (r.results ?? []) as Array<{ initial: string; n: number }>;
+  } catch { return []; }
+}
+
 export async function getAlumniAthletes(country?: string): Promise<Athlete[]> {
   const db = await getDB();
   if (!db) {

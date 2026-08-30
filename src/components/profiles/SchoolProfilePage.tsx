@@ -111,7 +111,7 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
                       }}>
                       {a.photo_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={a.photo_url} alt={a.name} className="w-full h-full object-cover" />
+                        <img src={a.photo_url} alt={a.name} width={48} height={48} loading="lazy" className="w-full h-full object-cover" />
                       ) : a.name.charAt(0)}
                     </div>
 
@@ -145,6 +145,9 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
                     style={{ borderTop: i > 0 ? "1px solid #E2E0DC" : "none" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={getArticleCoverUrl(a)} alt=""
+                      width={64}
+                      height={48}
+                      loading="lazy"
                       className="w-16 h-12 object-cover flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="text-[10px] font-bold tracking-[0.12em] uppercase"

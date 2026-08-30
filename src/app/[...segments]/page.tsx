@@ -4,6 +4,8 @@ import { notFound, permanentRedirect } from "next/navigation";
 import {
   getAllAthletes,
   getAlumniAthletes,
+  getAthleteInitialCounts,
+  getAthletesByLetter,
   getAthleteBySlug,
   getAthleteSlugByAlias,
   getArticlesByAthleteId,
@@ -27,9 +29,10 @@ import { AthleteLetterPage } from "@/components/athletes/AthleteLetterPage";
 import {
   alphabetFor,
   athletesAllPath,
-  athletesForLetter,
   countByLetter,
+  foldInitialCounts,
   getAthleteLetterUrl,
+  letterCases,
   letterFromSlug,
 } from "@/lib/athlete-letters";
 import { AthleteFullList, parseSort } from "@/components/athletes/AthleteFullList";
@@ -160,7 +163,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     // kun bogstaver der står i sprogets eget alfabet.
     if (isRoute("athletes", "atleter")) {
       const letter = letterFromSlug(slug, lang);
-      if (letter && countByLetter(await getAllAthletes(), lang).get(letter)) {
+      // Samme lille optælling som selve siden — ikke hele tabellen igen.
+      const letterCounts = letter ? foldInitialCounts(await getAthleteInitialCounts(), lang) : null;
+      if (letter && letterCounts?.get(letter)) {
         const url = `${base}${getAthleteLetterUrl(letter, lang)}`;
         const description = t("athletes.letter_meta_description", lang, { letter });
         return {
@@ -415,8 +420,13 @@ export default async function DynamicPage({
         // Den fulde liste er ét indekseret opslag og hentes alligevel af
         // oversigten. Opdelingen sker i JS, fordi SQLite's `upper()` er
         // ASCII-only og ville lægge "Østergaard" uden for alfabetet.
-        const all = await getAllAthletes();
-        const forLetter = athletesForLetter(all, letter, lang);
+        // To målrettede forespørgsler i stedet for hele tabellen: bogstavets
+        // egne rækker, og en lille optælling til alfabet-navigationen.
+        const { upper, lower } = letterCases(letter, lang);
+        const [forLetter, initialRows] = await Promise.all([
+          getAthletesByLetter(upper, lower, undefined),
+          getAthleteInitialCounts(),
+        ]);
         // Et bogstav uden atleter er en tom side der svarer 200 — en soft-404.
         // Sitemappet udelader dem og alfabetet linker ikke til dem, men
         // adressen kan stadig gættes, og så skal svaret være ærligt.
@@ -425,7 +435,7 @@ export default async function DynamicPage({
           <AthleteLetterPage
             letter={letter}
             athletes={forLetter}
-            counts={countByLetter(all, lang)}
+            counts={foldInitialCounts(initialRows, lang)}
             alphabet={alphabetFor(lang)}
             lang={lang}
           />

@@ -19,6 +19,7 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
+import sharp from "sharp";
 import { createD1Client } from "../lib/d1-client";
 import { buildMatchCardElement, type CardData } from "../../src/lib/og-card";
 import { cardBlobKey } from "../../src/lib/seo";
@@ -64,7 +65,7 @@ function loadAssets() {
   };
 }
 
-async function renderCardPng(data: CardData, assets: ReturnType<typeof loadAssets>): Promise<Buffer> {
+async function renderCard(data: CardData, assets: ReturnType<typeof loadAssets>): Promise<Buffer> {
   const element = buildMatchCardElement(data, assets.logoDataUri, 1);
   const svg = await satori(element as Parameters<typeof satori>[0], {
     width: 1200,
@@ -77,7 +78,15 @@ async function renderCardPng(data: CardData, assets: ReturnType<typeof loadAsset
     },
   });
   const png = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } }).render().asPng();
-  return Buffer.from(png);
+
+  // WebP i stedet for PNG. Kortet ER LCP-elementet på forsiden, og PNG'erne
+  // vejede 73-260 KB — det tungeste enkeltelement på siden. WebP på kvalitet
+  // 82 tager typisk 70% af det uden synlig forskel på et fladt kortdesign.
+  //
+  // Konverteringen sker HER, i pipelinen (GitHub Actions), ikke i Workeren:
+  // `sharp` er en native-modul og hører ikke hjemme på kanten. Workeren
+  // serverer bare de bytes der ligger i card_blobs.
+  return await sharp(Buffer.from(png)).webp({ quality: 82, effort: 5 }).toBuffer();
 }
 
 function parseArgs(): { force: boolean; article: number | null; out: string | null } {
@@ -131,7 +140,7 @@ async function main(): Promise<void> {
     }
 
     try {
-      const png = await renderCardPng(row, assets);
+      const png = await renderCard(row, assets);
       await db.execute(
         `INSERT INTO card_blobs (key, png_base64, width, height)
          VALUES (?, ?, 1200, 630)

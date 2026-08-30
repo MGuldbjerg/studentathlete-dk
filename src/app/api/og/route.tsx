@@ -392,9 +392,16 @@ async function getCardBlob(articleId: number): Promise<Response | null> {
     const binary = atob(r.png_base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    // Formatet LÆSES af de første bytes i stedet for at blive antaget:
+    // kolonnen hedder stadig png_base64, men bærer WebP for alt der er
+    // renderet efter 30-08-2026, og de gamle PNG'er skal blive ved at virke.
+    // Et forkert Content-Type ville få browseren til at afvise billedet.
+    const isWebp =
+      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
     return new Response(bytes, {
       headers: {
-        "Content-Type": "image/png",
+        "Content-Type": isWebp ? "image/webp" : "image/png",
         "Cache-Control": "public, max-age=86400, s-maxage=604800",
       },
     });
