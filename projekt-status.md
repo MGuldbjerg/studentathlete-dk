@@ -1,11 +1,59 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-30 (Core Web Vitals: CLS væk, kortene 86% lettere)
+**Sidst opdateret**: 2026-08-31 («significant»-fejlen; 50 faktaark efterberiget)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🐛 «significant» gjorde kampreferater til rekrutteringsnyheder (2026-08-31)
+
+`selectArticleType` brugte DELSTRENGS-match: `text.includes("sign")` matcher
+inde i **«significant»** — et helt almindeligt ord i sportsreferater. Tre
+kampreferater blev derfor sendt ned ad rekrutterings-prompten:
+
+| Kladde | Kilden handlede om | Kladden påstod |
+|---|---|---|
+| #191 Kardel | «Kardel Makes Six Saves in Loss to UAH» | «joins Illinois Springfield» |
+| #193 Moffat | «Moffat's Brace Give Mocs a Resounding Victory» | «joins Florida Southern» |
+| #188 Banasik | «Banasik's Two Goals Give Miners 2-1 Win» | «skifter til Missouri S&T» |
+
+Nu ordgrænser, **plus en spærre der er stærkere end ordvalg**: har faktaarket
+en modstander OG et resultat, er det et kampreferat. En kamp kan ikke være en
+rekrutteringsnyhed.
+
+De tre kladder er kasseret, men historierne sat tilbage til `new` — kilden er
+god og atleten ER historien, så næste kørsel skriver dem om korrekt.
+
+## 🔁 Forbedringen nåede kun de NYE faktaark (2026-08-31)
+
+Kun 4 af 12 kladder bar kampdata. Forklaringen stod i kørselsloggen:
+`build-factsheet` rører kun historier med `fact_status IS NULL`, så kørslen
+30-08 byggede **5** nye faktaark — og kun de fik kampforløb. Resten blev
+skrevet ud fra faktaark fra før 30-08.
+
+`backfill-match-facts.ts` beriger bagud: deterministisk, ingen LLM, ingen ny
+udtrækning, og KUN feltet `match` tilføjes, så en menneskelig rettelse i
+faktaarket ikke kan forsvinde. **50 faktaark beriget.**
+
+⚠️ **Generel lærdom**: en forbedring i `build-factsheet` rammer kun fremtiden.
+Enhver ændring dér skal følges af en backfill, ellers skriver generatoren
+videre på det gamle grundlag i ugevis.
+
+### Resultatet af dagens gennemgang
+
+Udgivet 3 (Orzechowski, Trinder, McErlain) — alle verificeret mod kilden.
+De fejl der blev rettet var alle samme slags: **en påstand kilden ikke gør**
+(«at Charger Park» om en UDEkamp, «second win of the season», «stoppage time»
+om et mål i det 87.).
+
+⚠️ Og ugedagsfejlen dukkede op igen i #194 («Tuesday» om 2. september, som er
+en onsdag) — men denne gang fangede `verify-article` den, fordi faktaarket nu
+bærer datoen. Sætningen er væk.
+
+Tilbage til Mikkel mandag: #181 Williams, #187 Mujica, #189 Pole, #194
+Shabazz-Edwards, #195 Kibrya, #197 Madsen.
 
 ## ⚡ Core Web Vitals (2026-08-30)
 
