@@ -1,11 +1,46 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-31 (britisk Bluesky-kanal + e-mail på .co.uk)
+**Sidst opdateret**: 2026-08-31 (NJCAA åbnet; britisk Bluesky-kanal + e-mail)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🏫 NJCAA åbnet — fodbold, basketball, amerikansk fodbold (2026-08-31)
+
+Junior colleges kunne ikke scrapes overhovedet. Anledningen var Sebastian
+Tirsgaard Larsen (Monroe University, NJCAA D1) — den første JUCO-atlet i basen.
+
+| | |
+|---|---|
+| Skoler i basen | 442 (D1 232 · D2 115 · D3 95). NJCAA har 500+ medlemmer; CCCAA (109) og NWAC (37) mangler helt |
+| Hovedside | 376 via Wikidata `P856` — NJCAA's eget katalog svarer 403 bag CloudFront |
+| Atletiksite bekræftet | **105 af 404 tjekkede (26%)** |
+| Hold registreret | basketball 186 · fodbold 133 · amerikansk fodbold 63 = **382** |
+
+**Fire spærrer lå i vejen.** (1) `scrape-rosters` skrev `NCAA ${division}` som
+konstant — opdagelsen forstod NJCAA, scraperen kunne aldrig vælge den; nu
+`lib/divisions.ts` ét sted. (2) Sport-politik: 442 skoler × 28 sportsgrene =
+~9.000 hold på samme ugebudget, så `sportsForDivision` begrænser NJCAA til de
+tre. (3) Ingen af de 442 havde en hovedside, og alt starter med
+`WHERE s.website IS NOT NULL`. (4) **PrestoSports**: JUCO kører Presto, ikke
+Sidearm, og Presto lægger sæsonen MELLEM hold og roster
+(`/sports/msoc/2026-27/roster`). Vores regex krævede `/roster` lige efter
+holdnavnet, så et Presto-site meldte 0 hold med holdmenuen synlig — det
+tredoblede fundraten (8,7% → 26%) da det blev rettet.
+
+⚠️ **Nærved-fejl værd at huske**: gætte-kandidater fra navn + kælenavn fandt
+`saintsathletics.com` til Lurleen B. Wallace CC. Sitet er St. Lawrence
+Universitys — begge hedder "Saints", og hold-prøven bestod med 33 hold, for det
+ER et ægte atletiksite. `siteIdentifiesAs` kræver nu at et GÆTTET site nævner
+skolens eget navn eller by. Kælenavnet tæller ikke; det er netop det fælles ord.
+
+**Ikke gjort endnu**: de 382 hold er registreret, men først scrapet søndag
+(`NJCAA` er tilføjet ugekørslens matrix). Først dér ved vi om tieren faktisk
+bærer danskere og briter — Monroes herrefodbold havde 8 briter, ingen af dem i
+basen. 38 skoler mangler stadig hovedside; ~74% af de tjekkede har intet
+bekræftet atletiksite (nogle har ikke ét, andre kører platforme vi ikke læser).
 
 ## 🇬🇧 Britisk distribution: e-mail + Bluesky-kanal (2026-08-31)
 
@@ -24,7 +59,15 @@ kanalnavnet), egne secrets, og `langs` fra landeprofilen. Det sidste er ikke
 kosmetik: et engelsk opslag mærket `da` skjules af Blueskys sprogfilter for
 netop de britiske læsere det er skrevet til.
 
-Kontoen er oprettet, handlen verificeres via `_atproto`-TXT.
+Kontoen er oprettet, handlen verificeret via `_atproto`-TXT.
+
+⚠️ **Handle-skiftet slog kanalen ud samme dag** (13:57): `BLUESKY_UK_HANDLE`
+pegede stadig på `student-athlete-uk.bsky.social`, som holdt op med at
+eksistere i samme sekund handlen blev domænet. Værre end nedbruddet var
+konsekvensen: køen læste 401'eren som "artiklen fejlede" og talte forsøg op —
+tre timer pr. artikel, så de 7 ventende britiske artikler ville have været
+markeret `failed` inden næste morgen. `ChannelAuthError` skiller nu KONTO fra
+OPSLAG: ved login-fejl står kø-rækken urørt, og kørslen fejler stadig.
 
 **Footer-familielinje** (deploy 50cc669): «En del af StudentAthlete-familien —
 DK · UK» / «Part of the StudentAthlete family», på hvert sites eget sprog.
