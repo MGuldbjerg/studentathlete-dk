@@ -63,7 +63,20 @@ function selectArticleType(story: StoryWithAthlete): string {
   const hasRichContent =
     !!story.content_raw || (story.summary?.length ?? 0) > 100;
 
-  if (text.includes("commit") || text.includes("sign") || text.includes("recruit")) {
+  // ⚠️ ORDGRÆNSER, ikke delstrenge. `text.includes("sign")` matcher inde i
+  // «significant» — et helt almindeligt ord i sportsreferater — og sendte
+  // 30. august tre KAMPREFERATER ned ad rekrutterings-prompten. Resultatet
+  // var kladder der påstod at en spiller «joins Florida Southern», mens
+  // kilden handlede om hans to mål i sæsonpremieren.
+  const RECRUITING_RE =
+    /\b(commits?|committed|commitment|signs?|signed|signing|recruit(s|ed|ing|ment)?)\b/i;
+
+  // Og uanset ordvalg: har faktaarket en MODSTANDER og et RESULTAT, er det et
+  // kampreferat. En kamp kan ikke være en rekrutteringsnyhed.
+  const isMatch = Boolean(story.fact_sheet && /"opponent":\s*"[^"]/.test(story.fact_sheet)
+    && /"final_score":\s*"[^"]/.test(story.fact_sheet));
+
+  if (!isMatch && RECRUITING_RE.test(text)) {
     return "recruiting";
   }
   if (hasRichContent && (text.includes("season") || text.includes("recap") || text.includes("wrap"))) {
