@@ -24,7 +24,14 @@ kanalnavnet), egne secrets, og `langs` fra landeprofilen. Det sidste er ikke
 kosmetik: et engelsk opslag mærket `da` skjules af Blueskys sprogfilter for
 netop de britiske læsere det er skrevet til.
 
-Mangler kun kontoen selv → se «Kræver dig (credentials)».
+Kontoen er oprettet, handlen verificeres via `_atproto`-TXT.
+
+**Footer-familielinje** (deploy 50cc669): «En del af StudentAthlete-familien —
+DK · UK» / «Part of the StudentAthlete family», på hvert sites eget sprog.
+Listen er `liveSites()`, så et dark launch-site aldrig kan blive linket ind —
+samme prædikat som social-køens distributionsspærre. Formålet er crawl-stien:
+.co.uk havde intet indgående link. **Det erstatter ikke Search Console** —
+.co.uk skal tilføjes som egen property med eget sitemap for at komme i gang.
 
 ## 🐛 «significant» gjorde kampreferater til rekrutteringsnyheder (2026-08-31)
 
