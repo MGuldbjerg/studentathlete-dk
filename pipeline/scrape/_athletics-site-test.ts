@@ -12,6 +12,8 @@ import {
   candidatesFromHtml,
   guessedCandidates,
   athleticsCandidates,
+  candidatesFromIdentity,
+  siteIdentifiesAs,
 } from "./athletics-site";
 
 let passed = 0;
@@ -89,6 +91,47 @@ const all = athleticsCandidates(UNI, "https://www.kzoo.edu");
 eq(all[0], "https://hornetathletics.com", "fund før gæt");
 ok(all.includes("https://athletics.kzoo.edu"), "gættene er stadig med");
 eq(new Set(all).size, all.length, "ingen dubletter");
+
+// ── Kandidater uden hovedside (NJCAA, 31/8) ─────────────────────────────────
+// 442 junior colleges har hverken website eller athletics_url — kun navn og
+// kælenavn. Monroe er facit vi kender: monroeumustangs.com er deres RIGTIGE
+// adresse, fundet i hånden da Sebastian Tirsgaard Larsen skulle oprettes.
+const monroe = candidatesFromIdentity("Monroe University", "Mustangs");
+ok(monroe.includes("https://monroeumustangs.com"), "Monroes rigtige adresse er blandt forslagene");
+ok(monroe.includes("https://gomustangs.com"), "go+kælenavn er med");
+eq(new Set(monroe).size, monroe.length, "ingen dubletter");
+eq(candidatesFromIdentity("Monroe University", null), [], "uden kælenavn: ingen gæt");
+eq(candidatesFromIdentity("Monroe University", "  "), [], "tomt kælenavn: ingen gæt");
+
+// Institutionsord må ikke blive til domænenavnet.
+const nwk = candidatesFromIdentity("Northwest Kansas Technical College", "Mavericks");
+ok(nwk.every((u) => !u.includes("collegemavericks")), "«college» bruges ikke som skolenavn");
+ok(nwk.some((u) => u.includes("northwest")), "første rigtige ord bruges");
+
+// Reglen der gælder hele modulet: forslag, ikke sandhed.
+ok(monroe.every((u) => u.startsWith("https://")), "kandidater er absolutte URL'er");
+
+// ── Sitet skal sige at det ER skolen (31/8) ─────────────────────────────────
+// saintsathletics.com bestod hold-prøven for Lurleen B. Wallace Community
+// College med 33 hold. Sitet tilhører St. Lawrence University. Uden denne
+// prøve ville en fremmed skoles atleter være blevet skrevet ind som vores.
+const stLawrence = '<meta property="og:site_name" content="St. Lawrence University Athletics"> Saints';
+ok(
+  !siteIdentifiesAs(stLawrence, "Lurleen B. Wallace Community College", "Andalusia"),
+  "fremmed site med samme kælenavn afvises",
+);
+ok(
+  siteIdentifiesAs("<title>LBW Saints — Lurleen B. Wallace Athletics</title>", "Lurleen B. Wallace Community College", "Andalusia"),
+  "skolens eget navn genkendes",
+);
+ok(
+  siteIdentifiesAs("<title>Mustangs</title> Athletics in New Rochelle, NY", "Monroe University", "New Rochelle"),
+  "byen tæller også som kendetegn",
+);
+ok(
+  !siteIdentifiesAs("<title>Community College Athletics</title>", "Central Community College", "Columbus"),
+  "kun institutionsord er ikke et kendetegn",
+);
 
 console.log(`\n${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

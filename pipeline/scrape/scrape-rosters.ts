@@ -17,6 +17,7 @@ import {
 } from "../lib/browser-render";
 import { classifyHometown } from "../../src/lib/hometown";
 import { activeCountries, countryProfile } from "../../src/lib/countries";
+import { divisionPattern } from "../lib/divisions";
 import { transferSentence } from "../../src/lib/i18n/profile-builders";
 import { pipelineUserAgent } from "../../src/lib/site";
 import { sportKeyFromSource } from "../../src/lib/sports";
@@ -339,7 +340,7 @@ async function main(): Promise<void> {
   const runId = runResult.results[0]?.id;
 
   // Byg division-filter
-  const divisionFilter = division ? `NCAA ${division}` : "%";
+  const divisionFilter = divisionPattern(division);
 
   console.log(
     `Henter roster-checks (division: ${division ?? "alle"}, limit: ${limit}, max-age: ${maxAgeDays} dage)...`,

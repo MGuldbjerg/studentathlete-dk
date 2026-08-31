@@ -127,3 +127,104 @@ export function athleticsCandidates(html: string, website: string): string[] {
   }
   return out;
 }
+
+/**
+ * KANDIDATER UDEN HOVEDSIDE: junior colleges.
+ * ===========================================
+ *
+ * `athleticsCandidates` går ud fra at vi kender universitetets forside og kan
+ * læse dens links. For NJCAA holder den antagelse ikke: ingen af de 442
+ * junior colleges i basen har en `website` overhovedet (NJCAA's eget
+ * medlemskatalog svarer 403 bag CloudFront), så der er ingen side at læse
+ * links ud af. Til gengæld har alle 442 et NAVN og et KÆLENAVN.
+ *
+ * College-verdenens domænekonventioner er få og faste: `go<kælenavn>.com`,
+ * `<skole><kælenavn>.com`, `<skole>athletics.com`. Monroe University +
+ * "Mustangs" giver fx `monroeumustangs.com`, som ER deres rigtige adresse.
+ *
+ * Funktionen er ren og gemmer intet: den producerer FORSLAG, som kalderen
+ * bekræfter ved at hente dem — samme regel som resten af modulet. Et gæt må
+ * aldrig nå basen, for en forkert adresse ville skrive en FREMMED skoles hold
+ * ind som vores skoles.
+ */
+export function candidatesFromIdentity(name: string, nickname: string | null): string[] {
+  const nick = (nickname ?? "").toLowerCase().replace(/[^a-z]/g, "");
+  if (!nick) return [];
+
+  // Skolens korte navn: første ord der ikke er en institutionstype.
+  const STOP = new Set([
+    "university", "college", "community", "state", "technical", "institute",
+    "the", "of", "and", "junior", "school", "academy", "campus", "county",
+  ]);
+  const words = name.toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  const short = words.find((w) => !STOP.has(w)) ?? words[0] ?? "";
+  if (!short) return [];
+
+  const hosts = [
+    `go${nick}.com`,
+    `${short}${nick}.com`,
+    // "monroeu" + "mustangs": u'et for "University" er udbredt nok til at
+    // være værd at prøve — det er præcis Monroes egen adresse.
+    `${short}u${nick}.com`,
+    `${short}athletics.com`,
+    `${nick}athletics.com`,
+    `go${short}${nick}.com`,
+  ];
+
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const h of hosts) {
+    if (h.length > 40 || seen.has(h) || isBlocked(h)) continue;
+    seen.add(h);
+    out.push(`https://${h}`);
+  }
+  return out;
+}
+
+/**
+ * Siger sitet selv at det ER denne skole?
+ * =======================================
+ *
+ * `candidatesFromIdentity` gætter på konventioner, og konventioner deles.
+ * "Saints" er kælenavn for snesevis af colleges, så `saintsathletics.com`
+ * svarede glad på Lurleen B. Wallace Community College (Alabama) — sitet
+ * tilhører St. Lawrence University (D3, New York). Det bestod «leverer den
+ * hold?»-prøven med 33 hold, for det ER et rigtigt atletiksite. Bare ikke
+ * vores.
+ *
+ * Derfor denne prøve OVEN PÅ hold-prøven, og kun for de gættede kandidater:
+ * sitet skal nævne et kendetegnende ord fra skolens navn eller dens by.
+ * Kælenavnet tæller IKKE — det er netop det ord der er fælles.
+ *
+ * Falder en ægte adresse igennem her, mister vi en skole. Består en fremmed
+ * adresse, skriver vi en anden skoles atleter ind som vores. De to fejl er
+ * ikke lige meget værd.
+ */
+export function siteIdentifiesAs(
+  html: string,
+  schoolName: string,
+  city: string | null,
+): boolean {
+  const hay = html.toLowerCase();
+
+  const GENERIC = new Set([
+    "university", "college", "community", "state", "technical", "institute",
+    "the", "of", "and", "junior", "school", "academy", "campus", "county",
+    "north", "south", "east", "west", "central", "valley", "city", "area",
+  ]);
+
+  // Kendetegnende ord: dem der IKKE er institutionsord. "Lurleen", "Wallace".
+  const tokens = schoolName
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 4 && !GENERIC.has(w));
+
+  if (city) {
+    const c = city.toLowerCase().replace(/[^a-z\s]/g, " ").trim();
+    if (c.length >= 4) tokens.push(c);
+  }
+  if (tokens.length === 0) return false;
+
+  return tokens.some((t) => hay.includes(t));
+}

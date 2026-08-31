@@ -45,6 +45,7 @@ import {
   type DiscoveredTeam,
 } from "./team-discovery";
 import { apiProbeUrl, apiRosterUrl, isRosterApiProbe, parseApiRoster } from "./parsers/roster-api";
+import { sportsForDivision } from "../lib/divisions";
 import { getAcademicYear } from "../lib/class-year";
 
 const USER_AGENT = pipelineUserAgent();
@@ -265,7 +266,7 @@ export interface InventoryResult {
 export async function buildInventoryForSchool(
   db: D1Client,
   school: SchoolRow,
-  opts: { dryRun: boolean; academicYear: number },
+  opts: { dryRun: boolean; academicYear: number; sports?: string[] | null },
 ): Promise<InventoryResult> {
   const siteUrl = school.athletics_url ?? school.website;
   const origin = originOf(siteUrl);
@@ -325,15 +326,26 @@ export async function buildInventoryForSchool(
     if (y === undefined || y === null) return true;
     return y >= opts.academicYear - 1;
   });
+  // Sport-politik pr. division (se lib/divisions.ts). For NJCAA registrerer vi
+  // kun fodbold, basketball og amerikansk fodbold: 442 skoler × alle 28
+  // NJCAA-sportsgrene ville lægge ~9.000 hold oven i de ~23.600 vi allerede
+  // henter inden for samme ugebudget — og stikprøven viste at udbyttet ligger
+  // i ganske få sportsgrene.
+  //
+  // De fravalgte markeres BEVIDST ikke 'not_sponsored': vi har ikke undersøgt
+  // om skolen har holdet. Et "findes ikke" vi ikke har målt, ville lyve for
+  // den næste kørsel — og for den næste udvidelse af listen.
+  const allow = opts.sports;
+  const inScope = allow ? fresh.filter((t) => allow.includes(t.sport)) : fresh;
   base.stale = list.length - fresh.length;
-  base.teams = fresh.length;
+  base.teams = inScope.length;
   base.source = source;
 
-  if (fresh.length === 0 || opts.dryRun) return base;
+  if (inScope.length === 0 || opts.dryRun) return base;
 
   const now = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-  for (const t of fresh) {
+  for (const t of inScope) {
     const apiId = (t as { apiSportId?: number }).apiSportId ?? null;
     await db.execute(
       `INSERT INTO roster_checks
@@ -365,7 +377,9 @@ export async function buildInventoryForSchool(
   // beholder de gamle gætte-rækker, så resten stadig bliver forsøgt.
   const TRUSTWORTHY_MIN_TEAMS = 8;
   const trustworthy = fresh.length >= TRUSTWORTHY_MIN_TEAMS;
-  const missing = trustworthy ? unsponsoredSports(fresh) : [];
+  const missing = (trustworthy ? unsponsoredSports(fresh) : []).filter(
+    (sport) => !allow || allow.includes(sport),
+  );
   for (const sport of missing) {
     await db.execute(
       `INSERT INTO roster_checks
@@ -456,7 +470,11 @@ async function main(): Promise<void> {
       if (i >= rows.length) return;
       const school = rows[i];
       try {
-        const r = await buildInventoryForSchool(db, school, { dryRun: args.dryRun, academicYear });
+        const r = await buildInventoryForSchool(db, school, {
+          dryRun: args.dryRun,
+          academicYear,
+          sports: sportsForDivision(school.division),
+        });
         totals[r.source]++;
         totals.teams += r.teams;
         totals.unsponsored += r.unsponsored;

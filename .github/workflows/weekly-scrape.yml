@@ -20,7 +20,10 @@ jobs:
 
     strategy:
       matrix:
-        division: [D1, D2, D3]
+        # NJCAA kom til 31/8. Tieren er 442 skoler, men kun tre sportsgrene
+        # registreres (lib/divisions.ts), og jobbet finder intet før
+        # find-athletics-site har bekræftet skolernes atletiksites.
+        division: [D1, D2, D3, NJCAA]
       max-parallel: 1
 
     steps:

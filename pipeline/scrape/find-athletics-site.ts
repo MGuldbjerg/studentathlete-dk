@@ -28,11 +28,12 @@
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { parseRobots, ALLOW_ALL, type RobotsPolicy } from "../lib/robots";
 import { pipelineUserAgent } from "../../src/lib/site";
-import { athleticsCandidates } from "./athletics-site";
+import { athleticsCandidates, candidatesFromIdentity, siteIdentifiesAs } from "./athletics-site";
 import { teamsFromHtml } from "./team-discovery";
 import { apiProbeUrl, isRosterApiProbe } from "./parsers/roster-api";
 import { buildInventoryForSchool, type SchoolRow } from "./sport-inventory";
 import { getAcademicYear } from "../lib/class-year";
+import { divisionPattern, sportsForDivision } from "../lib/divisions";
 
 const USER_AGENT = pipelineUserAgent();
 const MAX_CANDIDATES = 5;
@@ -81,11 +82,22 @@ async function robotsPolicy(origin: string): Promise<RobotsPolicy> {
  */
 export async function verifyAthleticsOrigin(
   origin: string,
+  /**
+   * Kun for GÆTTEDE kandidater: sitet skal også sige at det er DENNE skole.
+   * Uden identiteten godkendte hold-prøven alene St. Lawrence Universitys site
+   * som Lurleen B. Wallace Community Colleges — begge hedder "Saints".
+   * Kandidater fundet som link PÅ skolens egen hovedside behøver den ikke:
+   * der har skolen selv peget.
+   */
+  identity?: { name: string; city: string | null },
 ): Promise<{ ok: boolean; teams: number; api: boolean }> {
   const policy = await robotsPolicy(origin);
   if (!policy.allows("/")) return { ok: false, teams: 0, api: false };
 
   const home = await get(origin, 20000);
+  if (identity && (!home.body || !siteIdentifiesAs(home.body, identity.name, identity.city))) {
+    return { ok: false, teams: 0, api: false };
+  }
   const teams = home.body ? teamsFromHtml(home.body, origin).length : 0;
   if (teams > 0) return { ok: true, teams, api: false };
 
@@ -101,18 +113,14 @@ async function main(): Promise<void> {
   const db = createD1Client();
   const academicYear = getAcademicYear();
 
-  const divisionFilter = args.division
-    ? args.division.startsWith("NCAA") || args.division.startsWith("NAIA") || args.division.startsWith("NJCAA")
-      ? args.division
-      : `NCAA ${args.division}`
-    : "%";
+  const divisionFilter = divisionPattern(args.division);
 
   // Skolerne der mangler: har en hovedside, intet bekræftet atletiksite, og INTET
   // inventar (kun 'legacy'-gæt). Skoler med danske/britiske atleter først —
   // de koster mest at være blind på.
   const where = args.school
     ? "s.id = ?"
-    : `s.website IS NOT NULL
+    : `(s.website IS NOT NULL OR s.nickname IS NOT NULL)
        AND s.athletics_url IS NULL
        AND s.athletics_checked_at IS NULL
        AND s.division LIKE ?
@@ -123,7 +131,7 @@ async function main(): Promise<void> {
   const params: (string | number)[] = args.school ? [args.school] : [divisionFilter];
 
   const rows = await db.query<SchoolRow>(
-    `SELECT s.id, s.name, s.website, s.athletics_url, s.division, s.platform_type
+    `SELECT s.id, s.name, s.website, s.athletics_url, s.division, s.platform_type, s.nickname, s.city
      FROM schools s
      LEFT JOIN (SELECT university, COUNT(*) c FROM athletes WHERE active = 1 GROUP BY university) a
        ON a.university = s.name
@@ -142,20 +150,39 @@ async function main(): Promise<void> {
   let found = 0, none = 0, teamsTotal = 0;
 
   for (const school of rows.results) {
-    let origin: string;
-    try {
-      origin = new URL(school.website).origin;
-    } catch {
-      continue;
-    }
+    // To veje ind. Har skolen en hovedside, læser vi dens links (den præcise
+    // vej). Har den ikke — hele NJCAA-tieren — står vi kun med navn og
+    // kælenavn og må gætte efter college-verdenens domænekonventioner.
+    //
+    // Forskellen er i PRÆCISION, ikke i sikkerhed: begge veje ender i
+    // `verifyAthleticsOrigin`, og en adresse gemmes først når den selv har
+    // leveret hold eller svaret på roster-API'et.
+    const nickname = (school as { nickname?: string | null }).nickname ?? null;
+    const city = (school as { city?: string | null }).city ?? null;
+    let candidates: string[];
 
-    const policy = await robotsPolicy(origin);
-    const home = policy.allows("/") ? await get(school.website, 20000) : { status: 0, body: "" };
-    const candidates = home.body ? athleticsCandidates(home.body, school.website) : [];
+    if (school.website) {
+      let origin: string;
+      try {
+        origin = new URL(school.website).origin;
+      } catch {
+        continue;
+      }
+      const policy = await robotsPolicy(origin);
+      const home = policy.allows("/") ? await get(school.website, 20000) : { status: 0, body: "" };
+      candidates = home.body ? athleticsCandidates(home.body, school.website) : [];
+    } else {
+      candidates = candidatesFromIdentity(school.name, nickname);
+    }
+    if (candidates.length === 0) continue;
 
     let hit: string | null = null;
     for (const candidate of candidates.slice(0, MAX_CANDIDATES)) {
-      const v = await verifyAthleticsOrigin(candidate);
+      // Gættede kandidater (ingen hovedside) skal bevise deres identitet.
+      const v = await verifyAthleticsOrigin(
+        candidate,
+        school.website ? undefined : { name: school.name, city },
+      );
       if (v.ok) {
         hit = candidate;
         console.log(
@@ -183,7 +210,7 @@ async function main(): Promise<void> {
         const r = await buildInventoryForSchool(
           db,
           { ...school, athletics_url: hit },
-          { dryRun: false, academicYear },
+          { dryRun: false, academicYear, sports: sportsForDivision(school.division) },
         );
         teamsTotal += r.teams;
         console.log(`      → inventar: ${r.teams} hold, ${r.unsponsored} uden hold [${r.source}]`);
