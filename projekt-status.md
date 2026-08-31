@@ -1,11 +1,30 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-31 («significant»-fejlen; 50 faktaark efterberiget)
+**Sidst opdateret**: 2026-08-31 (britisk Bluesky-kanal + e-mail på .co.uk)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+## 🇬🇧 Britisk distribution: e-mail + Bluesky-kanal (2026-08-31)
+
+UK har været ude af dark launch siden 21. august og har **25 publicerede
+artikler** — men ingen konto at poste dem fra. To ting er nu på plads:
+
+**E-mail**: `info@student-athlete.co.uk` → m.guldbjerg@gmail.com via Cloudflare
+Email Routing. Zonen bar stadig registratorens mail-opsætning (MX `mx.simply.com`,
+SPF `include:spf.simply.com`), som blokerede wizarden; erstattet med
+`route1/2/3.mx.cloudflare.net` + Cloudflares SPF, `_dmarc` beholdt — samme form
+som .dk. **Det kommer igen på næste land**: registratoren leverer MX by default.
+
+**Bluesky-kanal** (`bluesky_uk`): adapteren bygges nu ud fra et kontoregister,
+så DK og UK deler kode men intet andet — eget kø-navn (pacing slås op på
+kanalnavnet), egne secrets, og `langs` fra landeprofilen. Det sidste er ikke
+kosmetik: et engelsk opslag mærket `da` skjules af Blueskys sprogfilter for
+netop de britiske læsere det er skrevet til.
+
+Mangler kun kontoen selv → se «Kræver dig (credentials)».
 
 ## 🐛 «significant» gjorde kampreferater til rekrutteringsnyheder (2026-08-31)
 
@@ -2216,6 +2235,11 @@ Pipeline er nu: **backfill (fase 0) → faktaark/fact-finding (fase 1) → skriv
 - [x] **Box scores (v2)** — task #16 BYGGET (juni 2026): `box-score.ts` detektér (`findBoxScoreUrl`, regelbaseret) + render + udtræk (`extractBoxScoreStats`, fail-open) box score som `source:"boxscore"` i fase 1 (`build-factsheet.ts`); tal-kryds-tjek i fase 3 (`verify-article.ts` — modstrid m. box score → `high`). Box scores = grundsandhed for TAL, aldrig erstatning for kvalitativ prosa. 39 unit-tests grønne; typecheck ren; wiring verificeret mod live D1. Afventer in-season validering på rigtig recap.
 
 ### Kræver dig (credentials)
+- **Britisk Bluesky-konto** (kode + e-mail klar, 2026-08-31): opret kontoen på
+  `info@student-athlete.co.uk`, lav et app-password, og sæt to GitHub-secrets:
+  `BLUESKY_UK_HANDLE` + `BLUESKY_UK_APP_PASSWORD`. Uden dem springes kanalen
+  bare over. Handlen kan verificeres som `@student-athlete.co.uk` med en
+  `_atproto` TXT-record (samme som .dk) — kræver kontoens DID.
 - **CF token**: tilføj "Browser Rendering — Edit" permission → aktiverer render i roster-scrape + backfill.
 - **`ANTHROPIC_API_KEY`** ($15-kredit): sæt som GitHub-secret → verifikation + feature-skrivning opgraderes automatisk til Claude.
 
