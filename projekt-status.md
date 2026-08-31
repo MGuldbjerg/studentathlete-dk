@@ -29,9 +29,14 @@ Kontoen er oprettet, handlen verificeres via `_atproto`-TXT.
 **Footer-familielinje** (deploy 50cc669): «En del af StudentAthlete-familien —
 DK · UK» / «Part of the StudentAthlete family», på hvert sites eget sprog.
 Listen er `liveSites()`, så et dark launch-site aldrig kan blive linket ind —
-samme prædikat som social-køens distributionsspærre. Formålet er crawl-stien:
-.co.uk havde intet indgående link. **Det erstatter ikke Search Console** —
-.co.uk skal tilføjes som egen property med eget sitemap for at komme i gang.
+samme prædikat som social-køens distributionsspærre.
+
+Formålet er **opdagelses-problemet fra 26/8** (se afsnittet længere nede):
+.co.uk-forsiden er «Submitted and indexed», men de indre sider er «unknown to
+Google» — ruten ind i sitet bærer ikke. Begge properties er verificeret og har
+sitemaps; det manglende var indgående links, og .dk er et indekseret site der
+crawles regelmæssigt. Familielinjen er ét sådant link, ikke en løsning i sig
+selv — den indre linkstruktur på .co.uk er stadig den store post.
 
 ## 🐛 «significant» gjorde kampreferater til rekrutteringsnyheder (2026-08-31)
 
