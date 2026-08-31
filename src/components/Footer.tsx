@@ -4,11 +4,14 @@ import { getSiteSettings } from "@/lib/admin";
 import { sportNav, routePath } from "@/lib/i18n";
 import { archivePath } from "@/lib/routes";
 import { ConsentSettingsLink } from "./ConsentSettingsLink";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
+import { liveSites, siteBaseUrl } from "@/lib/site";
 import { t } from "@/lib/i18n";
 export async function Footer() {
   const settings = await getSiteSettings();
   const lang = await currentLanguage();
+  const site = await currentSite();
+  const family = liveSites();
   return (
     <footer style={{ backgroundColor: "#00205B" }} className="mt-16">
       {/* Rød streg øverst i footer */}
@@ -20,7 +23,7 @@ export async function Footer() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo-white.svg"
-            alt="StudentAthlete.dk"
+            alt={site.brand}
             width={180}
             height={32}
             loading="lazy"
@@ -106,10 +109,40 @@ export async function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 px-6 md:px-12 py-4 flex items-center justify-between">
+      <div className="border-t border-white/10 px-6 md:px-12 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <span className="text-white/40 text-xs">
-          © {new Date().getFullYear()} StudentAthlete.dk
+          © {new Date().getFullYear()} {site.brand}
         </span>
+
+        {/*
+          Familielinjen binder sitene sammen — ét link hver vej mellem to
+          domæner der ellers intet har til fælles for en crawler. Listen er
+          `liveSites()`, så et dark launch-site ikke kan blive linket ind.
+
+          Sitet man står på nævnes uden link: et selvlink siger ingenting til
+          hverken læser eller crawler, og forskellen gør det synligt HVOR man er.
+        */}
+        {family.length > 1 && (
+          <span className="text-white/40 text-xs">
+            {t("footer.family", lang)}{" "}
+            {family.map((other, i) => (
+              <span key={other.code}>
+                {i > 0 && <span className="text-white/25"> · </span>}
+                {other.code === site.code ? (
+                  <span className="text-white/70">{other.code}</span>
+                ) : (
+                  <a
+                    href={siteBaseUrl(other)}
+                    hrefLang={other.language}
+                    className="hover:text-white transition-colors underline underline-offset-2"
+                  >
+                    {other.code}
+                  </a>
+                )}
+              </span>
+            ))}
+          </span>
+        )}
       </div>
     </footer>
   );

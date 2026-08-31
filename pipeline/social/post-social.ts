@@ -20,7 +20,7 @@
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { CARD_VERSION, getArticleCoverUrl, getArticleUrl } from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
-import { siteBaseUrl } from "../../src/lib/site";
+import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
 import { DEFAULT_PACING, computeGapMinutes, shouldPostNow } from "./pacing";
 import { buildPostText } from "./copy";
 import type { PostContent, SocialChannel } from "./types";
@@ -55,7 +55,10 @@ export function distributionAllowed(country: string): boolean {
  * ville have holdt op med at måle noget den dag flaget blev slået fra.)
  */
 export function profileAllowsDistribution(profile: { darkLaunch?: boolean }): boolean {
-  return profile.darkLaunch !== true;
+  // Samme flag, samme regel som footerens familielinje (`siteIsLive`): et
+  // dark launch-site hverken linkes til eller distribueres fra. To kopier af
+  // reglen ville kunne skride fra hinanden præcis når det gør mest skade.
+  return siteIsLive(profile);
 }
 const MAX_ATTEMPTS = 3;
 

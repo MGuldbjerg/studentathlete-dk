@@ -32,6 +32,22 @@ export function isKnownHost(host: string | null | undefined): boolean {
   return !!host && HOST_TO_COUNTRY[stripWww(host)] !== undefined;
 }
 
+/**
+ * Sites der må nævnes udadtil — alt der ikke er dark launch.
+ *
+ * Et dark launch-site er noindex; et link til det fra et site der ER indekseret
+ * ville sende crawlere derhen alligevel og dermed omgå selve spærren. Listen
+ * bygges derfor af profilerne og ikke af en håndholdt liste i footeren, så et
+ * nyt land hverken skal huskes eller kan glemmes.
+ */
+export function siteIsLive(profile: { darkLaunch?: boolean }): boolean {
+  return profile.darkLaunch !== true;
+}
+
+export function liveSites(): CountryProfile[] {
+  return Object.values(COUNTRIES).filter(siteIsLive);
+}
+
 export function siteBaseUrl(site: CountryProfile): string {
   return `https://${site.host}`;
 }

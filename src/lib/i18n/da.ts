@@ -350,6 +350,7 @@ const transliterate: Record<string, string> = {
 const ui: LanguagePack["ui"] = {
   "nav.athletes": "Atleter",
   "nav.search_placeholder": "Søg efter atlet, skole …",
+  "footer.family": "En del af StudentAthlete-familien",
   "footer.sports": "Sportsgrene",
   "footer.about": "Om os",
   "footer.all_articles": "Alle artikler",

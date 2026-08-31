@@ -76,6 +76,7 @@ export type UiKey =
   // Navigation og bund
   | "nav.athletes"
   | "nav.search_placeholder"
+  | "footer.family"
   | "footer.sports"
   | "footer.about"
   | "footer.all_articles"
