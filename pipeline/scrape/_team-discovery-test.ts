@@ -286,5 +286,31 @@ eq(
   "absolutte og relative href'er giver samme URL",
 );
 
+// ── PrestoSports: sæsonen står MELLEM hold og roster (31/8) ─────────────────
+// Junior colleges kører overvejende Presto, ikke Sidearm. Formen er
+// `/sports/msoc/2026-27/roster`, og den gamle regex krævede `/roster` lige
+// efter holdnavnet — så calhounathletics.com meldte 0 hold, mens holdmenuen
+// stod med 15. Sitet så tomt ud, og skolen blev noteret som "intet fundet".
+const presto = teamFromRosterUrl("https://calhounathletics.com/sports/msoc/2026-27/roster");
+eq(presto?.teamSlug, "msoc", "Presto: holdet læses ud");
+eq(presto?.sport, "soccer", "Presto: msoc er fodbold");
+eq(presto?.latestSeason, 2026, "Presto: sæsonen læses fra det midterste led");
+// Sæsonen SKAL blive i adressen: /sports/msoc/roster svarer 404 hos Presto.
+eq(
+  presto?.rosterUrl,
+  "https://calhounathletics.com/sports/msoc/2026-27/roster",
+  "Presto: sæsonleddet beholdes i roster-URL'en",
+);
+
+// Sidearm er uændret: sæsonen står EFTER og normaliseres væk.
+const sidearm = teamFromRosterUrl("https://gocards.com/sports/mens-soccer/roster/2026");
+eq(sidearm?.rosterUrl, "https://gocards.com/sports/mens-soccer/roster", "Sidearm: normaliseres uden sæson");
+eq(sidearm?.latestSeason, 2026, "Sidearm: sæsonen læses stadig");
+
+// Presto-koderne skal kunne navngives — ellers er holdet "other" og tælles
+// hverken som fundet eller som manglende.
+eq(teamFromRosterUrl("https://x.com/sports/mbkb/2026-27/roster")?.sport, "basketball", "mbkb = basketball");
+eq(teamFromRosterUrl("https://x.com/sports/fball/2026-27/roster")?.sport, "football", "fball = amerikansk fodbold");
+
 console.log(`\n${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

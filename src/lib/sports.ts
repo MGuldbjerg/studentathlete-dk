@@ -79,6 +79,19 @@ const SOURCE_ALIASES: Record<string, SportKey> = {
   gymnastics: "gymnastics",
   rowing: "rowing",
 
+  // PRESTOSPORTS-KODER (2026-08-31). Junior colleges kører overvejende
+  // PrestoSports, ikke Sidearm, og Presto forkorter holdnavnet: msoc, mbkb,
+  // fball. Uden dem blev hvert Presto-hold til "other" — altså ét hold vi
+  // kunne se, men ikke navngive. `msoc`/`wsoc` og `sball`/`wvball` matchede
+  // allerede via kønspræfiks-strippen; resten gjorde ikke.
+  mbkb: "basketball",
+  wbkb: "basketball",
+  bkb: "basketball",
+  fball: "football",
+  bsb: "baseball",
+  mxc: "track-and-field",
+  wxc: "track-and-field",
+  wrest: "wrestling",
   // Tilføjet med sport-inventaret (2026-08-17): skolernes egne holdnavne er
   // mere varierede end de tolv slugs pipelinen gættede på. Alt herunder er
   // navne vi HAR set i skolernes sitemaps.

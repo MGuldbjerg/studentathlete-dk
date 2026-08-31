@@ -133,7 +133,15 @@ export function isTeamSlug(slug: string): boolean {
  * ligger i skolens `sitemap_player_1.xml` — så præfiks-match er både rigtigere
  * og bredere. Den URL vi GEMMER er altid den kanoniske forside uden sæson.
  */
-const ROSTER_PATH = /\/sports\/([a-z0-9][a-z0-9-]*)\/roster(?:\/|\?|#|$)/i;
+// PrestoSports lægger SÆSONEN mellem hold og roster: `/sports/msoc/2026-27/roster`.
+// Sidearm har den efter: `/sports/mens-soccer/roster/2026`. Junior colleges
+// kører overvejende Presto, og uden det midterste led fandt vi nul hold på dem
+// — sitet så tomt ud, selvom holdmenuen stod lige der (calhounathletics.com,
+// 31/8: 15 hold, 0 genkendt).
+const ROSTER_PATH =
+  /\/sports\/([a-z0-9][a-z0-9-]*)\/(?:(?:19|20)\d{2}(?:-\d{2,4})?\/)?roster(?:\/|\?|#|$)/i;
+/** Sæsonen når den står FØR `/roster` (Presto). */
+const ROSTER_SEASON_BEFORE = /\/sports\/[a-z0-9][a-z0-9-]*\/((?:19|20)\d{2})(?:-\d{2,4})?\/roster/i;
 /** Sæson i en roster-URL: `/roster/2026` eller `/roster/2026-27`. */
 const ROSTER_SEASON = /\/roster\/((?:19|20)\d{2})(?:-\d{2,4})?(?:\/|\?|#|$)/i;
 
@@ -150,13 +158,20 @@ export function teamFromRosterUrl(url: string): DiscoveredTeam | null {
   if (!m) return null;
   const teamSlug = m[1].toLowerCase();
   if (!isTeamSlug(teamSlug)) return null;
-  const season = ROSTER_SEASON.exec(path);
+  const before = ROSTER_SEASON_BEFORE.exec(path);
+  const season = before ?? ROSTER_SEASON.exec(path);
   return {
     teamSlug,
     sport: sportFromTeamSlug(teamSlug),
     gender: genderFromTeamSlug(teamSlug),
-    // Normalisér til den kanoniske form uden sæson, query eller fragment.
-    rosterUrl: `${u.origin}/sports/${teamSlug}/roster`,
+    // Sidearm normaliseres til formen uden sæson. Presto må IKKE: dér er
+    // sæsonen en del af adressen, og `/sports/msoc/roster` svarer 404
+    // (verificeret på calhounathletics.com). Vi beholder derfor sæsonleddet
+    // præcis som skolen skrev det — inventaret opdaterer URL'en igen næste
+    // gang det kører, så den følger med sæsonskiftet.
+    rosterUrl: before
+      ? `${u.origin}/sports/${teamSlug}/${before[0].split("/")[3]}/roster`
+      : `${u.origin}/sports/${teamSlug}/roster`,
     latestSeason: season ? parseInt(season[1], 10) : null,
   };
 }
@@ -224,7 +239,8 @@ export function teamsFromXml(xml: string, base: string): DiscoveredTeam[] {
  */
 export function teamsFromHtml(html: string, base: string): DiscoveredTeam[] {
   const urls: string[] = [];
-  const re = /(?:href|content)\s*=\s*["']([^"']*\/sports\/[a-z0-9][a-z0-9-]*\/roster[^"']*)["']/gi;
+  const re =
+    /(?:href|content)\s*=\s*["']([^"']*\/sports\/[a-z0-9][a-z0-9-]*\/(?:(?:19|20)\d{2}(?:-\d{2,4})?\/)?roster[^"']*)["']/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) !== null) {
     try {
