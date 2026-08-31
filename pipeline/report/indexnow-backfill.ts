@@ -14,7 +14,7 @@
  *       npx tsx pipeline/report/indexnow-backfill.ts --apply
  *       npx tsx pipeline/report/indexnow-backfill.ts --host studentathlete.dk
  */
-import { INDEXNOW_MAX_URLS, buildPayload, pingIndexNow } from "../../src/lib/indexnow";
+import { INDEXNOW_MAX_URLS, buildPayload, submitToIndexNow } from "../../src/lib/indexnow";
 
 const HOSTS = ["studentathlete.dk", "student-athlete.co.uk"];
 
@@ -64,8 +64,14 @@ async function main(): Promise<void> {
       console.log(`  (tørløb — intet sendt. Første tre: ${urls.slice(0, 3).join(", ")})`);
       continue;
     }
-    const okSent = await pingIndexNow(urls);
-    console.log(okSent ? `  ✓ ${kept} URLer indsendt` : "  ✗ indsendelsen fejlede");
+    const res = await submitToIndexNow(urls);
+    if (res.ok) {
+      console.log(`  ✓ ${kept} URLer indsendt`);
+    } else {
+      // Sig HVORFOR. Første kørsel fejlede tavst, fordi nøglefilen lige var
+      // deployet og endnu ikke kunne hentes af IndexNow.
+      console.log(`  ✗ indsendelsen fejlede — ${res.error ?? `HTTP ${res.status}`}`);
+    }
   }
 
   if (!apply) console.log("\nKør med --apply for at sende.");

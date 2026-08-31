@@ -63,16 +63,26 @@ export function buildPayload(urls: string[]): IndexNowPayload | null {
   };
 }
 
+/** Udfaldet af en indsendelse. Bruges af backfill-scriptet til at sige HVORFOR. */
+export interface IndexNowResult {
+  ok: boolean;
+  status?: number;
+  error?: string;
+}
+
 /**
- * Send beskeden. Må ALDRIG kaste: en fejlet ping er en misset indeksering,
- * ikke en fejlet udgivelse. Redaktøren skal ikke se en fejl fordi Bing er nede.
+ * Send beskeden og fortæl hvad der skete.
+ *
+ * Hvorfor det rige svar: første backfill-kørsel svarede bare «indsendelsen
+ * fejlede», og fejlen kunne kun findes ved at gentage kaldet med curl. Et
+ * fail-soft kald må gerne SLUGE fejlen, men det må ikke skjule den.
  */
-export async function pingIndexNow(urls: string[]): Promise<boolean> {
+export async function submitToIndexNow(urls: string[]): Promise<IndexNowResult> {
   const payload = buildPayload(urls);
-  if (!payload) return false;
+  if (!payload) return { ok: false, error: "ingen gyldige URLer" };
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
+    const timer = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(INDEXNOW_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -80,8 +90,16 @@ export async function pingIndexNow(urls: string[]): Promise<boolean> {
       signal: controller.signal,
     });
     clearTimeout(timer);
-    return res.ok;
-  } catch {
-    return false;
+    return { ok: res.ok, status: res.status };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
+}
+
+/**
+ * Fail-soft variant til udgivelsesvejen. Må ALDRIG kaste: en misset ping er en
+ * misset indeksering, ikke en fejlet udgivelse.
+ */
+export async function pingIndexNow(urls: string[]): Promise<boolean> {
+  return (await submitToIndexNow(urls)).ok;
 }
