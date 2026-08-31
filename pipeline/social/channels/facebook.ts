@@ -18,7 +18,7 @@
  * skønhedsfejl, et tabt opslag er ikke.
  */
 
-import type { PostContent, SocialChannel } from "../types";
+import { ChannelAuthError, type PostContent, type SocialChannel } from "../types";
 
 // Meta udgiver ~2 versioner om året og holder hver i ~2 år. v26.0 udkom
 // 29. juli 2026. Bump ved lejlighed — et kald mod en udfaset version fejler
@@ -82,7 +82,15 @@ export const facebook: SocialChannel = {
         access_token: process.env.FB_PAGE_ACCESS_TOKEN,
       }),
     });
-    if (!res.ok) throw new Error(`Facebook post fejlede (${res.status}): ${await res.text()}`);
+    if (!res.ok) {
+      const body = await res.text();
+      // Et udløbet eller inddraget page-token er kontoens problem, ikke
+      // artiklens — samme skelnen som Blueskys login (se ChannelAuthError).
+      if (res.status === 401 || res.status === 403) {
+        throw new ChannelAuthError(`Facebook afviste tokenet (${res.status}): ${body}`);
+      }
+      throw new Error(`Facebook post fejlede (${res.status}): ${body}`);
+    }
 
     const data = (await res.json()) as { id?: string };
     // id-format: "<pageId>_<postId>" — kan linkes direkte

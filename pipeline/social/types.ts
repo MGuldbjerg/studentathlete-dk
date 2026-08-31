@@ -45,3 +45,24 @@ export interface SocialChannel {
   /** Post opslaget. Kaster ved fejl. Returnerer link til opslaget hvis kendt. */
   post(content: PostContent): Promise<{ postUrl: string | null }>;
 }
+
+/**
+ * Kanalen kunne ikke logge ind. Det er en KONTO-fejl, ikke en opslags-fejl.
+ *
+ * Forskellen er ikke akademisk. 31. august skiftede den britiske konto handle
+ * til sit domæne; `BLUESKY_UK_HANDLE` pegede stadig på det gamle
+ * `*.bsky.social`, som holdt op med at eksistere i samme sekund. Køen tolkede
+ * 401'eren som "dette opslag fejlede", talte forsøg op og ville efter tre
+ * timer have markeret artiklen `failed` — og derefter gjort det samme ved den
+ * næste. Et forkert kodeord ville altså have slettet en hel kø, én artikel i
+ * timen, uden at noget var galt med artiklerne.
+ *
+ * Kaster en adapter denne, står kø-rækken urørt: intet forsøg brugt, status
+ * uændret. Kørslen fejler stadig, så Discord-beskeden kommer.
+ */
+export class ChannelAuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ChannelAuthError";
+  }
+}

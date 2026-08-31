@@ -18,7 +18,7 @@
  */
 
 import { countryProfile } from "../../../src/lib/countries";
-import type { ChannelName, PostContent, SocialChannel } from "../types";
+import { ChannelAuthError, type ChannelName, type PostContent, type SocialChannel } from "../types";
 
 const PDS = "https://bsky.social";
 const MAX_BLOB_BYTES = 950_000; // Bluesky-grænsen er 1 MB — lidt margen
@@ -50,7 +50,7 @@ async function createSession(handle: string, appPassword: string): Promise<Sessi
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ identifier: handle, password: appPassword }),
   });
-  if (!res.ok) throw new Error(`Bluesky login fejlede (${res.status}): ${await res.text()}`);
+  if (!res.ok) throw new ChannelAuthError(`Bluesky login fejlede (${res.status}): ${await res.text()}`);
   return (await res.json()) as Session;
 }
 

@@ -23,7 +23,7 @@ import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
 import { DEFAULT_PACING, computeGapMinutes, shouldPostNow } from "./pacing";
 import { buildPostText } from "./copy";
-import type { PostContent, SocialChannel } from "./types";
+import { ChannelAuthError, type PostContent, type SocialChannel } from "./types";
 import { bluesky, blueskyUk } from "./channels/bluesky";
 // X droppet 2026-06-15: X fjernede sit gratis API-tier (nu pay-per-use, ~$0,01/opslag).
 // Adapter + secrets bevares — for at gen-aktivere: gendan importen og føj `x` til
@@ -242,6 +242,15 @@ async function drainChannel(
     return { posted: true, error: null };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+
+    // Kontoen kunne ikke logge ind: lad kø-rækken være HELT i fred. Artiklen
+    // fejlede ikke — den nåede aldrig ud af huset. Talte vi forsøg op her,
+    // ville et forkert kodeord tømme køen i timen, tre timer pr. artikel.
+    if (err instanceof ChannelAuthError) {
+      console.error(`  ${ch.name}: KONTO-FEJL — intet forsøg brugt, køen står urørt: ${msg}`);
+      return { posted: false, error: msg };
+    }
+
     const exhausted = row.attempts + 1 >= MAX_ATTEMPTS;
     await db.execute(
       `UPDATE social_posts

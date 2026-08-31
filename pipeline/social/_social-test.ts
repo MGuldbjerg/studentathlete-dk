@@ -13,7 +13,7 @@ import {
   shouldPostNow,
 } from "./pacing";
 import { buildPostText, truncate } from "./copy";
-import { CHANNEL_PLATFORM } from "./types";
+import { CHANNEL_PLATFORM, ChannelAuthError } from "./types";
 import { cardBlobKey } from "../../src/lib/seo";
 
 let passed = 0;
@@ -205,5 +205,70 @@ expect(
   true,
 );
 
-console.log(`\n${passed} bestået, ${failed} fejlet`);
-if (failed > 0) process.exit(1);
+// Asynkrone tests til sidst: tsx bygger CJS, så top-level await findes ikke.
+void (async () => {
+  // ── Login-fejl må ikke koste kø-rækker (31/8: UK-handlen skiftede) ───────────
+  // Den britiske konto skiftede handle til sit domæne; secret'en pegede stadig på
+  // det gamle *.bsky.social. Køen tolkede 401'eren som "artiklen fejlede" og
+  // begyndte at tælle forsøg — tre timer pr. artikel, så ville de 7 ventende
+  // være markeret `failed` inden næste morgen. Fejltypen adskiller nu KONTO fra
+  // OPSLAG; kø-rækken røres ikke ved en konto-fejl.
+  const realFetch = globalThis.fetch;
+  function stubFetch(handler: (url: string) => { ok: boolean; status: number; body: unknown }) {
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const r = handler(String(input));
+      return {
+        ok: r.ok,
+        status: r.status,
+        headers: new Map([["content-type", "application/json"]]),
+        json: async () => r.body,
+        text: async () => JSON.stringify(r.body),
+        arrayBuffer: async () => new ArrayBuffer(0),
+      } as unknown as Response;
+    }) as typeof fetch;
+  }
+
+  process.env.BLUESKY_UK_HANDLE = "student-athlete.co.uk";
+  process.env.BLUESKY_UK_APP_PASSWORD = "forkert";
+  const content = {
+    text: "T", url: "https://student-athlete.co.uk/x", title: "T", summary: null,
+    imageUrl: "https://student-athlete.co.uk/i.png",
+  };
+
+  stubFetch((url) =>
+    url.includes("createSession")
+      ? { ok: false, status: 401, body: { error: "AuthenticationRequired" } }
+      : { ok: true, status: 200, body: {} },
+  );
+  let caught: unknown = null;
+  try {
+    await blueskyUk.post(content);
+  } catch (e) {
+    caught = e;
+  }
+  expect("login-fejl er en KONTO-fejl", caught instanceof ChannelAuthError, true);
+
+  // Modstykket: en fejl i selve opslaget SKAL tælle som et forsøg.
+  stubFetch((url) => {
+    if (url.includes("createSession")) {
+      return { ok: true, status: 200, body: { accessJwt: "j", did: "did:plc:x", handle: "h" } };
+    }
+    if (url.includes("createRecord")) return { ok: false, status: 500, body: { error: "upstream" } };
+    return { ok: false, status: 404, body: {} }; // thumb-hentning fejler → intet kort
+  });
+  caught = null;
+  try {
+    await blueskyUk.post(content);
+  } catch (e) {
+    caught = e;
+  }
+  expect("opslags-fejl er IKKE en konto-fejl", caught instanceof ChannelAuthError, false);
+  expect("opslags-fejl er stadig en fejl", caught instanceof Error, true);
+  globalThis.fetch = realFetch;
+  delete process.env.BLUESKY_UK_HANDLE;
+  delete process.env.BLUESKY_UK_APP_PASSWORD;
+
+  console.log(`\n${passed} bestået, ${failed} fejlet`);
+  if (failed > 0) process.exit(1);
+})();
+
