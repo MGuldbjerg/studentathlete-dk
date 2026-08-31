@@ -3,7 +3,7 @@
  * Kampkortet (OG-billedet) leverer det visuelle; teksten er titel + link.
  */
 
-import type { ChannelName } from "./types";
+import { CHANNEL_PLATFORM, type ChannelName } from "./types";
 
 /** Klip ved ordgrænse og tilføj ellipse hvis teksten er for lang. */
 export function truncate(text: string, max: number): string {
@@ -25,7 +25,9 @@ export interface PostCopyInput {
  * Facebook: message + link sendes som separate felter; rigelig plads til ingress.
  */
 export function buildPostText(input: PostCopyInput, channel: ChannelName): string {
-  switch (channel) {
+  // Teksten hører til PLATFORMEN (tegngrænser, hvor linket må stå), ikke til
+  // kontoen — den danske og den britiske Bluesky-konto skriver ens.
+  switch (CHANNEL_PLATFORM[channel]) {
     case "bluesky":
       return truncate(input.title, 300);
     case "x":

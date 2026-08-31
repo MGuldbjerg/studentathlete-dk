@@ -47,6 +47,10 @@ jobs:
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
           BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
           BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          # Britisk konto — egne secrets, så et manglende UK-secret giver en
+          # sprunget kanal og ikke et opslag fra den danske konto.
+          BLUESKY_UK_HANDLE: ${{ secrets.BLUESKY_UK_HANDLE }}
+          BLUESKY_UK_APP_PASSWORD: ${{ secrets.BLUESKY_UK_APP_PASSWORD }}
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}

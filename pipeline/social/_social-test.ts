@@ -2,8 +2,8 @@
  * Unit-tests for social-modulets rene logik (pacing + copy).
  * Kør: npx tsx pipeline/social/_social-test.ts
  */
-import { cardReadyClause, distributionAllowed, profileAllowsDistribution } from "./post-social";
-import { bluesky } from "./channels/bluesky";
+import { ALL_CHANNELS, cardReadyClause, distributionAllowed, profileAllowsDistribution } from "./post-social";
+import { bluesky, blueskyUk, buildBlueskyRecord } from "./channels/bluesky";
 import { facebook } from "./channels/facebook";
 import {
   DEFAULT_PACING,
@@ -13,6 +13,7 @@ import {
   shouldPostNow,
 } from "./pacing";
 import { buildPostText, truncate } from "./copy";
+import { CHANNEL_PLATFORM } from "./types";
 import { cardBlobKey } from "../../src/lib/seo";
 
 let passed = 0;
@@ -136,6 +137,56 @@ expect("distribution: dark launch spærrer", profileAllowsDistribution({ darkLau
 expect("distribution: uden flag er distribution tilladt", profileAllowsDistribution({}), true);
 expect("distribution: UK er ikke længere dark launch (21/8)", distributionAllowed("UK"), true);
 expect("distribution: ukendt land falder tilbage på standardsitet", distributionAllowed("ZZ"), true);
+
+// ── Én konto pr. land (britisk Bluesky-konto, 2026-08-31) ────────────────────
+// Kanalen er en KONTO. To konti på samme platform må hverken dele kø-navn,
+// secrets eller sprog — det er de tre steder det britiske site ellers ville
+// falde tilbage på det danske.
+expect("kanal: bluesky_uk er en britisk konto", blueskyUk.country, "UK");
+expect("kanal: bluesky_uk har sit eget kø-navn", blueskyUk.name, "bluesky_uk");
+expect("kanal: kø-navne er unikke", new Set(ALL_CHANNELS.map((c) => c.name)).size, ALL_CHANNELS.length);
+expect("kanal: bluesky_uk kører på bluesky-platformen", CHANNEL_PLATFORM["bluesky_uk"], "bluesky");
+expect(
+  "copy: bluesky_uk skriver som bluesky (platformen, ikke kontoen)",
+  buildPostText(input, "bluesky_uk"),
+  buildPostText(input, "bluesky"),
+);
+
+// Sproget følger landeprofilen. Et engelsk opslag mærket "da" skjules af
+// Blueskys sprogfilter for præcis de læsere det er skrevet til.
+const sampleContent = {
+  text: "Titel",
+  url: "https://student-athlete.co.uk/x",
+  title: "Titel",
+  summary: null,
+  imageUrl: "https://student-athlete.co.uk/i.png",
+};
+expect("bluesky: dansk opslag mærkes da", buildBlueskyRecord(sampleContent, "DK").langs[0], "da");
+expect("bluesky: britisk opslag mærkes en", buildBlueskyRecord(sampleContent, "UK").langs[0], "en");
+
+// Secrets må ikke kunne smitte af: står kun de danske i miljøet, er den
+// britiske konto UKONFIGURERET — ellers ville den poste som @studentathlete.dk.
+const savedEnv = {
+  dk: process.env.BLUESKY_HANDLE,
+  dkPw: process.env.BLUESKY_APP_PASSWORD,
+  uk: process.env.BLUESKY_UK_HANDLE,
+  ukPw: process.env.BLUESKY_UK_APP_PASSWORD,
+};
+process.env.BLUESKY_HANDLE = "studentathlete.dk";
+process.env.BLUESKY_APP_PASSWORD = "x";
+delete process.env.BLUESKY_UK_HANDLE;
+delete process.env.BLUESKY_UK_APP_PASSWORD;
+expect("secrets: dansk konto konfigureret", bluesky.isConfigured(), true);
+expect("secrets: britisk konto arver ikke de danske", blueskyUk.isConfigured(), false);
+for (const [k, v] of Object.entries({
+  BLUESKY_HANDLE: savedEnv.dk,
+  BLUESKY_APP_PASSWORD: savedEnv.dkPw,
+  BLUESKY_UK_HANDLE: savedEnv.uk,
+  BLUESKY_UK_APP_PASSWORD: savedEnv.ukPw,
+})) {
+  if (v === undefined) delete process.env[k];
+  else process.env[k] = v;
+}
 
 // ── Kort før opslag (Amtrup 2026-08-18, #108 2026-08-20) ─────────────────────
 // Begge opslag gik ud FØR artiklens 1200×630-kort var rendret, fik /api/og's

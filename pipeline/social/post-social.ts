@@ -24,14 +24,18 @@ import { siteBaseUrl } from "../../src/lib/site";
 import { DEFAULT_PACING, computeGapMinutes, shouldPostNow } from "./pacing";
 import { buildPostText } from "./copy";
 import type { PostContent, SocialChannel } from "./types";
-import { bluesky } from "./channels/bluesky";
+import { bluesky, blueskyUk } from "./channels/bluesky";
 // X droppet 2026-06-15: X fjernede sit gratis API-tier (nu pay-per-use, ~$0,01/opslag).
 // Adapter + secrets bevares — for at gen-aktivere: gendan importen og føj `x` til
 // ALL_CHANNELS igen (kræver pay-per-use-kredit på X-kontoen).
 // import { x } from "./channels/x";
 import { facebook } from "./channels/facebook";
 
-const ALL_CHANNELS: SocialChannel[] = [bluesky, facebook];
+/**
+ * Alle kendte konti. Ukonfigurerede springes over i main(), så en konto kan
+ * stå her længe før dens secrets findes — det er sådan UK-kontoen kom til.
+ */
+export const ALL_CHANNELS: SocialChannel[] = [bluesky, blueskyUk, facebook];
 
 /**
  * Må dette lands artikler distribueres overhovedet?

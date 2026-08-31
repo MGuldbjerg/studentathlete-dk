@@ -14,6 +14,8 @@
  * hvornår det blev fjernet, er selv en del af dokumentationen.
  */
 import { createD1Client } from "../lib/d1-client";
+import { BLUESKY_ACCOUNTS } from "./channels/bluesky";
+import { CHANNEL_PLATFORM, type ChannelName } from "./types";
 
 const PDS = "https://bsky.social";
 const GRAPH = "https://graph.facebook.com/v26.0";
@@ -31,10 +33,20 @@ function rkeyFromUrl(url: string): string | null {
   return /\/post\/([^/?#]+)/.exec(url)?.[1] ?? null;
 }
 
-async function deleteBluesky(url: string): Promise<void> {
-  const handle = process.env.BLUESKY_HANDLE;
-  const password = process.env.BLUESKY_APP_PASSWORD;
-  if (!handle || !password) throw new Error("Mangler BLUESKY_HANDLE / BLUESKY_APP_PASSWORD");
+/**
+ * Slet et Bluesky-opslag — med den KONTO der lagde det op.
+ *
+ * Kanalnavnet står i kø-rækken, så en britisk fortrydelse ikke logger ind som
+ * den danske konto og får "record not found" på et opslag der ligger i et
+ * andet repo.
+ */
+async function deleteBluesky(url: string, channel: keyof typeof BLUESKY_ACCOUNTS): Promise<void> {
+  const account = BLUESKY_ACCOUNTS[channel];
+  const handle = process.env[account.handleEnv];
+  const password = process.env[account.passwordEnv];
+  if (!handle || !password) {
+    throw new Error(`Mangler ${account.handleEnv} / ${account.passwordEnv}`);
+  }
   const rkey = rkeyFromUrl(url);
   if (!rkey) throw new Error(`Kunne ikke læse rkey ud af ${url}`);
 
@@ -143,8 +155,10 @@ async function main() {
       continue;
     }
     try {
-      if (row.channel === "bluesky") await deleteBluesky(row.post_url);
-      else if (row.channel === "facebook") await deleteFacebook(row.post_url);
+      const platform = CHANNEL_PLATFORM[row.channel as ChannelName];
+      if (platform === "bluesky") {
+        await deleteBluesky(row.post_url, row.channel as keyof typeof BLUESKY_ACCOUNTS);
+      } else if (platform === "facebook") await deleteFacebook(row.post_url);
       else {
         console.log(`  ⊘ ${label} — kanalen har ingen sletning implementeret`);
         continue;

@@ -1,4 +1,24 @@
-export type ChannelName = "bluesky" | "x" | "facebook";
+/** Platformen — altså API'et. Flere kanaler kan dele én. */
+export type Platform = "bluesky" | "x" | "facebook";
+
+/**
+ * En KANAL er en konto, ikke en platform. Derfor har hvert land sit eget navn:
+ * pacing, kø-dybde og "hvornår postede vi sidst" slås alle op på kanalnavnet,
+ * så to konti med samme navn ville stå i vejen for hinanden i køen.
+ */
+export type ChannelName = "bluesky" | "bluesky_uk" | "x" | "facebook";
+
+/**
+ * Kanal → platform. Eksplicit tabel frem for navne-gætteri: en ny kanal uden
+ * platform er en typefejl, og hverken opslagsteksten eller sletningen kan
+ * komme til at gætte forkert på hvilket API der skal bruges.
+ */
+export const CHANNEL_PLATFORM: Record<ChannelName, Platform> = {
+  bluesky: "bluesky",
+  bluesky_uk: "bluesky",
+  x: "x",
+  facebook: "facebook",
+};
 
 export interface PostContent {
   /** Færdigbygget opslagstekst (se copy.ts) */
