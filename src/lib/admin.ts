@@ -1,4 +1,7 @@
 import { getDB, ARTICLE_SELECT } from "./db";
+import { pingIndexNow } from "./indexnow";
+import { getArticleUrl } from "./seo";
+import { currentBaseUrl, currentLanguage } from "./site-server";
 import { generateSlug } from "./slug";
 import { buildMergeStatements } from "./athlete-merge";
 import type { Article, Athlete } from "./types";
@@ -193,6 +196,38 @@ export async function publishArticle(id: number): Promise<void> {
   }
 }
 
+
+/**
+ * Fortæl IndexNow om en netop udgivet artikel.
+ *
+ * Kaldes EFTER publishArticle, ikke inde i den: en misset ping er en misset
+ * indeksering, ikke en fejlet udgivelse, og redaktøren skal aldrig se en fejl
+ * fordi Bing er nede. Derfor returneres bool og kastes aldrig.
+ *
+ * Google er IKKE med i IndexNow — for Google er sitemap og intern linkning
+ * fortsat den eneste vej. Se src/lib/indexnow.ts.
+ */
+export async function announcePublishedArticle(id: number): Promise<boolean> {
+  try {
+    const db = await getDB();
+    if (!db) return false;
+    const row = (await db
+      .prepare(
+        `SELECT a.slug, at.sport
+           FROM articles a
+           LEFT JOIN athletes at ON a.athlete_id = at.id
+          WHERE a.id = ? AND a.published = 1`,
+      )
+      .bind(id)
+      .first()) as { slug: string; sport: string | null } | null;
+    if (!row?.slug) return false;
+
+    const [base, lang] = await Promise.all([currentBaseUrl(), currentLanguage()]);
+    return await pingIndexNow([`${base}${getArticleUrl(row, lang)}`]);
+  } catch {
+    return false;
+  }
+}
 export async function deleteArticle(id: number): Promise<void> {
   const db = await getDB();
   if (!db) return;

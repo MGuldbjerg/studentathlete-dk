@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { publishArticle, deleteArticle } from "@/lib/admin";
+import { publishArticle, deleteArticle, announcePublishedArticle } from "@/lib/admin";
 import { isAdmin } from "@/lib/admin-auth";
 
 export async function POST(req: NextRequest) {
@@ -19,6 +19,9 @@ export async function POST(req: NextRequest) {
 
     if (action === "publish") {
       await publishArticle(id);
+      // Efter udgivelsen, aldrig før: pinger vi først og fejler udgivelsen
+      // bagefter, har vi fortalt verden om en side der ikke findes.
+      await announcePublishedArticle(id);
     } else {
       await deleteArticle(id);
     }
