@@ -34,11 +34,32 @@ Harnessen findes (`pipeline/backtest/`) og har to fixtures. Med ~40, høstet fra
 de 124 gennemgåede kladder, bliver enhver senere idé en **målt** forskel i
 stedet for en smagssag. Uden den er resten af dette dokument holdninger.
 
-### 5. To udbydere, sammenlign tallene — GODKENDT, kapacitet bekræftet
-Generér samme historie hos to udbydere og sammenlign KUN tal og egennavne.
-Opdigtede tal er ustabile mellem modeller; kildebelagte er stabile. Toppen er
-63 kald/dag ud af ~2.650, så prisen er en afrundingsfejl.
+### 5. To udbydere, sammenlign tallene — BYGGET, MÅLT, SLÅET FRA
+Bygget 2026-08-31 og afmålt samme dag. Bagudtesten mod de 38 dømte artikler:
+**22 % præcision** (13 rigtige mod 46 falske alarmer, n=59). Talvagten ligger
+på 73 %.
 
+Fejlen i idéen: **fravær er ikke modsigelse.** To modeller skriver ikke den
+samme artikel — den ene nævner skudstatistikken, den anden ikke — og det siger
+intet om hvem der har ret. Uenigheden fordeler sig over alt hvad de to valgte
+at nævne, ikke over det opdigtede.
+
+Et støjende flag koster desuden mere end det vejer: står det ved siden af det
+gode i `fact_flags`, lærer man at ignorere begge.
+
+**Hvis den tages op igen**: spørg den anden model om det SAMME konkrete tal
+(«i hvilket minut scorede X?») i stedet for at bede den skrive en hel artikel.
+Modsigelse er et signal. Fravær er støj. Koden står bag `SECOND_OPINION=1`, og
+`second-opinion-backtest.ts` kan måle en ny udgave.
+
+### Bagudtest — den vigtigste metode her
+Mikkels spørgsmål «can't you test backwards?» viste sig at være den skarpeste
+idé i hele forløbet. Enhver ændring der påvirker TEKSTEN kan måles mod de
+artikler mennesket allerede har dømt, uden at vente på ny produktion:
+faktaarkene ligger i korpusset, så et manglende udkast kan bare skrives nu.
+
+Det tog en time at aflive idé 5. Uden bagudtesten ville den have kørt i
+produktion i ugevis og stille udhulet tilliden til de flag der virker.
 ## Fravalgt — og hvorfor (så det ikke genopfindes)
 
 ### 3. Skabelon med pladsholdere · 4. Sætning-for-sætning-kildebelæg
