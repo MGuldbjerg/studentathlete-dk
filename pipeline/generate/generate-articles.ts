@@ -21,6 +21,7 @@ import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
 import { checkStoryIdentity, hasUnsourcedQuote } from "./identity-guard";
 import { checkEventTiming } from "./event-timing";
 import { groupBySourceAndCountry } from "./group-stories";
+import { unsupportedNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
 
@@ -117,6 +118,46 @@ function teammatesBlock(names: string[], language: string): string {
   ].join("\n");
 }
 
+/**
+ * Reparationsprompt: ret PRÆCIS de tal der ikke har dækning.
+ *
+ * Hvorfor reparation frem for en strengere instruks: ARTICLE-ACCURACY.md har
+ * allerede afgjort at gratis-modellerne ikke følger pålidelige negative
+ * instrukser. «Opfind aldrig tal» virker ikke. «Du skrev 33; faktaarket siger
+ * 32» virker, fordi opgaven er konkret og lille.
+ */
+/** Faktaarket som læsbar tekst — samme gengivelse som skrivefasen fik. */
+function factSheetText(story: StoryWithAthlete): string {
+  if (!story.fact_sheet) return "";
+  try {
+    return renderFactSheet(JSON.parse(story.fact_sheet) as FactSheet);
+  } catch {
+    return story.fact_sheet;
+  }
+}
+function repairNumbersPrompt(
+  title: string,
+  content: string,
+  bad: string[],
+  factsBlock: string,
+  language: string,
+): string {
+  const list = bad.join(", ");
+  const head = language === "da"
+    ? [
+        `Følgende tal i teksten har INGEN dækning i faktaarket: ${list}.`,
+        "Ret hvert af dem til det tal faktaarket faktisk angiver — eller fjern",
+        "sætningen, hvis faktaarket ikke siger noget om det. Lav ikke andre",
+        "ændringer: samme historie, samme længde, samme sprog.",
+      ].join(String.fromCharCode(10))
+    : [
+        `These numbers in the text have NO support in the fact sheet: ${list}.`,
+        "Correct each to the number the fact sheet actually gives — or remove the",
+        "sentence if the fact sheet says nothing about it. Make no other changes:",
+        "same story, same length, same language.",
+      ].join(String.fromCharCode(10));
+  return [head, "", "FAKTAARK:", factsBlock, "", "TITEL:", title, "", "TEKST:", content].join(String.fromCharCode(10));
+}
 function buildPrompt(
   story: StoryWithAthlete,
   articleType: string,
@@ -431,7 +472,7 @@ async function main(): Promise<void> {
         preferProvider,
       });
 
-      const parsed = parseArticleOutputSmart(response.text, articleType);
+      let parsed = parseArticleOutputSmart(response.text, articleType);
 
       /**
        * CITATVAGT: ord lagt i munden på et navngivent menneske er den værste
@@ -458,10 +499,48 @@ async function main(): Promise<void> {
         continue;
       }
 
+      /**
+       * TALVAGT — et opdigtet minuttal ligner et ægte til forveksling.
+       *
+       * Kladde #199 skrev «10. minut» og «33. minut»; kilden sagde 4. og 32.
+       * LLM-verifikatoren fangede ét af tre. Et tal kræver ikke skøn: det står
+       * i faktaarket, kilden eller atletens profil — eller også gør det ikke.
+       */
+      const allowedFacts = [
+        story.fact_sheet ?? "",
+        story.content_raw ?? "",
+        String(story.class_year ?? ""),
+        String(story.expected_graduation ?? ""),
+      ].join(" ");
+      let badNumbers = unsupportedNumbers(`${parsed.title} ${parsed.content}`, allowedFacts);
+
+      if (badNumbers.length > 0) {
+        console.log(`  ⚠ Story ${story.id}: tal uden dækning (${badNumbers.join(", ")}) — forsøger reparation`);
+        try {
+          const repair = await chain.generate({
+            system: systemPrompt,
+            prompt: repairNumbersPrompt(parsed.title, parsed.content, badNumbers, factSheetText(story), prompts.language),
+            max_tokens: 2000,
+            json: true,
+          });
+          const reparsed = parseArticleOutputSmart(repair.text, articleType);
+          const stillBad = unsupportedNumbers(`${reparsed.title} ${reparsed.content}`, allowedFacts);
+          // Kun hvis reparationen faktisk gjorde det BEDRE. En model der
+          // «retter» ved at digte videre skal ikke belønnes.
+          if (stillBad.length < badNumbers.length && reparsed.content) {
+            parsed = reparsed;
+            badNumbers = stillBad;
+            console.log(`    → repareret, ${stillBad.length} tilbage`);
+          }
+        } catch {
+          /* en fejlet reparation må ikke vælte genereringen */
+        }
+      }
+
       const slug = generateSlug(parsed.title);
 
       // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering
-      await db.execute(
+      const inserted = await db.execute(
         // `country` afgør hvilket site artiklen hører til (migration 034), og
         // `author` er sitets eget brand — ikke en konstant, nu hvor der er
         // mere end ét site.
@@ -489,6 +568,32 @@ async function main(): Promise<void> {
         ],
       );
 
+
+      /**
+       * Overlevede tallene reparationen, må kladden ikke ligne en ren en af
+       * slagsen i admin.
+       *
+       * Den KASSERES ikke, som et ukildebelagt citat gør. Citatvagten er gammel
+       * og præcis; taltjekket er nyt, og dets falske alarmer (skrevne tal,
+       * klassetrin) er først lige luget ud. At smide en ellers god artikel væk
+       * på et umodent tjek er en dyrere fejl end at vise den med en advarsel.
+       * Når backtesten kan måle præcisionen, kan det her strammes til.
+       */
+      if (badNumbers.length > 0) {
+        const articleId = (inserted.meta as { last_row_id?: number } | undefined)?.last_row_id;
+        if (articleId) {
+          await db.execute(
+            `UPDATE articles SET fabrication_risk = 'high', fact_flags = ? WHERE id = ?`,
+            [
+              JSON.stringify(
+                badNumbers.map((n) => `numbers: ${n} — står hverken i kilde eller faktaark (mekanisk tjek)`),
+              ),
+              articleId,
+            ],
+          );
+        }
+        console.log(`  ⛳ Story ${story.id}: ${badNumbers.length} tal uden dækning tilbage — markeret high`);
+      }
       // Opdater story status
       await db.execute(
         'UPDATE stories SET status = ?, processed_at = datetime("now") WHERE id = ?',

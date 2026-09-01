@@ -15,6 +15,7 @@
  * Skriver ALDRIG. Den rapporterer; rettelsen er et menneskes beslutning.
  */
 import { createD1Client } from "../lib/d1-client";
+import { numbersIn, digitsFromWords, unsupportedNumbers } from "../generate/fact-numbers";
 
 const WEEKDAYS: Record<string, number> = {
   søndag: 0, mandag: 1, tirsdag: 2, onsdag: 3, torsdag: 4, fredag: 5, lørdag: 6,
@@ -22,61 +23,6 @@ const WEEKDAYS: Record<string, number> = {
 };
 
 const DAY_NAMES_DA = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
-
-/**
- * Skrevne tal i kilden dækker det tilsvarende ciffer i kladden.
- * Kilden skriver «struck first in the fourth minute»; kladden skriver «4.
- * minut». Uden den her tabel meldte tjekket 4-tallet som udækket — og en
- * falsk alarm i et faktatjek er dyr: den lærer læseren at ignorere det.
- */
-const WRITTEN_NUMBERS: Record<string, string> = {
-  first: "1", second: "2", third: "3", fourth: "4", fifth: "5",
-  sixth: "6", seventh: "7", eighth: "8", ninth: "9", tenth: "10",
-  eleventh: "11", twelfth: "12",
-  one: "1", two: "2", three: "3", four: "4", five: "5", six: "6",
-  seven: "7", eight: "8", nine: "9", ten: "10", eleven: "11", twelve: "12",
-};
-
-/** Cifrene som kilden udtrykker med bogstaver. */
-export function digitsFromWords(text: string): string[] {
-  const lower = text.toLowerCase();
-  const out: string[] = [];
-  for (const [word, digit] of Object.entries(WRITTEN_NUMBERS)) {
-    if (lower.includes(word)) out.push(digit);
-  }
-  return out;
-}
-
-/** Alle heltal i en tekst, som strenge (uden tusindtalsseparatorer). */
-export function numbersIn(text: string): string[] {
-  const out: string[] = [];
-  let cur = "";
-  for (const ch of text) {
-    if (ch >= "0" && ch <= "9") cur += ch;
-    else {
-      if (cur) out.push(cur);
-      cur = "";
-    }
-  }
-  if (cur) out.push(cur);
-  return out;
-}
-
-/** Tal i kladden som hverken faktaark eller kilde kender. */
-export function unsupportedNumbers(content: string, haystack: string): string[] {
-  const known = new Set(numbersIn(haystack));
-  for (const d of digitsFromWords(haystack)) known.add(d);
-  const seen = new Set<string>();
-  const bad: string[] = [];
-  for (const n of numbersIn(content)) {
-    // Ét- og tocifrede tal under 3 er for støjende (kapitler, "2-1" osv. fanges
-    // via kilden alligevel). Vi rapporterer alt fra 3 og op.
-    if (n.length < 1 || seen.has(n)) continue;
-    seen.add(n);
-    if (!known.has(n)) bad.push(n);
-  }
-  return bad;
-}
 
 /** Nævner kladden en ugedag der ikke passer til faktaarkets dato? */
 export function weekdayMismatch(
@@ -156,3 +102,6 @@ if (process.argv[1] && process.argv[1].endsWith("draft-numbers.ts")) {
     process.exit(1);
   });
 }
+
+// Gen-eksporteres, så testen og andre kaldere har ét sted at hente dem.
+export { numbersIn, digitsFromWords, unsupportedNumbers };

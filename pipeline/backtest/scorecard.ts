@@ -3,6 +3,7 @@
  * og udskriver en pass/fail-tabel. Returnerer false hvis NOGEN fixture fejler.
  */
 import type { Fixture } from "./types";
+import { unsupportedNumbers } from "../generate/fact-numbers";
 
 export interface ActualResult {
   linkDetected: string | null;
@@ -28,14 +29,14 @@ function sortedEq(a: string[], b: string[]): boolean {
   return x.every((v, i) => v === y[i]);
 }
 
-/** Tal-tokens i artiklen der IKKE optræder i de tilladte fakta (= opdigtede tal). */
+/**
+ * Tal-tokens i artiklen der IKKE optræder i de tilladte fakta.
+ * Ligger nu i generate/fact-numbers.ts, så backtest og produktion dømmer ens.
+ * Navnet beholdes — fixtures og rapporter taler om «fabricated numbers».
+ */
 export function fabricatedNumbers(articleText: string, factText: string): string[] {
-  const nums = articleText.match(/\d+/g) ?? [];
-  const allowed = factText.match(/\d+/g) ?? [];
-  const allowedSet = new Set(allowed);
-  return [...new Set(nums)].filter((n) => !allowedSet.has(n));
+  return unsupportedNumbers(articleText, factText);
 }
-
 export function scoreFixture(fixture: Fixture, actual: ActualResult): { pass: boolean; checks: Check[] } {
   const e = fixture.expected;
   const fab = fabricatedNumbers(actual.articleText, actual.factText);
