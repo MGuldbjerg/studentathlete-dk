@@ -25,3 +25,34 @@ ok(unsupportedNumbers("19 skud", "").includes("19"), "almindelige tal flages for
 
 console.log(`\nfact-numbers: ${pass} bestået, ${fail} fejlet`);
 if (fail > 0) process.exit(1);
+
+// ── Anden mening: to modeller om samme historie ─────────────────────────────
+import { unstableNumbers } from "./fact-numbers";
+
+let p2 = 0, f2 = 0;
+function ok2(cond: boolean, label: string): void {
+  if (cond) p2++;
+  else { f2++; console.log(`  ✗ ${label}`); }
+}
+
+// Den ægte sag: model A skrev 10. minut, model B skrev 4. — 10 er ustabilt.
+ok2(
+  unstableNumbers("bagud i det 10. minut", "bagud i det 4. minut").includes("10"),
+  "tal kun i den ene kladde er ustabilt",
+);
+ok2(
+  unstableNumbers("scorede i det 32. minut", "målet faldt i det 32. minut").length === 0,
+  "enighed om tallet giver ingen advarsel",
+);
+ok2(
+  unstableNumbers("de sidste 45 minutter", "anden halvleg").length === 0,
+  "strukturelle tal tælles ikke som uenighed",
+);
+ok2(unstableNumbers("", "noget").length === 0, "tom kladde");
+ok2(
+  unstableNumbers("2-1 sejr i det 32. minut", "2-1").includes("32"),
+  "kun det uenige tal nævnes, ikke resultatet begge er enige om",
+);
+
+console.log(`unstableNumbers: ${p2} bestået, ${f2} fejlet`);
+if (f2 > 0) process.exit(1);

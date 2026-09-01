@@ -21,7 +21,7 @@ import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
 import { checkStoryIdentity, hasUnsourcedQuote } from "./identity-guard";
 import { checkEventTiming } from "./event-timing";
 import { groupBySourceAndCountry } from "./group-stories";
-import { unsupportedNumbers } from "./fact-numbers";
+import { numbersIn, unsupportedNumbers, unstableNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
 
@@ -537,6 +537,60 @@ async function main(): Promise<void> {
         }
       }
 
+      /**
+       * ANDEN MENING — to modeller om samme faktaark.
+       *
+       * Fanger dét taltjekket ikke kan se: et tal der ER i kilden, men hængt
+       * på det forkerte. «10. minut» slap forbi, fordi 10 optræder et sted i
+       * 37 kB kildetekst; kilden sagde 4. To modeller er enige om de tal der
+       * faktisk står i faktaarket — et opdigtet tal er et tilfældigt valg, og
+       * to modeller træffer sjældent det samme tilfældige valg.
+       *
+       * Prisen er ét ekstra kald pr. artikel. Målt forbrug er 63 kald/dag mod
+       * ~2.650 tilgængelige, så det er en afrundingsfejl.
+       *
+       * Vi SKIFTER ikke til kladde B. Den er ikke bedre prosa, bare et andet
+       * vidne — og et vidne skal ikke skrive artiklen. Uenigheden noteres, og
+       * mennesket afgør.
+       */
+      let unstable: string[] = [];
+      const secondOpinionOff = process.env.SECOND_OPINION === "0";
+      const others = chain
+        .getAvailableProviders()
+        .filter((n) => n !== response.provider);
+      if (!secondOpinionOff && others.length > 0 && numbersIn(parsed.content).length > 0) {
+        try {
+          const second = await chain.generate({
+            system: systemPrompt,
+            prompt,
+            max_tokens: 2000,
+            json: true,
+            preferProvider: others[0],
+          });
+          // Kun hvis den ANDEN udbyder faktisk svarede — falder kæden tilbage
+          // til den samme model, er der ingen uafhængighed og intet at måle.
+          if (second.provider !== response.provider) {
+            const parsedSecond = parseArticleOutputSmart(second.text, articleType);
+            // KUN tal der HAR dækning i kilden. De udækkede er allerede fanget
+            // af talvagten ovenfor, og to flag om samme tal er støj. Tilbage
+            // står den interessante klasse: et tal kilden kender, som den
+            // anden model ikke brugte — altså muligvis hængt på det forkerte.
+            const badSet = new Set(badNumbers);
+            unstable = unstableNumbers(
+              `${parsed.title} ${parsed.content}`,
+              `${parsedSecond.title} ${parsedSecond.content}`,
+            ).filter((n) => !badSet.has(n));
+            if (unstable.length > 0) {
+              console.log(
+                `  ⚖ Story ${story.id}: ${second.provider} skrev ikke ${unstable.join(", ")}`,
+              );
+            }
+          }
+        } catch {
+          /* en anden mening er en bonus, ikke en betingelse */
+        }
+      }
+
       const slug = generateSlug(parsed.title);
 
       // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering
@@ -579,20 +633,28 @@ async function main(): Promise<void> {
        * på et umodent tjek er en dyrere fejl end at vise den med en advarsel.
        * Når backtesten kan måle præcisionen, kan det her strammes til.
        */
-      if (badNumbers.length > 0) {
+      const mechanicalFlags: string[] = [
+        ...badNumbers.map(
+          (n) => `numbers: ${n} — står hverken i kilde eller faktaark (mekanisk tjek)`,
+        ),
+        ...unstable.map(
+          (n) => `numbers: ${n} — den anden model skrev det ikke (anden mening)`,
+        ),
+      ];
+      if (mechanicalFlags.length > 0) {
         const articleId = (inserted.meta as { last_row_id?: number } | undefined)?.last_row_id;
+        // Uden dækning i kilden er værre end uenighed mellem to modeller: det
+        // første er en påstand ingen kan bekræfte, det andet er et spørgsmål.
+        const risk = badNumbers.length > 0 ? "high" : "medium";
         if (articleId) {
           await db.execute(
-            `UPDATE articles SET fabrication_risk = 'high', fact_flags = ? WHERE id = ?`,
-            [
-              JSON.stringify(
-                badNumbers.map((n) => `numbers: ${n} — står hverken i kilde eller faktaark (mekanisk tjek)`),
-              ),
-              articleId,
-            ],
+            `UPDATE articles SET fabrication_risk = ?, fact_flags = ? WHERE id = ?`,
+            [risk, JSON.stringify(mechanicalFlags), articleId],
           );
         }
-        console.log(`  ⛳ Story ${story.id}: ${badNumbers.length} tal uden dækning tilbage — markeret high`);
+        console.log(
+          `  ⛳ Story ${story.id}: ${mechanicalFlags.length} mekanisk(e) flag — markeret ${risk}`,
+        );
       }
       // Opdater story status
       await db.execute(

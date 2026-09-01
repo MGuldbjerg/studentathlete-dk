@@ -90,3 +90,30 @@ export function unsupportedNumbers(articleText: string, factText: string): strin
   }
   return bad;
 }
+
+/**
+ * Tal der står i ÉN af to uafhængige kladder om samme historie.
+ *
+ * Idéen: to modeller, der læser det samme faktaark, er enige om de tal der
+ * FAKTISK står der. Et opdigtet tal er derimod et tilfældigt valg — og to
+ * modeller træffer sjældent det samme tilfældige valg.
+ *
+ * Det fanger en fejlklasse taltjekket ikke kan se: et tal der ER i kilden,
+ * men hængt på det forkerte. «10. minut» slap forbi, fordi 10 optræder et
+ * eller andet sted i 37 kB kildetekst. Den anden model skrev 4.
+ *
+ * Asymmetrisk med vilje: vi spørger hvad DEN KLADDE VI BEHOLDER påstår, som
+ * den anden ikke gør.
+ */
+export function unstableNumbers(kept: string, other: string): string[] {
+  const inOther = new Set(numbersIn(other));
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const n of numbersIn(kept)) {
+    if (seen.has(n)) continue;
+    seen.add(n);
+    if (isStructural(n)) continue;
+    if (!inOther.has(n)) out.push(n);
+  }
+  return out;
+}
