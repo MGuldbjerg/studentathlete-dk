@@ -1,0 +1,158 @@
+/**
+ * Mekanisk faktatjek af kladder: TAL og UGEDAG.
+ *
+ * Baggrund (2026-08-31): kladde #199 skrev at holdet kom bagud «i den 10.
+ * minut» og at Banasik scorede «i det 33. minut». Kilden siger 4. og 32.
+ * LLM-verifikatoren fangede kun det ene af dem — den er en dommer, ikke en
+ * lommeregner, og et tal der LYDER rigtigt slipper forbi.
+ *
+ * Et tal kan tjekkes uden skøn: står det i faktaarket eller i kilden, eller
+ * gør det ikke. Samme med ugedagen: faktaarket har datoen, og en dato har
+ * præcis én ugedag. Begge dele hører derfor til her — mekanisk, ikke i en
+ * prompt og ikke i en model.
+ *
+ * Kør:  npx tsx pipeline/checks/draft-numbers.ts [--id N]
+ * Skriver ALDRIG. Den rapporterer; rettelsen er et menneskes beslutning.
+ */
+import { createD1Client } from "../lib/d1-client";
+
+const WEEKDAYS: Record<string, number> = {
+  søndag: 0, mandag: 1, tirsdag: 2, onsdag: 3, torsdag: 4, fredag: 5, lørdag: 6,
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+};
+
+const DAY_NAMES_DA = ["søndag", "mandag", "tirsdag", "onsdag", "torsdag", "fredag", "lørdag"];
+
+/**
+ * Skrevne tal i kilden dækker det tilsvarende ciffer i kladden.
+ * Kilden skriver «struck first in the fourth minute»; kladden skriver «4.
+ * minut». Uden den her tabel meldte tjekket 4-tallet som udækket — og en
+ * falsk alarm i et faktatjek er dyr: den lærer læseren at ignorere det.
+ */
+const WRITTEN_NUMBERS: Record<string, string> = {
+  first: "1", second: "2", third: "3", fourth: "4", fifth: "5",
+  sixth: "6", seventh: "7", eighth: "8", ninth: "9", tenth: "10",
+  eleventh: "11", twelfth: "12",
+  one: "1", two: "2", three: "3", four: "4", five: "5", six: "6",
+  seven: "7", eight: "8", nine: "9", ten: "10", eleven: "11", twelve: "12",
+};
+
+/** Cifrene som kilden udtrykker med bogstaver. */
+export function digitsFromWords(text: string): string[] {
+  const lower = text.toLowerCase();
+  const out: string[] = [];
+  for (const [word, digit] of Object.entries(WRITTEN_NUMBERS)) {
+    if (lower.includes(word)) out.push(digit);
+  }
+  return out;
+}
+
+/** Alle heltal i en tekst, som strenge (uden tusindtalsseparatorer). */
+export function numbersIn(text: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  for (const ch of text) {
+    if (ch >= "0" && ch <= "9") cur += ch;
+    else {
+      if (cur) out.push(cur);
+      cur = "";
+    }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+/** Tal i kladden som hverken faktaark eller kilde kender. */
+export function unsupportedNumbers(content: string, haystack: string): string[] {
+  const known = new Set(numbersIn(haystack));
+  for (const d of digitsFromWords(haystack)) known.add(d);
+  const seen = new Set<string>();
+  const bad: string[] = [];
+  for (const n of numbersIn(content)) {
+    // Ét- og tocifrede tal under 3 er for støjende (kapitler, "2-1" osv. fanges
+    // via kilden alligevel). Vi rapporterer alt fra 3 og op.
+    if (n.length < 1 || seen.has(n)) continue;
+    seen.add(n);
+    if (!known.has(n)) bad.push(n);
+  }
+  return bad;
+}
+
+/** Nævner kladden en ugedag der ikke passer til faktaarkets dato? */
+export function weekdayMismatch(
+  content: string,
+  isoDate: string | null,
+): { claimed: string; actual: string } | null {
+  if (!isoDate) return null;
+  const d = new Date(`${isoDate}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  const actualIdx = d.getUTCDay();
+  const lower = content.toLowerCase();
+  for (const [name, idx] of Object.entries(WEEKDAYS)) {
+    if (!lower.includes(name)) continue;
+    if (idx !== actualIdx) {
+      return { claimed: name, actual: DAY_NAMES_DA[actualIdx] };
+    }
+  }
+  return null;
+}
+
+interface Row {
+  id: number;
+  title: string;
+  content: string;
+  country: string | null;
+  fact_sheet: string | null;
+  content_raw: string | null;
+  profil: string | null;
+}
+
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  const onlyId = args.includes("--id") ? Number(args[args.indexOf("--id") + 1]) : null;
+  const db = createD1Client();
+
+  const rows = await db.query<Row>(
+    `SELECT ar.id, ar.title, ar.content, ar.country, s.fact_sheet, s.content_raw,
+            (at.class_year || ' ' || COALESCE(at.expected_graduation,'')) AS profil
+       FROM articles ar LEFT JOIN stories s ON s.id = ar.story_id
+            LEFT JOIN athletes at ON at.id = ar.athlete_id
+      WHERE ar.published = 0 ${onlyId ? "AND ar.id = ?" : ""}
+      ORDER BY ar.id`,
+    onlyId ? [onlyId] : [],
+  );
+
+  let flagged = 0;
+  for (const r of rows.results ?? []) {
+    const haystack = `${r.fact_sheet ?? ""} ${r.content_raw ?? ""} ${r.profil ?? ""}`;
+    const bad = unsupportedNumbers(`${r.title} ${r.content ?? ""}`, haystack);
+
+    let eventDate: string | null = null;
+    try {
+      eventDate = (JSON.parse(r.fact_sheet ?? "{}") as { event?: { date?: string } }).event?.date ?? null;
+    } catch {
+      /* ulæseligt faktaark er ikke tjekkets problem */
+    }
+    const day = weekdayMismatch(`${r.title} ${r.content ?? ""}`, eventDate);
+
+    if (bad.length === 0 && !day) continue;
+    flagged++;
+    console.log(`\n#${r.id} [${r.country}] ${r.title}`);
+    if (bad.length) console.log(`   tal uden dækning: ${bad.join(", ")}`);
+    if (day) {
+      console.log(`   ugedag: kladden siger «${day.claimed}», men ${eventDate} var en ${day.actual}`);
+      // Ikke nødvendigvis en fejl: en KOMMENDE kamp har sin egen ugedag. Men
+      // er den dag passeret, er sætningen forældet — se forward-looking.ts.
+      console.log("           (kan være en kommende kamp — tjek om den dag er passeret)");
+    }
+  }
+
+  console.log(`\n${(rows.results ?? []).length} kladde(r) tjekket, ${flagged} med fund.`);
+}
+
+if (process.argv[1] && process.argv[1].endsWith("draft-numbers.ts")) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
