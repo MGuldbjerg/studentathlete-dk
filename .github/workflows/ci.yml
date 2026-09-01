@@ -42,6 +42,7 @@ jobs:
             pipeline/generate/_identity-guard-test.ts \
             pipeline/generate/_event-timing-test.ts \
             pipeline/generate/_forward-looking-test.ts \
+            pipeline/generate/_fact-numbers-test.ts \
             pipeline/generate/_group-stories-test.ts \
             pipeline/generate/_quality-check-test.ts \
             pipeline/generate/_draft-pack-test.ts \
@@ -99,3 +100,9 @@ jobs:
 
       # Ingen Discord-notify: GitHub sender selv mail ved brudt CI på main,
       # og PR-status er synlig i UI'et.
+
+      # Måler taltjekket mod menneskets egne rettelser (offline snapshot).
+      # Fejler hvis præcisionen falder — en falsk alarm lærer redaktøren at
+      # ignorere advarslerne, og så er tjekket reelt væk.
+      - name: Faktatjekkets præcision (backtest-korpus)
+        run: npx tsx pipeline/backtest/checker-precision.ts

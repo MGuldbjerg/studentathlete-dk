@@ -52,6 +52,30 @@ export function digitsFromWords(text: string): string[] {
   return out;
 }
 
+/**
+ * Tal der ALDRIG tælles som påstande.
+ *
+ * Målt mod korpusset af menneskeredigerede artikler var det her de falske
+ * alarmer sad (se backtest/checker-precision.ts):
+ *
+ * · 45 og 90 er en halvleg og en kamp i fodbold. «de sidste 45 minutter» er
+ *   sprogbrug, ikke en statistik nogen kan have opfundet.
+ * · Årstal er kalender, ikke resultat. Faktaarket skriver sjældent sæsonåret
+ *   ud, selv om begivenhedsdatoen indeholder det.
+ *
+ * FORBEHOLD: kalibreret på 15 advarsler i alt. Det er få, og listen skal ikke
+ * vokse hver gang et tal driller — så tilpasser vi tjekket til støjen i stedet
+ * for til virkeligheden. Nye undtagelser kræver et større korpus.
+ */
+function isStructural(n: string): boolean {
+  if (n === "45" || n === "90") return true;
+  if (n.length === 4) {
+    const y = Number(n);
+    if (y >= 1900 && y <= 2100) return true;
+  }
+  return false;
+}
+
 /** Tal i teksten som hverken faktaark, kilde eller profil kender. */
 export function unsupportedNumbers(articleText: string, factText: string): string[] {
   const known = new Set(numbersIn(factText));
@@ -61,6 +85,7 @@ export function unsupportedNumbers(articleText: string, factText: string): strin
   for (const n of numbersIn(articleText)) {
     if (seen.has(n)) continue;
     seen.add(n);
+    if (isStructural(n)) continue;
     if (!known.has(n)) bad.push(n);
   }
   return bad;
