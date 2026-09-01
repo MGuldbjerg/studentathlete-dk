@@ -554,7 +554,27 @@ async function main(): Promise<void> {
        * mennesket afgør.
        */
       let unstable: string[] = [];
-      const secondOpinionOff = process.env.SECOND_OPINION === "0";
+      /**
+       * SLÅET FRA som standard efter måling (2026-08-31).
+       *
+       * Bagudtesten mod 38 menneskeredigerede artikler gav 22 % præcision:
+       * 46 af 59 uenigheder var tal Mikkel BEHOLDT. Talvagten ovenfor ligger
+       * på 73 %.
+       *
+       * Fejlen i idéen: fravær er ikke modsigelse. To modeller skriver ikke
+       * den samme artikel — den ene nævner skudstatistikken, den anden gør
+       * ikke — og det siger intet om, hvem der har ret. Kun en MODSIGELSE er
+       * et signal, og den kræver at man spørger den anden model om det samme
+       * konkrete tal («i hvilket minut scorede X?»), ikke at man beder den
+       * skrive en hel artikel og sammenligner posen af tal.
+       *
+       * Værre endnu: et støjende flag ødelægger det gode. Ligger de side om
+       * side i fact_flags, lærer man at ignorere begge.
+       *
+       * Koden bliver stående, og second-opinion-backtest.ts kan måle en ny
+       * udgave. Tænd med SECOND_OPINION=1.
+       */
+      const secondOpinionOff = process.env.SECOND_OPINION !== "1";
       const others = chain
         .getAvailableProviders()
         .filter((n) => n !== response.provider);

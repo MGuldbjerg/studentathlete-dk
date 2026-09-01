@@ -19,6 +19,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createD1Client } from "../lib/d1-client";
 import { numbersIn, digitsFromWords } from "../generate/fact-numbers";
+import { renderFactSheet, type FactSheet } from "../generate/build-factsheet";
 
 export interface CorpusCase {
   articleId: number;
@@ -32,6 +33,11 @@ export interface CorpusCase {
   allowedNumbers: string[];
   /** Faktaarkets begivenhedsdato, til ugedagstjekket. */
   eventDate: string | null;
+  /** Faktaarket som tekst — så en ANDEN model kan skrive sit eget udkast af
+   *  samme historie, og uenigheden kan måles bagud. */
+  factSheetText: string;
+  athleteName: string | null;
+  sport: string | null;
 }
 
 interface Row {
@@ -43,14 +49,27 @@ interface Row {
   fact_sheet: string | null;
   content_raw: string | null;
   class_year: string | null;
+  athlete_name: string | null;
+  sport: string | null;
   expected_graduation: string | null;
+}
+
+/** Faktaarket som læsbar tekst — samme gengivelse skrivefasen fik. */
+function renderSheet(raw: string | null): string {
+  if (!raw) return "";
+  try {
+    return renderFactSheet(JSON.parse(raw) as FactSheet);
+  } catch {
+    return raw;
+  }
 }
 
 async function main(): Promise<void> {
   const db = createD1Client();
   const rows = await db.query<Row>(
     `SELECT ar.id, ar.country, ar.title, ar.content, ar.original_content,
-            s.fact_sheet, s.content_raw, at.class_year, at.expected_graduation
+            s.fact_sheet, s.content_raw, at.class_year, at.expected_graduation,
+            at.name AS athlete_name, at.sport
        FROM articles ar
        LEFT JOIN stories s ON s.id = ar.story_id
        LEFT JOIN athletes at ON at.id = ar.athlete_id
@@ -86,6 +105,9 @@ async function main(): Promise<void> {
       final: r.content,
       allowedNumbers: [...allowed].sort(),
       eventDate,
+      factSheetText: renderSheet(r.fact_sheet),
+      athleteName: r.athlete_name,
+      sport: r.sport,
     });
   }
 
