@@ -24,7 +24,18 @@
 import type { GenerateOpts, LLMProvider, LLMResponse } from "./types";
 import { openAICompatibleGenerate } from "./openai-compat";
 
-const DEFAULT_MODEL = "meta/llama-3.3-70b-instruct";
+/**
+ * VALGT 2026-08-31 efter at den forrige døde under os: meta/llama-3.3-70b-
+ * instruct nåede end-of-life 2026-08-26T09:00Z — dagen efter den blev sat op
+ * og testet virkende. Alle 14 kald siden svarede 410, og verifikationen faldt
+ * tavst tilbage til de samme gratis-modeller som skrev teksten.
+ *
+ * Derfor findes llm-health.ts nu. Et model-id er ikke en konstant, det er en
+ * aftale nogen andre kan opsige.
+ *
+ * Testet med response_format json_object, som verifikatoren bruger.
+ */
+const DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b";
 
 export class NvidiaProvider implements LLMProvider {
   readonly name = "nvidia";

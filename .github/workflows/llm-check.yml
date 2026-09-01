@@ -1,0 +1,43 @@
+name: LLM-udbydere (kanariefugl)
+
+# Samme idé som meta-check.yml, for samme slags fejl: et kald pr. udbyder, der
+# kun svarer på ét spørgsmål — virker den stadig?
+#
+# Hvorfor: 2026-08-31 viste et tilfældigt kig i llm_usage at NVIDIA havde 14
+# kald og 14 FEJL. Modellen var nået end-of-life fem dage før, dagen efter den
+# blev sat op og testet virkende. Samme kig afslørede at Groqs model også var
+# forsvundet, og at Cloudflare AI svarede 401.
+#
+# Ingen af delene gav et eneste synligt symptom, for udbyderkæden gør præcis
+# hvad den skal: falder videre til den næste. Fallback er rigtigt for ÉN
+# kørsel og forkert som permanent tilstand — verifikatoren var væk i fem dage,
+# og kladderne blev godkendt af de samme modeller som skrev dem.
+#
+# Et model-id er ikke en konstant. Det er en aftale, nogen andre kan opsige.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # mandag 06:00 UTC — før ugens indhold genereres
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Ping hver udbyder med et json-kald
+        run: npx tsx pipeline/checks/llm-health.ts
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
