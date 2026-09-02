@@ -14,8 +14,13 @@ assets = { directory = ".open-next/assets", binding = "ASSETS" }
 #
 #   feed.xml, ads.txt   sætter selv Cache-Control (1 time / 5 min) — de
 #                       headere har stået i koden hele tiden og virker først nu
-#   sitemap.xml,        Next-konventioner der ikke KAN sætte headere. De to
-#   robots.txt          timers standard er præcis hvad vi vil have for dem
+#   sitemap.xml,        caches IKKE. Målt 2026-09-02: Next sætter selv
+#   robots.txt          `public, max-age=0, must-revalidate` på dem, og det
+#                       forbyder cachen at gemme dem. Konventionerne kan ikke
+#                       sætte egne headere, så skal sitemappet caches, skal det
+#                       laves om til en rute (app/sitemap.xml/route.ts). Det er
+#                       ikke gjort — forespørgslen kostede 2,1 mio. rækker og
+#                       koster nu ~1.200, så cachen er blevet pynt
 #   læsersiderne        middlewaren sætter `private` (se src/middleware.ts):
 #                       kanten må ikke gemme dem, browseren må gerne
 #   /admin, /api/admin  middlewaren sætter `no-store` — heller ikke browseren

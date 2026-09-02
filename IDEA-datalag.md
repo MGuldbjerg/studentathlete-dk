@@ -179,7 +179,7 @@ ligger i lag A.
 |---|---|---|---|---|
 | **A1. Ret de fem forespørgsler + `ANALYZE`** | Driv joinen fra den lille side; sammensatte dækkende indekser; giv planlæggeren statistik | **Fjerner anslået 90-95% af alle læste rækker** | Timer | ✅ **Gør dette først** |
 | **A2. Konfigurér OpenNext-cachen** | `r2IncrementalCache` + `withRegionalCache()` + `DOQueueHandler` + `D1NextTagCache` / `DOShardedTagCache` | Gør ISR reel; `revalidate` begynder at virke | 0,5-1 dag | ✅ **Ja** |
-| **A3. Edge Cache Rules på crawler-stier** | `/sitemap.xml`, `/feed.xml`, `/robots.txt` caches i timer | Rammer årsag 1 direkte og med det samme | Timer | ✅ **Ja** |
+| **A3. ~~Edge Cache Rules på crawler-stier~~ → Workers Cache** | ⚠️ **Rettet 2026-09-02**: zonens Cache Rules kan IKKE cache et Worker-svar — Workeren kører FØR cachen. Det rigtige er **Workers Cache** (`[cache] enabled` i wrangler.toml), som svarer fra kanten uden at køre Workeren | `feed.xml` og `ads.txt` havde headerne i forvejen. `sitemap.xml`/`robots.txt` sætter selv `max-age=0` og caches derfor IKKE uden at blive lavet om til ruter | Timer | 🟡 Kræver wrangler-opgradering (4.66 kender ikke feltet) |
 | **A4. KV som cache-aside foran D1** | Læs KV først, fald tilbage til D1, skriv gennem ved ændring | Kendt mønster; andre rapporterer 87-99,7% færre læste rækker | 1-2 dage | 🟡 Kun hvis A1+A2 ikke rækker |
 | **A5. D1 read replication (Sessions API)** | Læsekopier i seks regioner, ingen ekstra pris | Løser **latens**, ikke kvote. Kræver Sessions API — ellers rammer alt stadig primæren | 0,5 dag | 🟡 Ja, men efter kvoten er løst |
 | **A6. Statisk generering** (`generateStaticParams`) | Prægenerér atlet-, artikel- og skolesider | Nul D1-læsninger på den offentlige sti | Kræver at årsag 3 løses først | ⭐ Se lag C |
@@ -255,7 +255,7 @@ kvote.**
 | Trin | Hvad | Indsats | Effekt |
 |---|---|---|---|
 | **0** | Workers Paid ($5/md) | Timer | Sitet kører igen. 5× luft i den inkluderede kvote. **Løser intet** |
-| **1** | Ret de fem forespørgsler; kør `ANALYZE`; Cache Rules på sitemap/feed | 1 dag | Anslået **-90-95% læste rækker**. Vender formentlig tilbage under free-grænsen |
+| **1** | Ret de fem forespørgsler; kør `ANALYZE`; Cache-Control på maskin-stierne | 1 dag | Anslået **-90-95% læste rækker**. Vender formentlig tilbage under free-grænsen |
 | **2** | Konfigurér OpenNext-cachen (R2 + regional + DO-kø + tag cache) | 0,5-1 dag | ISR virker; `revalidate` bliver reel |
 | **3** | `athletes.school_id` som fremmednøgle, bagudfyldt fra `university` | 2-4 dage | Dræber hele klassen af krydsprodukt-joins på tværs af ~100 kaldsteder |
 | **4** | `pageviews` + `events` → Analytics Engine; pipeline-tabeller i egen base | 1-2 dage | Fjerner den fælles fejlkilde og væksten mod 10 GB |
@@ -280,6 +280,38 @@ tages op igen, hvis noget af det her sker:
   Flere lande × flere kørsler kan ændre det, og D1 har én primær.
 - **Læsere uden for Europa bliver et reelt publikum.** Så er lag A5 ikke
   længere kosmetik.
+
+---
+
+## 7b. Udført 2026-09-02 (trin 1 og 2)
+
+| Gjort | Hvor |
+|---|---|
+| Fire af de fem forespørgsler omskrevet, så de ikke længere AFHÆNGER af at planlæggeren vælger rigtigt | `src/lib/db.ts` (×2), `pipeline/scrape/scrape-js-rosters.ts`, `pipeline/scrape/school-colors.ts` |
+| Migration 048: `ANALYZE` + to sammensatte indekser | `db/migration-048-analyze.sql` — **ikke kørt endnu** |
+| `Cache-Control` overalt: `private` til læsersider, `no-store` til admin og MCP | `src/middleware.ts`, `src/lib/mcp-http.ts` |
+| Workers Cache slået til i konfigurationen | `wrangler.toml` — **uden virkning indtil wrangler opgraderes** |
+
+Den femte forespørgsel (`quality-sweep`, 49 mio./7d) er urørt med vilje: den
+skannede `schools`, fordi `schools.name` manglede et indeks, og det gav 047.
+
+**Ækvivalensen er bevist, ikke antaget.** Alle fire omskrivninger blev kørt mod
+en fixture bygget af de tilfælde der plejer at vælte en omskrivning — alumner,
+et andet lands atleter, en skole uden atleter, en atlet hvis universitet ikke
+findes, og TO SKOLER MED SAMME NAVN (dubletnavne findes i basen). Gammel og ny
+gav identiske rækker i identisk rækkefølge i alle fire.
+
+⚠️ **Rækkebesparelsen er derimod IKKE målt.** D1 var kvotespærret hele dagen,
+så forespørgslerne kunne ikke køres mod produktion. `-90-95%` er stadig et
+estimat. Mål det med `wrangler d1 insights --sort-by reads` et døgn efter at
+migrationen er kørt og planlæggeren har statistik.
+
+⚠️ **Et symptom værd at kende igen**: mens kvoten var spærret, svarede
+`/sitemap.xml` med **57 URL'er** i stedet for tusinder — og med 200 OK. Alle
+tre slug-opslag ramte `catch { return [] }`, og et tomt svar ser ud som et
+gyldigt svar. Begge domæner leverede samtidig det SAMME sitemap, altså netop
+den dublet landefiltret skulle fjerne. Google fik det. Det er den samme
+fejlklasse som 404-erne: **en databasefejl må ikke se ud som «ingenting».**
 
 ---
 
