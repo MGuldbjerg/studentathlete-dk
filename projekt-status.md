@@ -7,6 +7,13 @@
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
 > resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
 
+> 🗄️ **Spørgsmål om databasen, kvoten eller «skal D1 ligge et andet sted»?**
+> `IDEA-datalag.md` = måling af hvor de 161 mio. daglige rækkelæsninger kommer
+> fra, vurdering af opsætningen, og hele mulighedsrummet lag for lag (læsesti ·
+> hvor basen bor · om der skal være en runtime-base · at skille arbejdsbyrderne
+> · anden platform). Læs den FØR du foreslår en migration til Turso, Neon eller
+> Postgres — konklusionen er at ingen af dem rører årsagen.
+
 ## 🏫 NJCAA åbnet — fodbold, basketball, amerikansk fodbold (2026-08-31)
 
 Junior colleges kunne ikke scrapes overhovedet. Anledningen var Sebastian
