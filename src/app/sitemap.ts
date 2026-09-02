@@ -9,6 +9,22 @@ import { routePath } from "@/lib/i18n";
 import { alphabetFor, athletesAllPath, countByLetter, getAthleteLetterUrl, letterOf } from "@/lib/athlete-letters";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
+/**
+ * Aldrig prærenderet. To grunde, og den anden er den vigtigste:
+ *
+ * 1. Ved BYGGETID returnerer `getDB()` ikke null — den giver en binding til
+ *    den TOMME lokale miniflare-base. Slug-opslagene kaster nu ved fejl
+ *    (se «heller ikke et kortere sitemap» i db.ts), og `no such table:
+ *    articles` væltede derfor byggeriet. Før sluges fejlen, og byggeriet
+ *    lavede glad et sitemap ud af en tom database.
+ *
+ * 2. Et prærenderet sitemap er FROSSET på deploy-tidspunktet. Der er ingen
+ *    incremental cache konfigureret (se wrangler.toml), så en artikel udgivet
+ *    i morgen ville aldrig nå ind i det. Sitemappet skal læse basen, hver
+ *    gang der spørges.
+ */
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = await currentBaseUrl();
   const lang = await currentLanguage();
