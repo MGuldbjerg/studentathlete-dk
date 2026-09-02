@@ -36,6 +36,19 @@ for (const fn of ["getArticleBySlug", "getAthleteBySlug", "getSchoolBySlug"]) {
   ok(/rethrowDbError/.test(body), "getAthletesByLetter: fejl kastes videre");
 }
 
+// Sitemappets tre slug-opslag. Her betyder en tom liste ikke «findes ikke» —
+// den betyder noget værre: et GYLDIGT sitemap, hvor adresserne mangler. Da
+// læsegrænsen blev håndhævet 2. september svarede /sitemap.xml 200 OK med 57
+// URL'er i stedet for 550, skiftevis, og begge domæner leverede det samme.
+// Google læser et sitemap som listen over hvad sitet har.
+for (const fn of ["getAllArticleSlugs", "getAllAthleteSlugs", "getAllSchoolSlugs"]) {
+  const start = src.indexOf(`export async function ${fn}`);
+  ok(start > -1, `${fn} findes`);
+  const body = src.slice(start, src.indexOf("\n}", start));
+  ok(!/catch\s*\{\s*return \[\];?\s*\}/.test(body), `${fn}: fejl bliver ikke til et kortere sitemap`);
+  ok(/rethrowDbError/.test(body), `${fn}: fejl kastes videre`);
+}
+
 ok(/function rethrowDbError[\s\S]*throw new Error/.test(src), "rethrowDbError kaster faktisk");
 
 console.log(`\ndb-errors: ${passed} bestået, ${failed} fejlet.`);

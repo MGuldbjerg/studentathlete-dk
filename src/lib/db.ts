@@ -733,9 +733,27 @@ export async function getAllArticleSlugs(country?: string): Promise<
       .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as { slug: string; sport: string | null; updated_at: string }[];
-  } catch { return []; }
+  } catch (err) { rethrowDbError(err, "artikel-slugs til sitemap"); }
 }
 
+/**
+ * En databasefejl er heller ikke ET KORTERE SITEMAP.
+ * =================================================
+ *
+ * De tre slug-opslag herunder sluttede i `catch { return [] }`, og et tomt
+ * svar ser ud som et gyldigt svar. Da læsegrænsen blev håndhævet 2. september
+ * svarede `/sitemap.xml` derfor **200 OK med 57 URL'er** i stedet for 550 —
+ * skiftevis, fra sekund til sekund, alt efter om D1 afviste netop den
+ * forespørgsel. Begge domæner leverede samtidig det SAMME sitemap, altså
+ * netop den dublet landefiltret var bygget til at fjerne.
+ *
+ * Et sitemap der mangler 2.400 adresser er værre end intet sitemap: Google
+ * læser det som en liste over hvad sitet HAR. Et 500 betyder «kunne ikke
+ * hentes, prøv igen», og de kendte adresser beholder deres plads.
+ *
+ * Derfor kaster de nu, ligesom slug-opslagene ovenfor. Kun et ægte tomt
+ * resultat er en tom liste — et dark launch-land har lov at have nul artikler.
+ */
 /**
  * Alle atlet-slugs til sitemappet — bÅDE aktive og alumni, for begge har en
  * profilside. `name` og `active` er med, fordi sitemappet også skal kunne
@@ -756,7 +774,7 @@ export async function getAllAthleteSlugs(country?: string): Promise<
       .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number }[];
-  } catch { return []; }
+  } catch (err) { rethrowDbError(err, "atlet-slugs til sitemap"); }
 }
 
 /**
@@ -790,5 +808,5 @@ export async function getAllSchoolSlugs(country?: string): Promise<{ slug: strin
       .bind(await siteCountry(country))
       .all();
     return (r.results ?? []) as { slug: string }[];
-  } catch { return []; }
+  } catch (err) { rethrowDbError(err, "skole-slugs til sitemap"); }
 }
