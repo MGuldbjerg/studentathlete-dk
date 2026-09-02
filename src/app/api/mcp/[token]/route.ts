@@ -10,14 +10,14 @@
  * Sæt hemmeligheden med:  wrangler secret put MCP_TOKEN
  */
 import { NextRequest } from "next/server";
-import { mcpGet, mcpPost } from "@/lib/mcp-http";
+import { mcpGet, mcpPost, noStore } from "@/lib/mcp-http";
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ token: string }> }) {
   const { token } = await ctx.params;
-  return mcpPost(req, token);
+  return noStore(await mcpPost(req, token));
 }
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ token: string }> }) {
   const { token } = await ctx.params;
-  return mcpGet(req, token);
+  return noStore(await mcpGet(req, token));
 }

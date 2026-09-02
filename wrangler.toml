@@ -5,6 +5,33 @@ compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
+# Workers Cache: Cloudflare svarer fra cachen UDEN at køre Workeren, og altså
+# uden at røre D1. Det er den eneste mekanisme der kan det — zonens Cache
+# Rules kan IKKE cache et Worker-svar, for Workeren kører FØR cachen.
+#
+# ⚠️ Den cacher ethvert 200-svar uden `Cache-Control` i TO TIMER. Derfor er
+# omfanget snævert med vilje:
+#
+#   feed.xml, ads.txt   sætter selv Cache-Control (1 time / 5 min) — de
+#                       headere har stået i koden hele tiden og virker først nu
+#   sitemap.xml,        Next-konventioner der ikke KAN sætte headere. De to
+#   robots.txt          timers standard er præcis hvad vi vil have for dem
+#   læsersiderne        middlewaren sætter `private` (se src/middleware.ts):
+#                       kanten må ikke gemme dem, browseren må gerne
+#   /admin, /api/admin  middlewaren sætter `no-store` — heller ikke browseren
+#   /api/mcp*           sætter selv `no-store` — middlewaren rammer dem ikke
+#
+# ⚠️ KRÆVER EN NYERE WRANGLER. Projektet kører 4.66, som ikke kender feltet:
+# den advarer «Unexpected fields found in top-level field: cache» og DROPPER
+# det i tavshed ved deploy. Blokken er altså uden virkning, indtil wrangler er
+# opgraderet (4.128 var nyeste 2026-09-02). Headerne nedenfor er rigtige uanset
+# hvad — de venter bare på cachen.
+#
+# Slår man dette fra igen, holder headerne bare op med at have effekt; intet
+# andet i koden afhænger af det.
+[cache]
+enabled = true
+
 # UK bruger `custom_domain` frem for et route-mønster: så opretter Cloudflare
 # selv den proxied DNS-record + certifikatet. Tokenet har Workers-adgang på
 # kontoniveau, men INGEN DNS-rettighed på .co.uk-zonen — med et rent

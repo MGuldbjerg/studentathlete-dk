@@ -7,12 +7,12 @@
  * i stedet (samme server, samme værktøjer).
  */
 import { NextRequest } from "next/server";
-import { mcpGet, mcpPost } from "@/lib/mcp-http";
+import { mcpGet, mcpPost, noStore } from "@/lib/mcp-http";
 
 export async function POST(req: NextRequest) {
-  return mcpPost(req);
+  return noStore(await mcpPost(req));
 }
 
 export async function GET(req: NextRequest) {
-  return mcpGet(req);
+  return noStore(await mcpGet(req));
 }

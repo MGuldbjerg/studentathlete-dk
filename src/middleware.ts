@@ -57,6 +57,37 @@ function localizedRoute(req: NextRequest, lang: string): NextResponse | null {
   return null;
 }
 
+/**
+ * Spærren mod Workers Cache' TO TIMERS standard (se wrangler.toml). Uden en
+ * `Cache-Control`-header cacher den ethvert 200-svar i to timer — også en
+ * admin-side og en artikel, der lige er rettet. `pages` og `site_content` har
+ * ingen kladdetilstand, så en rettelse ville gå live og derefter kunne
+ * forsvinde igen bag et to timer gammelt svar.
+ *
+ * To forskellige svar, fordi de to slags sider skal beskyttes mod hver sit:
+ *
+ *   `private`   læsersiderne. Forbyder DELTE caches — Cloudflares kant — at
+ *               gemme svaret, men lader læserens egen browser beholde det.
+ *               `no-store` her ville også tage browserens kopi, så et klik på
+ *               «tilbage» hentede siden forfra. Det er en forringelse for
+ *               læseren uden nogen gevinst; kanten er den vi skal holde ude.
+ *
+ *   `no-store`  `/admin` og `/api/admin`. Her ER browserens kopi et problem:
+ *               den kan overleve et log-ud og vise en anden brugers arbejde
+ *               fra historikken.
+ *
+ * Omdirigeringer røres ikke: en 301 fra www til apex er den samme i morgen,
+ * og de to timers standard er fin for dem.
+ */
+function guardCache(req: NextRequest, res: NextResponse): NextResponse {
+  if (res.status >= 300 && res.status < 400) return res;
+  res.headers.set(
+    "Cache-Control",
+    isAdminPath(req.nextUrl.pathname) ? "no-store" : "private",
+  );
+  return res;
+}
+
 function isAdminPath(pathname: string): boolean {
   return pathname === "/admin" || pathname.startsWith("/admin/") ||
     pathname === "/api/admin" || pathname.startsWith("/api/admin/");
@@ -197,7 +228,7 @@ export async function middleware(req: NextRequest) {
     if (siteFromHost(host).darkLaunch) {
       localized.headers.set("X-Robots-Tag", "noindex, nofollow");
     }
-    return localized;
+    return guardCache(req, localized);
   }
 
   // Dark launch (se `darkLaunch` i landeprofilen): headeren gælder ALT hvad
@@ -207,7 +238,7 @@ export async function middleware(req: NextRequest) {
   if (siteFromHost(host).darkLaunch) {
     res.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
-  return res;
+  return guardCache(req, res);
 }
 
 // Kør ikke på API-ruter (track-beacon/OG bruger allerede https samme-origin),

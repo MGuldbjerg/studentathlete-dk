@@ -105,3 +105,15 @@ export async function mcpGet(req: NextRequest, pathToken?: string): Promise<Next
     { status: 405, headers: { Allow: "POST" } },
   );
 }
+
+/**
+ * Workers Cache cacher ethvert GET-svar uden `Cache-Control` i to timer, og
+ * `/api/`-stierne rammes ikke af middlewarens standard. Et MCP-svar må ALDRIG
+ * caches: stien kan bære tokenet (`/api/mcp/<token>`), og svaret hører til det
+ * enkelte kald. Begge ruter sender deres svar gennem denne.
+ */
+export function noStore(res: Response): Response {
+  const out = new Response(res.body, res);
+  out.headers.set("Cache-Control", "no-store");
+  return out;
+}
