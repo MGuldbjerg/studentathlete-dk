@@ -255,7 +255,7 @@ kvote.**
 | Trin | Hvad | Indsats | Effekt |
 |---|---|---|---|
 | **0** | Workers Paid ($5/md) | Timer | Sitet kører igen. 5× luft i den inkluderede kvote. **Løser intet** |
-| **1** | Ret de fem forespørgsler; kør `ANALYZE`; Cache-Control på maskin-stierne | 1 dag | Anslået **-90-95% læste rækker**. Vender formentlig tilbage under free-grænsen |
+| **1** | **`ANALYZE` først** — den alene gav 823× på den tungeste. Derefter forespørgslerne og Cache-Control på maskin-stierne | 1 dag | **Målt**: de fire tungeste faldt fra 1,8 mio.–59 mio. til 2.000–75.000 læste rækker |
 | **2** | Konfigurér OpenNext-cachen (R2 + regional + DO-kø + tag cache) | 0,5-1 dag | ISR virker; `revalidate` bliver reel |
 | **3** | `athletes.school_id` som fremmednøgle, bagudfyldt fra `university` | 2-4 dage | Dræber hele klassen af krydsprodukt-joins på tværs af ~100 kaldsteder |
 | **4** | `pageviews` + `events` → Analytics Engine; pipeline-tabeller i egen base | 1-2 dage | Fjerner den fælles fejlkilde og væksten mod 10 GB |
@@ -301,10 +301,54 @@ et andet lands atleter, en skole uden atleter, en atlet hvis universitet ikke
 findes, og TO SKOLER MED SAMME NAVN (dubletnavne findes i basen). Gammel og ny
 gav identiske rækker i identisk rækkefølge i alle fire.
 
-⚠️ **Rækkebesparelsen er derimod IKKE målt.** D1 var kvotespærret hele dagen,
-så forespørgslerne kunne ikke køres mod produktion. `-90-95%` er stadig et
-estimat. Mål det med `wrangler d1 insights --sort-by reads` et døgn efter at
-migrationen er kørt og planlæggeren har statistik.
+### Målt efter migrationen — og estimatet holdt ikke
+
+Migration 048 blev kørt 2026-09-02 kl. ~13 (1.388.442 læste rækker, 5.387
+skrevne). Derefter er hver forespørgsel målt direkte mod produktion via
+`meta.rows_read`:
+
+| Forespørgsel | Før, uden statistik | GAMMEL form efter `ANALYZE` | NY form |
+|---|---|---|---|
+| `getAllSchoolSlugs` | 1.794.155 | **2.180** | 2.010 |
+| `getSchoolsWithAthletes` | 332.117 | **2.180** | 3.941 |
+| `school-colors` | 4.451.314 | ikke kørt | 4.619 |
+| `scrape-js-rosters` | 58.951.220 | ikke kørt | **74.533** |
+
+**`ANALYZE` var rettelsen — ikke omskrivningerne.** Det er den ubehagelige,
+men rigtige konklusion. Den GAMLE `getAllSchoolSlugs` læser nu 2.180 rækker
+mod 1.794.155: **823 gange bedre af statistik alene.** 047 lagde indekserne,
+men uden `sqlite_stat1` valgte planlæggeren dem ikke, og det var hele
+forskellen. Havde `ANALYZE` været kørt 2026-09-02 kl. 08:28 sammen med 047,
+var kvoten formentlig aldrig blevet ramt igen.
+
+To ærlige konsekvenser:
+
+1. **`getSchoolsWithAthletes` blev en smule VÆRRE af omskrivningen** — 3.941
+   mod 2.180 rækker. Den afledte tabel grupperer alle landets aktive atleter
+   FØR joinet, hvor planlæggeren med statistik klarer originalen billigere.
+   Begge tal er trivielle, og formen er bevaret som forsikring (se nedenfor),
+   men det skal ikke stå som en forbedring.
+
+2. **`scrape-js-rosters` er den omskrivning der bar sig selv**: 74.533 mod
+   58.951.220 rækker, **790 gange bedre**. Den korrelerede `EXISTS` stod to
+   gange og blev evalueret to gange pr. række — det er STRUKTUR, og ingen
+   statistik retter struktur. Den ene rettelse var værd hele øvelsen.
+
+`school-colors`' gamle form er ikke målt: den ville koste 4,45 mio. læste
+rækker, og fordelingen mellem `ANALYZE` og omskrivningen er derfor uafklaret
+for netop den.
+
+**Hvorfor omskrivningerne bliver stående alligevel.** Alle fire tal ligger nu
+mellem 2.000 og 75.000 rækker, altså i støjen. Forskellen er hvad de AFHÆNGER
+af: originalerne er kun billige, så længe statistikken er frisk, og
+statistikken var netop det enkelte punkt der svigtede. Et nyt land, der fylder
+`athletes` op, kan sende dem tilbage til 1,8 mio. De omskrevne former er
+billige uanset hvad planlæggeren tror. Det er billig forsikring — men det er
+forsikring, ikke gevinsten.
+
+⚠️ **`ANALYZE` skal køres igen** efter store dataændringer. Det er nu den
+vigtigste tilbagevendende opgave i hele datalaget, og der findes ingen
+automatik for den. Overvej at lægge den i ugekørslen.
 
 ⚠️ **Et symptom værd at kende igen**: mens kvoten var spærret, svarede
 `/sitemap.xml` med **57 URL'er** i stedet for tusinder — og med 200 OK. Alle
