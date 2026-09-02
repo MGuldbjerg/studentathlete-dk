@@ -111,10 +111,13 @@ async function main(): Promise<void> {
 
   const where = force ? "" : "AND s.primary_color IS NULL";
   const schools = await db.query<SchoolRow>(
-    `SELECT DISTINCT s.id, s.name, s.website, s.primary_color
+    // Joinet var kun en EKSISTENS-prøve, men gav en række pr. atlet, som
+    // DISTINCT så foldede sammen igen — 4,45 mio. læste rækker for at levere
+    // en håndfuld skoler. `IN` prøver det samme uden fan-out.
+    `SELECT s.id, s.name, s.website, s.primary_color
      FROM schools s
-     JOIN athletes a ON a.university = s.name AND a.active = 1
      WHERE s.website IS NOT NULL ${where}
+       AND s.name IN (SELECT university FROM athletes WHERE active = 1)
      ORDER BY s.name LIMIT ?`,
     [limit],
   );

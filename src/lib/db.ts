@@ -669,13 +669,18 @@ export async function getSchoolsWithAthletes(country?: string): Promise<
   try {
     const r = await db
       .prepare(
-        `SELECT s.*, COUNT(a.id) AS athlete_count
-         FROM schools s
-         JOIN athletes a ON a.university = s.name AND a.active = 1
-           AND a.home_country = ?
-         GROUP BY s.id
-         HAVING athlete_count > 0
-         ORDER BY s.division ASC, athlete_count DESC, s.name ASC`,
+        // Tællingen sker FØRST, på den lille side. Grupperingen læser kun
+        // landets aktive atleter; derefter er der præcis ét skoleopslag pr.
+        // navn. `HAVING > 0` er unødvendig nu: et indre join giver aldrig 0.
+        `SELECT s.*, c.athlete_count
+         FROM (
+           SELECT university, COUNT(*) AS athlete_count
+           FROM athletes
+           WHERE home_country = ? AND active = 1
+           GROUP BY university
+         ) c
+         JOIN schools s ON s.name = c.university
+         ORDER BY s.division ASC, c.athlete_count DESC, s.name ASC`,
       )
       .bind(await siteCountry(country))
       .all();
@@ -769,10 +774,18 @@ export async function getAllSchoolSlugs(country?: string): Promise<{ slug: strin
   try {
     const r = await db
       .prepare(
-        `SELECT DISTINCT s.slug FROM schools s
-         JOIN athletes a ON a.university = s.name AND a.active = 1
-           AND a.home_country = ?
-         ORDER BY s.name`,
+        // Drevet fra ATLETERNE, ikke fra skolerne. Joinet den gamle vej lod
+        // planlæggeren vælge `active = 1` som indgang — et prædikat der matcher
+        // hver eneste atlet — og derefter skanne alle skoler pr. atlet.
+        // Underforespørgslen læser nu kun landets aktive atleter (dækket af
+        // idx_athletes_country_active_uni), og `name IN (...)` slår hver skole
+        // op i idx_schools_name. Samme resultat, uden krydsproduktet.
+        `SELECT slug FROM schools
+         WHERE name IN (
+           SELECT university FROM athletes
+           WHERE home_country = ? AND active = 1
+         )
+         ORDER BY name`,
       )
       .bind(await siteCountry(country))
       .all();

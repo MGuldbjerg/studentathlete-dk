@@ -74,21 +74,27 @@ async function main(): Promise<void> {
   // atleter UDEN bio_url — så vi gen-renderer netop de sider, der kan udfylde
   // profilbilleder. Prioritér (b) først; checked_at ASC roterer gennem dem over
   // flere daglige kørsler, så vi spiser den gratis browser-kvote i bidder.
-  const missingBioAtSchool = `EXISTS (
-       SELECT 1 FROM athletes a
-       WHERE a.university = s.name AND a.active = 1
-         AND (a.bio_url IS NULL OR a.bio_url = '')
-     )`;
+  // Samme prioritering, men uden den KORRELEREDE underforespørgsel. Den stod
+  // to gange — i WHERE og i ORDER BY — og blev derfor evalueret to gange for
+  // HVER roster_checks-række, hver gang med en gennemgang af athletes:
+  // 58,9 mio. læste rækker og 11,7 sekunder pr. kørsel. Den afledte tabel
+  // gennemgår athletes ét sted, én gang, og joines ind som et tal.
   const result = await db.query<JsRosterCheck>(
     `SELECT
        rc.id as check_id, rc.school_id, rc.sport, rc.roster_url,
        s.name as school_name, s.state as school_state, s.division
      FROM roster_checks rc
      JOIN schools s ON rc.school_id = s.id
+     LEFT JOIN (
+       SELECT university, COUNT(*) AS missing_bio
+       FROM athletes
+       WHERE active = 1 AND (bio_url IS NULL OR bio_url = '')
+       GROUP BY university
+     ) mb ON mb.university = s.name
      WHERE rc.roster_url IS NOT NULL
-       AND (rc.status = 'js_required' OR ${missingBioAtSchool})
+       AND (rc.status = 'js_required' OR mb.missing_bio > 0)
      ORDER BY
-       CASE WHEN ${missingBioAtSchool} THEN 0 ELSE 1 END,
+       CASE WHEN mb.missing_bio > 0 THEN 0 ELSE 1 END,
        rc.checked_at ASC NULLS FIRST
      LIMIT ?`,
     [limit],
