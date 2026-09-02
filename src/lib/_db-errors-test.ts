@@ -27,6 +27,15 @@ for (const fn of ["getArticleBySlug", "getAthleteBySlug", "getSchoolBySlug"]) {
   ok(/rethrowDbError/.test(body), `${fn}: fejl kastes videre`);
 }
 
+// Listeopslag der gater notFound() tæller med: en tom liste betyder
+// «findes ikke» for /atleter/<bogstav>, så en fejl må ikke give tom liste.
+{
+  const start = src.indexOf("export async function getAthletesByLetter");
+  const body = src.slice(start, src.indexOf("\n}", start));
+  ok(!/catch\s*\{\s*return \[\];?\s*\}/.test(body), "getAthletesByLetter: fejl bliver ikke til tom liste");
+  ok(/rethrowDbError/.test(body), "getAthletesByLetter: fejl kastes videre");
+}
+
 ok(/function rethrowDbError[\s\S]*throw new Error/.test(src), "rethrowDbError kaster faktisk");
 
 console.log(`\ndb-errors: ${passed} bestået, ${failed} fejlet.`);

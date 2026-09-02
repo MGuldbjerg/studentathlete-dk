@@ -533,7 +533,12 @@ export async function getAthletesByLetter(
       .bind(await siteCountry(country), upper, lower)
       .all();
     return (r.results ?? []) as Athlete[];
-  } catch { return []; }
+  } catch (err) {
+    // Tom liste = «bogstavet har ingen atleter» → siden kalder notFound().
+    // En D1-fejl må derfor ikke returnere tom liste: så bliver et nedbrud til
+    // 404 på /atleter/s, præcis som det skete for atletsiderne 2. september.
+    rethrowDbError(err, "atleter pr. bogstav");
+  }
 }
 
 /**
