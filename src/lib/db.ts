@@ -110,6 +110,27 @@ export async function getFeaturedArticles(limit = 5, country?: string): Promise<
  * Artiklen med den slug — PÅ DETTE SITE. Et andet lands artikel giver `null`
  * (altså 404), i stedet for at ligge på begge domæner som en dublet.
  */
+/**
+ * En databasefejl er IKKE «findes ikke».
+ * =====================================
+ *
+ * Opslag pr. slug returnerede `null` både når atleten ikke fandtes, og når D1
+ * svarede med en fejl — og siden kalder `notFound()` på `null`. Resultatet så
+ * man 2. september: D1's daglige læsegrænse blev ramt, og
+ * `/atleter/sebastian-tirsgaard-larsen` begyndte at svare **404** til alle,
+ * Google inklusive. 404 betyder «denne side findes ikke, glem den»; 500
+ * betyder «prøv igen senere». Vi sagde det første om hver eneste atlet på
+ * sitet, mens vi netop kæmpede for at få .co.uk indekseret.
+ *
+ * Derfor: en fejl kastes videre. Next viser fejlsiden (5xx), crawleren kommer
+ * igen, og siden beholder sin plads i indekset. Kun et TOMT svar er «findes
+ * ikke».
+ */
+function rethrowDbError(err: unknown, what: string): never {
+  const msg = err instanceof Error ? err.message : String(err);
+  throw new Error(`D1-opslag fejlede (${what}): ${msg}`);
+}
+
 export async function getArticleBySlug(slug: string, country?: string): Promise<Article | null> {
   const db = await getDB();
   if (!db) {
@@ -126,7 +147,7 @@ export async function getArticleBySlug(slug: string, country?: string): Promise<
       .bind(slug, await siteCountry(country))
       .first();
     return (r as Article) ?? null;
-  } catch { return null; }
+  } catch (err) { rethrowDbError(err, "artikel"); }
 }
 
 export async function getArticles({
@@ -415,7 +436,7 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
       .bind(slug, await siteCountry(country))
       .first();
     return (r as Athlete) ?? null;
-  } catch { return null; }
+  } catch (err) { rethrowDbError(err, "atlet"); }
 }
 
 /**
@@ -631,7 +652,7 @@ export async function getSchoolBySlug(slug: string): Promise<School | null> {
       .bind(slug)
       .first();
     return (r as School) ?? null;
-  } catch { return null; }
+  } catch (err) { rethrowDbError(err, "skole"); }
 }
 
 /** Skoler med mindst én aktiv atlet FRA DETTE SITES LAND, med antal — /skoler-hubben. */

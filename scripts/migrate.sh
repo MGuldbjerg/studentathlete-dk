@@ -55,6 +55,7 @@ MIGRATIONS=(
   db/migration-044-review-snapshot.sql
   db/migration-045-previous-school.sql
   db/migration-046-photo-checked.sql
+  db/migration-047-join-indexes.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do
