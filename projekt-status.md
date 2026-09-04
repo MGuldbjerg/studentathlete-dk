@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-04 (D1-kvoten lukket; CPU-grænsen fundet)
+**Sidst opdateret**: 2026-09-04 (kladdekøen tømt; D1-kvoten lukket; CPU-grænsen fundet)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -13,6 +13,42 @@
 > hvor basen bor · om der skal være en runtime-base · at skille arbejdsbyrderne
 > · anden platform). Læs den FØR du foreslår en migration til Turso, Neon eller
 > Postgres — konklusionen er at ingen af dem rører årsagen.
+
+## 📝 Draft queue cleared — 21 corrected and published, 5 rejected (2026-09-04)
+
+Every one of the 26 drafts in the queue was read against its own source
+(`pipeline/generate/draft-pack.ts`), corrected where the source could carry the
+claim, and either published or rejected. **Not one draft was publishable as
+written.** The queue is now empty.
+
+Rejected (text kept in `review_log.content_snapshot`, migration 044):
+**#203** Marquette's own scorer given to Wisconsin, invented stadium, "37 saves"
+from a corrupt fact sheet · **#213** invented venue and invented debut ·
+**#218** the 3-0 win was over Chicago State — Bellarmine is the *next* opponent
+in a preview article · **#219** generation failed, title is `{` and the body is
+a truncated JSON fragment · **#221** invented secondary school and graduation
+year for a named athlete, two opposition players presented as team-mates.
+
+The errors are not random — six patterns account for nearly all of them, and
+each is cheap to catch mechanically:
+
+| Pattern | Count | Mechanical test |
+|---|---|---|
+| A mid-season match called a season/campaign opener | 11 of 26 | The record `(2-2-0)` is in the source next to the score |
+| Team stats read off the wrong column (shots, shots on goal) | 5 | Compare against `match.teamStats` where the team order is known |
+| "Dominated possession" with no possession figure in the source | 7 | The word `possession` must appear in the source |
+| Home/away inverted — the subject's team assumed to be at home | 3 | Dateline city vs. the venue |
+| A team-mate's goal, honour or record given to the subject | 6 | Every named person must appear in the source with the same role |
+| Structural failure (raw JSON, unfilled `[placeholder]`) | 2 | Reject on `{`-leading titles and `[...]` in the body |
+
+Two of these already have a home: the fact sheet knows the team order in
+`match.teamStats`, and `check-drafts.ts` already flags names that are absent
+from the source. The season-opener check is the single highest-value addition —
+it is the most common error and the record string is always right there.
+
+Applied with `pipeline/fix/apply-draft-decisions.ts` (mirrors `src/lib/admin.ts`:
+same `review_log` rows, same slug regeneration, same child-before-parent delete).
+21 `edited` and 5 `rejected` rows were written to `review_log`.
 
 ## 🚦 Anden kvote-notifikation lukket (2026-09-04)
 
