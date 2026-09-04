@@ -101,25 +101,56 @@ async function parallelMap<T, R>(
   return results;
 }
 
+/**
+ * Opslags-sættene hentes for DE SKOLER kørslen faktisk rører — ikke som hele
+ * tabeller. Med `--limit-per-div` er det en brøkdel af basen, og begge tabeller
+ * har indeks på `school_id`. Samme rettelse som i catalogue-international.ts,
+ * hvor de to fulde scanninger stod for 60 % af D1-frikvoten (2026-09-03).
+ *
+ * D1 tillader højst 100 bundne variabler pr. forespørgsel — derfor chunkes id'erne.
+ */
+const ID_CHUNK = 90;
+
+function chunkIds(ids: number[], size: number): number[][] {
+  const out: number[][] = [];
+  for (let i = 0; i < ids.length; i += size) out.push(ids.slice(i, i + size));
+  return out;
+}
+
 /** Hent kendte fungerende roster-URLs fra roster_checks */
-async function getKnownUrls(db: D1Client): Promise<Map<string, string>> {
-  const result = await db.query<KnownUrl>(
-    `SELECT school_id, sport, roster_url FROM roster_checks
-     WHERE roster_url IS NOT NULL AND status IN ('success', 'empty')`,
-  );
+async function getKnownUrls(db: D1Client, schoolIds: number[]): Promise<Map<string, string>> {
   const map = new Map<string, string>();
-  for (const row of result.results) {
-    map.set(`${row.school_id}:${row.sport}`, row.roster_url);
+  for (const ids of chunkIds(schoolIds, ID_CHUNK)) {
+    const result = await db.query<KnownUrl>(
+      `SELECT school_id, sport, roster_url FROM roster_checks
+     WHERE school_id IN (${ids.map(() => "?").join(",")})
+       AND roster_url IS NOT NULL AND status IN ('success', 'empty')`,
+      ids,
+    );
+    for (const row of result.results) {
+      map.set(`${row.school_id}:${row.sport}`, row.roster_url);
+    }
   }
   return map;
 }
 
-/** Hent kendte fejl-URLs fra url_probes */
-async function getFailedUrls(db: D1Client): Promise<Set<string>> {
-  const result = await db.query<{ url: string }>(
-    "SELECT DISTINCT url FROM url_probes WHERE result != 'ok'",
-  );
-  return new Set(result.results.map((r) => r.url));
+/**
+ * Kendte fejl-URLs for NETOP disse skoler. Kandidat-URLs bygges ud fra skolens
+ * eget `website`, så en fejl logget under en anden skole kan alligevel ikke
+ * matche — undtagen hvis to skolerækker deler website, og da koster det kun et
+ * gen-forsøg, ikke et forkert resultat.
+ */
+async function getFailedUrls(db: D1Client, schoolIds: number[]): Promise<Set<string>> {
+  const set = new Set<string>();
+  for (const ids of chunkIds(schoolIds, ID_CHUNK)) {
+    const result = await db.query<{ url: string }>(
+      `SELECT DISTINCT url FROM url_probes
+     WHERE school_id IN (${ids.map(() => "?").join(",")}) AND result != 'ok'`,
+      ids,
+    );
+    for (const r of result.results) set.add(r.url);
+  }
+  return set;
 }
 
 function parseArgs(): { limitPerDiv: number; concurrency: number } {
@@ -186,8 +217,9 @@ async function main(): Promise<void> {
 
   // Hent cache fra DB
   console.log("\nHenter kendte URLs fra database...");
-  const knownUrls = await getKnownUrls(db);
-  const failedUrls = await getFailedUrls(db);
+  const schoolIds = divisions.flatMap((div) => schoolsByDiv[div].map((s) => s.id));
+  const knownUrls = await getKnownUrls(db, schoolIds);
+  const failedUrls = await getFailedUrls(db, schoolIds);
   console.log(`  ${knownUrls.size} kendte roster-URLs, ${failedUrls.size} kendte fejl-URLs`);
 
   // Byg job-liste: skole × sport → URL

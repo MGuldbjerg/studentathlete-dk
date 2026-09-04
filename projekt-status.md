@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-08-31 (NJCAA åbnet; britisk Bluesky-kanal + e-mail)
+**Sidst opdateret**: 2026-09-04 (anden D1-kvotenotifikation lukket)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -13,6 +13,34 @@
 > hvor basen bor · om der skal være en runtime-base · at skille arbejdsbyrderne
 > · anden platform). Læs den FØR du foreslår en migration til Turso, Neon eller
 > Postgres — konklusionen er at ingen af dem rører årsagen.
+
+## 🚦 Anden kvote-notifikation lukket (2026-09-04)
+
+02-09-rettelserne tog forbruget fra **179 mio.** til **5,12 mio.** læste rækker
+i døgnet — men free-grænsen er 5,00 mio., så 03-09 tippede 2,4 % over og
+udløste endnu en notifikation. **Det er D1-grænsen, ikke Workers-grænsen**:
+Workeren tog 3.000-9.100 requests/døgn mod free-planens 100.000.
+
+**3,04 af de 5,12 mio. kom fra ét job.** `catalogue-daily.yml` kører scriptet
+~52 gange i træk (30 skoler ad gangen), og hver kørsel hentede HELE `url_probes`
+og HELE `roster_checks` for at bygge sine opslags-sæt. Slicen bruger 30 skolers
+rækker og læste ~1.700 skolers. Forespørgslerne var hverken langsomme eller
+forkerte — det var `numberOfTimesRun` der var tallet.
+
+Begge tabeller har indeks på `school_id`, så opslagene er nu scopet til slicens
+skoler (chunket i 90 — D1 tillader 100 bundne variabler). **Målt mod produktion
+på et rigtigt slice: 59.844 → 1.905 læste rækker, 31×.** Ækvivalensen er målt:
+`roster_checks` giver identiske rækker, `url_probes` en ægte delmængde, og de
+URL'er der falder væk kan pr. konstruktion ikke matche (kandidater bygges af
+skolens eget `website`).
+
+Desuden er **`ANALYZE` blevet automatisk** — nyt `analyze`-job i
+`weekly-scrape.yml`, kun søndag, fordi kaldet selv koster 1,38 mio. læste
+rækker. Statistikken var hele forskellen 02-09 (823× på den tungeste
+forespørgsel), og indtil nu fandtes der ingen automatik for den.
+
+Forventet: **~2,1 mio. rækker/døgn = 42 % af kvoten.** Bekræftes på 05-09-tallet.
+Fuld analyse i `IDEA-datalag.md` §7c.
 
 ## 🏫 NJCAA åbnet — fodbold, basketball, amerikansk fodbold (2026-08-31)
 

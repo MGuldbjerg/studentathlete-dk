@@ -346,9 +346,10 @@ statistikken var netop det enkelte punkt der svigtede. Et nyt land, der fylder
 billige uanset hvad planlæggeren tror. Det er billig forsikring — men det er
 forsikring, ikke gevinsten.
 
-⚠️ **`ANALYZE` skal køres igen** efter store dataændringer. Det er nu den
-vigtigste tilbagevendende opgave i hele datalaget, og der findes ingen
-automatik for den. Overvej at lægge den i ugekørslen.
+⚠️ **`ANALYZE` skal køres igen** efter store dataændringer. Det er den
+vigtigste tilbagevendende opgave i hele datalaget — og siden 2026-09-04 er den
+automatiseret: jobbet `analyze` i `weekly-scrape.yml` kører den efter søndagens
+scrape (se §7c).
 
 ⚠️ **Et symptom værd at kende igen**: mens kvoten var spærret, svarede
 `/sitemap.xml` med **57 URL'er** i stedet for tusinder — og med 200 OK. Alle
@@ -356,6 +357,92 @@ tre slug-opslag ramte `catch { return [] }`, og et tomt svar ser ud som et
 gyldigt svar. Begge domæner leverede samtidig det SAMME sitemap, altså netop
 den dublet landefiltret skulle fjerne. Google fik det. Det er den samme
 fejlklasse som 404-erne: **en databasefejl må ikke se ud som «ingenting».**
+
+---
+
+## 7c. Anden kvote-notifikation, 2026-09-03 — og hvem der brugte de sidste rækker
+
+Rettelserne 2026-09-02 virkede, men landede lige på kanten:
+
+| Dato | Læste rækker/døgn |
+|---|---|
+| 28-08 → 01-09 | 149-274 **mio.** |
+| 02-09 (rettedagen) | 28,9 mio. |
+| **03-09** | **5.122.094** — 2,4 % over free-grænsen på 5 mio. ⇒ notifikation |
+| 04-09 kl. 08:42 | 1,0 mio. |
+
+**Det er D1-grænsen, ikke Workers-grænsen.** Kontrolleret via
+`workersInvocationsAdaptive`: Workeren tog 3.000-9.100 requests/døgn mod free-planens
+100.000. Requests er ikke i nærheden; det er rækkelæsningerne der tæller.
+
+### Årsagen: en tabel-scanning ganget med antallet af slices
+
+`d1 insights` for 03-09 pegede på to forespørgsler, som tilsammen stod for
+**3,04 mio. af de 5,12 mio.** — begge fra `catalogue-daily.yml`:
+
+| Forespørgsel | Rækker pr. kørsel | Kørsler | I alt |
+|---|---|---|---|
+| `SELECT DISTINCT url FROM url_probes WHERE result != 'ok'` | 44.554 | 48 | 2,14 mio. |
+| `SELECT … FROM roster_checks WHERE status IN ('success','empty')` | 15.014 | 60 | 0,90 mio. |
+
+Ingen af dem er langsomme eller forkerte. Fejlen er, **hvor tit de kører**:
+`scripts/run-catalogue.sh` kalder scriptet ~52 gange i træk (30 skoler ad
+gangen, fordi den lange enkelt-proces-kørsel exit'er 0 midt i et fetch), og
+hver eneste kørsel hentede HELE `url_probes` og HELE `roster_checks` for at
+bygge sine to opslags-sæt. Slicen bruger 30 skolers rækker og læser ~1.700
+skolers.
+
+> Mønsteret er værd at kende igen: **en opstartsomkostning, der er triviel i én
+> kørsel, er en kvote, når en runner kalder scriptet 52 gange.** Den slags ses
+> ikke i forespørgslen — kun i `numberOfTimesRun`.
+
+### Rettelsen: hent opslags-sættene for slicens skoler
+
+Begge tabeller har allerede indeks på `school_id` (`idx_url_probes_school`,
+`idx_rc_school`), så `WHERE school_id IN (…)` er nærmest gratis. Id'erne chunkes
+i 90 ad gangen — D1 tillader højst 100 bundne variabler pr. forespørgsel.
+
+**Målt mod produktion på et rigtigt 30-skoles-slice (offset 0):**
+
+| Forespørgsel | Før | Efter | Faktor |
+|---|---|---|---|
+| `roster_checks` | 15.143 rækker | **725** | 21× |
+| `url_probes` | 44.701 rækker | **1.180** | 38× |
+| **Pr. slice i alt** | **59.844** | **1.905** | **31×** |
+
+**Ækvivalensen er målt, ikke antaget**: de scopede `roster_checks`-rækker er
+identiske med den fulde forespørgsels rækker filtreret til slicens skoler, og
+det scopede `url_probes`-sæt er en ægte delmængde af det fulde. De URL'er der
+falder væk kan pr. konstruktion ikke matche: kandidat-URLs bygges ud fra
+skolens eget `website`. Eneste kant er to skolerækker med samme website — og
+da koster det ét gen-forsøg, ikke et forkert resultat.
+
+Samme rettelse i `report/full-international-analysis.ts`, som deler koden.
+
+**Forventet effekt: ~3,0 mio. rækker/døgn væk ⇒ ~2,1 mio./døgn = 42 % af
+free-kvoten.** Det skal bekræftes på tallet for 05-09, ikke antages.
+
+### ANALYZE er nu automatisk
+
+`ANALYZE` koster selv **1.384.691 læste rækker** (målt 04-09, 712 ms), altså
+28 % af døgnkvoten. Derfor **kun søndag**, i det nye `analyze`-job i
+`weekly-scrape.yml`, umiddelbart efter scrapet der ændrer basen mest. Jobbet er
+`if`-gated på søndags-cron'en, fordi workflow'et midlertidigt også har en natlig
+22:00-kørsel under UK-opstarten — daglig ANALYZE ville spise mere kvote end
+rettelsen ovenfor sparer.
+
+### Hvad der stadig kan hentes, hvis det bliver nødvendigt
+
+Efter rettelsen er de tunge poster (målt 03-09):
+
+| Forespørgsel | I alt/døgn | Note |
+|---|---|---|
+| JS-scrape-udvælgeren | 448.000 | 74.666 × 6 kørsler. Allerede omskrevet fra 59 mio. — resten er strukturel |
+| Bogstav-indekset (`substr(name,1,1)`) | 437.000 | 2.482 × 176. Crawlere på `/atleter/[bogstav]`. Forsvinder med lag A2/A6, ikke med SQL |
+| `site_content` pr. request | 338.000 | 20 rækker × 16.581. Billig pr. kald; det er ANTALLET der er tallet |
+
+Ingen af dem haster ved 42 % forbrug. Skal der mere til, er det stadig lag A2
+(OpenNext-cachen) der er næste rigtige træk — ikke flere SQL-omskrivninger.
 
 ---
 
