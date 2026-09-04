@@ -1,0 +1,76 @@
+name: Platform limits
+
+# Daily 05:45 UTC. The check judges COMPLETE days only, so the hour just has to
+# be free of the other crons (03:00 js-scrape, 04:00 Sun scrape, 06:00/06:30/
+# 07:00/07:30 morning cluster, 21:00 catalogue).
+#
+# Why this exists: both of the platform failures we have hit were invisible from
+# inside the app. D1 ran 32x over its row quota for months, and the Worker has
+# been killing 4-24 % of all requests on the CPU limit since 17 August 2026 —
+# neither shows up in our logs, because Cloudflare stops the invocation before
+# our code runs. The numbers exist only in Cloudflare's own analytics.
+#
+# Read-only, no tokens, no D1. Discord only when there is a finding.
+on:
+  schedule:
+    - cron: '45 5 * * *'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'How many days back to report'
+        type: string
+        default: '3'
+
+jobs:
+  limits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Ask Cloudflare for its own numbers
+        id: check
+        run: |
+          npx tsx pipeline/checks/platform-limits.ts --days "${{ inputs.days || '3' }}" 2>&1 | tee /tmp/limits.txt
+          echo "findings=$(grep -oP 'PLATFORM_FINDINGS=\K\d+' /tmp/limits.txt || echo 0)" >> "$GITHUB_OUTPUT"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Keep the report
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-limits
+          path: /tmp/limits.txt
+          retention-days: 30
+
+      - name: Discord — findings only
+        if: steps.check.outputs.findings != '0'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          N: ${{ steps.check.outputs.findings }}
+        run: |
+          BODY=$(grep -E '^(▸|    ·)' /tmp/limits.txt | sed 's/^▸ /• /;s/^    · /   /' | head -12)
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg b "$BODY" --arg u "$RUN_URL" --arg n "$N" '{embeds:[{
+                  title:("🚦 Platform limits: " + $n + " finding(s)"),
+                  description:($b + "\n\n[Full report](" + $u + ")"),
+                  color:15105570,
+                  footer:{text:"StudentAthlete — daily platform check"}}]}')"
+
+      - name: Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Platform limits check failed\",\"description\":\"[See the log]($RUN_URL).\",\"color\":15158332}]}"

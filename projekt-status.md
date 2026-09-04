@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-04 (anden D1-kvotenotifikation lukket)
+**Sidst opdateret**: 2026-09-04 (D1-kvoten lukket; CPU-grænsen fundet)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -41,6 +41,33 @@ forespørgsel), og indtil nu fandtes der ingen automatik for den.
 
 Forventet: **~2,1 mio. rækker/døgn = 42 % af kvoten.** Bekræftes på 05-09-tallet.
 Fuld analyse i `IDEA-datalag.md` §7c.
+
+## 🔴 4-24 % of all requests have been failing since 17 August (2026-09-04)
+
+Found while investigating the quota notification, in the same analytics. The
+Worker dies on the free plan's **10 ms CPU limit** and Cloudflare answers 1102 —
+a plain error page instead of the site. It never reached a log, because the
+invocation is killed before our code runs.
+
+25 error invocations captured with `wrangler tail --status error` have one
+signature: `exceededCpu` at 10 ms, on `student-athlete.co.uk/athletes/<slug>`,
+from `meta-webindexer`, in Chicago — 25 of 25 on all four. The same pages answer
+200 in ~170 ms from here. **The page is not slow; the isolate is cold.** `.co.uk`
+has no traffic in the US, so every Meta crawl there instantiates the Worker from
+scratch inside a 10 ms budget. `.dk` carries the traffic, stays warm, and does
+not fail — which means a third country inherits this on day one.
+
+**No SQL or caching fix exists.** A crawl is all cache misses by construction,
+and the budget includes cold instantiation of the Next.js bundle. The two real
+options are the ones `IDEA-datalag.md` already lists: **Workers Paid ($5/md,
+10 ms → 30 s — still step 0, still not done)**, or pre-generation (lag C1/C4,
+weeks). Blocking Meta's crawler would work and is the wrong trade — it is what
+draws the link preview on Facebook, Instagram and WhatsApp.
+
+New: `pipeline/checks/platform-limits.ts` + `platform-limits.yml` (daily 05:45
+UTC) asks Cloudflare for both ceilings and pings Discord only on findings. The
+2 % threshold is set so it **would have fired on 17 August**. Details in
+`IDEA-datalag.md` §7d.
 
 ## 🏫 NJCAA åbnet — fodbold, basketball, amerikansk fodbold (2026-08-31)
 

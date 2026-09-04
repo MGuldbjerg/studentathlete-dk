@@ -22,8 +22,20 @@ function eq<T>(actual: T, expected: T, msg: string): void {
 }
 
 // ── marketFor ──────────────────────────────────────────────────────────
-eq(marketFor("Denmark").region, "Nordics", "Denmark → Nordics");
+// Poolen hedder "Scandinavia", ikke "Nordics" — og navnet er en påstand:
+// finsk og islandsk er EGNE sprog, så FI/IS kan ikke dækkes af den skandinaviske
+// redaktør og hører ikke til i poolen. Testen sagde "Nordics" indtil 2026-09-04,
+// tre måneder efter at 699f43e omdøbte den; testen står ikke i ci.yml, så ingen
+// så det. Den er tilføjet dér nu.
+eq(marketFor("Denmark").region, "Scandinavia", "Denmark → Scandinavia");
 eq(marketFor("Denmark").language, "Danish", "Denmark → Danish");
+eq(marketFor("Sweden").region, "Scandinavia", "Sweden → Scandinavia");
+eq(marketFor("Norway").region, "Scandinavia", "Norway → Scandinavia");
+// Selve pointen med omdøbningen: Norden ≠ Skandinavien i redaktør-modellen.
+eq(marketFor("Finland").region, "Finland", "Finland er IKKE i den skandinaviske pool");
+eq(marketFor("Finland").language, "Finnish", "finsk er et eget sprog (finsk-ugrisk)");
+eq(marketFor("Iceland").region, "Iceland", "Island er IKKE i den skandinaviske pool");
+eq(marketFor("Iceland").language, "Icelandic", "islandsk er et eget sprog");
 // Engelsk spænder flere regioner, men samme redaktionelle enhed
 eq(marketFor("UK").language, "English", "UK → English");
 eq(marketFor("Australia").language, "English", "Australia → English");
@@ -62,7 +74,7 @@ const sample = [
   mk("E E", "Argentina", "golf"),
 ];
 const s = summarize(sample);
-eq(s.byRegion["Nordics"], 2, "Nordics = 2 (DK+SE)");
+eq(s.byRegion["Scandinavia"], 2, "Scandinavia = 2 (DK+SE)");
 eq(s.byRegion["Latin America"], 2, "Latin America = 2 (MX+AR)");
 eq(s.byLanguage["Spanish"], 3, "Spanish = 3 (ES+MX+AR — én redaktør)");
 eq(s.byCountry["Denmark"], 1, "Denmark = 1");

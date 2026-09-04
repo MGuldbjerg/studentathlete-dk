@@ -46,6 +46,8 @@ jobs:
             pipeline/generate/_group-stories-test.ts \
             pipeline/generate/_quality-check-test.ts \
             pipeline/generate/_draft-pack-test.ts \
+            pipeline/catalogue/_catalogue-test.ts \
+            pipeline/checks/_platform-limits-test.ts \
             pipeline/checks/_false-transfers-test.ts \
             pipeline/checks/_draft-numbers-test.ts \
             pipeline/checks/_danish-names-test.ts \

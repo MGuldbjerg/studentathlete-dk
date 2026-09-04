@@ -446,6 +446,87 @@ Ingen af dem haster ved 42 % forbrug. Skal der mere til, er det stadig lag A2
 
 ---
 
+## 7d. The other ceiling: 10 ms CPU (measured 2026-09-04)
+
+While chasing the row quota, the Workers analytics turned up a second failure
+that nobody had seen — because it cannot be seen from inside the app.
+Cloudflare kills the invocation *before* our code runs, so there is no log line,
+no D1 write, no Discord message. The reader gets a Cloudflare 1102 page.
+
+| Date | requests | died on the resource limit |
+|---|---|---|
+| 2026-08-15 | 3.716 | 0,2 % |
+| **2026-08-17** | 6.140 | **4,2 %** ← the failure class appears |
+| 2026-08-21 | 7.204 | 22,0 % |
+| 2026-08-27 | 8.463 | 20,8 % |
+| 2026-09-03 | 9.136 | 7,7 % |
+| 2026-09-04 (partial) | 3.194 | 24,4 % |
+
+**Three weeks, 4-24 % of every request, unnoticed.** Between 5 % and a quarter
+of everything the sites served in that period was a Cloudflare error page.
+
+### The signature is unusually sharp
+
+25 error invocations captured with `wrangler tail --status error` across two
+windows. Every single one:
+
+| | |
+|---|---|
+| outcome | `exceededCpu`, `cpuTime: 10` (the free-plan ceiling, in ms) |
+| route | `student-athlete.co.uk/athletes/<slug>` — **UK only**, athlete pages only |
+| client | `meta-webindexer` (Meta's crawler) — 25 of 25 |
+| colo | `ORD` (Chicago) — 25 of 25 |
+
+The same pages answer 200 in ~170 ms when fetched from here. The page is not
+slow; **the isolate is cold.** `.co.uk` has almost no organic traffic, and none
+at all in Chicago, so every Meta crawl there lands on a Worker that has to be
+instantiated first — and on the free plan the whole thing has 10 ms of CPU.
+`.dk`, which carries the traffic, is warm and does not fail.
+
+> The reason it looked like a UK problem is the reason it is not one: the site
+> that gets no traffic is the site whose isolates are always cold. A third
+> country would inherit it on day one.
+
+### There is no SQL fix for this one
+
+Worth saying plainly, because the instinct after §7c is to go optimise a query:
+
+- **Caching does not help a crawl.** Each URL is crawled once, so every request
+  is a cache miss by construction. Workers Cache (lag A3) helps repeat readers,
+  not this.
+- **Micro-optimising the page does not help either.** The budget is 10 ms of CPU
+  *including* cold instantiation of a Next.js server bundle. There is no version
+  of the athlete page that reliably fits.
+
+That leaves the two things this document already recommended:
+
+| | What it does | Effort | Note |
+|---|---|---|---|
+| **Workers Paid, $5/md** (step 0) | CPU ceiling 10 ms → 30 s | Hours | Fixes this outright, and gives 5x headroom on the row quota. It has been step 0 since 2026-09-02 and is still not done |
+| **Pre-generation** (lag C1/C4) | No render on the read path at all | Weeks, blocked by cause 3 | The end state, not the fix for this week |
+
+**Blocking `meta-webindexer` is not on the list.** It would cut the failures
+immediately and it is the wrong trade: Meta's crawler is what builds the link
+preview on Facebook, Instagram and WhatsApp, and social distribution is the
+whole point of the UK launch.
+
+### It will not go unnoticed again
+
+`pipeline/checks/platform-limits.ts` + `platform-limits.yml` (daily 05:45 UTC)
+ask Cloudflare's own analytics for both ceilings — D1 rows read/written against
+the quota, and the share of requests dying on the resource limit — and post to
+Discord only when something crosses a threshold. The failure threshold is 2 %,
+chosen so the check **would have fired on 17 August** rather than 4 September.
+
+Two design points worth keeping if the check is ever extended:
+
+- **Today is never judged.** A partial day sits under every threshold; at 09:00
+  UTC even a catastrophic day looks fine. Only complete UTC days count.
+- **The newest complete day decides.** An old bad day is history, not a finding,
+  or the check shouts forever about something already fixed.
+
+---
+
 ## 8. Hvad der ikke er verificeret
 
 Ærligt regnskab over det, tallene ovenfor *ikke* dækker:
