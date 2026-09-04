@@ -467,15 +467,15 @@ of everything the sites served in that period was a Cloudflare error page.
 
 ### The signature is unusually sharp
 
-25 error invocations captured with `wrangler tail --status error` across two
-windows. Every single one:
+50 error invocations captured with `wrangler tail --status error` across two
+windows (3 and 10 minutes). Every single one:
 
 | | |
 |---|---|
 | outcome | `exceededCpu`, `cpuTime: 10` (the free-plan ceiling, in ms) |
 | route | `student-athlete.co.uk/athletes/<slug>` — **UK only**, athlete pages only |
-| client | `meta-webindexer` (Meta's crawler) — 25 of 25 |
-| colo | `ORD` (Chicago) — 25 of 25 |
+| client | `meta-webindexer` (Meta's crawler) — 50 of 50 |
+| colo | `ORD` (Chicago) — 50 of 50 |
 
 The same pages answer 200 in ~170 ms when fetched from here. The page is not
 slow; **the isolate is cold.** `.co.uk` has almost no organic traffic, and none

@@ -49,9 +49,9 @@ Worker dies on the free plan's **10 ms CPU limit** and Cloudflare answers 1102 �
 a plain error page instead of the site. It never reached a log, because the
 invocation is killed before our code runs.
 
-25 error invocations captured with `wrangler tail --status error` have one
+50 error invocations captured with `wrangler tail --status error` have one
 signature: `exceededCpu` at 10 ms, on `student-athlete.co.uk/athletes/<slug>`,
-from `meta-webindexer`, in Chicago — 25 of 25 on all four. The same pages answer
+from `meta-webindexer`, in Chicago — 50 of 50 on all four. The same pages answer
 200 in ~170 ms from here. **The page is not slow; the isolate is cold.** `.co.uk`
 has no traffic in the US, so every Meta crawl there instantiates the Worker from
 scratch inside a 10 ms budget. `.dk` carries the traffic, stays warm, and does
