@@ -50,6 +50,66 @@ export async function siteCountry(country?: string): Promise<string> {
   }
 }
 
+/**
+ * Read-through cache for the handful of aggregates the site renders constantly.
+ *
+ * Measured 2026-09-05: three `athletes` aggregates were 43 % of the day's D1
+ * rows read (821k of 1.93M) across only 280 runs. There are 2,823 active
+ * athletes, so each run walked nearly the whole set to produce a few numbers.
+ * No index fixes that — the scans need columns (`sport`, `name`) no index
+ * covers. The fix is to stop asking 280 times a day.
+ *
+ * The cache heals itself: the first render to find a row older than the TTL
+ * recomputes and writes it back, so there is no cron to forget and a dropped
+ * table costs nothing but one slow render. Every failure path falls through to
+ * `compute()` — a missing table (before migration 049), a bad row, a write that
+ * does not land. The cache can only ever make this cheaper, never wrong.
+ *
+ * TTL is deliberately short. At ~11 renders/hour a 60-minute window still cuts
+ * the work by ~90 %, and an hour is close enough for counts that change when a
+ * roster scrape lands.
+ */
+export const STATS_TTL_MINUTES = 60;
+
+export async function cachedStat<T>(
+  key: string,
+  country: string,
+  compute: () => Promise<T>,
+): Promise<T> {
+  const db = await getDB();
+  if (!db) return compute();
+
+  try {
+    const row = (await db
+      .prepare(
+        `SELECT value FROM stats_cache
+          WHERE key = ? AND country = ?
+            AND computed_at >= datetime('now', ?)`,
+      )
+      .bind(key, country, `-${STATS_TTL_MINUTES} minutes`)
+      .first()) as { value: string } | null;
+    if (row?.value) return JSON.parse(row.value) as T;
+  } catch {
+    /* no table, unreadable row — fall through and compute */
+  }
+
+  const fresh = await compute();
+
+  try {
+    await db
+      .prepare(
+        `INSERT OR REPLACE INTO stats_cache (key, country, value, computed_at)
+         VALUES (?, ?, ?, datetime('now'))`,
+      )
+      .bind(key, country, JSON.stringify(fresh))
+      .run();
+  } catch {
+    /* a cache that cannot be written is still a correct page */
+  }
+
+  return fresh;
+}
+
 export const ARTICLE_SELECT = `
   a.id, a.title, a.slug, a.summary, a.content, a.article_type,
   a.author, a.author_role, a.cover_image_url, a.published, a.published_at,
@@ -265,16 +325,30 @@ export async function getSiteCounts(country?: string): Promise<SiteCounts> {
     };
   }
   try {
+    // The athlete aggregate is cached; the 7-day article count is not. The
+    // article table is small, and it is the number that moves when Mikkel
+    // publishes — an hour of staleness there would be visible.
     const [who, fresh] = await Promise.all([
-      db
-        .prepare(
-          `SELECT COUNT(*) AS athletes,
-                  COUNT(DISTINCT university) AS universities,
-                  COUNT(DISTINCT sport) AS sports
-           FROM athletes WHERE active = 1 AND home_country = ?`
-        )
-        .bind(code)
-        .first(),
+      cachedStat<{ athletes: number; universities: number; sports: number }>(
+        "site_counts",
+        code,
+        async () => {
+          const r = (await db
+            .prepare(
+              `SELECT COUNT(*) AS athletes,
+                      COUNT(DISTINCT university) AS universities,
+                      COUNT(DISTINCT sport) AS sports
+               FROM athletes WHERE active = 1 AND home_country = ?`
+            )
+            .bind(code)
+            .first()) as { athletes?: number; universities?: number; sports?: number } | null;
+          return {
+            athletes: Number(r?.athletes ?? 0),
+            universities: Number(r?.universities ?? 0),
+            sports: Number(r?.sports ?? 0),
+          };
+        },
+      ),
       db
         .prepare(
           `SELECT COUNT(*) AS n FROM articles
@@ -285,9 +359,9 @@ export async function getSiteCounts(country?: string): Promise<SiteCounts> {
         .first(),
     ]);
     return {
-      athletes: Number((who as { athletes?: number } | null)?.athletes ?? 0),
-      universities: Number((who as { universities?: number } | null)?.universities ?? 0),
-      sports: Number((who as { sports?: number } | null)?.sports ?? 0),
+      athletes: who.athletes,
+      universities: who.universities,
+      sports: who.sports,
       newThisWeek: Number((fresh as { n?: number } | null)?.n ?? 0),
     };
   } catch {
@@ -329,18 +403,21 @@ export async function getArticlesGroupedBySport({
         )
         .bind(code)
         .all(),
-      db
-        .prepare(
-          `SELECT sport, COUNT(*) AS n FROM athletes
-           WHERE active = 1 AND home_country = ? AND sport IS NOT NULL
-           GROUP BY sport`
-        )
-        .bind(code)
-        .all(),
+      cachedStat<Array<{ sport: string; n: number }>>("sport_counts", code, async () => {
+        const r = await db
+          .prepare(
+            `SELECT sport, COUNT(*) AS n FROM athletes
+             WHERE active = 1 AND home_country = ? AND sport IS NOT NULL
+             GROUP BY sport`
+          )
+          .bind(code)
+          .all();
+        return (r.results ?? []) as Array<{ sport: string; n: number }>;
+      }),
     ]);
 
     const perSportCount = new Map<string, number>();
-    for (const row of (counts.results ?? []) as { sport: string; n: number }[]) {
+    for (const row of counts) {
       perSportCount.set(row.sport, row.n);
     }
 
@@ -550,16 +627,23 @@ export async function getAthleteInitialCounts(
 ): Promise<Array<{ initial: string; n: number }>> {
   const db = await getDB();
   if (!db) return [];
+  const code = await siteCountry(country);
   try {
-    const r = await db
-      .prepare(
-        `SELECT substr(name, 1, 1) AS initial, COUNT(*) AS n
-         FROM athletes WHERE home_country = ? AND active = 1
-         GROUP BY initial`,
-      )
-      .bind(await siteCountry(country))
-      .all();
-    return (r.results ?? []) as Array<{ initial: string; n: number }>;
+    return await cachedStat<Array<{ initial: string; n: number }>>(
+      "initials",
+      code,
+      async () => {
+        const r = await db
+          .prepare(
+            `SELECT substr(name, 1, 1) AS initial, COUNT(*) AS n
+             FROM athletes WHERE home_country = ? AND active = 1
+             GROUP BY initial`,
+          )
+          .bind(code)
+          .all();
+        return (r.results ?? []) as Array<{ initial: string; n: number }>;
+      },
+    );
   } catch { return []; }
 }
 

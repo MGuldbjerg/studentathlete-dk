@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getDB, ARTICLE_SELECT } from "./db";
 import { pingIndexNow } from "./indexnow";
 import { getArticleUrl } from "./seo";
@@ -601,8 +602,19 @@ export async function getPublishedSportBySlug(slug: string): Promise<PageRow | n
  * To scopes flettes (migration 037): først de globale rækker (`country = '*'`,
  * fx AdSense-kontoen der dækker begge domæner), derefter landets egne, som
  * vinder. Kode-defaults i bunden, som før.
+ *
+ * Wrapped in React's `cache()` — request-scoped, not cross-request. A single
+ * page render calls this at least four times (layout twice, for metadata and
+ * for the body, plus Footer and AiDisclaimer), and each call was its own D1
+ * round-trip. Measured 2026-09-05: 18,355 runs against ~8,464 requests, 393k
+ * rows read — 20 % of the day's quota for a table that holds a handful of
+ * settings. The memo collapses those calls to one per request, which also
+ * takes three round-trips off the cold-start path that is currently dying on
+ * the 10 ms CPU limit.
  */
-export async function getSiteSettings(country?: string): Promise<Record<string, string>> {
+export const getSiteSettings = cache(async function getSiteSettings(
+  country?: string,
+): Promise<Record<string, string>> {
   const resolved = siteDefaults();
   const db = await getDB();
   if (!db) return resolved;
@@ -624,7 +636,7 @@ export async function getSiteSettings(country?: string): Promise<Record<string, 
     /* fail-safe: behold defaults */
   }
   return resolved;
-}
+});
 
 /**
  * Gem én override (kun kendte nøgler).

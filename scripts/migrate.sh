@@ -56,6 +56,10 @@ MIGRATIONS=(
   db/migration-045-previous-school.sql
   db/migration-046-photo-checked.sql
   db/migration-047-join-indexes.sql
+  # 048 kører ANALYZE og koster 1,38 mio. læste rækker — den hører med i en
+  # fuld opsætning, men køres ellers af analyze-jobbet i weekly-scrape.yml.
+  db/migration-048-analyze.sql
+  db/migration-049-stats-cache.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do
