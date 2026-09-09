@@ -10,6 +10,7 @@ import {
   AllProvidersFailedError,
   LLMHttpError,
   isRateLimitError,
+  isServerError,
   isTransientLLMError,
   parseRetryDelayMs,
 } from "./errors";
@@ -46,10 +47,20 @@ check(
   "RESOURCE_EXHAUSTED under a non-429 status",
 );
 
+// ── Outages: the provider is unwell, which is also not the story's fault ─────
+// Gemini answered this during the run on 9 September, between two rate limits.
+const GEMINI_503 =
+  'Gemini API fejl (503): {"error":{"code":503,"message":"This model is currently experiencing high demand.","status":"UNAVAILABLE"}}';
+check(isServerError(new LLMHttpError(GEMINI_503, 503)), true, "503 is a server error");
+check(isTransientLLMError(new LLMHttpError(GEMINI_503, 503)), true, "503 is transient");
+check(isRateLimitError(new LLMHttpError(GEMINI_503, 503)), false, "503 is not a rate limit");
+check(isServerError(new LLMHttpError("bad request", 400)), false, "400 is not a server error");
+
 // ── What must NOT count as transient ─────────────────────────────────────────
 // A malformed request is our bug and will fail identically on every retry.
 check(isRateLimitError(new LLMHttpError("mistral API fejl (400): bad request", 400)), false, "400 is permanent");
-check(isRateLimitError(new Error("Unexpected token < in JSON")), false, "parse failure is permanent");
+check(isRateLimitError(new Error("Unexpected token < in JSON")), false, "parse failure is not a rate limit");
+check(isTransientLLMError(new Error("Unexpected token < in JSON")), false, "parse failure is not transient");
 check(
   isTransientLLMError(new AllProvidersFailedError("no keys set", false)),
   false,

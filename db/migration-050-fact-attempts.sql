@@ -1,0 +1,19 @@
+-- Migration 050: a factsheet failure must be counted, not declared.
+--
+-- 4-8 September 2026 the free LLM tiers went over quota and `build-factsheet`
+-- wrote 'failed' on every story it could not extract. Since the builder only
+-- ever selects `fact_status IS NULL`, that verdict is permanent: 58 stories
+-- with full source text were never tried again. Commit "A rate limit is the
+-- weather" fixed the clear-cut half — a 429 never reaches a model, so it now
+-- leaves fact_status untouched.
+--
+-- The run right after showed the other half. 24 of 60 stories were marked
+-- 'failed' with no rate limit in sight: a degraded fallback model answered with
+-- something that was not JSON. That is indistinguishable, in the moment, from a
+-- source we genuinely cannot read — and one bad answer is not evidence about
+-- the story. Repetition is. A story gets three attempts before we call it.
+--
+-- Same reasoning as photo_checked_at (046): remember the ATTEMPT, not just the
+-- result. The difference is that here the attempt has to be counted, because
+-- the third failure means something the first one does not.
+ALTER TABLE stories ADD COLUMN fact_attempts INTEGER NOT NULL DEFAULT 0;

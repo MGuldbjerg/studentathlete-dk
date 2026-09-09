@@ -7,7 +7,7 @@
  * September 2026 every rate limit landed as 'failed' and 60 usable stories were
  * dropped without a single article being attempted.
  */
-import { buildFactSheet, type ChainLike } from "./build-factsheet";
+import { MAX_FACT_ATTEMPTS, buildFactSheet, isFinalVerdict, type ChainLike } from "./build-factsheet";
 import { AllProvidersFailedError, LLMHttpError } from "../lib/llm/errors";
 
 let passed = 0;
@@ -57,7 +57,8 @@ const cases: Array<[() => Promise<{ status: string }>, string, string]> = [
     "failed",
     "no API keys → failed, not transient",
   ],
-  // The model answered; the answer was unusable. That is the story's verdict.
+  // The model answered; the answer was unusable. Whether that is the story's
+  // verdict is decided by isFinalVerdict below, not here.
   [
     () => buildFactSheet(story, chainThatReturns("I'm sorry, I can't help with that.")),
     "failed",
@@ -89,6 +90,17 @@ async function main(): Promise<void> {
   for (const [run, expected, name] of cases) {
     check((await run()).status, expected, name);
   }
+
+  // ── When 'failed' becomes permanent ────────────────────────────────────────
+  // The 24 stories burnt on 9 September were all on their first attempt.
+  check(isFinalVerdict("failed", 1), false, "one unreadable answer is not a verdict");
+  check(isFinalVerdict("failed", 2), false, "two is still not a verdict");
+  check(isFinalVerdict("failed", MAX_FACT_ATTEMPTS), true, "the third failure stands");
+  // A story that somehow banked attempts must never be retried forever.
+  check(isFinalVerdict("failed", 9), true, "past the limit stays final");
+  // Everything else is an answer the first time it is given.
+  check(isFinalVerdict("built", 1), true, "'built' is final at once");
+  check(isFinalVerdict("no_substance", 1), true, "'no_substance' is final at once");
 
   console.log(`\n${passed} bestået, ${failed} fejlet`);
   if (failed > 0) process.exit(1);

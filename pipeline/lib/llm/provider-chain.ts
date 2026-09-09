@@ -12,7 +12,7 @@ import { GroqProvider } from "./provider-groq";
 import { CloudflareAIProvider } from "./provider-cloudflare-ai";
 import { NvidiaProvider } from "./provider-nvidia";
 import { AnthropicProvider } from "./provider-anthropic";
-import { AllProvidersFailedError, LLMHttpError, isRateLimitError } from "./errors";
+import { AllProvidersFailedError, LLMHttpError, isRateLimitError, isServerError } from "./errors";
 
 const DAILY_LIMITS: Record<string, number> = {
   mistral: 500,
@@ -108,8 +108,8 @@ export class ProviderChain {
         )
       : this.providers;
 
-    // Every error so far was a quota/limit → the caller can retry later.
-    let onlyRateLimits = true;
+    // Every error so far was a quota or an outage → the caller can retry later.
+    let onlyTransient = true;
 
     for (const provider of ordered) {
       if (!provider.isAvailable()) continue;
@@ -117,8 +117,8 @@ export class ProviderChain {
       const coolingUntil = this.cooldownUntil.get(provider.name) ?? 0;
       if (Date.now() < coolingUntil) {
         const secs = Math.ceil((coolingUntil - Date.now()) / 1000);
-        console.log(`  ⊘ ${provider.name}: rate limited, resting ${secs}s`);
-        errors.push(`${provider.name}: rate limited (cooling ${secs}s)`);
+        console.log(`  ⊘ ${provider.name}: unavailable, resting ${secs}s`);
+        errors.push(`${provider.name}: unavailable (cooling ${secs}s)`);
         continue;
       }
 
@@ -146,13 +146,17 @@ export class ProviderChain {
         errors.push(`${provider.name}: ${msg}`);
         await recordUsage(this.db, provider.name, 0, 0, true);
 
+        const suggested = err instanceof LLMHttpError ? err.retryAfterMs : undefined;
         if (isRateLimitError(err)) {
           // The provider's own suggestion when it gives one, else a minute.
           // Free tiers meter per minute, so that is the right order of magnitude.
-          const wait = (err instanceof LLMHttpError && err.retryAfterMs) || 60_000;
-          this.cooldownUntil.set(provider.name, Date.now() + wait);
+          this.cooldownUntil.set(provider.name, Date.now() + (suggested || 60_000));
+        } else if (isServerError(err)) {
+          // An overloaded model recovers on its own schedule; rest it briefly
+          // rather than asking the same question sixty times.
+          this.cooldownUntil.set(provider.name, Date.now() + (suggested || 30_000));
         } else {
-          onlyRateLimits = false;
+          onlyTransient = false;
         }
       }
     }
@@ -171,7 +175,7 @@ export class ProviderChain {
         `Sæt mindst én af: ${envVars.join(", ")}`,
       // No errors at all = no keys configured. That is a setup failure, not a
       // quota, and must not make the caller wait for better weather.
-      onlyRateLimits && errors.length > 0,
+      onlyTransient && errors.length > 0,
     );
   }
 }

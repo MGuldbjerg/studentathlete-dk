@@ -20,12 +20,12 @@ export class LLMHttpError extends Error {
   }
 }
 
-/** Thrown when the WHOLE chain is spent. `rateLimited` = every error was a quota/limit. */
+/** Thrown when the WHOLE chain is spent. `transient` = nothing reached a model. */
 export class AllProvidersFailedError extends Error {
   constructor(
     message: string,
-    /** True if nothing reached a model because quotas were spent — retry later. */
-    readonly rateLimited: boolean,
+    /** True if every failure was a quota or an outage — retry later. */
+    readonly transient: boolean,
   ) {
     super(message);
     this.name = "AllProvidersFailedError";
@@ -44,10 +44,23 @@ export function isRateLimitError(err: unknown): boolean {
   return /\(429\)|rate.?limit|quota|RESOURCE_EXHAUSTED|daglig grænse/i.test(msg);
 }
 
+/**
+ * Is this the provider being unwell? A 5xx is never the story's fault.
+ *
+ * Gemini answers 503 UNAVAILABLE ("experiencing high demand") under load, which
+ * is a wait, not a verdict — but it is not a quota either, so it needs its own
+ * question.
+ */
+export function isServerError(err: unknown): boolean {
+  if (err instanceof LLMHttpError) return err.status >= 500;
+  const msg = err instanceof Error ? err.message : String(err);
+  return /\(5\d\d\)|UNAVAILABLE/.test(msg);
+}
+
 /** Should the caller retry the story later rather than burn it? */
 export function isTransientLLMError(err: unknown): boolean {
-  if (err instanceof AllProvidersFailedError) return err.rateLimited;
-  return isRateLimitError(err);
+  if (err instanceof AllProvidersFailedError) return err.transient;
+  return isRateLimitError(err) || isServerError(err);
 }
 
 /**

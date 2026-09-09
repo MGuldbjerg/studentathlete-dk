@@ -60,6 +60,7 @@ MIGRATIONS=(
   # fuld opsætning, men køres ellers af analyze-jobbet i weekly-scrape.yml.
   db/migration-048-analyze.sql
   db/migration-049-stats-cache.sql
+  db/migration-050-fact-attempts.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do

@@ -28,6 +28,7 @@ interface StoryRow {
   athlete_name: string;
   sport: string;
   university: string;
+  fact_attempts: number;
 }
 
 export interface FactSheet {
@@ -245,6 +246,26 @@ export function renderFactSheet(fs: FactSheet): string {
 export type FactStatus = "built" | "no_substance" | "failed" | "transient";
 
 /**
+ * Attempts before 'failed' is written for good.
+ *
+ * One unparseable answer is not evidence about the story — a degraded fallback
+ * model produced 24 of them in a single run on 9 September 2026, with no rate
+ * limit in sight. Three is evidence.
+ */
+export const MAX_FACT_ATTEMPTS = 3;
+
+/**
+ * Is this status the last word on the story?
+ *
+ * Everything except 'failed' is: 'built' and 'no_substance' are answers, and
+ * 'transient' never reaches this question. Only 'failed' has to earn its
+ * permanence by repeating.
+ */
+export function isFinalVerdict(status: FactStatus, attempts: number, max = MAX_FACT_ATTEMPTS): boolean {
+  return status !== "failed" || attempts >= max;
+}
+
+/**
  * Byg faktaark for én historie.
  *
  * `transient` is not a verdict on the story: the chain never reached a model
@@ -306,13 +327,14 @@ async function main(): Promise<void> {
 
   const result = await db.query<StoryRow>(
     `SELECT s.id, s.headline, s.summary, s.content_raw, s.source_url,
+            s.fact_attempts,
             a.name as athlete_name, a.sport, a.university
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
        AND s.fact_status IS NULL
        AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
-     ORDER BY (s.content_raw IS NOT NULL) DESC, s.relevance_score DESC
+     ORDER BY (s.content_raw IS NOT NULL) DESC, s.fact_attempts ASC, s.relevance_score DESC
      LIMIT ?`,
     [maxAgeDays, limit],
   );
@@ -324,6 +346,7 @@ async function main(): Promise<void> {
   // is not bad luck, it is an exhausted quota — stop rather than burn the rest
   // of the window on calls that cannot succeed.
   const MAX_CONSECUTIVE_TRANSIENT = 3;
+  let retrying = 0;
   let consecutiveTransient = 0;
   let index = 0;
 
@@ -403,20 +426,36 @@ async function main(): Promise<void> {
       `  [${status}] ${story.id} ${story.headline?.slice(0, 60) ?? ""} (${facts} fakta${boxStats ? `, ${boxStats} box-score` : ""})`,
     );
 
+    // A model answered, but we could not read the answer. Count the attempt and
+    // leave fact_status NULL so the story comes back — until the count itself
+    // says the source, not the weather, is the problem.
+    const attempts = (story.fact_attempts ?? 0) + 1;
+    const giveUp = isFinalVerdict(status, attempts);
+
     if (!dryRun) {
-      await db.execute(
-        `UPDATE stories SET fact_sheet = ?, fact_status = ? WHERE id = ?`,
-        [factSheet ? JSON.stringify(factSheet) : null, status, story.id],
-      );
+      if (giveUp) {
+        await db.execute(
+          `UPDATE stories SET fact_sheet = ?, fact_status = ?, fact_attempts = ? WHERE id = ?`,
+          [factSheet ? JSON.stringify(factSheet) : null, status, attempts, story.id],
+        );
+      } else {
+        await db.execute(`UPDATE stories SET fact_attempts = ? WHERE id = ?`, [attempts, story.id]);
+      }
     }
+
     if (status === "built") built++;
     else if (status === "no_substance") noSubstance++;
-    else failed++;
+    else if (giveUp) failed++;
+    else {
+      retrying++;
+      console.log(`    → unreadable answer, attempt ${attempts}/${MAX_FACT_ATTEMPTS} — retried next run`);
+    }
   }
 
   console.log(
     `\nFærdig. Bygget: ${built} | Uden substans: ${noSubstance} | Fejlet: ${failed}` +
     (transient ? ` | Afventer kvote: ${transient}` : "") +
+    (retrying ? ` | Prøves igen: ${retrying}` : "") +
     ` | Med kampforløb: ${matchFactsFound}` +
       (renderEnabled ? ` | Box scores: ${boxScoreFound} fundet (${rendersUsed}/${boxScoreBudget} render)` : ""),
   );
