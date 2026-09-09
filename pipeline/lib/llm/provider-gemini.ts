@@ -4,6 +4,7 @@
  */
 
 import type { GenerateOpts, LLMProvider, LLMResponse } from "./types";
+import { LLMHttpError, parseRetryDelayMs } from "./errors";
 
 interface GeminiResponse {
   candidates: Array<{
@@ -55,7 +56,11 @@ export class GeminiProvider implements LLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Gemini API fejl (${response.status}): ${text}`);
+      throw new LLMHttpError(
+        `Gemini API fejl (${response.status}): ${text}`,
+        response.status,
+        parseRetryDelayMs(response.headers, text),
+      );
     }
 
     const data = (await response.json()) as GeminiResponse;

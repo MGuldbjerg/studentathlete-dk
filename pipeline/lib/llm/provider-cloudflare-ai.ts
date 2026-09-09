@@ -5,6 +5,7 @@
  */
 
 import type { GenerateOpts, LLMProvider, LLMResponse } from "./types";
+import { LLMHttpError, parseRetryDelayMs } from "./errors";
 
 interface CFAIResponse {
   result: {
@@ -51,7 +52,11 @@ export class CloudflareAIProvider implements LLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Cloudflare AI fejl (${response.status}): ${text}`);
+      throw new LLMHttpError(
+        `Cloudflare AI fejl (${response.status}): ${text}`,
+        response.status,
+        parseRetryDelayMs(response.headers, text),
+      );
     }
 
     const data = (await response.json()) as CFAIResponse;

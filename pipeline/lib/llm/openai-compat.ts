@@ -4,6 +4,7 @@
  */
 
 import type { LLMResponse } from "./types";
+import { LLMHttpError, parseRetryDelayMs } from "./errors";
 
 interface OpenAIChoice {
   message: { content: string };
@@ -49,7 +50,11 @@ export async function openAICompatibleGenerate(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`${providerName} API fejl (${response.status}): ${text}`);
+    throw new LLMHttpError(
+      `${providerName} API fejl (${response.status}): ${text}`,
+      response.status,
+      parseRetryDelayMs(response.headers, text),
+    );
   }
 
   const data = (await response.json()) as OpenAIChatResponse;

@@ -12,6 +12,7 @@ import { GroqProvider } from "./provider-groq";
 import { CloudflareAIProvider } from "./provider-cloudflare-ai";
 import { NvidiaProvider } from "./provider-nvidia";
 import { AnthropicProvider } from "./provider-anthropic";
+import { AllProvidersFailedError, LLMHttpError, isRateLimitError } from "./errors";
 
 const DAILY_LIMITS: Record<string, number> = {
   mistral: 500,
@@ -61,6 +62,15 @@ async function recordUsage(
 export class ProviderChain {
   private providers: LLMProvider[];
 
+  /**
+   * Providers that answered 429, and when they may be tried again (epoch ms).
+   *
+   * This run only. Without it EVERY story pays to discover the same thing: four
+   * calls, four 429s, four seconds lost. With it a limited provider is skipped
+   * at once, until its own suggested wait has passed.
+   */
+  private cooldownUntil = new Map<string, number>();
+
   constructor(private db: D1Client) {
     this.providers = [
       new MistralProvider(),
@@ -98,13 +108,25 @@ export class ProviderChain {
         )
       : this.providers;
 
+    // Every error so far was a quota/limit → the caller can retry later.
+    let onlyRateLimits = true;
+
     for (const provider of ordered) {
       if (!provider.isAvailable()) continue;
+
+      const coolingUntil = this.cooldownUntil.get(provider.name) ?? 0;
+      if (Date.now() < coolingUntil) {
+        const secs = Math.ceil((coolingUntil - Date.now()) / 1000);
+        console.log(`  ⊘ ${provider.name}: rate limited, resting ${secs}s`);
+        errors.push(`${provider.name}: rate limited (cooling ${secs}s)`);
+        continue;
+      }
 
       const limit = DAILY_LIMITS[provider.name] ?? 100;
       const usedToday = await getUsageToday(this.db, provider.name);
       if (usedToday >= limit) {
         console.log(`  ⊘ ${provider.name}: daglig grænse nået (${usedToday}/${limit})`);
+        errors.push(`${provider.name}: daglig grænse nået (${usedToday}/${limit})`);
         continue;
       }
 
@@ -123,6 +145,15 @@ export class ProviderChain {
         console.warn(`  ⚠ ${provider.name} fejlede: ${msg}`);
         errors.push(`${provider.name}: ${msg}`);
         await recordUsage(this.db, provider.name, 0, 0, true);
+
+        if (isRateLimitError(err)) {
+          // The provider's own suggestion when it gives one, else a minute.
+          // Free tiers meter per minute, so that is the right order of magnitude.
+          const wait = (err instanceof LLMHttpError && err.retryAfterMs) || 60_000;
+          this.cooldownUntil.set(provider.name, Date.now() + wait);
+        } else {
+          onlyRateLimits = false;
+        }
       }
     }
 
@@ -134,10 +165,13 @@ export class ProviderChain {
       "ANTHROPIC_API_KEY",
     ];
 
-    throw new Error(
+    throw new AllProvidersFailedError(
       `Alle LLM-providere fejlede eller nåede daglig grænse.\n` +
         `Fejl: ${errors.join("; ")}\n` +
         `Sæt mindst én af: ${envVars.join(", ")}`,
+      // No errors at all = no keys configured. That is a setup failure, not a
+      // quota, and must not make the caller wait for better weather.
+      onlyRateLimits && errors.length > 0,
     );
   }
 }

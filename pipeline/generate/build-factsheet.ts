@@ -17,6 +17,7 @@ import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib
 import { enrichFactSheetWithBoxScore, extractBoxScoreText,
   looksLikeMatchStory,
 } from "./box-score";
+import { isTransientLLMError } from "../lib/llm/errors";
 
 interface StoryRow {
   id: number;
@@ -72,7 +73,7 @@ const SCHEMA_HINT = `{
   "box_score_url": string|null   // if the source links a box score / stats page
 }`;
 
-function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxScore: boolean; boxScoreBudget: number } {
+function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxScore: boolean; boxScoreBudget: number; paceMs: number } {
   const args = process.argv.slice(2);
   // 20 → 60 (2026-08-26): faktaark-bygningen fodrer generate-articles, og med
   // 12 artikler pr. kørsel × flere kørsler skal der være ark nok at vælge
@@ -82,14 +83,23 @@ function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxS
   let dryRun = false;
   let boxScore = true; // box-score-berigelse via CF render (slå fra med --no-boxscore)
   let boxScoreBudget = 8; // max box-score-renders per kørsel (beskytter gratis browser-tid)
+  // Free tiers meter per MINUTE (Gemini 5 rpm, Groq 8k tpm, Mistral ~1 rps).
+  // 60 stories back to back with no pause blow them in under a minute, however
+  // ample the daily quota — this broke factsheet building 4-8 September 2026.
+  let paceMs = 2000;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) limit = parseInt(args[i + 1], 10) || 20;
     if (args[i] === "--max-age-days" && args[i + 1]) maxAgeDays = parseInt(args[i + 1], 10) || 14;
     if (args[i] === "--dry-run") dryRun = true;
     if (args[i] === "--no-boxscore") boxScore = false;
     if (args[i] === "--boxscore-budget" && args[i + 1]) boxScoreBudget = parseInt(args[i + 1], 10) || 8;
+    if (args[i] === "--pace-ms" && args[i + 1]) paceMs = Math.max(0, parseInt(args[i + 1], 10) || 0);
   }
-  return { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget };
+  return { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget, paceMs };
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /** Strip markdown-fences og udtræk første JSON-objekt. */
@@ -231,11 +241,20 @@ export function renderFactSheet(fs: FactSheet): string {
   return blocks.join("\n\n");
 }
 
-/** Byg faktaark for én historie. Returnerer faktaark + status ('built'|'no_substance'|'failed'). */
+/** `transient` is never written to the database — it means "not attempted yet". */
+export type FactStatus = "built" | "no_substance" | "failed" | "transient";
+
+/**
+ * Byg faktaark for én historie.
+ *
+ * `transient` is not a verdict on the story: the chain never reached a model
+ * (quota / rate limit). It MUST leave `fact_status` untouched so the story is
+ * picked up by the next run — see main() below.
+ */
 export async function buildFactSheet(
   story: Pick<StoryRow, "headline" | "summary" | "content_raw" | "athlete_name" | "sport" | "university">,
   chain: ChainLike,
-): Promise<{ factSheet: FactSheet | null; status: "built" | "no_substance" | "failed" }> {
+): Promise<{ factSheet: FactSheet | null; status: FactStatus }> {
   // Kildens «UP NEXT» er sand når referatet skrives, men ikke når vi genererer
   // dage senere. Fjern den FØR faktaarket bygges — se forward-looking.ts.
   const source = stripForwardLooking(story.content_raw ?? story.summary ?? story.headline ?? "").slice(0, 8000);
@@ -256,8 +275,9 @@ export async function buildFactSheet(
   try {
     const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 900, json: true });
     text = res.text;
-  } catch {
-    return { factSheet: null, status: "failed" };
+  } catch (err) {
+    // A quota failure is the weather, not the story.
+    return { factSheet: null, status: isTransientLLMError(err) ? "transient" : "failed" };
   }
 
   const jsonStr = extractJson(text);
@@ -274,7 +294,7 @@ export async function buildFactSheet(
 }
 
 async function main(): Promise<void> {
-  const { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget } = parseArgs();
+  const { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget, paceMs } = parseArgs();
   const db = createD1Client();
   const chain = new ProviderChain(db);
 
@@ -299,11 +319,35 @@ async function main(): Promise<void> {
   const stories = result.results;
   console.log(`Bygger faktaark for ${stories.length} historie(r)${dryRun ? " (DRY-RUN)" : ""}...\n`);
 
-  let built = 0, noSubstance = 0, failed = 0, matchFactsFound = 0;
+  let built = 0, noSubstance = 0, failed = 0, transient = 0, matchFactsFound = 0;
+  // If the chain is spent, it is spent for the NEXT story too. Three in a row
+  // is not bad luck, it is an exhausted quota — stop rather than burn the rest
+  // of the window on calls that cannot succeed.
+  const MAX_CONSECUTIVE_TRANSIENT = 3;
+  let consecutiveTransient = 0;
+  let index = 0;
+
   for (const story of stories) {
+    // Pause BETWEEN calls, not before the first.
+    if (index++ > 0 && paceMs > 0) await sleep(paceMs);
+
     const result = await buildFactSheet(story, chain);
     let factSheet = result.factSheet;
     const status = result.status;
+
+    if (status === "transient") {
+      // NO write: fact_status stays NULL, so the story is back in the next run.
+      // Writing 'failed' here is what lost it forever.
+      transient++;
+      consecutiveTransient++;
+      console.log(`  [${status}] ${story.id} ${story.headline?.slice(0, 60) ?? ""} — chain is rate limited, retried next run`);
+      if (consecutiveTransient >= MAX_CONSECUTIVE_TRANSIENT) {
+        console.log(`\n⏸ ${MAX_CONSECUTIVE_TRANSIENT} stories in a row with no answer from any provider — stopping the run here.`);
+        break;
+      }
+      continue;
+    }
+    consecutiveTransient = 0;
 
     // KAMPEN SELV, før alt andet: regelbaseret, ingen LLM, ingen browser-render.
     // Prøv den gemte kildetekst først — en tredjedel af historierne bærer
@@ -372,6 +416,7 @@ async function main(): Promise<void> {
 
   console.log(
     `\nFærdig. Bygget: ${built} | Uden substans: ${noSubstance} | Fejlet: ${failed}` +
+    (transient ? ` | Afventer kvote: ${transient}` : "") +
     ` | Med kampforløb: ${matchFactsFound}` +
       (renderEnabled ? ` | Box scores: ${boxScoreFound} fundet (${rendersUsed}/${boxScoreBudget} render)` : ""),
   );
