@@ -62,7 +62,9 @@ const opts = { system: "s", prompt: "p", max_tokens: 100 };
 async function main(): Promise<void> {
   // The bug itself.
   const chain = new ProviderChain(brokenDb(), [provider("good", () => Promise.resolve(answer))]);
-  const got = await chain.generate(opts).catch((err: unknown) => err);
+  const got: LLMResponse | Error = await chain.generate(opts).catch((err: unknown) =>
+    err instanceof Error ? err : new Error(String(err)),
+  );
   check(
     got instanceof Error ? `threw: ${got.message}` : got.text,
     answer.text,
