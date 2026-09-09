@@ -48,6 +48,7 @@ jobs:
             pipeline/generate/_draft-pack-test.ts \
             pipeline/generate/_factsheet-status-test.ts \
             pipeline/lib/llm/_errors-test.ts \
+            pipeline/lib/llm/_chain-test.ts \
             pipeline/catalogue/_catalogue-test.ts \
             pipeline/checks/_platform-limits-test.ts \
             pipeline/checks/_false-transfers-test.ts \

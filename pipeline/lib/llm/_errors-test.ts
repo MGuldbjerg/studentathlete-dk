@@ -56,6 +56,14 @@ check(isTransientLLMError(new LLMHttpError(GEMINI_503, 503)), true, "503 is tran
 check(isRateLimitError(new LLMHttpError(GEMINI_503, 503)), false, "503 is not a rate limit");
 check(isServerError(new LLMHttpError("bad request", 400)), false, "400 is not a server error");
 
+// Workers AI answers 200 with success:false when the daily neuron allocation is
+// spent. It resets at midnight, so it is a quota like any other.
+const CF_NEURONS =
+  "Cloudflare AI fejl: AiError: you have used up your daily free allocation of 10,000 neurons, please upgrade to Cloudflare's Workers Paid plan if you would like to continue usage.";
+check(isRateLimitError(new LLMHttpError(CF_NEURONS, 429)), true, "spent neuron allocation is a quota");
+check(isRateLimitError(new Error(CF_NEURONS)), true, "...even as a bare Error, by its wording");
+check(isTransientLLMError(new Error(CF_NEURONS)), true, "spent neuron allocation is transient");
+
 // ── What must NOT count as transient ─────────────────────────────────────────
 // A malformed request is our bug and will fail identically on every retry.
 check(isRateLimitError(new LLMHttpError("mistral API fejl (400): bad request", 400)), false, "400 is permanent");

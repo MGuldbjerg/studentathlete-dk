@@ -9,7 +9,7 @@ import { LLMHttpError, parseRetryDelayMs } from "./errors";
 
 interface CFAIResponse {
   result: {
-    response: string;
+    response: unknown;
   };
   success: boolean;
   errors: Array<{ message: string }>;
@@ -62,12 +62,20 @@ export class CloudflareAIProvider implements LLMProvider {
     const data = (await response.json()) as CFAIResponse;
 
     if (!data.success) {
-      throw new Error(
-        `Cloudflare AI fejl: ${data.errors.map((e) => e.message).join(", ")}`,
-      );
+      const detail = data.errors.map((e) => e.message).join(", ");
+      // Workers AI answers 200 with success:false when the free daily neuron
+      // allocation is spent (code 4006). That is a quota, and it resets — it
+      // must not read as a broken request. Given as 429 so the chain rests it
+      // for the remainder of the run.
+      const spent = /neurons|daily free allocation/i.test(detail);
+      throw new LLMHttpError(`Cloudflare AI fejl: ${detail}`, spent ? 429 : 400);
     }
 
-    const text = data.result?.response ?? "";
+    // Llama does not always answer with a string; an object here is JSON the
+    // caller can still use, and — left alone — a length of `undefined` that
+    // turns the token estimate into NaN.
+    const raw = data.result?.response;
+    const text = typeof raw === "string" ? raw : raw == null ? "" : JSON.stringify(raw);
 
     // CF rapporterer ikke altid token-counts — estimér
     return {

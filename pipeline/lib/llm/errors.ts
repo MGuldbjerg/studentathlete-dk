@@ -41,7 +41,7 @@ export class AllProvidersFailedError extends Error {
 export function isRateLimitError(err: unknown): boolean {
   if (err instanceof LLMHttpError && (err.status === 429 || err.status === 402)) return true;
   const msg = err instanceof Error ? err.message : String(err);
-  return /\(429\)|rate.?limit|quota|RESOURCE_EXHAUSTED|daglig grænse/i.test(msg);
+  return /\(429\)|rate.?limit|quota|RESOURCE_EXHAUSTED|daglig grænse|neurons|daily free allocation/i.test(msg);
 }
 
 /**

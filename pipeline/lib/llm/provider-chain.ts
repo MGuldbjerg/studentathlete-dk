@@ -40,6 +40,11 @@ async function getUsageToday(
   return result.results[0]?.requests ?? 0;
 }
 
+/** Non-finite counts become 0: an estimate we cannot make is not a NULL column. */
+function countable(n: number): number {
+  return Number.isFinite(n) ? n : 0;
+}
+
 async function recordUsage(
   db: D1Client,
   provider: string,
@@ -55,7 +60,7 @@ async function recordUsage(
        tokens_input = tokens_input + excluded.tokens_input,
        tokens_output = tokens_output + excluded.tokens_output,
        errors = errors + excluded.errors`,
-    [provider, getToday(), tokensIn, tokensOut, isError ? 1 : 0],
+    [provider, getToday(), countable(tokensIn), countable(tokensOut), isError ? 1 : 0],
   );
 }
 
@@ -71,8 +76,9 @@ export class ProviderChain {
    */
   private cooldownUntil = new Map<string, number>();
 
-  constructor(private db: D1Client) {
-    this.providers = [
+  /** `providers` is injectable so tests can drive the chain without network. */
+  constructor(private db: D1Client, providers?: LLMProvider[]) {
+    this.providers = providers ?? [
       new MistralProvider(),
       new GeminiProvider(),
       new GroqProvider(),
@@ -132,19 +138,26 @@ export class ProviderChain {
 
       try {
         const response = await provider.generate(opts);
+        // The answer is already paid for. Accounting for it is a bookkeeping
+        // detail and must never be able to throw it away: a NOT NULL failure
+        // on llm_usage discarded finished factsheets on 9 September 2026.
         await recordUsage(
           this.db,
           provider.name,
           response.tokens_input,
           response.tokens_output,
           false,
-        );
+        ).catch((err: unknown) => {
+          console.warn(`  ⚠ usage not recorded for ${provider.name}: ${err instanceof Error ? err.message : String(err)}`);
+        });
         return response;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.warn(`  ⚠ ${provider.name} fejlede: ${msg}`);
         errors.push(`${provider.name}: ${msg}`);
-        await recordUsage(this.db, provider.name, 0, 0, true);
+        await recordUsage(this.db, provider.name, 0, 0, true).catch(() => {
+          /* the failure above is the story, not our failure to write it down */
+        });
 
         const suggested = err instanceof LLMHttpError ? err.retryAfterMs : undefined;
         if (isRateLimitError(err)) {
