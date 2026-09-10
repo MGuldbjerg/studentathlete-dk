@@ -12,18 +12,46 @@
  * mistral-small missed is better, not wrong — so this reports what each model
  * found and leaves the judgement to a person reading the table.
  *
- *   npx tsx pipeline/backtest/model-bakeoff.ts [--stories 6]
+ *   npx tsx pipeline/backtest/model-bakeoff.ts [--stories 6] [--openrouter]
+ *
+ * A model id containing "/" is routed to OpenRouter and needs OPENROUTER_API_KEY;
+ * anything else goes to Mistral on MISTRAL_API_KEY. --openrouter adds the free
+ * OpenRouter candidates to the run.
  */
 import { createD1Client } from "../lib/d1-client";
 import { openAICompatibleGenerate } from "../lib/llm/openai-compat";
 import { buildFactSheet, renderFactSheet, type ChainLike, type FactSheet } from "../generate/build-factsheet";
 import { unsupportedNumbers } from "../generate/fact-numbers";
 
-const CANDIDATES = [
+const MISTRAL_CANDIDATES = [
   "ministral-14b-latest",
   "ministral-8b-latest",
   "ministral-3b-latest",
   "open-mistral-nemo",
+];
+
+/**
+ * The free OpenRouter models that declare structured output. Free there means
+ * 20 req/min and 50 req/day (1000/day after $10 of lifetime credit), so these
+ * are candidates for a fallback rung, not for carrying the stage.
+ *
+ * Measured 2026-09-10, 6 stories, and none of them earned the rung:
+ *
+ *   nemotron-3-super-120b:free  built 1/6, 26 s/story — a reasoning model whose
+ *     `reasoning` field eats the token budget, so the JSON truncates on real
+ *     sources. Valid JSON on a toy prompt, unusable on an 8 kB one.
+ *   gemma-4-31b-it:free         built 0/6, 429 in ~200 ms every time, from
+ *     `limit_source: upstream_provider_shared_pool` — not our quota, we are
+ *     queueing behind everyone else on Google AI Studio's shared free pool.
+ *   nex-n2.5-pro:free           built 4/6 but 85 s/story (once 152 s) and 14
+ *     facts where ministral-3b found 94. A 60-story run would take 85 minutes.
+ *
+ * The free rung we already have on the Mistral key beats all three.
+ */
+const OPENROUTER_CANDIDATES = [
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "google/gemma-4-31b-it:free",
+  "nex-agi/nex-n2.5-pro:free",
 ];
 
 interface Row {
@@ -37,12 +65,19 @@ interface Row {
   university: string;
 }
 
+/** An id with a "/" in it is an OpenRouter id; everything else is Mistral's. */
 function chainFor(model: string): ChainLike {
+  const viaOpenRouter = model.includes("/");
+  const endpoint = viaOpenRouter
+    ? "https://openrouter.ai/api/v1/chat/completions"
+    : "https://api.mistral.ai/v1/chat/completions";
+  const key = viaOpenRouter ? process.env.OPENROUTER_API_KEY : process.env.MISTRAL_API_KEY;
+  if (!key) throw new Error(`missing ${viaOpenRouter ? "OPENROUTER_API_KEY" : "MISTRAL_API_KEY"}`);
   return {
     generate: (opts) =>
       openAICompatibleGenerate(
-        "https://api.mistral.ai/v1/chat/completions",
-        process.env.MISTRAL_API_KEY!,
+        endpoint,
+        key,
         model,
         opts.system,
         opts.prompt,
@@ -51,6 +86,11 @@ function chainFor(model: string): ChainLike {
         opts.json ?? false,
       ),
   };
+}
+
+/** OpenRouter's free tier allows 20 requests a minute. Stay under it. */
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 function count(sheet: FactSheet | null): { facts: number; quotes: number; substance: boolean } {
@@ -64,6 +104,14 @@ function count(sheet: FactSheet | null): { facts: number; quotes: number; substa
 
 async function main(): Promise<void> {
   const n = Number(process.argv[process.argv.indexOf("--stories") + 1]) || 6;
+  const withOpenRouter = process.argv.includes("--openrouter");
+  const candidates = [...MISTRAL_CANDIDATES, ...(withOpenRouter ? OPENROUTER_CANDIDATES : [])];
+
+  if (withOpenRouter && !process.env.OPENROUTER_API_KEY) {
+    console.error("--openrouter needs OPENROUTER_API_KEY in the environment.");
+    process.exit(1);
+  }
+
   const db = createD1Client();
 
   // Built while mistral-small was still healthy, and long enough to be worth
@@ -93,7 +141,10 @@ async function main(): Promise<void> {
     console.log(`── [${story.id}] ${story.athlete_name} — ${story.headline?.slice(0, 60) ?? ""}`);
     console.log(`   mistral-small (stored)       ${base.facts} facts, ${base.quotes} quotes, ${baseBad.length} unsourced numbers`);
 
-    for (const model of CANDIDATES) {
+    for (const model of candidates) {
+      // The free OpenRouter tier is 20 rpm; a candidate list of three plus four
+      // Mistral models would trip it inside one story otherwise.
+      if (model.includes("/")) await sleep(3500);
       const t0 = Date.now();
       let line: string;
       try {
@@ -115,17 +166,17 @@ async function main(): Promise<void> {
       } catch (err) {
         line = `ERROR ${err instanceof Error ? err.message.slice(0, 90) : String(err)}`;
       }
-      console.log(`   ${model.padEnd(28)} ${line}`);
+      console.log(`   ${model.padEnd(38)} ${line}`);
     }
     console.log();
   }
 
   console.log("── totals ──");
-  for (const model of CANDIDATES) {
+  for (const model of candidates) {
     const t = totals.get(model);
     if (!t) continue;
     console.log(
-      `  ${model.padEnd(28)} built ${t.ok}/${results.length}, ${t.facts} facts, ${t.quotes} quotes, ${t.invented} unsourced numbers, ${Math.round(t.ms / results.length)} ms/story`,
+      `  ${model.padEnd(38)} built ${t.ok}/${results.length}, ${t.facts} facts, ${t.quotes} quotes, ${t.invented} unsourced numbers, ${Math.round(t.ms / results.length)} ms/story`,
     );
   }
 }
