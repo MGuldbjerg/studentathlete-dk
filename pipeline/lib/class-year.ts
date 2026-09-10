@@ -36,6 +36,20 @@ const MAPPINGS: ClassYearMapping[] = [
 ];
 
 /**
+ * Er strengen ET AF de kendte class-year-tokens?
+ *
+ * `resolveClassYear` kan ikke svare på det: den gemmer en ukendt værdi som rå
+ * `classYear`, så `classYear !== null` er sandt for enhver streng — også
+ * "Mikkel Guldbjerg". Kaldere der skal VIDE om noget er en årgang (fx
+ * navnevagten i roster-clean) skal bruge denne i stedet.
+ */
+export function isClassYearToken(raw: string | null | undefined): boolean {
+  const trimmed = raw?.trim();
+  if (!trimmed) return false;
+  return MAPPINGS.some((m) => m.patterns.test(trimmed));
+}
+
+/**
  * Beregn akademisk år ud fra en dato.
  * Måned >= 8 (august) → kalenderåret. Måned < 8 → kalenderåret - 1.
  */

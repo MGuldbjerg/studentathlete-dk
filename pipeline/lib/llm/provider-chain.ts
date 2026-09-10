@@ -16,6 +16,7 @@ import { AllProvidersFailedError, LLMHttpError, isRateLimitError, isServerError 
 
 const DAILY_LIMITS: Record<string, number> = {
   mistral: 500,
+  "mistral-nemo": 500,
   gemini: 200,
   groq: 800,
   "cloudflare-ai": 150,
@@ -80,6 +81,10 @@ export class ProviderChain {
   constructor(private db: D1Client, providers?: LLMProvider[]) {
     this.providers = providers ?? [
       new MistralProvider(),
+      // Safety net: a second model on the same key, at the same 188 rpm. When
+      // Mistral zeroed mistral-small's allowance on 4 September the chain fell
+      // straight through to Gemini's 5 rpm; this rung would have absorbed it.
+      new MistralProvider("open-mistral-nemo", "mistral-nemo"),
       new GeminiProvider(),
       new GroqProvider(),
       new CloudflareAIProvider(),

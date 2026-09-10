@@ -46,6 +46,7 @@ jobs:
             pipeline/generate/_group-stories-test.ts \
             pipeline/generate/_quality-check-test.ts \
             pipeline/generate/_draft-pack-test.ts \
+            pipeline/generate/_fix-pack-test.ts \
             pipeline/generate/_factsheet-status-test.ts \
             pipeline/lib/llm/_errors-test.ts \
             pipeline/lib/llm/_chain-test.ts \

@@ -25,8 +25,8 @@ import { generateSlug } from "../../src/lib/slug";
 import { samePerson, rosterKey } from "../lib/athlete-identity";
 import { genderFromTeamUrl } from "../../src/lib/gender";
 import { sameInstitution } from "../../src/lib/school-name";
-import { resolveClassYear, getAcademicYear } from "../lib/class-year";
-import { cleanPosition, cleanRosterName } from "../../src/lib/roster-clean";
+import { resolveClassYear, getAcademicYear, isClassYearToken } from "../lib/class-year";
+import { cleanPosition, cleanRosterName, isRosterArtifact } from "../../src/lib/roster-clean";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import type { School } from "../lib/types";
 
@@ -404,6 +404,7 @@ async function main(): Promise<void> {
   let totalFound = 0;
   let totalProcessed = 0;
   let totalErrors = 0;
+  let artifactsSkipped = 0;
 
   for (const check of checks) {
     try {
@@ -542,6 +543,16 @@ async function main(): Promise<void> {
         // ellers gør et dobbelt mellemrum fra skolen atleten til "omdøbt" ved hver
         // kørsel (og dobbeltmellemrummet lander i det viste navn).
         const athlete = { ...rawEntry, name: cleanRosterName(rawEntry.name) ?? rawEntry.name };
+
+        // A section heading is not a person. Louisville's track roster minted
+        // "Distance" and "R-So." as athletes this way, and a factsheet was then
+        // built for one of them. Rejected at the only place a name enters.
+        if (isRosterArtifact(athlete.name, isClassYearToken)) {
+          console.log(`    ⊘ "${athlete.name}" is a table artifact, not an athlete — skipped`);
+          artifactsSkipped++;
+          continue;
+        }
+
         const slug = generateSlug(athlete.name);
         const sportKey = sportKeyFromSource(check.sport);
         const { classYear, expectedGraduation, yearEnrolled } =
@@ -757,6 +768,7 @@ async function main(): Promise<void> {
 
   console.log(
     `\nFærdig. Behandlet: ${totalProcessed}, fundet: ${totalFound} nye danske atlet(er), fejl: ${totalErrors}.` +
+      (artifactsSkipped ? ` Tabel-artefakter afvist: ${artifactsSkipped}.` : "") +
       (renderEnabled ? ` Render brugt: ${rendersUsed}/${renderBudget}.` : ""),
   );
 }
