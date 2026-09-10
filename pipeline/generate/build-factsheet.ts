@@ -294,7 +294,11 @@ export async function buildFactSheet(
 
   let text: string;
   try {
-    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 900, json: true });
+    // 900 truncated the JSON on fact-rich sources, and a cut-off object parses
+    // as nothing: story 3992 (35 kB, 24 facts) failed on every model at 900 and
+    // built 29 facts at 1600. 2400 found no more, so the ceiling was the only
+    // thing wrong. Measured 2026-09-09 with pipeline/backtest/model-bakeoff.ts.
+    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 1600, json: true });
     text = res.text;
   } catch (err) {
     // A quota failure is the weather, not the story.
