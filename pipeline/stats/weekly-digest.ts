@@ -34,9 +34,16 @@ async function digestFor(db: Db, country: string): Promise<boolean> {
     );
     const counts: Record<string, number> = {};
     for (const r of rl.results) counts[r.decision] = r.cnt;
-    const total = (counts.approved_as_is ?? 0) + (counts.edited ?? 0) + (counts.rejected ?? 0);
+    // `approved_after_fix` (migration 051) er en godkendelse af den kladde
+    // natkørslen rettede. Den skal med i totalen, ellers falder linjen tilbage
+    // til «ingen beslutninger» i en uge hvor maskinen rettede dem alle.
+    const total =
+      (counts.approved_as_is ?? 0) +
+      (counts.approved_after_fix ?? 0) +
+      (counts.edited ?? 0) +
+      (counts.rejected ?? 0);
     if (total > 0) {
-      reviewLine = `✅ ${counts.approved_as_is ?? 0} godkendt som-er · ✏️ ${counts.edited ?? 0} redigeret · ❌ ${counts.rejected ?? 0} afvist (28 dage)`;
+      reviewLine = `✅ ${counts.approved_as_is ?? 0} godkendt som-er · 🧹 ${counts.approved_after_fix ?? 0} godkendt efter natrettelse · ✏️ ${counts.edited ?? 0} redigeret · ❌ ${counts.rejected ?? 0} afvist (28 dage)`;
     }
   } catch {
     /* review_log findes ikke endnu — udelad linjen */

@@ -141,3 +141,22 @@ ny session arver den i stedet for at genopdage nøglerne og antage frit spil.
 Skellet er ikke «stort vs. småt», men **hvad der kan fortrydes**. Et kodedeploy
 kan rulles tilbage med et nyt deploy, og CI har set koden. En udgivelse kan ikke
 rulles tilbage — den er læst, og sitet skriver om navngivne mennesker.
+
+### Én stående undtagelse: natkørslen kl. 01:00 (aftalt 2026-09-10)
+
+Windows-opgaven `StudentAthlete-kladderettelse` kører
+`scripts/review-drafts.sh --fix` hver nat kl. 01:00 og skriver i D1 **uden at
+spørge**. Mikkel bad om den: «check and correct each unchecked draft … so I only
+need to focus on what works». Den må præcis to ting, og intet andet:
+
+- dom `fix` → skrive den rettede tekst i en **upubliceret** kladde
+  (`articles.content` + `claude_fixed_content`; `published` og `original_content`
+  røres aldrig)
+- dom `reject` → gemme kladden i `review_log` og slette artiklen
+
+Den **udgiver ikke**, og den rører ikke `pages` eller `site_content`. Udgivelse er
+stadig et menneske (beslutning 2026-07-02). Undtagelsen gælder kun dette script —
+den flytter ikke grænsen for andre D1-skrivninger, og den må ikke udvides til at
+gøre mere. Slukkes den med:
+
+    Unregister-ScheduledTask -TaskName StudentAthlete-kladderettelse

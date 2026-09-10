@@ -61,6 +61,7 @@ MIGRATIONS=(
   db/migration-048-analyze.sql
   db/migration-049-stats-cache.sql
   db/migration-050-fact-attempts.sql
+  db/migration-051-claude-fix.sql
 )
 
 for f in "${MIGRATIONS[@]}"; do

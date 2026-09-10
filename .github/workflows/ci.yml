@@ -43,6 +43,7 @@ jobs:
             pipeline/generate/_event-timing-test.ts \
             pipeline/generate/_forward-looking-test.ts \
             pipeline/generate/_fact-numbers-test.ts \
+            pipeline/generate/_number-roles-test.ts \
             pipeline/generate/_group-stories-test.ts \
             pipeline/generate/_quality-check-test.ts \
             pipeline/generate/_draft-pack-test.ts \

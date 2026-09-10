@@ -107,7 +107,8 @@ export async function publishArticle(id: number): Promise<void> {
   const article = await db
     .prepare(
       `SELECT a.cover_image_url, a.title, a.article_type, a.summary, a.content,
-              a.athlete_id, a.source_url, a.original_content, a.fabrication_risk,
+              a.athlete_id, a.source_url, a.original_content,
+              a.claude_fixed_content, a.fabrication_risk,
               s.fact_sheet, s.sensitive,
               at.photo_url, at.sport
        FROM articles a
@@ -125,6 +126,7 @@ export async function publishArticle(id: number): Promise<void> {
       athlete_id: number | null;
       source_url: string | null;
       original_content: string | null;
+      claude_fixed_content: string | null;
       fabrication_risk: string | null;
       fact_sheet: string | null;
       sensitive: string | null;
@@ -153,10 +155,27 @@ export async function publishArticle(id: number): Promise<void> {
   // indholdet afviger fra original_content. Kun AI-kladder (original_content
   // sat) logges — manuelt oprettede artikler er ikke review-beslutninger.
   // Må aldrig blokere udgivelsen (kører også før migration-027 er kørt).
+  //
+  // Fra migration 051 er `original_content` ikke længere det rigtige
+  // udgangspunkt alene. Natkørslen (scripts/review-drafts.sh --fix) retter
+  // kladder kl. 01:00, og den rettede tekst ligger i `claude_fixed_content`.
+  // Sammenlignes der stadig mod modellens oprindelige kladde, afviger de to
+  // ALTID efter en natrettelse — og så ville hver udgivelse blive logget som
+  // «edited», uanset om Mikkel rørte et komma. Målet ville stille og roligt
+  // holde op med at måle noget.
+  //
+  // Derfor: er kladden maskinrettet, er DEN udgangspunktet, og en uberørt
+  // godkendelse logges som `approved_after_fix`. `approved_as_is` betyder
+  // fortsat kun det stærke: en kladde der gik hele vejen uberørt.
   if (article?.original_content) {
     try {
+      const baseline = article.claude_fixed_content ?? article.original_content;
       const decision =
-        article.content === article.original_content ? "approved_as_is" : "edited";
+        article.content !== baseline
+          ? "edited"
+          : article.claude_fixed_content
+            ? "approved_after_fix"
+            : "approved_as_is";
       await db
         .prepare(
           `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive)
