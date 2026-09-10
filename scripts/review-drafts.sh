@@ -165,7 +165,11 @@ if [ "$DO_FIX" = "1" ]; then
       echo "  → retter #$id"
       # Igen uden værktøjer: modellen skal svare med den rettede tekst, ikke
       # selv skrive i basen. Skrivningen sker ét sted — apply-draft-fix.ts.
-      if claude -p "$(cat "$FPACK")" --allowed-tools "" > "$FOUT" 2>logs/review/ret-fejl-$id.txt; then
+      # Pakken kommer på STDIN, ikke som argument. Det er den form der er
+      # prøvet igennem på kladde #245 (2026-09-10), og den holder uanset hvor
+      # lang pakken bliver — en rette-pakke er større end en gennemgangspakke,
+      # fordi fundene er med.
+      if claude -p --allowed-tools "" < "$FPACK" > "$FOUT" 2>logs/review/ret-fejl-$id.txt; then
         npx tsx pipeline/generate/apply-draft-fix.ts --article "$id" --file "$FOUT" \
           || echo "  ! rettelsen af #$id blev IKKE gemt (se $FOUT)"
       else
