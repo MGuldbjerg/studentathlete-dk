@@ -13,6 +13,10 @@
  *
  *   tal        Står ethvert tal, hver alder og hver dato i kladden også i kilden
  *              eller faktaarket? («23-årige» og «18 kampe» var opdigtet i #105.)
+ *   roller     Står tallet i kilden, men i en ANDEN rolle? Kladde #237 gjorde
+ *              sæsonrekorden «(3-1)» til kampens resultat og lod weekendens
+ *              fire assists bære en ligaførsteplads kilden gav fem. Begge
+ *              bestod tal-tjekket, for tallene ER i kilden. Se number-roles.ts.
  *   navne      Står hvert person-navn (to store bogstaver i træk) i kilden?
  *              (Cheftræneren «Mark Carr» i #107 fandtes ikke; han heder Daniel
  *              Clitnovici og stod på kildens egen side.)
@@ -33,10 +37,11 @@
  */
 
 import { checkEventTiming } from "./event-timing";
+import { numberRoleFindings } from "./number-roles";
 
 export interface Finding {
   severity: "high" | "medium";
-  category: "numbers" | "names" | "quotes" | "identity" | "pronouns" | "timing" | "class_year";
+  category: "numbers" | "roles" | "names" | "quotes" | "identity" | "pronouns" | "timing" | "class_year";
   /** Det konkrete i kladden der udløste fundet. */
   claim: string;
   /** Hvad et menneske skal kigge efter. */
@@ -304,6 +309,20 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
     });
   }
 
+  // ── 1b. Tal i den forkerte rolle ──────────────────────────────────────────
+  // Adskilt fra tjekket ovenfor med vilje: dét spørger OM tallet står i kilden,
+  // det her spørger hvad kilden bruger det TIL. De to fejl har ikke samme
+  // udbedring, og de har ikke samme pålidelighed.
+  for (const r of numberRoleFindings({
+    title: input.title,
+    content: input.content,
+    factSheet: input.factSheet,
+    sourceText: input.sourceText,
+    athleteNames: [input.athlete?.name, input.athlete?.preferredName],
+  })) {
+    findings.push({ severity: "high", category: "roles", claim: r.claim, why: r.why });
+  }
+
   // ── 2. Navne ──────────────────────────────────────────────────────────────
   const athleteName = normalise(input.athlete?.name ?? "");
   const missingNames: string[] = [];
@@ -478,6 +497,12 @@ const PRECISE: ReadonlySet<Finding["category"]> = new Set([
   "pronouns",
   "quotes",
   "class_year",
+  // Rolle-fund er præcise af konstruktion: de kræver en KONFLIKT med kilden,
+  // ikke et fravær. Målt mod hele arkivet 2026-09-08 (79 artikler med kilde):
+  // 8 fund i udkast — de seks sæsonpremierer, den opdigtede 3-1 og de fire
+  // assists — og NUL fund i udgivet, godkendt tekst. Derfor sætter ét fund
+  // badgen, som identitet og tid gør det.
+  "roles",
 ]);
 
 const CLUSTER_THRESHOLD = 2;
@@ -503,6 +528,7 @@ export function summarise(findings: Finding[]): string {
   }
   const label: Record<Finding["category"], string> = {
     numbers: "tal uden kilde",
+    roles: "tal i forkert rolle",
     names: "navne uden kilde",
     quotes: "citat uden kilde",
     identity: "identitet",

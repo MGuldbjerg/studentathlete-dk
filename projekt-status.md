@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-04 (kladdekøen tømt; D1-kvoten lukket; CPU-grænsen fundet)
+**Sidst opdateret**: 2026-09-14 (den tomme slug spærrede genereringen; kladdekøen tømt)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -13,6 +13,241 @@
 > hvor basen bor · om der skal være en runtime-base · at skille arbejdsbyrderne
 > · anden platform). Læs den FØR du foreslår en migration til Turso, Neon eller
 > Postgres — konklusionen er at ingen af dem rører årsagen.
+
+## 🕳️ Den tomme slug spærrede genereringen (2026-09-14)
+
+To historier — 5153 (Luca Rosen) og 4914 (Filippa Mortensen) — fejlede i **alle
+tre kørsler** 13. september med `UNIQUE constraint failed: articles.slug`. Det
+var ikke to uheld, men én fejl med en lang hale:
+
+1. Modellen bliver klippet af midt i sit JSON-svar, så den lukkende `}` mangler.
+2. `parseArticleJson` kræver `\{[\s\S]*\}` og giver `null`.
+3. `parseArticleOutputSmart` faldt tilbage til **linjeparseren**, som tager
+   første ikke-tomme linje som overskrift. I et afkortet JSON-svar er den linje
+   bogstaveligt `{`.
+4. `generateSlug("{")` fjerner alt ikke-alfanumerisk og giver **den tomme
+   streng**. Indsættelsen lykkes — én gang.
+5. Hver senere kladde med samme brud kolliderer med den række.
+
+**#219, #247, #249 og #252 er den samme fejl.** Kun ÉN kan findes ad gangen, og
+så længe den findes, dør alle de andre. #252 (Martha Goddard) sad på den tomme
+slug hele 13. september.
+
+Rettet i «Afbrudt JSON må ikke blive til en kladde med tom slug»: afbrudt JSON
+når ikke længere linjeparseren, en tom slug kan aldrig indsættes, og
+`generateSlug` får sitets sprog med — uden det faldt den tilbage på
+`DEFAULT_LANGUAGE` («da»), så UK-slugs blev translittereret dansk.
+
+**Symptomet overlevede årsagen**, og det er den anden halvdel: en teknisk fejl
+satte historien tilbage til `new`, næste kørsel tog den, brugte et modelkald og
+fejlede igen — uden at noget sagde at den havde været der før. Migration 052
+tilføjer `stories.gen_attempts` efter samme regel som `fact_attempts` (050): ét
+afbrudt svar er vejret, tre er evidens. Efter tre får historien `gen_failed`.
+
+> 🚧 **Migration 052 er IKKE kørt endnu.** Commit `08ea48c` ligger lokalt og er
+> **bevidst ikke pushet**: forespørgslen sorterer nu `ORDER BY s.gen_attempts`,
+> så hvis koden når `main` før kolonnen findes, fejler **hele** genereringen på
+> «no such column». CI fanger det ikke — den typechecker og kører unit-tests og
+> rører aldrig D1. Rækkefølgen er: kør `db/migration-052-gen-attempts.sql`,
+> **derefter** push.
+
+## 📝 Kladdekøen tømt igen — 9 udgivet, 2 afvist (2026-09-13/14)
+
+Køen havde ligget stille siden 11. september kl. 16:00, fordi
+`review-drafts.sh` ikke havde kørt: WSL-cron kører kun når maskinen er tændt, og
+Task Scheduler-jobbet kl. 01:00 hentede ikke de to sprungne nætter (`Last Run
+Time` stod på 11-09). #249 og #250 ventede stadig på deres maskinrettelse, og
+#251 var aldrig blevet gennemgået.
+
+Udgivet: #241, #243, #245, #247, #248, #249, #250, #251, #253. Afvist: **#238**
+(dublet af #241 — samme atlet, samme weekend, samme tal, streng delmængde) og
+**#252** (struktursvigt, se ovenfor).
+
+Tre fejltyper var værd at notere:
+
+| Kladde | Fejl | Klasse |
+|---|---|---|
+| #251 | «shaves 12.2 seconds off Gonzales's personal best» — han var 12,2 sekunder **langsommere**, og i en anden distance | tal i forkert rolle |
+| #250 | «lowest individual finish in FGCU history» ud af kildens «the low individual finish for the Eagles»; selve nyheden (ASUN Golfer of the Week) manglede helt | tal i forkert rolle + begravet nyhed |
+| #253 | hele artiklen som ÉN linje med `<br><br>` og `## **fed**`-overskrifter | formatsvigt |
+
+**#253 er en ny fejlklasse: formatet, ikke fakta.** Tallene passede; teksten var
+bare ikke markdown. Ingen af de otte mekaniske tjek ser på format — de læser
+tekst og tal, ikke opmærkning. Værd at bygge, hvis den kommer igen.
+
+**Kilden var større end pakken.** `draft-pack.ts:96` klipper kilden ved 6.000
+tegn. #249's kilde er 19.572 og ligger fuldt ud i D1 — en gennemarbejdet
+Princeton-feature om en anfører fra Surbiton, der spillede 12 dage efter en
+korsbåndsskade. Læst gennem pakken lignede kladden #219 og var til at afvise;
+læst mod hele kilden var den den bedste historie i køen. **Enhver dom over en
+lang kilde er afsagt på en tredjedel af den.**
+
+## 🌙 Natkørslen retter og afviser selv (2026-09-10)
+
+Mikkel: «check and correct each unchecked draft … so I only need to focus on what
+works». Gennemgangen fandtes allerede — den har kørt hver 3. time siden 08-19 —
+men den **dømte** kun. Nu handler den også, kl. 01:00 hver nat:
+
+| Dom | Hvad natten gør | Kan det fortrydes? |
+|---|---|---|
+| `ok` | intet | — |
+| `fix` | skriver kladden om mod sin egen kilde; den bliver **ikke** udgivet | ja: `original_content` er urørt |
+| `reject` | gemmer teksten i `review_log` og sletter artiklen | teksten ja, rækken nej |
+
+Køen om morgenen er derfor «det der virker», ikke «alt der blev skrevet». Prisen
+er sagt højt: **auto-afvisning smider kladder væk du kunne have redet**. #237
+(09-08) var netop sådan en — Claude dømte `reject`, du omgjorde det, og efter en
+rettelse blev den udgivet. Den ville natten have slettet. Teksten ligger i
+`review_log.content_snapshot`, så en fortrydelse er en genskrivning, ikke et tab.
+
+**Fire spærrer, fordi kørslen ikke har et menneske at spørge** (prøvet i
+`_fix-pack-test.ts`, 20 påstande):
+
+1. **Løkken.** En rettelse ændrer indholdet → hashen skifter → næste nat læser
+   den rettede tekst. Det er meningen. Men uden en spærre ville maskinen rette
+   sin egen rettelse i ring, hver nat. Derfor **én maskinrettelse pr. genereret
+   kladde**: `claude_fixed_content === content` betyder «rørt, lad den ligge».
+2. **Den forældede dom.** Redigerer du en kladde efter gennemgangen, passer
+   hashen ikke længere, og natten gør **ingenting** — heller ikke på en `reject`.
+   En dom over en tekst der ikke findes længere, må ikke slette dit arbejde.
+3. **Identiteten.** Står atletens efternavn ikke længere i den rettede tekst,
+   kasseres rettelsen. #101/#102 handlede om helt forkerte mennesker; det er den
+   fejlklasse der koster mest.
+4. **Grove størrelser.** Under 400 tegn, eller over det dobbelte af kladden, er
+   ikke en rettelse. Kortere er derimod tit hele rettelsen — #237 var padding.
+   En kasseret rettelse siges i loggen; en tavs kassering ser ud som «ingen fejl».
+
+**Målingen, der ellers var røget** (migration 051). `publishArticle` afgjorde
+`approved_as_is` vs `edited` ved at sammenligne `content` med `original_content`.
+Retter maskinen om natten, afviger de to ALTID — og så ville hver udgivelse se ud
+som om du redigerede. Med `claude_fixed_content` som mellemled deles strækket i to:
+
+    original_content → claude_fixed_content    hvad MASKINEN rettede
+    claude_fixed_content → content             hvad DU stadig måtte rette
+
+En uberørt godkendelse af en natrettet kladde logges som `approved_after_fix`.
+`approved_as_is` betyder fortsat kun det stærke: en kladde der gik hele vejen
+uberørt. Ugerapporten tæller begge.
+
+**Hvorfor Task Scheduler og ikke cron.** WSL-cron kører kun når maskinen er tændt,
+og der er ingen indhentning. Beviset stod i `logs/seo-friday.log`: fredagsjobbet
+kl. 01:15 har fyret **én gang** (08-28) og sprang 09-04 over. Kladder udløber
+ikke — i modsætning til en lukkekurs — så indhentning er det rigtige svar:
+`StartWhenAvailable` henter natten når maskinen næste gang er vågen. Dagens
+cron-kørsler (7, 10, 13, 16, 19) er uændret **læse**-kørsler; du skal kunne åbne
+/admin midt på dagen og se den kladde du så i morges.
+
+Filer: `fix-pack.ts` (hvilke kladder + prompten) · `apply-draft-fix.ts` (det
+eneste sted natten skriver) · `review-drafts.sh --fix` (kæden) ·
+`migration-051-claude-fix.sql`.
+
+## 🔢 New check: a number in the wrong role (2026-09-08) — `number-roles.ts`
+
+`fact-numbers.ts` asks one question — IS the number in the source? — and the
+two worst errors of the 09-08 queue both passed it, because their numbers were
+in the source. They were read in a role the source never gives them:
+
+| Draft | Wrote | The source says |
+|---|---|---|
+| #237 | «the 3-1 victory over the Huskies» | 3-1 is the season record: «Holy Cross (3-1) will return home» |
+| #237 | «the four assists … lead the Patriot League» | «MacLean's **five** assists leads the Patriot League» |
+| 11 of 26, 09-04 | a mid-season match as the season opener | the record next to the score: 3-1 means four games played |
+
+All three misread the same string. The record is the most misread number we
+have: it looks like a score and it always sits next to one.
+
+The check is the eighth in `quality-check.ts` (category `roles`), and its rule
+is that a finding needs a **conflict we can demonstrate, never an absence we
+can assume**. If the pair is simply missing from the source, this file says
+nothing — that is `fact-numbers.ts`' job, and absence is ambiguous.
+
+> ⚠️ **Rettelse 2026-09-14: tjekket havde ALDRIG kørt i produktion.**
+> `number-roles.ts` og dens test blev committet 09-10; **importen ind i
+> `checkDraft` blev ikke.** Afsnittet ovenfor beskrev derfor i seks dage noget
+> der kun fandtes i arbejdstræet — hver `check-drafts.ts` i GitHub Actions kørte
+> syv tjek, ikke otte. Wiringen er nu med.
+>
+> **Lærdom, dyrere end fejlen:** et tjek er ikke i drift, fordi filen findes og
+> testen er grøn. `git grep -l <funktionsnavn> HEAD` er det spørgsmål der
+> afslører det — arbejdstræet lyver, HEAD gør ikke.
+
+**Measured against the whole archive** (`pipeline/backtest/role-precision.ts`).
+Re-run 2026-09-14 on 88 articles with a preserved source (79 at the time of
+writing): **9 findings across 8 drafts, and 0 on the published, human-approved
+text.** That zero is why `roles` sits in `PRECISE`: one finding sets the badge,
+like identity and timing. Re-run the script when the archive grows; if it ever
+fires on approved text, tighten the rule or take `roles` back out of `PRECISE`.
+
+The ninth finding is new since 09-08 and is a **draft-side false alarm** worth
+knowing about: #249 wrote «Princeton's 0-1 shootout loss», and the check called
+0-1 unsourced because the fact sheet's `final_score` packs two results into one
+string — `"0-0 (75 minutes), 0-1 (shootout)"` — and the parser reads only the
+first. The draft was right; the checker read half the field. It does not touch
+the `PRECISE` claim, which is about approved text, but the next person in
+`number-roles.ts` should teach it that a shootout has two scores.
+
+Four defects the replay exposed before it was trustworthy, each worth keeping
+in mind for the next mechanical check:
+
+1. **The draft wrote `3‑1` with a non-breaking hyphen** (U+2011). The pattern
+   knew only U+002D, so it never saw the pair at all. A check that silently
+   fails to parse is worse than one that fires wrongly.
+2. **`(1-0-1, 0-0-0)` was read as a 0-0 scoreline** — a three-part record must
+   never be comparable to a two-part score.
+3. **`a 9-7 edge in shots` became «97 shots»** when the word split ate the
+   hyphen. Three of the first four false alarms were that one bug.
+4. **The first rank rule compared two different people's numbers** because they
+   shared a stat noun («led Rogers State with two shots» against another
+   player's «two saves»). It now demands a league placing AND the athlete's own
+   name in the sentence.
+
+The false-alarm cases are as instructive as the errors: a draft may correctly
+call a PREVIOUS match the season opener («the victory follows a 1-0 defeat to
+Cornell in the season opener»). `PRIOR_MATCH_CUES` exempts those, and it is
+calibrated on the three real cases in the archive — it should grow with real
+examples, not with guesses, since every word in it is a finding given up.
+
+## 📝 Two UK drafts corrected and published (2026-09-08)
+
+The queue held #236 (Maddie Leathem, Yale field hockey) and #237 (Marianna
+MacLean, Holy Cross). Both were rewritten against their own source and
+published; nothing was rejected. The queue is empty again.
+
+**#236** — the mechanical checker's three "names not in the source" findings
+were all false positives (`Northern Irish` plus two of the draft's own
+headings). The real errors: the draft assigned a nationality the source never
+gives — «British» in one paragraph and «Northern Irish» in the next, for an
+athlete from Newtownards, where that label is contested and ours to avoid; it
+called Picciafuoco's 41:39 penalty-stroke goal «unassisted», because the fact
+sheet's `penalty` flag stands at `false` and the empty assist list was read as
+open play; it headed a section «Match Statistics Highlight Yale's Control» over
+figures where UAlbany led two of four rows; and it spent half its length
+retelling Picciafuoco's four goals while leaving out the source's only
+description of Leathem's own play — the interception and solo run before her
+assist. Corrected version leads on that run, keeps the hometown and drops the
+nationality, names the penalty stroke, and reports the corner count with the
+line that makes it meaningful (UAlbany went 1 for 14).
+
+**#237** — mechanically clean (`fabrication_risk` = low, no flags), and the
+worst draft of the two. It invented the score «3-1 victory over the Huskies»:
+3-1 is Holy Cross' season record, sitting in the source's last line, and the
+match score appears nowhere. It made the weekend's four assists league-leading
+when the source says five (the season figure). It wrote «MacLean supplied all
+six goals» when she had a hand in all six — two goals, four assists. And an
+entire section, «contribution to team dynamics», was invented: unnamed
+team-mates, a defence that «maintained composure after the opening goal».
+The Claude review had it as `reject`; overruled, because every fact the piece
+needs is in a short, unambiguous source about the right athlete — the
+fabrications were all in padding around thin material, so the fix is to cut the
+padding and write the award piece the source supports.
+
+**Pattern worth noting**: `fabrication_risk` measured the two backwards. The
+high-risk draft needed cosmetic repair; the low-risk one invented a scoreline.
+The mechanical checks catch unsourced *names*; neither of the two most
+dangerous errors here — a record read as a score, and a season total swapped
+for a weekend total — is a name. Both are numbers that ARE in the source, in
+the wrong role. Same shape as the season-opener error from 09-04: the string is
+right there, and the draft reads it as the wrong thing.
 
 ## 📝 Draft queue cleared — 21 corrected and published, 5 rejected (2026-09-04)
 
@@ -1618,7 +1853,11 @@ Det er præcis den forskel de to lag skal dække.
 - **Workflow «Kvalitetstjek af kladder»** hver 3. time: mekanisk tjek + Discord-ping
   (også om Claudes fund, som ligger i D1 — pinget behøver ikke komme fra din maskine).
 - **Cron på WSL** kl. 7, 10, 13, 16 og 19: `scripts/review-drafts.sh` kører begge lag.
-  Fjernes med `crontab -e`.
+  Fjernes med `crontab -e`. Dette er en **læse**-kørsel: den dømmer, den retter ikke.
+- **Windows-opgaven `StudentAthlete-kladderettelse`** kl. 01:00:
+  `scripts/review-drafts.sh --fix` — samme to lag, og derefter retter/afviser den
+  (se «Natkørslen retter og afviser selv», 2026-09-10). `StartWhenAvailable`, så en
+  slukket nat hentes ved næste opstart. Fjernes med `Unregister-ScheduledTask`.
 - **Generate-workflowet** kører nu det mekaniske tjek lige efter skrivningen.
 
 **To cron-fælder, håndteret i scriptet** (begge fundet ved at køre i et tomt miljø):
