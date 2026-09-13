@@ -42,6 +42,23 @@ interface StoryWithAthlete extends Story {
   home_country: string | null;
   /** "f" | "m" | null (migration 039). Stedord er fakta, ikke et gæt fra kilden. */
   gender: string | null;
+  /** Tekniske generings-forsøg brugt på historien (migration 052). */
+  gen_attempts: number | null;
+}
+
+/**
+ * Hvor mange gange må en historie fejle TEKNISK, før vi holder op?
+ *
+ * Ét afbrudt modelsvar er ikke evidens om historien — det er vejret. Tre er.
+ * Samme tal og samme begrundelse som MAX_FACT_ATTEMPTS i build-factsheet.ts:
+ * 13. september 2026 fejlede historie 5153 og 4914 i ALLE dagens kørsler, og
+ * intet i loggen sagde at de havde været der før.
+ */
+export const MAX_GEN_ATTEMPTS = 3;
+
+/** Er historiens tekniske forsøg brugt op? */
+export function generationExhausted(attempts: number, max = MAX_GEN_ATTEMPTS): boolean {
+  return attempts >= max;
 }
 
 /**
@@ -330,6 +347,9 @@ async function main(): Promise<void> {
      AND s.relevance_score >= ?
      AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
      ORDER BY
+       -- Aldrig-prøvede historier først: en der allerede har brændt to forsøg
+       -- må ikke tage pladsen fra en frisk (samme regel som fact_attempts).
+       s.gen_attempts ASC,
        CASE WHEN s.content_raw IS NOT NULL THEN 0 WHEN s.summary IS NOT NULL THEN 1 ELSE 2 END,
        s.relevance_score DESC
      LIMIT ?`,
@@ -368,6 +388,40 @@ async function main(): Promise<void> {
   // Afbrudt modeloutput tælles for sig: det er en TEKNISK fejl der kan prøves
   // igen, ikke en kladde vagterne har dømt ude.
   let brokenOutput = 0;
+  // ... og historier hvor de tre forsøg nu ER brugt op.
+  let abandoned = 0;
+
+  /**
+   * Én teknisk fejl på én historie — tælles, og efter tre gives der op.
+   *
+   * Det ENESTE sted status sættes efter en teknisk fejl, så de tre kaldesteder
+   * (afbrudt JSON, ubrugelig overskrift, kastet fejl) ikke kan drive fra
+   * hinanden. Guard-afvisninger går IKKE herigennem: de er domme, ikke forsøg.
+   */
+  async function recordTechnicalFailure(
+    story: StoryWithAthlete,
+    reason: string,
+  ): Promise<void> {
+    const attempts = (story.gen_attempts ?? 0) + 1;
+    const giveUp = generationExhausted(attempts);
+    await db.execute(
+      giveUp
+        ? "UPDATE stories SET status = 'gen_failed', gen_attempts = ?, processed_at = datetime('now') WHERE id = ?"
+        : "UPDATE stories SET status = 'new', gen_attempts = ? WHERE id = ?",
+      [attempts, story.id],
+    );
+    if (giveUp) {
+      console.log(
+        `    → ${reason}, forsøg ${attempts}/${MAX_GEN_ATTEMPTS} — opgivet (gen_failed)`,
+      );
+      abandoned++;
+    } else {
+      console.log(
+        `    → ${reason}, forsøg ${attempts}/${MAX_GEN_ATTEMPTS} — prøves igen næste kørsel`,
+      );
+      brokenOutput++;
+    }
+  }
 
   for (const story of primaries) {
     // Sikkerhedsnet 3: Tjek om der allerede findes en artikel for denne story
@@ -481,8 +535,7 @@ async function main(): Promise<void> {
       const first = parseArticleOutputSmart(response.text, articleType);
       if (!first) {
         console.log(`  ⛔ Story ${story.id}: modellen returnerede afbrudt JSON — kasseret`);
-        await db.execute("UPDATE stories SET status = 'new' WHERE id = ?", [story.id]);
-        brokenOutput++;
+        await recordTechnicalFailure(story, "afbrudt JSON");
         continue;
       }
       let parsed: ParsedArticle = first;
@@ -640,8 +693,7 @@ async function main(): Promise<void> {
       // med UNIQUE constraint failed og tager hele kørslens historie med sig.
       if (!slug) {
         console.log(`  ⛔ Story ${story.id}: overskriften «${parsed.title}» giver ingen slug — kasseret`);
-        await db.execute("UPDATE stories SET status = 'new' WHERE id = ?", [story.id]);
-        brokenOutput++;
+        await recordTechnicalFailure(story, "ubrugelig overskrift");
         continue;
       }
 
@@ -741,11 +793,9 @@ async function main(): Promise<void> {
         ...(failuresByCountry.get(country) ?? []),
         `Story ${story.id} (${story.athlete_name}): ${err}`,
       ]);
-      // Sæt tilbage til "new" så den kan prøves igen
-      await db.execute('UPDATE stories SET status = ? WHERE id = ?', [
-        "new",
-        story.id,
-      ]);
+      // Tilbage til "new" så den kan prøves igen — men tælt, så den tredje
+      // gang bliver den sidste i stedet for at køre i ring (migration 052).
+      await recordTechnicalFailure(story, "kørselsfejl");
     }
   }
 
@@ -754,7 +804,10 @@ async function main(): Promise<void> {
     console.log(`${blockedByGuard} historie(r) afvist af identitets-/citatvagten — se ⛔ ovenfor.`);
   }
   if (brokenOutput > 0) {
-    console.log(`${brokenOutput} historie(r) kasseret på afbrudt modeloutput — prøves igen næste kørsel.`);
+    console.log(`${brokenOutput} historie(r) kasseret på teknisk fejl — prøves igen næste kørsel.`);
+  }
+  if (abandoned > 0) {
+    console.log(`${abandoned} historie(r) opgivet efter ${MAX_GEN_ATTEMPTS} tekniske forsøg (status 'gen_failed').`);
   }
 
   // Notifikationer til sidst: én besked pr. land frem for én pr. kladde, og
@@ -771,7 +824,10 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error("Artikelgenerering fejlede:", err);
-  process.exit(1);
-});
+// Kør kun main() når filen eksekveres direkte (ikke ved import i tests).
+if (process.argv[1] && process.argv[1].includes("generate-articles")) {
+  main().catch((err) => {
+    console.error("Artikelgenerering fejlede:", err);
+    process.exit(1);
+  });
+}

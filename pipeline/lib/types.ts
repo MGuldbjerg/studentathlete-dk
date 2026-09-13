@@ -35,7 +35,10 @@ export interface Story {
     | "drafted"
     | "published"
     | "rejected"
-    | "duplicate";
+    | "duplicate"
+    // Tre tekniske fejl i træk under generering (migration 052). Ikke en dom
+    // over historien — men den skal holde op med at tage en plads i køen.
+    | "gen_failed";
   discovered_at: string;
   processed_at: string | null;
 }
