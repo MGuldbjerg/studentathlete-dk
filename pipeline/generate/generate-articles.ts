@@ -12,7 +12,7 @@ import { ProviderChain } from "../lib/llm/provider-chain";
 import type { StyleCorrectionEntry } from "./prompts/system";
 import { promptsFor, promptForType, type PromptSet } from "./prompts";
 import { countryProfile, DEFAULT_COUNTRY } from "../../src/lib/countries";
-import { parseArticleOutputSmart } from "./parse-output";
+import { parseArticleOutputSmart, type ParsedArticle } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
@@ -365,6 +365,9 @@ async function main(): Promise<void> {
   const draftsByCountry = new Map<string, string[]>();
   const failuresByCountry = new Map<string, string[]>();
   let blockedByGuard = 0;
+  // Afbrudt modeloutput tælles for sig: det er en TEKNISK fejl der kan prøves
+  // igen, ikke en kladde vagterne har dømt ude.
+  let brokenOutput = 0;
 
   for (const story of primaries) {
     // Sikkerhedsnet 3: Tjek om der allerede findes en artikel for denne story
@@ -472,7 +475,17 @@ async function main(): Promise<void> {
         preferProvider,
       });
 
-      let parsed = parseArticleOutputSmart(response.text, articleType);
+      // null = modellen blev klippet af midt i sit JSON-svar. Før guarden faldt
+      // sådan et svar ned i linjeparseren og blev til en kladde med titlen «{»
+      // og TOM slug — se parse-output.ts. Kasseres, så historien kan prøves igen.
+      const first = parseArticleOutputSmart(response.text, articleType);
+      if (!first) {
+        console.log(`  ⛔ Story ${story.id}: modellen returnerede afbrudt JSON — kasseret`);
+        await db.execute("UPDATE stories SET status = 'new' WHERE id = ?", [story.id]);
+        brokenOutput++;
+        continue;
+      }
+      let parsed: ParsedArticle = first;
 
       /**
        * CITATVAGT: ord lagt i munden på et navngivent menneske er den værste
@@ -524,10 +537,13 @@ async function main(): Promise<void> {
             json: true,
           });
           const reparsed = parseArticleOutputSmart(repair.text, articleType);
-          const stillBad = unsupportedNumbers(`${reparsed.title} ${reparsed.content}`, allowedFacts);
+          // En afbrudt reparation er ingen reparation — behold den oprindelige.
+          const stillBad = reparsed
+            ? unsupportedNumbers(`${reparsed.title} ${reparsed.content}`, allowedFacts)
+            : badNumbers;
           // Kun hvis reparationen faktisk gjorde det BEDRE. En model der
           // «retter» ved at digte videre skal ikke belønnes.
-          if (stillBad.length < badNumbers.length && reparsed.content) {
+          if (reparsed && stillBad.length < badNumbers.length && reparsed.content) {
             parsed = reparsed;
             badNumbers = stillBad;
             console.log(`    → repareret, ${stillBad.length} tilbage`);
@@ -595,15 +611,19 @@ async function main(): Promise<void> {
             // af talvagten ovenfor, og to flag om samme tal er støj. Tilbage
             // står den interessante klasse: et tal kilden kender, som den
             // anden model ikke brugte — altså muligvis hængt på det forkerte.
-            const badSet = new Set(badNumbers);
-            unstable = unstableNumbers(
-              `${parsed.title} ${parsed.content}`,
-              `${parsedSecond.title} ${parsedSecond.content}`,
-            ).filter((n) => !badSet.has(n));
-            if (unstable.length > 0) {
-              console.log(
-                `  ⚖ Story ${story.id}: ${second.provider} skrev ikke ${unstable.join(", ")}`,
-              );
+            // Svarede den anden model med afbrudt JSON, er der intet at holde
+            // op imod — en tom anden mening er ikke uenighed.
+            if (parsedSecond) {
+              const badSet = new Set(badNumbers);
+              unstable = unstableNumbers(
+                `${parsed.title} ${parsed.content}`,
+                `${parsedSecond.title} ${parsedSecond.content}`,
+              ).filter((n) => !badSet.has(n));
+              if (unstable.length > 0) {
+                console.log(
+                  `  ⚖ Story ${story.id}: ${second.provider} skrev ikke ${unstable.join(", ")}`,
+                );
+              }
             }
           }
         } catch {
@@ -611,7 +631,19 @@ async function main(): Promise<void> {
         }
       }
 
-      const slug = generateSlug(parsed.title);
+      // Sproget med, som i save-draft.ts og apply-draft-decisions.ts: uden det
+      // faldt kaldet tilbage på DEFAULT_LANGUAGE ("da"), så UK-slugs blev
+      // translittereret dansk (ø→oe).
+      const slug = generateSlug(parsed.title, 120, prompts.language);
+      // Sidste værn om den tomme slug. En overskrift uden ét eneste bogstav
+      // eller tal giver "" — og kun ÉN række kan have den, så nummer to vælter
+      // med UNIQUE constraint failed og tager hele kørslens historie med sig.
+      if (!slug) {
+        console.log(`  ⛔ Story ${story.id}: overskriften «${parsed.title}» giver ingen slug — kasseret`);
+        await db.execute("UPDATE stories SET status = 'new' WHERE id = ?", [story.id]);
+        brokenOutput++;
+        continue;
+      }
 
       // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering
       const inserted = await db.execute(
@@ -720,6 +752,9 @@ async function main(): Promise<void> {
   console.log(`\nFærdig. Genereret ${generated} artikeludkast. Token-forbrug: ~${totalTokens}.`);
   if (blockedByGuard > 0) {
     console.log(`${blockedByGuard} historie(r) afvist af identitets-/citatvagten — se ⛔ ovenfor.`);
+  }
+  if (brokenOutput > 0) {
+    console.log(`${brokenOutput} historie(r) kasseret på afbrudt modeloutput — prøves igen næste kørsel.`);
   }
 
   // Notifikationer til sidst: én besked pr. land frem for én pr. kladde, og

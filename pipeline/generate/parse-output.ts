@@ -94,12 +94,38 @@ export function parseArticleJson(
   };
 }
 
-/** JSON først (structured output), ellers det gamle linjebaserede format. */
+/**
+ * Ligner teksten et JSON-svar? Structured-output-mode BEDER om JSON, så en
+ * indledende `{` (evt. i en kodeblok) betyder at modellen forsøgte formatet —
+ * uanset om den nåede at lukke det igen.
+ */
+export function looksLikeJson(text: string): boolean {
+  return /^\s*(?:```(?:json)?\s*)?\{/.test(text);
+}
+
+/**
+ * JSON først (structured output), ellers det gamle linjebaserede format.
+ *
+ * `null` betyder «modellen forsøgte JSON og blev klippet af» — kalderen skal
+ * kassere svaret, ikke redde det.
+ *
+ * AFBRUDT JSON MÅ ALDRIG NÅ LINJEPARSEREN. Den tager første ikke-tomme linje
+ * som overskrift, og i et afkortet JSON-svar er den linje bogstaveligt «{».
+ * `generateSlug("{")` er den TOMME streng, og `articles.slug` er UNIQUE — så
+ * den første brudte kladde lægger beslag på den tomme slug, og hver eneste
+ * senere kladde med samme brud dør på «UNIQUE constraint failed». Det var
+ * #219, #247, #249 og #252, og 13. september fejlede historie 5153 og 4914 i
+ * hver eneste kørsel af netop den grund. En kasseret kladde kan prøves igen;
+ * en «{»-kladde spærrer for alle de andre.
+ */
 export function parseArticleOutputSmart(
   text: string,
   articleType: string = "news",
-): ParsedArticle {
-  return parseArticleJson(text, articleType) ?? parseArticleOutput(text, articleType);
+): ParsedArticle | null {
+  const json = parseArticleJson(text, articleType);
+  if (json) return json;
+  if (looksLikeJson(text)) return null;
+  return parseArticleOutput(text, articleType);
 }
 
 /** Fjern markdown-markører fra en titel-linje: #/##, >, **fed**, *kursiv*, _kursiv_, omsluttende citationstegn. */
