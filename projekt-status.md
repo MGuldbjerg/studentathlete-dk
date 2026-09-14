@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-14 (den tomme slug spærrede genereringen; kladdekøen tømt)
+**Sidst opdateret**: 2026-09-14 (social-køen taber ikke længere artikler på for få cron-kørsler)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -13,6 +13,58 @@
 > hvor basen bor · om der skal være en runtime-base · at skille arbejdsbyrderne
 > · anden platform). Læs den FØR du foreslår en migration til Turso, Neon eller
 > Postgres — konklusionen er at ingen af dem rører årsagen.
+
+## 📣 Social-køen tabte 7 britiske artikler — pacingen kendte ikke sin deadline (2026-09-14)
+
+Status på kanalerne, målt i D1:
+
+| Kanal | Land | Postet | Sidst |
+|---|---|---|---|
+| Bluesky `@studentathlete.dk` | DK | 10 | 2026-09-04 |
+| Facebook-side | DK | 10 | 2026-09-04 |
+| Bluesky `@student-athlete.co.uk` | UK | 36 | 2026-09-14 |
+| X | — | 0 | død: `402 CreditsDepleted`, adapter udkommenteret |
+
+**DK er tavs fordi redaktionen er tavs**, ikke fordi kanalen fejler: seneste
+danske artikel er fra 4. september. UK har 67 publicerede artikler mod DK's 27.
+
+**UK tabte derimod 7 artikler i køen** — `attempts = 0`, ingen fejl, ingen
+besked. 4. september: 18 i kø, 12 ud, **6 udløbet**. 7. september: én mere.
+
+Årsagen er en antagelse i pacingen: den var skrevet ud fra at drænet kører hver
+time. `social-post.yml` beder om `'15 * * * *'`, men Actions' skemalægning
+skrider — 13. september fyrede den 01:03, 06:14, 12:03, 16:22, 19:29, 22:26.
+Med ét opslag pr. kørsel er kapaciteten ~12 opslag pr. 48 timer, og
+`expiryMinutes` er præcis 48 timer. **En udgivelsesdag større end kapaciteten
+koster forskellen, tavst.**
+
+Rettet i «Køen skal kende sin deadline, ikke kun sin dybde» (`bfd0c29`):
+
+1. `postsAllowedNow` svarer med et ANTAL i stedet for ja/nej — hvor mange
+   opslag gap'et har budgetteret siden sidste opslag. `maxPerRun = 4` holder en
+   uges nedbrud fra at tømme køen i ét brag; 4 × ~6 kørsler = de samme 24 i
+   døgnet som den hårde grænse på 1/time/kanal allerede satte.
+2. `computeGapMinutes` har fået et **deadline-budget**: hele køen ud før det
+   ældste udløber. Det strammeste af de to budgetter vinder. Deadlinen kan kun
+   stramme, aldrig løsne, og aldrig under 60 minutter.
+
+**Bevist ved genafspilning**, ikke ved skøn: 4. september er kørt om mod de
+virkelige kørselstider fra `gh run list`, med kø-dybde og sidste opslag fra D1.
+Den gamle logik reproducerer basen nøjagtigt — 12 postet, 6 udløbet — og det er
+grunden til at tro på det andet tal: **18 postet, 0 udløbet**. Uden
+deadline-budgettet ville det være 16.
+
+⚠️ **Ikke verificeret mod D1.** En `--dry-run` kalder `enqueue` + `expireStale`,
+som skriver, så den hører til hos Mikkel:
+
+    npx tsx pipeline/social/post-social.ts --dry-run
+
+**Stadig ubygget (uændret fra `PLAN-social-expansion.md`):** UK har KUN Bluesky —
+ingen britisk Facebook-side, og `facebook.ts` er hårdkodet `country: "DK"`.
+Instagram er aldrig påbegyndt, selvom P0 var «finish Facebook + Instagram», og
+`/ig`-link-i-bio-siden (noteret som bygget 2026-07-03) findes hverken som route
+i `src/app/` eller som række i `pages` — den er væk. P1'erne Threads, Mastodon
+og Discord (hver ~1 t, $0) er urørte.
 
 ## 🕳️ Den tomme slug spærrede genereringen (2026-09-14)
 
