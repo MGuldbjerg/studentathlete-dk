@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-14 (social-køen taber ikke længere artikler på for få cron-kørsler)
+**Sidst opdateret**: 2026-09-14 (Instagram-kort i 4:5; «mod Brown» rettet på britiske kort)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -13,6 +13,46 @@
 > hvor basen bor · om der skal være en runtime-base · at skille arbejdsbyrderne
 > · anden platform). Læs den FØR du foreslår en migration til Turso, Neon eller
 > Postgres — konklusionen er at ingen af dem rører årsagen.
+
+## 🖼 Instagram-kortet, og en dansk «mod» på britiske kort (2026-09-14)
+
+Instagram tager **kun JPEG** og kun formforhold mellem 4:5 og 1.91:1. Spørgsmålet
+«skal sitet så bare bruge JPEG overalt?» er målt på artikel 253: samme kort vejer
+**35 KB som WebP mod 47 KB som mozjpeg-JPEG** ved q82 (+34 %), og kortet er
+LCP-elementet på forsiden. **Sitet bliver på WebP.** JPEG bruges kun til
+Instagram.
+
+`CARD_FORMATS` bærer nu de tal der lå spredt i elementtræet:
+
+| Format | Mål | Fil | Nøgle |
+|---|---|---|---|
+| landscape | 1200×630 | WebP | `card-<id>-v<N>` |
+| portrait | 1080×1350 | JPEG q85 mozjpeg | `ig-<id>-v<N>` |
+
+Portrættet er ikke landscape strukket: teksten ligger i bunden, resultatet står
+under scoren, piktogrammet er flyttet op i den tomme tredjedel. At det gamle
+kort er urørt er bevist, ikke påstået — landscape-renderen for artikel 253 har
+samme MD5 som prod serverer (`bb37bf82…`, 37262 bytes).
+
+⚠️ **Fejlen fundet undervejs: de britiske delekort siger «mod Brown».** Chip og
+dato kom fra artiklens land, men modstander-linjen var hardkodet dansk. Den slap
+forbi begge vagthunde — `_no-danish-in-jsx` skanner JSX, og kortet er et
+plain-object-træ; `_ui-strings` kan kun se nøgler der findes. Nu er
+`card.versus` en `UiKey` (typechecken kræver begge sprog), og `_og-card-test`
+læser den færdige tekst ud af træet.
+
+🚧 **Ig-nøglerne er TOMME.** `render-cards.ts` renderer nu begge formater, men
+den har ikke kørt endnu — `/api/og?type=ig` svarer 404 for alle artikler indtil
+pipelinen har været igennem én gang. Det er med vilje 404 og ikke et fallback:
+det liggende kort er både forkert format og forkert form, og Instagram cacher sin
+egen hentning.
+
+Nyt værktøj: **`render-cards.ts --dry-run`** — render til disk uden at røre D1.
+Det fandtes ikke før, så enhver designændring skulle skrives i produktion for at
+kunne ses. Også `--format landscape|portrait|begge`.
+
+**Næste skridt**: `channels/instagram.ts` (venter på `IG_USER_ID`), `/ig`-siden
+skal genopbygges, og kortene skal renderes én gang for alle publicerede.
 
 ## 📣 Social-køen tabte 7 britiske artikler — pacingen kendte ikke sin deadline (2026-09-14)
 
