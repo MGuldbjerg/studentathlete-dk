@@ -54,10 +54,26 @@ Den gamle logik reproducerer basen nøjagtigt — 12 postet, 6 udløbet — og d
 grunden til at tro på det andet tal: **18 postet, 0 udløbet**. Uden
 deadline-budgettet ville det være 16.
 
-⚠️ **Ikke verificeret mod D1.** En `--dry-run` kalder `enqueue` + `expireStale`,
-som skriver, så den hører til hos Mikkel:
+⚠️ **En lokal `--dry-run` kan IKKE prøve det her** (målt 2026-09-14). Kanal-
+secrets findes kun i GitHub Actions — `~/.bashrc` har 0 linjer med `BLUESKY`
+eller `FB_PAGE` — så `ALL_CHANNELS.filter(isConfigured)` er tom, og kørslen
+returnerer med «Ingen kanaler konfigureret» før den åbner D1. (Modul 7-afsnittet
+længere nede påstår at dry-run «kræver CF-env-vars fra ~/.bashrc». Det er
+forkert: den kræver kanal-secrets, som aldrig har været lokale.) De to veje der
+virker:
 
-    npx tsx pipeline/social/post-social.ts --dry-run
+- **read-only**: gentag drænets tre SELECT'er og fodr pacingen med svarene —
+  ingen secrets, ingen skrivning. Kørt 09-14 08:28: bluesky 0 i kø, bluesky_uk
+  5 i kø med 31,9 t igen, gap 180→180, gammel=0 ny=0. **Uændret er det rigtige
+  svar i den tilstand**; fixet bider først når køen er dyb eller deadline nær.
+- **ægte dry-run**: `gh workflow run social-post.yml -f dry_run=true` har
+  secrets'ene — men kører `enqueue` + `expireStale`, som skriver i D1, så den
+  spørges om først.
+
+**Forudsigelse at måle på** (kø pr. 09-14): deadline-budgettet overtager når det
+ældste har under 15 t igen (900 min / 5 i kø = 180). Ældste er indlagt 09-13
+16:23 UTC, så gap'et strammer fra ~09-15 01:23 og rammer 60 min ~11:23. Gammel
+logik ville holde 180 min hele vejen ind i udløbet 16:23.
 
 **Stadig ubygget (uændret fra `PLAN-social-expansion.md`):** UK har KUN Bluesky —
 ingen britisk Facebook-side, og `facebook.ts` er hårdkodet `country: "DK"`.
@@ -2567,7 +2583,7 @@ Hvorfor: Statistik-siden viste ubrugelige tal (middleware loggede ALT, inkl. bot
 1. **Arkitektur**: `social_posts`-kø i D1 (én række pr. artikel × kanal, UNIQUE-dedup). Publicerede artikler enqueues automatisk (kun published_at < 48t — de 18 gamle artikler backfilles bevidst IKKE, verificeret mod prod). Timevis GitHub Actions-cron (`social-post.yml`, :15) dræner med **adaptiv pacing**: gap = 24t/kø-dybde, clamped 60–180 min. Lille kø → 3t mellem opslag; dyb kø → speeder op til hård grænse 1/time/kanal (Mikkels krav 2026-06-11: adaptiv + hård grænse + friskhed). Kø-rækker ældre end 48t → 'expired' (postes aldrig — friskhedsgarantien).
 2. **Kanaler** (`pipeline/social/channels/`): Bluesky (AT Protocol, uploader kampkort som embed-thumb), X (API v2, OAuth 1.0a HMAC-signering i ren node:crypto, gratis tier ~500/md), Facebook Page (Graph API, link-preview automatisk). Ukonfigurerede kanaler (manglende secrets) springes helt over og får ingen kø-rækker → kanaler kan tilføjes gradvist.
 3. **Opslagstekst er regelbaseret** (`copy.ts`, ingen LLM): Bluesky = titel (link i embed-kort), X = titel + URL, FB = titel + ingress (link separat). Kampkortet (OG-billedet) er det visuelle. 27 tests i `_social-test.ts` (pacing + copy), typecheck ren.
-4. **Fejlhåndtering**: 3 forsøg → status 'failed'; enhver kanal-fejl → exit 1 → Discord-besked (KUN ved fejl, samme princip som discover-daily). `workflow_dispatch` har dry_run-input; lokalt: `npx tsx pipeline/social/post-social.ts --dry-run` (kræver CF-env-vars fra ~/.bashrc).
+4. **Fejlhåndtering**: 3 forsøg → status 'failed'; enhver kanal-fejl → exit 1 → Discord-besked (KUN ved fejl, samme princip som discover-daily). `workflow_dispatch` har dry_run-input; lokalt: `npx tsx pipeline/social/post-social.ts --dry-run` — men se rettelsen 2026-09-14: den kræver KANAL-secrets, som kun findes i GitHub Actions, så lokalt svarer den «Ingen kanaler konfigureret».
 5. **Verificeret**: migration 018 kørt remote (14 tabeller), dry-run mod prod D1 OK (kø 0 = korrekt, seneste publish 5. juni er uden for vinduet), enqueue-SQL kørt uden fejl.
 
 **STATUS 2026-06-11 (senere samme dag) — committet (1e87d35) + Bluesky LIVE:**
