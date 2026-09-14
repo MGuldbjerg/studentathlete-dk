@@ -21,6 +21,97 @@ export function getReadingTime(content: string): number {
 }
 
 /**
+ * Meta-beskrivelser: artiklens egne ord, aldrig en skabelon.
+ * ===========================================================================
+ *
+ * Målt 2026-09-14: **17 af 27 danske artikler havde ingen `summary`** og faldt
+ * derfor tilbage på «Læs om {navn} på {brand}» — den samme sætning på hver af
+ * dem, uden ét ord om hvad artiklen handler om. Samtidig var **55 af 67
+ * britiske manchetter længere** end det Google viser, så de blev klippet midt
+ * i et ord.
+ *
+ * Begge dele har samme svar: manchetten hvis den findes, ellers artiklens eget
+ * første afsnit — og altid klippet ved en sætning, ellers ved et ord.
+ *
+ * `summary` bliver IKKE ændret. Feltet er også artiklens synlige manchet, hvor
+ * der ikke er nogen længdegrænse; det er kun meta-tagget der har en. Derfor er
+ * det her en visningsregel og ikke en migrering: den gælder med det samme for
+ * alle artikler, også dem der bliver skrevet i morgen, og den kan ikke komme
+ * til at overskrive noget et menneske har godkendt.
+ */
+export const META_DESCRIPTION_MAX = 155;
+
+/** Markdown og HTML ud — en meta-tag viser tegnene råt. */
+function plainText(markdown: string): string {
+  return markdown
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")      // billeder
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")    // links → deres tekst
+    .replace(/<[^>]+>/g, " ")                   // html (kladde #253 skrev <br><br>)
+    .replace(/[*_`]{1,3}/g, "")                 // fed, kursiv, kode
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Første afsnit der faktisk er brødtekst.
+ *
+ * Overskrifter springes over: en artikel der åbner med «## Weekendens kampe»
+ * skal ikke have den linje som beskrivelse. Det samme gælder citatblokke og
+ * vandrette streger — de siger intet om indholdet.
+ */
+function firstProseBlock(content: string): string {
+  for (const block of content.split(/\n\s*\n/)) {
+    const line = block.trim();
+    if (!line || /^(#{1,6}\s|>|[-*_]{3,}$|\|)/.test(line)) continue;
+    const text = plainText(line);
+    if (text) return text;
+  }
+  return "";
+}
+
+/**
+ * Klip til grænsen — helst efter en sætning, ellers efter et helt ord.
+ *
+ * Et afsnit på to sætninger, hvor kun den første er inden for grænsen, giver
+ * en beskrivelse der slutter naturligt. Rækker ikke engang den første sætning,
+ * klippes der ved sidste hele ord og der sættes ellipse. Det sidste værn er
+ * ét ord længere end hele grænsen: så bliver det et hårdt klip, for en tom
+ * beskrivelse er værre end en afkortet.
+ */
+function clamp(text: string, max: number): string {
+  if (text.length <= max) return text;
+
+  const window = text.slice(0, max);
+  const sentenceEnd = Math.max(
+    window.lastIndexOf(". "),
+    window.lastIndexOf("! "),
+    window.lastIndexOf("? "),
+  );
+  // Halvdelen: en beskrivelse på ét kort indskud siger mindre end en afkortet
+  // sætning, så en meget tidlig sætningsgrænse bruges ikke.
+  if (sentenceEnd > max * 0.5) return window.slice(0, sentenceEnd + 1).trim();
+
+  const lastSpace = window.lastIndexOf(" ");
+  if (lastSpace > 0) return `${window.slice(0, lastSpace).trim()}…`;
+  return window.trim();
+}
+
+/**
+ * Artiklens meta-beskrivelse, eller `null` hvis den ikke har ét brugbart ord.
+ * Kalderen bestemmer selv hvad der så skal ske — teksten her er altid
+ * artiklens egen.
+ */
+export function metaDescription(
+  article: { summary?: string | null; content?: string | null },
+): string | null {
+  const summary = plainText(article.summary ?? "");
+  if (summary) return clamp(summary, META_DESCRIPTION_MAX);
+
+  const body = firstProseBlock(article.content ?? "");
+  return body ? clamp(body, META_DESCRIPTION_MAX) : null;
+}
+
+/**
  * Datoer er læservendte — og derfor sprogbestemte.
  *
  * Her stod `"da-DK"` hårdkodet, så det britiske site skrev «19. august 2026».

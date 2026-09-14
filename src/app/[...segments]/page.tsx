@@ -20,7 +20,7 @@ import {
 } from "@/lib/db";
 import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
 import { currentLanguage, currentSite, currentBaseUrl, siteRobots } from "@/lib/site-server";
-import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl} from "@/lib/seo";
+import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl, metaDescription } from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { sportLabel, t, sportKeyFromSlugAnyLanguage, routeSlug } from "@/lib/i18n";
@@ -252,14 +252,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       // ikke et evt. stamplet portræt-headshot fra cover_image_url.
       const ogImage = `${base}${getArticleCoverUrl(article)}`;
 
+      // Artiklens egne ord frem for skabelonen: `summary` hvis den findes,
+      // ellers artiklens første afsnit — begge klippet til det Google viser.
+      // Skabelonen er sidste udvej, ikke andet valg (se metaDescription()).
+      const description =
+        metaDescription(article) ??
+        t("meta.article_description", lang, { who: article.athlete_name ?? "", brand });
+
       return {
         title: `${article.title} | ${brand}`,
-        description:
-          article.summary ??
-          t("meta.article_description", lang, { who: article.athlete_name ?? "", brand }),
+        description,
         openGraph: {
           title: article.title,
-          description: article.summary ?? undefined,
+          description,
           images: [{ url: ogImage, width: 1200, height: 630, alt: article.title }],
           type: "article",
           publishedTime: article.published_at ?? undefined,
@@ -274,7 +279,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         twitter: {
           card: "summary_large_image",
           title: article.title,
-          description: article.summary ?? undefined,
+          description,
           images: [ogImage],
         },
         alternates: { canonical: canonicalUrl },

@@ -5,6 +5,25 @@ compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = ".open-next/assets", binding = "ASSETS" }
 
+# UK bruger `custom_domain` frem for et route-mønster: så opretter Cloudflare
+# selv den proxied DNS-record + certifikatet. Tokenet har Workers-adgang på
+# kontoniveau, men INGEN DNS-rettighed på .co.uk-zonen — med et rent
+# route-mønster ville domænet derfor kræve manuelle DNS-records i dashboardet.
+#
+# ⚠️ STÅR HER MED VILJE, FØR ENHVER [tabel]. I TOML hører alt efter en
+# tabel-header til den tabel, indtil den næste begynder. Da `[cache]` blev
+# tilføjet OVER det her, blev `routes` altså til `cache.routes` — og fordi
+# wrangler 4.66 kastede hele den ukendte `cache`-tabel væk, forsvandt ruterne
+# med den, i tavshed. Sitet blev ved med at svare, fordi Cloudflare beholder
+# ruter fra tidligere deploys, så intet så galt ud. Opgraderingen til 4.131
+# afslørede det: «Unexpected fields found in cache field: "routes"».
+routes = [
+  { pattern = "studentathlete.dk/*", zone_name = "studentathlete.dk" },
+  { pattern = "www.studentathlete.dk/*", zone_name = "studentathlete.dk" },
+  { pattern = "student-athlete.co.uk", custom_domain = true },
+  { pattern = "www.student-athlete.co.uk", custom_domain = true }
+]
+
 # Workers Cache: Cloudflare svarer fra cachen UDEN at køre Workeren, og altså
 # uden at røre D1. Det er den eneste mekanisme der kan det — zonens Cache
 # Rules kan IKKE cache et Worker-svar, for Workeren kører FØR cachen.
@@ -21,32 +40,27 @@ assets = { directory = ".open-next/assets", binding = "ASSETS" }
 #                       laves om til en rute (app/sitemap.xml/route.ts). Det er
 #                       ikke gjort — forespørgslen kostede 2,1 mio. rækker og
 #                       koster nu ~1.200, så cachen er blevet pynt
-#   læsersiderne        middlewaren sætter `private` (se src/middleware.ts):
-#                       kanten må ikke gemme dem, browseren må gerne
+#   læsersiderne        middlewaren sætter `public, max-age=0, s-maxage=300`
+#                       (se src/middleware.ts): kanten må gemme dem i fem
+#                       minutter, browseren skal spørge hver gang
 #   /admin, /api/admin  middlewaren sætter `no-store` — heller ikke browseren
 #   /api/mcp*           sætter selv `no-store` — middlewaren rammer dem ikke
 #
-# ⚠️ KRÆVER EN NYERE WRANGLER. Projektet kører 4.66, som ikke kender feltet:
-# den advarer «Unexpected fields found in top-level field: cache» og DROPPER
-# det i tavshed ved deploy. Blokken er altså uden virkning, indtil wrangler er
-# opgraderet (4.128 var nyeste 2026-09-02). Headerne nedenfor er rigtige uanset
-# hvad — de venter bare på cachen.
+# ✅ VIRKER FRA 2026-09-14. Blokken blev droppet i tavshed så længe projektet
+# kørte wrangler 4.66 («Unexpected fields found in top-level field: cache»).
+# wrangler er nu 4.131, og `wrangler deploy --dry-run` advarer ikke længere.
+#
+# Hvorfor det hastede: uden cachen kørte Workeren ved HVERT sidevisning, og
+# 40-60 % af alle forespørgsler svarede 503 (Cloudflare-fejl 1102, CPU-grænsen
+# på 10 ms) — målt på begge sites 2026-09-14. `private` på læsersiderne holdt
+# kanten ude med vilje, fordi to timer var for længe når `pages` og
+# `site_content` ikke har nogen kladdetilstand. Med et eksplicit `s-maxage` er
+# vinduet vores eget at vælge, og så er der ingen grund til at holde kanten ude.
 #
 # Slår man dette fra igen, holder headerne bare op med at have effekt; intet
 # andet i koden afhænger af det.
 [cache]
 enabled = true
-
-# UK bruger `custom_domain` frem for et route-mønster: så opretter Cloudflare
-# selv den proxied DNS-record + certifikatet. Tokenet har Workers-adgang på
-# kontoniveau, men INGEN DNS-rettighed på .co.uk-zonen — med et rent
-# route-mønster ville domænet derfor kræve manuelle DNS-records i dashboardet.
-routes = [
-  { pattern = "studentathlete.dk/*", zone_name = "studentathlete.dk" },
-  { pattern = "www.studentathlete.dk/*", zone_name = "studentathlete.dk" },
-  { pattern = "student-athlete.co.uk", custom_domain = true },
-  { pattern = "www.student-athlete.co.uk", custom_domain = true }
-]
 
 [[d1_databases]]
 binding = "DB"

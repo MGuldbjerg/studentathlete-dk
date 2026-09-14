@@ -79,11 +79,32 @@ function localizedRoute(req: NextRequest, lang: string): NextResponse | null {
  * Omdirigeringer røres ikke: en 301 fra www til apex er den samme i morgen,
  * og de to timers standard er fin for dem.
  */
+/**
+ * Læsersidernes kant-levetid. Se den lange note ovenfor for hvorfor tallet er
+ * kort: uden kladdetilstand i `pages` og `site_content` er det her præcis så
+ * længe en rettelse kan nå at være usynlig.
+ *
+ * Fem minutter er valgt som det største vindue der stadig føles som «med det
+ * samme» for den der retter, og det mindste der stadig flytter noget: alt hvad
+ * der får mere end ét besøg i fem minutter — forsiden, sportssiderne, en nyligt
+ * udgivet artikel, og alt hvad en crawler gennemgår i træk — slipper for at
+ * køre Workeren overhovedet.
+ */
+const READER_EDGE_TTL = 300;
+
 function guardCache(req: NextRequest, res: NextResponse): NextResponse {
   if (res.status >= 300 && res.status < 400) return res;
+  if (isAdminPath(req.nextUrl.pathname)) {
+    res.headers.set("Cache-Control", "no-store");
+    return res;
+  }
+  // `max-age=0` holder læserens EGEN browser fra at gemme siden, mens
+  // `s-maxage` giver kanten lov. Det er den samme opdeling som før — det er
+  // bare vendt om, nu hvor vinduet kan sættes eksplicit i stedet for at være
+  // Workers Cache' to timer.
   res.headers.set(
     "Cache-Control",
-    isAdminPath(req.nextUrl.pathname) ? "no-store" : "private",
+    `public, max-age=0, s-maxage=${READER_EDGE_TTL}, stale-while-revalidate=60`,
   );
   return res;
 }

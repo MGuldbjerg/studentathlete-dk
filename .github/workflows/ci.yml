@@ -83,6 +83,7 @@ jobs:
             src/lib/_site-family-test.ts \
             src/lib/_db-errors-test.ts \
             src/lib/_article-url-test.ts \
+            src/lib/_meta-description-test.ts \
             src/lib/_indexnow-test.ts \
             src/lib/_school-name-test.ts \
             src/lib/_school-display-name-test.ts \
