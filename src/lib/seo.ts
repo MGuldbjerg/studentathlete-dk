@@ -301,6 +301,54 @@ export function articleStructuredData(
   };
 }
 
+/**
+ * Udgiver-identiteten: `Organization` + `WebSite` på forsiden.
+ *
+ * Artikler og profiler har haft fyldig schema hele tiden — det var de to
+ * mest linkede sider på hvert site, forsiderne, der ingen havde (målt
+ * 2026-09-14). Det er her Google henter hvem der udgiver, og det er
+ * forudsætningen for et vidensfelt.
+ *
+ * De to sites er SØSKENDE, ikke oversættelser: DK dækker danske atleter, UK
+ * dækker britiske, og de 2.879 atleter fordeler sig disjunkt mellem dem. Derfor
+ * ingen `hreflang` og ingen fælles `Organization` med to `url` — hver udgiver
+ * står for sig, præcis som `sameAs` ville have været forkert.
+ *
+ * `SearchAction` peger på forsidens egen søgning (`/?q=`), som den faktisk
+ * virker — ikke på en søgeside vi ikke har.
+ */
+export function siteStructuredData(site: CountryProfile): object {
+  const base = siteBaseUrl(site);
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${base}/#organization`,
+        name: site.brand,
+        url: base,
+        email: site.contactEmail,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${base}/#website`,
+        name: site.brand,
+        url: base,
+        inLanguage: site.language,
+        publisher: { "@id": `${base}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${base}/?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+}
+
 export function athleteStructuredData(
   athlete: Athlete,
   articles: Article[],

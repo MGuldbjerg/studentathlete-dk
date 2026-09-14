@@ -198,11 +198,15 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
                sport: athlete.sport,
                type: "athlete",
              });
+        // Uden brand-halen: se noten ved artiklernes titel længere nede.
+        // Navnet er hele grunden til at siden bliver fundet, så det skal stå
+        // først og alene — `siteName` og `Organization`-schemaet siger allerede
+        // hvem der udgiver.
         return {
-          title: `${athlete.name} – ${sportLabel(athlete.sport, lang)} | ${brand}`,
+          title: `${athlete.name} – ${sportLabel(athlete.sport, lang)}`,
           description,
           openGraph: {
-            title: `${athlete.name} | ${brand}`,
+            title: athlete.name,
             description,
             images: [{ url: ogImage, width: 1200, height: 630, alt: athlete.name }],
             type: "profile",
@@ -211,7 +215,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           },
           twitter: {
             card: "summary_large_image",
-            title: `${athlete.name} | ${brand}`,
+            title: athlete.name,
             description,
             images: [ogImage],
           },
@@ -259,8 +263,21 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         metaDescription(article) ??
         t("meta.article_description", lang, { who: article.athlete_name ?? "", brand });
 
+      // INGEN brand-hale på artikler og profiler (2026-09-14, godkendt af Mikkel).
+      //
+      // « | Student-Athlete.co.uk» koster 25 tegn, « | StudentAthlete.dk» 21 —
+      // og 36 af 67 britiske overskrifter lå ALLEREDE over de ~60 tegn Google
+      // viser, før halen blev lagt til. At holde sig under grænsen MED halen
+      // ville kræve overskrifter på ~35 tegn, hvilket ingen nyhed kan leve med.
+      // Så det er halen der ryger, ikke overskriften.
+      //
+      // Forsiden, sportssiderne og de øvrige knudepunkter BEHOLDER den: dér er
+      // det sitet der skal kendes igen, ikke en enkelt person. Her er det
+      // omvendt — al vores trafik er navnesøgninger (Search Console, 28 dage:
+      // hver eneste top-forespørgsel på begge sites er et personnavn), og et
+      // navn der bliver klippet væk er en tabt klik.
       return {
-        title: `${article.title} | ${brand}`,
+        title: article.title,
         description,
         openGraph: {
           title: article.title,

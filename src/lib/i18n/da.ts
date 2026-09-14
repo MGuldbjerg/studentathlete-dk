@@ -364,6 +364,7 @@ const ui: LanguagePack["ui"] = {
   "footer.cookies": "Cookies",
   "footer.cookie_settings": "Cookieindstillinger",
 
+  "home.h1": "Danske student athletes i USA",
   "home.latest": "Seneste artikler",
   "home.see_all": "Se alle",
   "home.see_all_articles": "Se alle artikler",

@@ -90,6 +90,7 @@ export type UiKey =
   | "footer.cookies"
   | "footer.cookie_settings"
   // Forsidens bånd
+  | "home.h1"
   | "home.latest"
   | "home.see_all"
   | "home.see_all_articles"

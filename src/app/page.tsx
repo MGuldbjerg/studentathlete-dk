@@ -14,7 +14,8 @@ import {
   getArticlesGroupedBySport,
 } from "@/lib/db";
 import { archivePath } from "@/lib/routes";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
+import { siteStructuredData } from "@/lib/seo";
 import { t } from "@/lib/i18n";
 
 interface SearchParams {
@@ -54,6 +55,7 @@ export default async function HomePage({
   const sport = params.sport ?? "";
   const hasFilter = Boolean(q || sport);
   const lang = await currentLanguage();
+  const site = await currentSite();
 
   const [featured, articles, counts] = await Promise.all([
     hasFilter ? Promise.resolve([]) : getFeaturedArticles(5),
@@ -139,6 +141,23 @@ export default async function HomePage({
 
   return (
     <main>
+      {/* Udgiver-identiteten. Forsiden var den eneste sidetype uden schema. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteStructuredData(site)) }}
+      />
+
+      {/*
+        Sidens ÉNE h1. Forsiden havde ingen — den åbnede direkte i h2'er, mens
+        hver anden sidetype har haft sin h1 hele tiden.
+
+        Den er skjult for øjet og ikke for maskinen (`sr-only`): hero'en er en
+        karrusel af artikler, så der er ingen overskrift-plads i designet, og
+        teksten beskriver siden sandt — det er en tilgængeligheds-overskrift,
+        ikke skjult søgeordstekst. Skærmlæsere annoncerer den som sidens titel.
+      */}
+      <h1 className="sr-only">{t("home.h1", lang)}</h1>
+
       {/* A — hero */}
       <Carousel
         articles={carouselArticles}

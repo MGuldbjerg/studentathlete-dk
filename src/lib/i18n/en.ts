@@ -354,6 +354,7 @@ const ui: LanguagePack["ui"] = {
   "footer.cookies": "Cookies",
   "footer.cookie_settings": "Cookie settings",
 
+  "home.h1": "British student athletes in the United States",
   "home.latest": "Latest articles",
   "home.see_all": "See all",
   "home.see_all_articles": "See all articles",

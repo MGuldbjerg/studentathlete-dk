@@ -6,7 +6,7 @@ import { getGuideSlugs } from "@/lib/viden-content";
 import { getPublishedGuides } from "@/lib/admin";
 import { archivePath } from "@/lib/routes";
 import { routePath } from "@/lib/i18n";
-import { alphabetFor, athletesAllPath, countByLetter, getAthleteLetterUrl, letterOf } from "@/lib/athlete-letters";
+import { alphabetFor, countByLetter, getAthleteLetterUrl, letterOf } from "@/lib/athlete-letters";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
 
 /**
@@ -50,11 +50,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
-    {
-      url: `${base}${athletesAllPath(lang)}`,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
+    // `athletesAllPath` står med VILJE ikke her (2026-09-14, godkendt af Mikkel).
+    // Siden findes stadig for dem der vil have hele listen — den er bare ikke
+    // noget vi beder Google om at hente: 1,1 MB og 25.030 ord for 2.584 atleter,
+    // og bogstavsiderne nedenfor dækker præcis de samme adresser billigt.
+    // Den var også en oplagt kandidat til CPU-grænsen på 10 ms (se wrangler.toml).
     {
       url: `${base}${routePath("guides", lang)}`,
       changeFrequency: "monthly",
