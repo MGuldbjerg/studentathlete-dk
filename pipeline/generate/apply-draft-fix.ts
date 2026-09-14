@@ -38,6 +38,12 @@ import { readFileSync } from "node:fs";
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { generateSlug } from "../../src/lib/slug";
 import { notify, adminLink, COLOR } from "../lib/notify";
+import { extractJson } from "./parse-output";
+import {
+  REJECT_DELETE_SQL,
+  REJECT_LOG_SQL,
+  rejectLogParams,
+} from "../../src/lib/review-snapshot";
 
 interface FixAnswer {
   verdict?: unknown;
@@ -79,25 +85,6 @@ const ART_SELECT = `
 
 /** Dansk slug transliterrer æ/ø/å; artiklens eget land afgør sprogpakken. */
 const langForCountry = (c: string | null) => (c === "DK" ? "da" : "en");
-
-/** Træk det første JSON-objekt ud af et svar der kan indeholde tekst og kodeblokke. */
-export function extractJson(raw: string): FixAnswer | null {
-  const fenced = /```(?:json)?\s*([\s\S]*?)```/i.exec(raw);
-  const candidates = [fenced?.[1], raw];
-  for (const c of candidates) {
-    if (!c) continue;
-    const start = c.indexOf("{");
-    const end = c.lastIndexOf("}");
-    if (start < 0 || end <= start) continue;
-    try {
-      const v = JSON.parse(c.slice(start, end + 1));
-      if (v && typeof v === "object") return v as FixAnswer;
-    } catch {
-      // prøv næste kandidat
-    }
-  }
-  return null;
-}
 
 const MIN_CHARS = 400;
 
@@ -166,34 +153,8 @@ export async function rejectDraft(
   console.log(`    grund: ${reason}`);
   if (dry) return;
 
-  const snapshot = row.original_content ?? row.content;
-  const fixed =
-    row.claude_fixed_content && row.claude_fixed_content !== snapshot
-      ? row.claude_fixed_content
-      : null;
-
-  await db.execute(
-    `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive,
-                             content_snapshot, title_snapshot, story_id, athlete_id, fixed_snapshot)
-     VALUES (?, 'rejected', ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      row.id,
-      row.article_type,
-      row.fabrication_risk,
-      row.sensitive,
-      snapshot,
-      row.title,
-      row.story_id,
-      row.athlete_id,
-      fixed,
-    ],
-  );
-
-  await db.batch([
-    { sql: "DELETE FROM draft_reviews WHERE article_id = ?", params: [row.id] },
-    { sql: "DELETE FROM social_posts WHERE article_id = ?", params: [row.id] },
-    { sql: "DELETE FROM articles WHERE id = ?", params: [row.id] },
-  ]);
+  await db.execute(REJECT_LOG_SQL, rejectLogParams(row.id, row));
+  await db.batch(REJECT_DELETE_SQL.map((sql) => ({ sql, params: [row.id] })));
 
   // En sletning er den ene handling i natkørslen der ikke kan ses i /admin
   // bagefter — kladden er væk. Derfor siges den højt.
@@ -322,7 +283,7 @@ async function main(): Promise<void> {
 
   const file = str("--file");
   const raw = file ? readFileSync(file, "utf8") : readFileSync(0, "utf8");
-  const answer = extractJson(raw);
+  const answer = extractJson<FixAnswer>(raw);
   if (!answer) {
     console.error(`  ! #${id}: svaret er ikke JSON — INTET gemt`);
     console.error(raw.slice(0, 400));

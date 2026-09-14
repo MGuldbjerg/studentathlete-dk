@@ -13,6 +13,34 @@ export interface ParsedArticle {
   article_type: string;
 }
 
+/**
+ * Træk det første JSON-objekt ud af et modelsvar der også kan indeholde tekst.
+ *
+ * Tåler at modellen skriver JSON inde i en ```json-blok, og at den skriver en
+ * sætning før eller efter. Lå i to identiske kopier (save-review.ts og
+ * apply-draft-fix.ts) indtil 2026-09-14 — de adskilte sig kun i returtypen.
+ *
+ * Returnerer null hvis der ikke er gyldig JSON. Kalderne gemmer IKKE på null:
+ * en manglende gennemgang er bedre end en falsk.
+ */
+export function extractJson<T>(raw: string): T | null {
+  const fenced = /```(?:json)?\s*([\s\S]*?)```/i.exec(raw);
+  const candidates = [fenced?.[1], raw];
+  for (const c of candidates) {
+    if (!c) continue;
+    const start = c.indexOf("{");
+    const end = c.lastIndexOf("}");
+    if (start < 0 || end <= start) continue;
+    try {
+      const v = JSON.parse(c.slice(start, end + 1));
+      if (v && typeof v === "object") return v as T;
+    } catch {
+      // prøv næste kandidat
+    }
+  }
+  return null;
+}
+
 export function parseArticleOutput(
   text: string,
   articleType: string = "news",

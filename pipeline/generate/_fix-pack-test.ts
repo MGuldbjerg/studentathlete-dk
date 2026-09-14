@@ -18,7 +18,11 @@
  */
 import { draftHash } from "./check-drafts";
 import { actionFor, alreadyFixed, type FixRow } from "./fix-pack";
-import { extractJson, rejectReasonFor } from "./apply-draft-fix";
+import { rejectReasonFor } from "./apply-draft-fix";
+import { extractJson } from "./parse-output";
+
+/** Kun verdict aflæses her; resten af svaret prøves gennem rejectReasonFor. */
+type Svar = { verdict?: string };
 
 let passed = 0;
 let failed = 0;
@@ -129,14 +133,14 @@ ok(
 
 // ── 5. Svaret fra modellen ──────────────────────────────────────────────────
 ok(
-  extractJson('```json\n{"verdict":"fix","content":"x"}\n```')?.verdict === "fix",
+  extractJson<Svar>('```json\n{"verdict":"fix","content":"x"}\n```')?.verdict === "fix",
   "JSON i en kodeblok læses",
 );
 ok(
-  extractJson('Her er rettelsen:\n{"verdict":"reject"}\nHåber det passer.')?.verdict === "reject",
+  extractJson<Svar>('Her er rettelsen:\n{"verdict":"reject"}\nHåber det passer.')?.verdict === "reject",
   "JSON med snak omkring læses",
 );
-ok(extractJson("beklager, jeg kan ikke") === null, "et svar uden JSON giver null (og gemmes ikke)");
+ok(extractJson<Svar>("beklager, jeg kan ikke") === null, "et svar uden JSON giver null (og gemmes ikke)");
 
 console.log(`\nfix-pack: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

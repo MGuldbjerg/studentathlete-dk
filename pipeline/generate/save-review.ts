@@ -18,30 +18,12 @@
 import { readFileSync } from "node:fs";
 import { createD1Client } from "../lib/d1-client";
 import { draftHash } from "./check-drafts";
+import { extractJson } from "./parse-output";
 
 interface Review {
   verdict?: unknown;
   summary?: unknown;
   findings?: unknown;
-}
-
-/** Træk det første JSON-objekt ud af et svar der kan indeholde tekst og kodeblokke. */
-export function extractJson(raw: string): Review | null {
-  const fenced = /```(?:json)?\s*([\s\S]*?)```/i.exec(raw);
-  const candidates = [fenced?.[1], raw];
-  for (const c of candidates) {
-    if (!c) continue;
-    const start = c.indexOf("{");
-    const end = c.lastIndexOf("}");
-    if (start < 0 || end <= start) continue;
-    try {
-      const v = JSON.parse(c.slice(start, end + 1));
-      if (v && typeof v === "object") return v as Review;
-    } catch {
-      // prøv næste kandidat
-    }
-  }
-  return null;
 }
 
 const VERDICTS = new Set(["ok", "fix", "reject"]);
@@ -57,7 +39,7 @@ async function main(): Promise<void> {
   }
 
   const raw = fi >= 0 ? readFileSync(argv[fi + 1], "utf8") : readFileSync(0, "utf8");
-  const review = extractJson(raw);
+  const review = extractJson<Review>(raw);
   if (!review || !VERDICTS.has(String(review.verdict))) {
     console.error(
       `Ugyldigt svar for kladde #${id} — INTET gemt. En manglende gennemgang er bedre end en falsk.`,

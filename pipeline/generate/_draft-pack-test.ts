@@ -7,7 +7,7 @@
  * afvist for at "opdigte" FAU's David Roberts og Felipe Santos, som stod ordret
  * i manchetten. Et falsk «opdigtet» sender en korrekt kladde retur.
  */
-import { cleanSource } from "./draft-pack";
+import { cleanSource } from "./draft-dossier";
 
 let passed = 0;
 let failed = 0;

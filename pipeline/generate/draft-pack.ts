@@ -11,6 +11,10 @@
  * læser man kilden efter hvad kladden påstår — og så finder man ikke det der
  * mangler. Det var netop sådan #101 og #102 slap igennem: de lød rigtige.
  *
+ * Selve dossieret (atlet, kilde, faktaark) ligger i `draft-dossier.ts`, fordi
+ * `fix-pack.ts` viser præcis det samme materiale. Her bliver kun det liggende
+ * der er særligt for en GENNEMGANG: opgaven, de mekaniske fund og svarformen.
+ *
  * Kør:
  *   npx tsx pipeline/generate/draft-pack.ts --list             # id'er der mangler gennemgang
  *   npx tsx pipeline/generate/draft-pack.ts --article 108      # pakken på stdout
@@ -19,82 +23,17 @@
 import { createD1Client } from "../lib/d1-client";
 import { countryProfile } from "../../src/lib/countries";
 import { draftHash } from "./check-drafts";
+import { dossier, dossierSelect, latestReview, pretty, type DossierRow } from "./draft-dossier";
 
-interface Row {
-  id: number;
-  title: string;
-  content: string;
-  country: string | null;
-  article_type: string | null;
-  source_url: string | null;
-  fact_sheet: string | null;
-  content_raw: string | null;
-  summary: string | null;
-  athlete_name: string | null;
-  gender: string | null;
-  class_year: string | null;
-  expected_graduation: number | null;
-  sport: string | null;
-  position: string | null;
-  university: string | null;
-  hometown: string | null;
-  previous_school: string | null;
+interface Row extends DossierRow {
   mech_summary: string | null;
   mech_findings: string | null;
 }
 
-const SELECT = `
-  SELECT a.id, a.title, a.content, a.country, a.article_type, s.source_url,
-         s.fact_sheet, s.content_raw, s.summary,
-         ath.name AS athlete_name, ath.gender, ath.class_year, ath.expected_graduation,
-         ath.sport, ath.position, ath.university, ath.hometown, ath.previous_school,
-         (SELECT dr.summary FROM draft_reviews dr
-           WHERE dr.article_id = a.id AND dr.reviewer = 'mechanical'
-           ORDER BY dr.id DESC LIMIT 1) AS mech_summary,
-         (SELECT dr.findings FROM draft_reviews dr
-           WHERE dr.article_id = a.id AND dr.reviewer = 'mechanical'
-           ORDER BY dr.id DESC LIMIT 1) AS mech_findings
-  FROM articles a
-  LEFT JOIN stories s ON s.id = a.story_id
-  LEFT JOIN athletes ath ON ath.id = a.athlete_id
-`;
-
-function pretty(json: string | null): string {
-  if (!json) return "(intet)";
-  try {
-    return JSON.stringify(JSON.parse(json), null, 1);
-  } catch {
-    return json;
-  }
-}
-
-/**
- * Kildens tekst uden Sidearms tomme linjer og menu-rester.
- *
- * BEGGE felter kommer med, ikke `content_raw ?? summary` (2026-08-20). På
- * Sidearm-sider er `content_raw` tit sidens «Upcoming Event»-widget, mens
- * artiklens egen manchet ligger i `summary` fra feedet. Med fallback-logikken så
- * gennemgangen kun kampprogrammet — og dømte derfor rigtige, kildebelagte navne
- * (FAU's Roberts og Santos, kladde #111) som opdigtede. Et falsk «opdigtet» er
- * dyrere end lidt gentagelse: det sender en korrekt kladde retur.
- */
-export function cleanSource(raw: string | null, summary: string | null): string {
-  const tidy = (t: string | null): string =>
-    (t ?? "")
-      // Feed-manchetter starter tit med et <img>/<br>-hoved. Det er støj her.
-      .replace(/<[^>]+>/g, " ")
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0)
-      .join("\n")
-      .trim();
-
-  const feed = tidy(summary);
-  const page = tidy(raw);
-  // Er manchetten allerede indeholdt i sidens tekst, gentager vi den ikke.
-  const both = page.includes(feed.slice(0, 120)) ? page : [feed, page].filter(Boolean).join("\n\n");
-  return both.slice(0, 6000);
-}
+const SELECT = dossierSelect([
+  latestReview("mechanical", "summary", "mech_summary"),
+  latestReview("mechanical", "findings", "mech_findings"),
+]);
 
 export function buildPack(r: Row): string {
   const lang = countryProfile(r.country ?? undefined).language === "en" ? "engelsk" : "dansk";
@@ -109,32 +48,7 @@ IKKE holder — ikke at rose det der gør.
 kladden påstår, og så ser du ikke det der mangler. To kladder om HELT forkerte
 mennesker (#101, #102) slap igennem netop fordi de lød rigtige.
 
-## Atleten, som basen kender hende/ham
-
-| Felt | Værdi |
-|---|---|
-| Navn | ${r.athlete_name ?? "(ingen kobling)"} |
-| Køn i basen | ${r.gender ?? "ukendt"} |
-| Årgang | ${r.class_year ?? "ukendt"} |
-| Forventet dimission | ${r.expected_graduation ?? "ukendt"} |
-| Sport | ${r.sport ?? "?"} |
-| Position | ${r.position ?? "?"} |
-| Universitet | ${r.university ?? "?"} |
-| Hjemby | ${r.hometown ?? "?"} |
-| Forrige skole | ${r.previous_school ?? "ingen registreret (siger IKKE at der ikke er en)"} |
-
-## Kilden (${r.source_url ?? "ukendt URL"})
-
-\`\`\`
-${cleanSource(r.content_raw, r.summary)}
-\`\`\`
-
-## Faktaarket (det ENESTE kladden må hvile på)
-
-\`\`\`json
-${pretty(r.fact_sheet)}
-\`\`\`
-
+${dossier(r)}
 ## Mekaniske fund (allerede tjekket — du behøver ikke gentage dem)
 
 \`\`\`json
@@ -180,26 +94,43 @@ Svar KUN med JSON, intet andet:
 `;
 }
 
+/**
+ * Kladder uden en Claude-gennemgang af NETOP dette indhold.
+ *
+ * To forespørgsler, ikke én pr. kladde. Den gamle form hentede kladderne og
+ * spurgte så basen én gang FOR HVER kladde om den var gennemgået — 12 kald for
+ * 11 kladder, fem gange om dagen, over Cloudflares REST-API. Hashen kan ikke
+ * regnes i SQL, så parringen sker her; men rækkerne kan hentes på én gang.
+ *
+ * Bemærk «en hvilken som helst» gennemgang af teksten, ikke den nyeste:
+ * spørgsmålet er om DENNE tekst er læst før, så en kladde der bliver redigeret
+ * og fortrudt ikke skal gennemgås igen. `fix-pack.ts` spørger med vilje om den
+ * NYESTE — dér er spørgsmålet hvad dommen over teksten er lige nu.
+ */
+export async function unreviewedDrafts(
+  db: ReturnType<typeof createD1Client>,
+): Promise<number[]> {
+  const drafts = await db.query<{ id: number; title: string; content: string }>(
+    `SELECT id, title, content FROM articles WHERE published = 0 ORDER BY id`,
+  );
+  const seen = await db.query<{ article_id: number; content_hash: string }>(
+    `SELECT dr.article_id, dr.content_hash
+       FROM draft_reviews dr
+       JOIN articles a ON a.id = dr.article_id
+      WHERE dr.reviewer = 'claude' AND a.published = 0`,
+  );
+  const reviewed = new Set(seen.results.map((r) => `${r.article_id}:${r.content_hash}`));
+  return drafts.results
+    .filter((r) => !reviewed.has(`${r.id}:${draftHash(r.title, r.content)}`))
+    .map((r) => r.id);
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const db = createD1Client();
 
   if (argv.includes("--list")) {
-    // Kladder uden en Claude-gennemgang af NETOP dette indhold.
-    const rows = await db.query<{ id: number; title: string; content: string }>(
-      `SELECT id, title, content FROM articles WHERE published = 0 ORDER BY id`,
-    );
-    const out: number[] = [];
-    for (const r of rows.results) {
-      const hash = draftHash(r.title, r.content);
-      const seen = await db.query<{ n: number }>(
-        `SELECT COUNT(*) n FROM draft_reviews
-         WHERE article_id = ? AND reviewer = 'claude' AND content_hash = ?`,
-        [r.id, hash],
-      );
-      if ((seen.results[0]?.n ?? 0) === 0) out.push(r.id);
-    }
-    console.log(out.join("\n"));
+    console.log((await unreviewedDrafts(db)).join("\n"));
     return;
   }
 

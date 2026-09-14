@@ -32,29 +32,12 @@
 import { createD1Client } from "../lib/d1-client";
 import { countryProfile } from "../../src/lib/countries";
 import { draftHash } from "./check-drafts";
-import { cleanSource } from "./draft-pack";
+import { dossier, dossierSelect, latestReview, pretty, type DossierRow } from "./draft-dossier";
 
-export interface FixRow {
-  id: number;
-  title: string;
-  content: string;
+export interface FixRow extends DossierRow {
+  /** Artiklens egen manchet — `summary` i dossieret er kildens. */
   art_summary: string | null;
-  country: string | null;
-  article_type: string | null;
   claude_fixed_content: string | null;
-  source_url: string | null;
-  fact_sheet: string | null;
-  content_raw: string | null;
-  summary: string | null;
-  athlete_name: string | null;
-  gender: string | null;
-  class_year: string | null;
-  expected_graduation: number | null;
-  sport: string | null;
-  position: string | null;
-  university: string | null;
-  hometown: string | null;
-  previous_school: string | null;
   review_verdict: string | null;
   review_findings: string | null;
   review_summary: string | null;
@@ -62,40 +45,15 @@ export interface FixRow {
   mech_findings: string | null;
 }
 
-const SELECT = `
-  SELECT a.id, a.title, a.content, a.summary AS art_summary, a.country, a.article_type,
-         a.claude_fixed_content,
-         s.source_url, s.fact_sheet, s.content_raw, s.summary,
-         ath.name AS athlete_name, ath.gender, ath.class_year, ath.expected_graduation,
-         ath.sport, ath.position, ath.university, ath.hometown, ath.previous_school,
-         (SELECT dr.verdict      FROM draft_reviews dr
-           WHERE dr.article_id = a.id AND dr.reviewer = 'claude'
-           ORDER BY dr.id DESC LIMIT 1) AS review_verdict,
-         (SELECT dr.findings     FROM draft_reviews dr
-           WHERE dr.article_id = a.id AND dr.reviewer = 'claude'
-           ORDER BY dr.id DESC LIMIT 1) AS review_findings,
-         (SELECT dr.summary      FROM draft_reviews dr
-           WHERE dr.article_id = a.id AND dr.reviewer = 'claude'
-           ORDER BY dr.id DESC LIMIT 1) AS review_summary,
-         (SELECT dr.content_hash FROM draft_reviews dr
-           WHERE dr.article_id = a.id AND dr.reviewer = 'claude'
-           ORDER BY dr.id DESC LIMIT 1) AS review_hash,
-         (SELECT dr.findings     FROM draft_reviews dr
-           WHERE dr.article_id = a.id AND dr.reviewer = 'mechanical'
-           ORDER BY dr.id DESC LIMIT 1) AS mech_findings
-  FROM articles a
-  LEFT JOIN stories s ON s.id = a.story_id
-  LEFT JOIN athletes ath ON ath.id = a.athlete_id
-`;
-
-function pretty(json: string | null): string {
-  if (!json) return "(intet)";
-  try {
-    return JSON.stringify(JSON.parse(json), null, 1);
-  } catch {
-    return json;
-  }
-}
+const SELECT = dossierSelect([
+  "a.summary AS art_summary",
+  "a.claude_fixed_content",
+  latestReview("claude", "verdict", "review_verdict"),
+  latestReview("claude", "findings", "review_findings"),
+  latestReview("claude", "summary", "review_summary"),
+  latestReview("claude", "content_hash", "review_hash"),
+  latestReview("mechanical", "findings", "mech_findings"),
+]);
 
 /** Er kladden allerede rettet af maskinen, i den form den står i nu? */
 export function alreadyFixed(r: {
@@ -148,32 +106,7 @@ om en kamp der ikke er spillet, eller er så meget opdigtet at der ikke er en
 artikel tilbage — så svar "verdict": "reject" og lad "content" stå tom. Det er
 et rigtigt svar, ikke en fiasko.
 
-## Atleten, som basen kender hende/ham
-
-| Felt | Værdi |
-|---|---|
-| Navn | ${r.athlete_name ?? "(ingen kobling)"} |
-| Køn i basen | ${r.gender ?? "ukendt"} |
-| Årgang | ${r.class_year ?? "ukendt"} |
-| Forventet dimission | ${r.expected_graduation ?? "ukendt"} |
-| Sport | ${r.sport ?? "?"} |
-| Position | ${r.position ?? "?"} |
-| Universitet | ${r.university ?? "?"} |
-| Hjemby | ${r.hometown ?? "?"} |
-| Forrige skole | ${r.previous_school ?? "ingen registreret (siger IKKE at der ikke er en)"} |
-
-## Kilden (${r.source_url ?? "ukendt URL"})
-
-\`\`\`
-${cleanSource(r.content_raw, r.summary)}
-\`\`\`
-
-## Faktaarket (det ENESTE kladden må hvile på)
-
-\`\`\`json
-${pretty(r.fact_sheet)}
-\`\`\`
-
+${dossier(r)}
 ## Fundene der skal rettes
 
 Gennemgangens dom: **${r.review_verdict ?? "?"}** — ${r.review_summary ?? ""}

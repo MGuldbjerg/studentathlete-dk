@@ -5,6 +5,11 @@ import { getArticleUrl } from "./seo";
 import { currentBaseUrl, currentLanguage } from "./site-server";
 import { generateSlug } from "./slug";
 import { buildMergeStatements } from "./athlete-merge";
+import {
+  REJECT_DELETE_SQL,
+  REJECT_LOG_SQL,
+  rejectLogParams,
+} from "./review-snapshot";
 import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS, settingScope, GLOBAL_SCOPE } from "./site-content";
 import { contentCountry } from "./site-server";
@@ -256,14 +261,15 @@ export async function deleteArticle(id: number): Promise<void> {
   try {
     const row = await db
       .prepare(
-        `SELECT a.published, a.original_content, a.title, a.article_type, a.fabrication_risk,
-                a.story_id, a.athlete_id, s.sensitive
+        `SELECT a.published, a.original_content, a.claude_fixed_content, a.title,
+                a.article_type, a.fabrication_risk, a.story_id, a.athlete_id, s.sensitive
          FROM articles a LEFT JOIN stories s ON a.story_id = s.id WHERE a.id = ?`
       )
       .bind(id)
       .first() as {
         published: number;
         original_content: string | null;
+        claude_fixed_content: string | null;
         title: string | null;
         article_type: string | null;
         fabrication_risk: string | null;
@@ -272,25 +278,13 @@ export async function deleteArticle(id: number): Promise<void> {
         sensitive: string | null;
       } | null;
     if (row && row.published === 0 && row.original_content) {
+      // Teksten gemmes MED: uden den kan en afvisning ikke efterprøves senere,
+      // og afvisningerne er de vigtigste sager at måle et kvalitetstjek på
+      // (migration 044). Reglen for HVILKE tekster står i review-snapshot.ts —
+      // den her kopi kendte ikke `fixed_snapshot` og tabte #238's rettede tekst.
       await db
-        .prepare(
-          // Teksten gemmes MED: uden den kan en afvisning ikke efterprøves
-          // senere, og afvisningerne er de vigtigste sager at måle et
-          // kvalitetstjek på (migration 044).
-          `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive,
-                                   content_snapshot, title_snapshot, story_id, athlete_id)
-           VALUES (?, 'rejected', ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          id,
-          row.article_type,
-          row.fabrication_risk,
-          row.sensitive,
-          row.original_content,
-          row.title,
-          row.story_id,
-          row.athlete_id
-        )
+        .prepare(REJECT_LOG_SQL)
+        .bind(...rejectLogParams(id, row))
         .run();
     }
   } catch {
@@ -307,11 +301,7 @@ export async function deleteArticle(id: number): Promise<void> {
   // teksten (migration 044), så en afvisning kan efterprøves bagefter.
   // Rækkefølgen er børn før forælder, i én batch, så en halv sletning ikke kan
   // efterlade en gennemgang uden artikel.
-  await db.batch([
-    db.prepare("DELETE FROM draft_reviews WHERE article_id = ?").bind(id),
-    db.prepare("DELETE FROM social_posts WHERE article_id = ?").bind(id),
-    db.prepare("DELETE FROM articles WHERE id = ?").bind(id),
-  ]);
+  await db.batch(REJECT_DELETE_SQL.map((sql) => db.prepare(sql).bind(id)));
 }
 
 export async function getArticleById(id: number): Promise<Article | null> {

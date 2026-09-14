@@ -21,6 +21,11 @@
 import { readFileSync } from "node:fs";
 import { createD1Client } from "../lib/d1-client";
 import { generateSlug } from "../../src/lib/slug";
+import {
+  REJECT_DELETE_SQL,
+  REJECT_LOG_SQL,
+  rejectLogParams,
+} from "../../src/lib/review-snapshot";
 
 interface Decision {
   id: number;
@@ -61,12 +66,14 @@ async function main() {
         title: string;
         content: string;
         original_content: string | null;
+        claude_fixed_content: string | null;
         story_id: number | null;
         athlete_id: number | null;
         sensitive: string | null;
       }>(
         `SELECT a.id, a.published, a.country, a.article_type, a.fabrication_risk,
                 a.cover_image_url, a.title, a.content, a.original_content,
+                a.claude_fixed_content,
                 a.story_id, a.athlete_id, s.sensitive
            FROM articles a LEFT JOIN stories s ON s.id = a.story_id
           WHERE a.id = ?`,
@@ -88,27 +95,9 @@ async function main() {
       if (DRY) continue;
       // review_log first: the row must survive the article it describes.
       if (row.original_content) {
-        await db.execute(
-          `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive,
-                                   content_snapshot, title_snapshot, story_id, athlete_id)
-           VALUES (?, 'rejected', ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            d.id,
-            row.article_type,
-            row.fabrication_risk,
-            row.sensitive,
-            row.original_content,
-            row.title,
-            row.story_id,
-            row.athlete_id,
-          ],
-        );
+        await db.execute(REJECT_LOG_SQL, rejectLogParams(d.id, row));
       }
-      await db.batch([
-        { sql: "DELETE FROM draft_reviews WHERE article_id = ?", params: [d.id] },
-        { sql: "DELETE FROM social_posts WHERE article_id = ?", params: [d.id] },
-        { sql: "DELETE FROM articles WHERE id = ?", params: [d.id] },
-      ]);
+      await db.batch(REJECT_DELETE_SQL.map((sql) => ({ sql, params: [d.id] })));
       rejected++;
       continue;
     }
