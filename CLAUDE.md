@@ -146,7 +146,11 @@ rulles tilbage — den er læst, og sitet skriver om navngivne mennesker.
 
 Windows-opgaven `StudentAthlete-kladderettelse` kører
 `scripts/review-drafts.sh --fix` hver nat kl. 01:00 og skriver i D1 **uden at
-spørge**. Mikkel bad om den: «check and correct each unchecked draft … so I only
+spørge**. Fra 2026-09-14 gør dagens cron-kørsler det samme, men KUN som
+indhentning: er der gået over 20 timer siden sidste rettelses-kørsel (stemplet
+`logs/review/.sidste-rettelse`), retter den kørsel i stedet. Natten kl. 01:00
+kørte 2 af sine 4 første nætter — maskinen var slukket, og `StartWhenAvailable`
+hentede den ikke. Mikkel bad om den: «check and correct each unchecked draft … so I only
 need to focus on what works». Den må præcis to ting, og intet andet:
 
 - dom `fix` → skrive den rettede tekst i en **upubliceret** kladde

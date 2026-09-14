@@ -82,6 +82,56 @@ korsbåndsskade. Læst gennem pakken lignede kladden #219 og var til at afvise;
 læst mod hele kilden var den den bedste historie i køen. **Enhver dom over en
 lang kilde er afsagt på en tredjedel af den.**
 
+## 🔍 Fire nætter målt — og oprydningen efter (2026-09-14)
+
+Natkørslen virker. Den har rettet og afvist i to nætter (09-11 og 09-14), køen er
+tom, og 6 maskinrettede kladder er udgivet. Men en gennemgang fra ende til anden
+fandt tre ting der ikke holdt:
+
+**1. Den kørte 2 af 4 nætter.** Maskinen var slukket fra fredag eftermiddag til
+søndag kl. 16, og `StartWhenAvailable` hentede IKKE de to sprungne nætter da den
+vågnede — `NumberOfMissedRuns` stod på 0. Det var præcis den egenskab der
+begrundede at vælge Task Scheduler frem for cron, og den holdt ikke.
+Løsningen er ikke en tredje vært, men et **stempel**: `logs/review/.sidste-rettelse`.
+Er der gået over 20 timer siden sidste rettelses-kørsel, retter dagens næste
+kørsel i stedet. Natten er stadig den primære; en sprunget nat er nu forsinket i
+stedet for tabt. Prøvet i alle fire tilstande (frisk stempel, 30 timer gammelt,
+intet stempel, `--fix`).
+
+**2. `approved_after_fix` har aldrig fyret.** Seks natrettede kladder er udgivet
+siden 09-10, og alle seks blev logget `edited`. Migration 051 ligger i basen, men
+`publishArticle` kører i Workeren — og koden var aldrig deployet. Målingen var
+bygget og lå stille. Deployet 09-14.
+
+**3. #238's rettede tekst er væk.** Kladden blev maskinrettet natten til 09-11
+(1127 → 415 tegn) og afvist fra /admin to dage senere. `deleteArticle` kendte
+ikke `fixed_snapshot` — den kolonne blev kun skrevet af natkørslen selv. Af
+arkivets tre afvisnings-veje havde kun én lært migration 051. Nu står reglen ét
+sted (`src/lib/review-snapshot.ts`), og alle tre skriver begge tekster. De 415
+tegn kommer ikke igen; det er den ene sag der betalte for fejlen.
+
+**Oprydningen**, målt og bevist frem for antaget:
+
+| Var | Er | Bevist ved |
+|---|---|---|
+| To kopier af dossieret i `draft-pack` og `fix-pack` — 27 af 27 SELECT-kolonner og 31 byte-identiske promptlinjer | `draft-dossier.ts` | otte gemte pakker, fire artikler × to sprog, byte for byte ens før og efter |
+| `extractJson` i to filer, forskellen var returtypen | én generisk i `parse-output.ts` | `_fix-pack-test.ts` uændret grøn |
+| Afvisningen skrevet tre gange | `review-snapshot.ts` | typecheck + CI |
+| `draft-pack --list` spurgte basen én gang pr. kladde | to forespørgsler i alt | kørt mod hele arkivet: **95 D1-kald → 2**, samme 86 id'er ud |
+
+Netto 448 linjer slettet mod 266 nye. **Prompterne er ikke rørt** — det var hele
+pointen med at gemme pakkerne først: en tunet prompt må ikke skifte ordlyd fordi
+koden bag den bliver ryddet op.
+
+**Det der IKKE blev slået sammen, med vilje:** gennemgang og rettelse er stadig to
+Claude-kald over det samme dossier. Det kunne være ét — rette-pakken indeholder
+alt gennemgangen har. Men morgenkørslen 09-11 fandt NYE fund i 4 af 5 kladder
+natten lige havde rettet (#247 kom tilbage som `ok`), så det andet øjekast
+arbejder. Og kaldene koster ikke penge, kun tid: de går gennem Claude Code, ikke
+en API-nøgle. Slår man dem sammen, bliver dommeren også den der retter, og
+`draft_reviews` holder op med at være en uafhængig måling. Prisen er reel, og
+gevinsten er wall-clock.
+
 ## 🌙 Natkørslen retter og afviser selv (2026-09-10)
 
 Mikkel: «check and correct each unchecked draft … so I only need to focus on what
@@ -1853,7 +1903,9 @@ Det er præcis den forskel de to lag skal dække.
 - **Workflow «Kvalitetstjek af kladder»** hver 3. time: mekanisk tjek + Discord-ping
   (også om Claudes fund, som ligger i D1 — pinget behøver ikke komme fra din maskine).
 - **Cron på WSL** kl. 7, 10, 13, 16 og 19: `scripts/review-drafts.sh` kører begge lag.
-  Fjernes med `crontab -e`. Dette er en **læse**-kørsel: den dømmer, den retter ikke.
+  Fjernes med `crontab -e`. En **læse**-kørsel — den dømmer, den retter ikke — med
+  én undtagelse: er stemplet `logs/review/.sidste-rettelse` over 20 timer gammelt,
+  henter kørslen den sprungne nat (2026-09-14).
 - **Windows-opgaven `StudentAthlete-kladderettelse`** kl. 01:00:
   `scripts/review-drafts.sh --fix` — samme to lag, og derefter retter/afviser den
   (se «Natkørslen retter og afviser selv», 2026-09-10). `StartWhenAvailable`, så en

@@ -30,12 +30,27 @@
 # Rettelsen ændrer indholdet, så næste kørsel gennemgår den rettede tekst — men
 # retter den ikke igen. Er den stadig gal, er fundene dine.
 #
-# `--fix` kører kun fra natjobbet. Dagens kørsler er læse-kørsler: du skal kunne
-# åbne /admin midt på dagen og se den kladde du så i morges.
+Dagens kørsler er læse-kørsler: du skal kunne åbne /admin midt på dagen og se
+# den kladde du så i morges. MED ÉN UNDTAGELSE — se indhentningen nedenfor.
+#
+# --------------------------------------------------------------------------
+# INDHENTNING: natten kører ikke hvis maskinen er slukket (2026-09-14)
+# --------------------------------------------------------------------------
+# Målt over de fire første nætter: den kørte 2 af 4. Maskinen var slukket fra
+# fredag eftermiddag til søndag kl. 16, og Windows-opgavens `StartWhenAvailable`
+# hentede IKKE de to nætter da den vågnede — `NumberOfMissedRuns` stod på 0.
+# Nøjagtig samme mønster som `logs/seo-friday.log`, hvor 01:15-jobbet har fyret
+# én gang i tre uger.
+#
+# Kladder udløber ikke — i modsætning til en lukkekurs — så indhentning er det
+# rigtige svar. Hver kørsel kigger på stemplet nedenfor: er der gået mere end
+# STALE_HOURS siden sidste rettelses-kørsel, retter DENNE kørsel i stedet.
+# Natten kl. 01:00 er stadig den primære; stemplet gør bare at en sprunget nat
+# bliver hentet af næste kørsel i stedet for at være tabt.
 #
 # Cron / Task Scheduler:
-#   0 7,10,13,16,19 * * *  ./scripts/review-drafts.sh              (kun tjek)
-#   01:00 dagligt          ./scripts/review-drafts.sh --fix        (tjek + ret)
+#   0 7,10,13,16,19 * * *  ./scripts/review-drafts.sh          (tjek + indhentning)
+#   01:00 dagligt          ./scripts/review-drafts.sh --fix    (tjek + ret)
 #
 # Miljø: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_D1_DATABASE_ID
 # (og DISCORD_WEBHOOK_URL hvis du vil have pinget). Kør uden argumenter, eller
@@ -79,7 +94,28 @@ done
 
 mkdir -p logs/review
 
+# Stemplet sættes når en rettelses-kørsel er FÆRDIG, ikke når den begynder: en
+# kørsel der dør halvvejs skal hentes af den næste, ikke regnes for gjort.
+STAMP="logs/review/.sidste-rettelse"
+STALE_HOURS=20
+CATCHUP=0
+
+if [ "$DO_FIX" = "0" ]; then
+  if [ ! -f "$STAMP" ]; then
+    SINCE=""
+  else
+    SINCE=$(( ( $(date +%s) - $(stat -c %Y "$STAMP") ) / 3600 ))
+  fi
+  if [ -z "$SINCE" ] || [ "$SINCE" -ge "$STALE_HOURS" ]; then
+    DO_FIX=1
+    CATCHUP=1
+  fi
+fi
+
 echo "=== $(date '+%Y-%m-%d %H:%M') kvalitetstjek af kladder$([ "$DO_FIX" = 1 ] && echo ' (med rettelse)')"
+if [ "$CATCHUP" = "1" ]; then
+  echo "  ⟲ indhenter: sidste rettelse ${SINCE:-aldrig kørt} ${SINCE:+timer siden} (grænse ${STALE_HOURS}t)"
+fi
 
 # ── 1. Mekanisk ─────────────────────────────────────────────────────────────
 npx tsx pipeline/generate/check-drafts.ts --notify || echo "  ! mekanisk tjek fejlede"
@@ -183,6 +219,10 @@ if [ "$DO_FIX" = "1" ]; then
       npx tsx pipeline/generate/check-drafts.ts >/dev/null || echo "  ! eftertjek fejlede"
     fi
   fi
+
+  # Nået hertil = rettelses-fasen er gennemført (også når køen var tom — så var
+  # der intet at hente). Stemplet holder de næste kørsler i læse-tilstand.
+  [ "$DRY_RUN" != "1" ] && touch "$STAMP"
 fi
 
 # ── 3. Ping ─────────────────────────────────────────────────────────────────
