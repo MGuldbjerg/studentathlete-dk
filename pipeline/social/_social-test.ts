@@ -9,7 +9,9 @@ import {
   DEFAULT_PACING,
   computeGapMinutes,
   isExpired,
+  minutesUntilExpiry,
   parseUtc,
+  postsAllowedNow,
   shouldPostNow,
 } from "./pacing";
 import { buildPostText, truncate } from "./copy";
@@ -71,6 +73,98 @@ expect(
   "post: 30 min siden sidst, dyb kø → nej (hård grænse)",
   shouldPostNow("2026-06-11 11:30:00", 50, now),
   false,
+);
+
+// ── deadline-budgettet: en kø der løber tør for tid, skynder sig ─────────────
+expect(
+  "deadline: 6 i kø med 4t igen → hård grænse 60 min (ikke 180)",
+  computeGapMinutes(6, DEFAULT_PACING, 4 * 60),
+  60,
+);
+expect(
+  "deadline: 6 i kø med 18t igen → 180 (dræn-målet er stadig strammest)",
+  computeGapMinutes(6, DEFAULT_PACING, 18 * 60),
+  180,
+);
+expect(
+  "deadline: kan kun STRAMME — masser af tid ændrer intet",
+  computeGapMinutes(24, DEFAULT_PACING, 48 * 60),
+  computeGapMinutes(24),
+);
+expect(
+  "deadline: udløbet allerede → negativ tid giver ikke negativ gap",
+  computeGapMinutes(5, DEFAULT_PACING, -120),
+  60,
+);
+expect(
+  "deadline: ukendt (null) opfører sig som før",
+  computeGapMinutes(12, DEFAULT_PACING, null),
+  computeGapMinutes(12),
+);
+expect(
+  "minutesUntilExpiry: 40t i kø → 8t igen",
+  minutesUntilExpiry("2026-06-09 20:00:00", now),
+  8 * 60,
+);
+expect(
+  "minutesUntilExpiry: 50t i kø → negativt (for sent)",
+  minutesUntilExpiry("2026-06-09 10:00:00", now) < 0,
+  true,
+);
+// Genafspilningen af 4. september er hele begrundelsen: 18 britiske artikler,
+// de virkelige kørselstider, 12 ud med gammel logik — 18 med deadline-budgettet.
+expect(
+  "deadline: sidste 3 med 3t igen → 3 skyldige i én kørsel",
+  postsAllowedNow("2026-06-11 09:00:00", 3, now, DEFAULT_PACING, 3 * 60),
+  3,
+);
+
+// ── postsAllowedNow: kørslen indhenter det cron'en ikke nåede ────────────────
+// Baggrunden er målt, ikke gættet: 4. september lå 18 britiske artikler i kø,
+// 12 kom ud, 6 udløb med attempts = 0. Cron'en fyrede 6-8 gange i døgnet, ikke
+// 24, og ét opslag pr. kørsel kunne ikke nå 18 inden for 48-timersgrænsen.
+expect("antal: tom kø → 0", postsAllowedNow(null, 0, now), 0);
+expect("antal: aldrig postet → 1 (første opslag er ikke en byge)", postsAllowedNow(null, 9, now), 1);
+expect(
+  "antal: 30 min siden sidst, dyb kø (gap 60) → 0",
+  postsAllowedNow("2026-06-11 11:30:00", 50, now),
+  0,
+);
+expect(
+  "antal: 1t siden sidst, dyb kø (gap 60) → 1",
+  postsAllowedNow("2026-06-11 11:00:00", 50, now),
+  1,
+);
+expect(
+  "antal: 5t siden sidst, kø 18 (gap 80) → 3 skyldige",
+  postsAllowedNow("2026-06-11 07:00:00", 18, now),
+  3,
+);
+expect(
+  "antal: 2 døgns stilstand → maxPerRun, ikke hele køen",
+  postsAllowedNow("2026-06-09 12:00:00", 50, now),
+  DEFAULT_PACING.maxPerRun,
+);
+expect(
+  "antal: kø-dybden er også et loft",
+  postsAllowedNow("2026-06-09 12:00:00", 2, now),
+  2,
+);
+expect(
+  "antal: maxPerRun × målt kadence (6 kørsler) rammer den hårde 24/døgn",
+  DEFAULT_PACING.maxPerRun * 6 <= (24 * 60) / DEFAULT_PACING.minGapMinutes,
+  true,
+);
+// shouldPostNow er nu afledt af antallet — samme svar, én regel.
+expect(
+  "afledt: shouldPostNow følger postsAllowedNow (ja)",
+  shouldPostNow("2026-06-11 07:00:00", 18, now),
+  postsAllowedNow("2026-06-11 07:00:00", 18, now) > 0,
+);
+expect(
+  "afledt: shouldPostNow følger postsAllowedNow (nej)",
+  shouldPostNow("2026-06-11 11:30:00", 50, now),
+  postsAllowedNow("2026-06-11 11:30:00", 50, now) > 0,
 );
 
 // ── isExpired (48t) ──────────────────────────────────────────────────────────

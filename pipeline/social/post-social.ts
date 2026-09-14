@@ -9,9 +9,11 @@
  *     får aldrig kø-rækker, så secrets kan tilføjes gradvist (Bluesky først).
  *  2. Expiry: kø-rækker ældre end 48t markeres 'expired' — gamle nyheder
  *     postes ikke.
- *  3. Dræn: pr. kanal — adaptiv gap ud fra kø-dybde (se pacing.ts); er der
- *     gået gap-tid siden sidste opslag postes den ÆLDSTE i køen. Max ét
- *     opslag pr. kanal pr. kørsel; hård grænse = 1/time/kanal.
+ *  3. Dræn: pr. kanal — adaptiv gap ud fra kø-dybde (se pacing.ts). Kørslen
+ *     sender så mange af de ÆLDSTE i køen som gap'et har budgetteret siden
+ *     sidste opslag, højst `maxPerRun`. Den indhentning er ikke pynt: cron'en
+ *     fyrer 6-8 gange i døgnet, ikke 24, og med ét opslag pr. kørsel udløb 7
+ *     britiske artikler uden at være forsøgt (4. og 7. september 2026).
  *
  * Fejl: attempts tælles op; 3 mislykkede forsøg → status 'failed'. Enhver
  * fejl giver exit 1, så workflowens failure-Discord fyrer.
@@ -21,7 +23,7 @@ import { createD1Client, type D1Client } from "../lib/d1-client";
 import { CARD_VERSION, getArticleCoverUrl, getArticleUrl } from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
-import { DEFAULT_PACING, computeGapMinutes, shouldPostNow } from "./pacing";
+import { DEFAULT_PACING, computeGapMinutes, minutesUntilExpiry, postsAllowedNow } from "./pacing";
 import { buildPostText } from "./copy";
 import { ChannelAuthError, type PostContent, type SocialChannel } from "./types";
 import { bluesky, blueskyUk } from "./channels/bluesky";
@@ -156,32 +158,18 @@ async function warnIfWaitingForCards(db: D1Client, ch: SocialChannel): Promise<v
   }
 }
 
-/** Dræn én kanal: post den ældste i køen hvis pacing tillader det. */
-async function drainChannel(
+/**
+ * Post ÉT opslag på kanalen: tag den ældste kø-række der er klar, og send den.
+ *
+ * Skilt ud fra drænet fordi kørslen nu kan sende flere ad gangen (se
+ * pacing.ts). `empty` betyder "der var ikke mere at tage" — ikke en fejl, men
+ * grunden til at bygen stopper før sit loft.
+ */
+async function postOne(
   db: D1Client,
   ch: SocialChannel,
   dryRun: boolean,
-): Promise<{ posted: boolean; error: string | null }> {
-  const [{ depth }] = (
-    await db.query<{ depth: number }>(
-      `SELECT COUNT(*) AS depth FROM social_posts WHERE channel = ? AND status = 'queued'`,
-      [ch.name],
-    )
-  ).results;
-
-  const [last] = (
-    await db.query<{ posted_at: string | null }>(
-      `SELECT MAX(posted_at) AS posted_at FROM social_posts WHERE channel = ? AND status = 'posted'`,
-      [ch.name],
-    )
-  ).results;
-
-  if (!shouldPostNow(last?.posted_at ?? null, depth)) {
-    const gap = computeGapMinutes(depth);
-    console.log(`  ${ch.name}: venter (kø ${depth}, gap ${gap} min, sidst ${last?.posted_at ?? "aldrig"})`);
-    return { posted: false, error: null };
-  }
-
+): Promise<{ posted: boolean; error: string | null; empty: boolean; fatal: boolean }> {
   // KORTET SKAL FINDES FØRST. Facebook (og Bluesky) bygger forhåndsvisningen af
   // sin EGEN scrape af siden, og siden lover `og:image:width=1200`. Mangler
   // blob'en, serverer /api/og sit 600×315-fallback — halvdelen af det lovede —
@@ -212,7 +200,7 @@ async function drainChannel(
   ).results;
   if (!row) {
     await warnIfWaitingForCards(db, ch);
-    return { posted: false, error: null };
+    return { posted: false, error: null, empty: true, fatal: false };
   }
 
   // Sidste kontrol før noget forlader huset. En kø-række kan være oprettet af
@@ -220,14 +208,16 @@ async function drainChannel(
   if (row.country !== ch.country || !distributionAllowed(row.country)) {
     console.log(`  ${ch.name}: springer ${row.country}-artikel over (kanalen er ${ch.country})`);
     await db.execute("UPDATE social_posts SET status = 'expired' WHERE id = ?", [row.id]);
-    return { posted: false, error: null };
+    return { posted: false, error: null, empty: false, fatal: false };
   }
 
   const content = buildContent(row, ch.name);
 
   if (dryRun) {
     console.log(`  ${ch.name} [dry-run]: ville poste "${row.title}" → ${content.url}`);
-    return { posted: false, error: null };
+    // Dry-run skriver intet, så næste runde ville hente den SAMME række og
+    // kunne love det samme opslag fire gange. Stop bygen efter ét.
+    return { posted: false, error: null, empty: true, fatal: false };
   }
 
   try {
@@ -239,7 +229,7 @@ async function drainChannel(
       [postUrl, row.id],
     );
     console.log(`  ${ch.name}: postet "${row.title}"${postUrl ? ` → ${postUrl}` : ""}`);
-    return { posted: true, error: null };
+    return { posted: true, error: null, empty: false, fatal: false };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
 
@@ -248,7 +238,7 @@ async function drainChannel(
     // ville et forkert kodeord tømme køen i timen, tre timer pr. artikel.
     if (err instanceof ChannelAuthError) {
       console.error(`  ${ch.name}: KONTO-FEJL — intet forsøg brugt, køen står urørt: ${msg}`);
-      return { posted: false, error: msg };
+      return { posted: false, error: msg, empty: false, fatal: true };
     }
 
     const exhausted = row.attempts + 1 >= MAX_ATTEMPTS;
@@ -259,8 +249,69 @@ async function drainChannel(
       [msg.slice(0, 500), exhausted ? "failed" : "queued", row.id],
     );
     console.error(`  ${ch.name}: FEJL (forsøg ${row.attempts + 1}/${MAX_ATTEMPTS}): ${msg}`);
-    return { posted: false, error: msg };
+    return { posted: false, error: msg, empty: false, fatal: true };
   }
+}
+
+/**
+ * Dræn én kanal: post så mange fra køen som pacingen har budgetteret siden
+ * sidste opslag (se `postsAllowedNow` — og hvorfor det ikke længere er ét).
+ *
+ * Bygen stopper ved første fejl. En kanal der lige har afvist et opslag, skal
+ * ikke have tre til i samme sekund: ved en platform-nedetid ville det brænde
+ * tre forsøg af på tre artikler i stedet for ét på én.
+ */
+async function drainChannel(
+  db: D1Client,
+  ch: SocialChannel,
+  dryRun: boolean,
+): Promise<{ posted: number; error: string | null }> {
+  const [{ depth }] = (
+    await db.query<{ depth: number }>(
+      `SELECT COUNT(*) AS depth FROM social_posts WHERE channel = ? AND status = 'queued'`,
+      [ch.name],
+    )
+  ).results;
+
+  const [last] = (
+    await db.query<{ posted_at: string | null }>(
+      `SELECT MAX(posted_at) AS posted_at FROM social_posts WHERE channel = ? AND status = 'posted'`,
+      [ch.name],
+    )
+  ).results;
+
+  // Hvor lang tid har den ÆLDSTE i køen igen? Pacingen skal kende sin deadline,
+  // ellers spacer den de sidste artikler med 3 timer mens de har 4 tilbage.
+  // Bemærk: rækken behøver ikke have sit kampkort — den udløber uanset.
+  const [oldest] = (
+    await db.query<{ created_at: string | null }>(
+      `SELECT MIN(created_at) AS created_at FROM social_posts WHERE channel = ? AND status = 'queued'`,
+      [ch.name],
+    )
+  ).results;
+  const leftMin = oldest?.created_at ? minutesUntilExpiry(oldest.created_at) : null;
+
+  const allowed = postsAllowedNow(last?.posted_at ?? null, depth, new Date(), DEFAULT_PACING, leftMin);
+  const gap = computeGapMinutes(depth, DEFAULT_PACING, leftMin);
+  if (allowed === 0) {
+    console.log(`  ${ch.name}: venter (kø ${depth}, gap ${gap} min, sidst ${last?.posted_at ?? "aldrig"})`);
+    return { posted: 0, error: null };
+  }
+  if (allowed > 1) {
+    console.log(
+      `  ${ch.name}: indhenter — kø ${depth}, gap ${gap} min` +
+        `${leftMin !== null ? `, ældste udløber om ${Math.round(leftMin / 60)} t` : ""}` +
+        `, sidst ${last?.posted_at}, sender op til ${allowed}`,
+    );
+  }
+
+  let posted = 0;
+  for (let i = 0; i < allowed; i++) {
+    const res = await postOne(db, ch, dryRun);
+    if (res.posted) posted++;
+    if (res.empty || res.fatal) return { posted, error: res.error };
+  }
+  return { posted, error: null };
 }
 
 async function main(): Promise<void> {
@@ -282,10 +333,13 @@ async function main(): Promise<void> {
   if (expired > 0) console.log(`Markerede ${expired} forældede kø-rækker som expired.`);
 
   const errors: string[] = [];
+  let postedTotal = 0;
   for (const ch of channels) {
-    const { error } = await drainChannel(db, ch, dryRun);
+    const { posted, error } = await drainChannel(db, ch, dryRun);
+    postedTotal += posted;
     if (error) errors.push(`${ch.name}: ${error}`);
   }
+  console.log(`I alt postet: ${postedTotal}`);
 
   if (errors.length > 0) {
     console.error(`\n${errors.length} kanal-fejl — se ovenfor.`);
