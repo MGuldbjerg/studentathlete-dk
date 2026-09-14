@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import type { ReactElement } from "react";
 import { NextRequest } from "next/server";
 import { getDB, getEnv } from "@/lib/db";
-import { cardBlobKey } from "@/lib/seo";
+import { cardBlobKey, igCardBlobKey } from "@/lib/seo";
 import {
   buildMatchCardElement,
   getSportColorSafe,
@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
     if (Number.isFinite(articleId)) {
       // 1) Pre-rendret 1200×630 fra pipelinen (card_blobs, migration-029) —
       //    skarpt kort UDEN satori-CPU på free-plan. Fail-soft til fallback.
-      const blob = await getCardBlob(articleId);
+      const blob = await getCardBlob(cardBlobKey(articleId));
       if (blob) return withEdgeCache(req.url, blob);
       // 2) Fallback: on-the-fly 600×315 (free-plan-budgettet) — som hidtil
       const data = await getCardData(articleId);
@@ -152,6 +152,21 @@ export async function GET(req: NextRequest) {
       }
     }
     // Fald igennem til generisk design med de params der måtte være sat
+  }
+
+  // Instagram-kortet: 1080×1350 JPEG, pre-rendret i pipelinen.
+  //
+  // INGEN fallback her, med vilje. Det liggende fallback ville være forkert
+  // format OG forkert formfaktor, og Instagram cacher sin egen hentning — ét
+  // dårligt billede bliver hængende. Findes kortet ikke, er svaret 404, og
+  // Instagram-kanalen venter på samme måde som social-køen venter på delekortet.
+  if (type === "ig") {
+    const articleId = parseInt(searchParams.get("article") ?? "", 10);
+    if (Number.isFinite(articleId)) {
+      const blob = await getCardBlob(igCardBlobKey(articleId));
+      if (blob) return withEdgeCache(req.url, blob);
+    }
+    return new Response("Instagram-kort ikke renderet endnu", { status: 404 });
   }
 
   const assets = await loadOgAssets(req.nextUrl.origin);
@@ -379,14 +394,14 @@ function matchCard(data: CardData, assets: OgAssets) {
   );
 }
 
-/** Pre-rendret kort fra card_blobs (base64-TEXT → PNG). Fail-soft: null = fallback. */
-async function getCardBlob(articleId: number): Promise<Response | null> {
+/** Pre-rendret kort fra card_blobs (base64-TEXT). Fail-soft: null = fallback. */
+async function getCardBlob(key: string): Promise<Response | null> {
   try {
     const db = await getDB();
     if (!db) return null;
     const r = await db
       .prepare("SELECT png_base64 FROM card_blobs WHERE key = ?")
-      .bind(cardBlobKey(articleId))
+      .bind(key)
       .first() as { png_base64: string } | null;
     if (!r?.png_base64) return null;
     const binary = atob(r.png_base64);
@@ -399,9 +414,11 @@ async function getCardBlob(articleId: number): Promise<Response | null> {
     const isWebp =
       bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
       bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+    // JPEG kom til med Instagram-kortet (kun JPEG accepteres dér).
+    const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
     return new Response(bytes, {
       headers: {
-        "Content-Type": isWebp ? "image/webp" : "image/png",
+        "Content-Type": isWebp ? "image/webp" : isJpeg ? "image/jpeg" : "image/png",
         "Cache-Control": "public, max-age=86400, s-maxage=604800",
       },
     });

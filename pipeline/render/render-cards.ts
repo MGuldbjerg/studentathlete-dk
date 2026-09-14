@@ -8,10 +8,19 @@
  * R2 var førstevalget, men kræver dashboard-aktivering på kontoen (fejl 10042);
  * D1-blobs giver samme resultat på $0.
  *
- * Kør:  npx tsx pipeline/render/render-cards.ts [--force] [--article N] [--out fil.png]
+ * TO LÆRREDER (se CARD_FORMATS i src/lib/og-card.ts):
+ *   landscape 1200×630 WebP → `card-<id>-v<N>`  — delekort til FB/Bluesky + sitets cover
+ *   portrait  1080×1350 JPEG → `ig-<id>-v<N>`   — Instagram, som KUN tager JPEG
+ * Målt på artikel 253: WebP 35 KB mod JPEG-mozjpeg 47 KB for samme landscape-kort,
+ * så sitet bliver på WebP; JPEG bruges kun hvor Instagram kræver det.
+ *
+ * Kør:  npx tsx pipeline/render/render-cards.ts [--force] [--article N] [--out fil] [--format F] [--dry-run]
  *   --force      genrender selvom blob findes (efter design-ændring: bump CARD_VERSION!)
  *   --article N  kun én artikel
- *   --out FIL    skriv også PNG til disk (lokal visuel verifikation)
+ *   --out FIL    skriv billedet til disk (lokal visuel verifikation)
+ *   --format F   landscape | portrait | begge (standard: begge)
+ *   --dry-run    render og skriv KUN til disk — rør ikke D1. Uden den var der
+ *                ingen måde at se en designændring uden at skrive i produktion.
  * Idempotent: springer nøgler over der allerede findes (nøgle indeholder CARD_VERSION).
  */
 import { readFileSync } from "node:fs";
@@ -21,8 +30,8 @@ import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 import { createD1Client } from "../lib/d1-client";
-import { buildMatchCardElement, type CardData } from "../../src/lib/og-card";
-import { cardBlobKey } from "../../src/lib/seo";
+import { CARD_FORMATS, buildMatchCardElement, type CardData, type CardFormat } from "../../src/lib/og-card";
+import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 
 // Scripts køres fra repo-roden (som alle pipeline-scripts/workflows gør)
 const ROOT = process.cwd();
@@ -65,11 +74,16 @@ function loadAssets() {
   };
 }
 
-async function renderCard(data: CardData, assets: ReturnType<typeof loadAssets>): Promise<Buffer> {
-  const element = buildMatchCardElement(data, assets.logoDataUri, 1);
+async function renderCard(
+  data: CardData,
+  assets: ReturnType<typeof loadAssets>,
+  format: CardFormat = "landscape",
+): Promise<Buffer> {
+  const fmt = CARD_FORMATS[format];
+  const element = buildMatchCardElement(data, assets.logoDataUri, 1, format);
   const svg = await satori(element as Parameters<typeof satori>[0], {
-    width: 1200,
-    height: 630,
+    width: fmt.width,
+    height: fmt.height,
     fonts: assets.fonts,
     loadAdditionalAsset: async (code: string, segment: string) => {
       if (code === "emoji") return loadTwemoji(segment);
@@ -77,29 +91,61 @@ async function renderCard(data: CardData, assets: ReturnType<typeof loadAssets>)
       return `data:image/svg+xml;base64,${Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>").toString("base64")}`;
     },
   });
-  const png = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } }).render().asPng();
+  const png = new Resvg(svg, { fitTo: { mode: "width", value: fmt.width } }).render().asPng();
 
-  // WebP i stedet for PNG. Kortet ER LCP-elementet på forsiden, og PNG'erne
-  // vejede 73-260 KB — det tungeste enkeltelement på siden. WebP på kvalitet
-  // 82 tager typisk 70% af det uden synlig forskel på et fladt kortdesign.
-  //
   // Konverteringen sker HER, i pipelinen (GitHub Actions), ikke i Workeren:
   // `sharp` er en native-modul og hører ikke hjemme på kanten. Workeren
   // serverer bare de bytes der ligger i card_blobs.
+  //
+  // WebP til sitet: kortet ER LCP-elementet på forsiden, og PNG'erne vejede
+  // 73-260 KB — det tungeste enkeltelement på siden.
+  //
+  // JPEG til Instagram, ikke af smag men af krav: «JPEG is the only image
+  // format supported». mozjpeg fordi forskellen er målt — 47 KB mod 64 KB for
+  // samme kort ved q82 — og fordi det er den eneste knap vi har her.
+  if (format === "portrait") {
+    return await sharp(Buffer.from(png)).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+  }
   return await sharp(Buffer.from(png)).webp({ quality: 82, effort: 5 }).toBuffer();
 }
 
-function parseArgs(): { force: boolean; article: number | null; out: string | null } {
+interface Args {
+  force: boolean;
+  article: number | null;
+  out: string | null;
+  formats: CardFormat[];
+  dryRun: boolean;
+}
+
+function parseArgs(): Args {
   const args = process.argv.slice(2);
   let force = false;
   let article: number | null = null;
   let out: string | null = null;
+  let formats: CardFormat[] = ["landscape", "portrait"];
+  let dryRun = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--force") force = true;
+    if (args[i] === "--dry-run") dryRun = true;
     if (args[i] === "--article" && args[i + 1]) article = parseInt(args[i + 1], 10);
     if (args[i] === "--out" && args[i + 1]) out = args[i + 1];
+    if (args[i] === "--format" && args[i + 1]) {
+      const f = args[i + 1];
+      if (f === "landscape" || f === "portrait") formats = [f];
+      else if (f !== "begge") throw new Error(`Ukendt --format: ${f} (landscape | portrait | begge)`);
+    }
   }
-  return { force, article, out };
+  return { force, article, out, formats, dryRun };
+}
+
+/** Nøgle og lagrede dimensioner hører sammen med formatet — ét sted. */
+function blobSpec(format: CardFormat, articleId: number) {
+  const fmt = CARD_FORMATS[format];
+  return {
+    key: format === "portrait" ? igCardBlobKey(articleId) : cardBlobKey(articleId),
+    width: fmt.width,
+    height: fmt.height,
+  };
 }
 
 interface CardRow extends CardData {
@@ -107,9 +153,11 @@ interface CardRow extends CardData {
 }
 
 async function main(): Promise<void> {
-  const { force, article, out } = parseArgs();
+  const { force, article, out, formats, dryRun } = parseArgs();
   const db = createD1Client();
   const assets = loadAssets();
+
+  if (dryRun) console.log("DRY-RUN: renderer og skriver til disk, rører ikke D1." + "\n");
 
   // Samme joins som /api/og getCardData — kun publicerede artikler pre-renderes
   const rows = await db.query<CardRow>(
@@ -127,39 +175,51 @@ async function main(): Promise<void> {
   let rendered = 0;
   let skipped = 0;
   for (const row of rows.results) {
-    const key = cardBlobKey(row.id);
-    if (!force) {
-      const existing = await db.query<{ key: string }>(
-        "SELECT key FROM card_blobs WHERE key = ?",
-        [key],
-      );
-      if (existing.results.length > 0) {
-        skipped++;
-        continue;
-      }
-    }
+    for (const format of formats) {
+      const { key, width, height } = blobSpec(format, row.id);
 
-    try {
-      const png = await renderCard(row, assets);
-      await db.execute(
-        `INSERT INTO card_blobs (key, png_base64, width, height)
-         VALUES (?, ?, 1200, 630)
-         ON CONFLICT(key) DO UPDATE SET png_base64 = excluded.png_base64, created_at = datetime('now')`,
-        [key, png.toString("base64")],
-      );
-      rendered++;
-      console.log(`  ✓ ${key} (artikel ${row.id}, ${Math.round(png.length / 1024)} KB)`);
-      if (out) {
-        writeFileSync(out, png);
-        console.log(`    → skrevet til ${out}`);
+      // I dry-run springer vi ALDRIG over: man beder om den netop for at se
+      // kortet, og et «fandtes allerede» ville give en tom mappe og ingen fejl.
+      if (!force && !dryRun) {
+        const existing = await db.query<{ key: string }>(
+          "SELECT key FROM card_blobs WHERE key = ?",
+          [key],
+        );
+        if (existing.results.length > 0) {
+          skipped++;
+          continue;
+        }
       }
-    } catch (err) {
-      // Én fejlet render må ikke stoppe resten — /api/og-fallbacket dækker den
-      console.error(`  ✗ ${key}: ${err instanceof Error ? err.message : String(err)}`);
+
+      try {
+        const img = await renderCard(row, assets, format);
+        if (!dryRun) {
+          await db.execute(
+            `INSERT INTO card_blobs (key, png_base64, width, height)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(key) DO UPDATE SET png_base64 = excluded.png_base64, created_at = datetime('now')`,
+            [key, img.toString("base64"), width, height],
+          );
+        }
+        rendered++;
+        console.log(`  ${dryRun ? "·" : "✓"} ${key} (artikel ${row.id}, ${width}×${height}, ${Math.round(img.length / 1024)} KB)`);
+        if (out) {
+          // Flere formater i én kørsel må ikke overskrive hinandens fil.
+          const file = formats.length > 1 ? out.replace(/(\.[a-z]+)?$/, `-${format}$1`) : out;
+          writeFileSync(file, img);
+          console.log(`    → skrevet til ${file}`);
+        }
+      } catch (err) {
+        // Én fejlet render må ikke stoppe resten — /api/og-fallbacket dækker den
+        console.error(`  ✗ ${key}: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
   }
 
-  console.log(`\nFærdig: ${rendered} renderet, ${skipped} fandtes allerede (${rows.results.length} publicerede).`);
+  console.log(
+    `\nFærdig: ${rendered} renderet, ${skipped} fandtes allerede ` +
+      `(${rows.results.length} publicerede × ${formats.length} format).`,
+  );
 }
 
 main().catch((err) => {

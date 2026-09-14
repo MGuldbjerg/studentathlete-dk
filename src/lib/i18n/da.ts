@@ -398,6 +398,7 @@ const ui: LanguagePack["ui"] = {
   "archive.newer": "← Nyere",
   "archive.older": "Ældre →",
 
+  "card.versus": "mod",
   "correction.prefix": "Rettet",
   "feed.description": "Dækning af {demonym} student athletes i USA",
   "ads.disclosure": "Annonce · {brand} kan tjene en kommission, hvis du handler via linket.",

@@ -101,7 +101,8 @@ jobs:
             src/lib/_profile-baseline-en-test.ts \
             src/lib/_positions-test.ts \
             src/lib/_mcp-server-test.ts \
-            src/lib/_athlete-merge-test.ts
+            src/lib/_athlete-merge-test.ts \
+            src/lib/_og-card-test.ts
           do
             echo "── $t"
             npx tsx "$t"

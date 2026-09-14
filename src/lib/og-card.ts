@@ -69,6 +69,113 @@ export function parseCardFacts(factSheetJson: string | null): CardFacts {
   }
 }
 
+/**
+ * Kortets FORMATER. Ét element-træ, to lærreder.
+ *
+ * `landscape` (1200×630, 1.91:1) er delekortet — Facebook, Bluesky, og sitets
+ * eget cover. `portrait` (1080×1350, 4:5) er Instagram-kortet.
+ *
+ * Hvorfor et selvstændigt format og ikke en beskæring: 1.91:1 beskåret til 4:5
+ * mister to tredjedele af bredden, altså navnet. Og Instagram tillader netop
+ * 4:5 til 1.91:1 — landscape ville passe med 0,3 % margen, men se ud som et
+ * delt link i et feed hvor links ikke virker. Tallene er derfor ikke en
+ * skalering af de samme tal: et telefon-feed læses længere væk fra øjet og på
+ * en smallere spalte, så typen er løftet, ikke strukket.
+ */
+export type CardFormat = "landscape" | "portrait";
+
+export interface CardFormatSpec {
+  width: number;
+  height: number;
+  padding: string;
+  /** Navnets størrelse: [langt navn (>22 tegn), kort navn] */
+  nameSize: [number, number];
+  nameMaxWidth: number;
+  universitySize: number;
+  factsSize: number;
+  scoreSize: number;
+  chipSize: number;
+  chipEmojiSize: number;
+  /**
+   * Det store halvtransparente piktogram i baggrunden.
+   *
+   * Lodret forankring følger indholdet: i landscape ligger teksten i midten og
+   * piktogrammet hænger ud af bunden. I portræt ligger teksten i bunden, så
+   * piktogrammet skal OP — ellers står den øverste halvdel af kortet tom.
+   */
+  backdropEmojiSize: number;
+  backdropRight: number;
+  backdropEdge: "top" | "bottom";
+  backdropOffset: number;
+  dateSize: number;
+  /** Indholdets vandrette padding — datoen flugter med teksten, ikke kanten. */
+  contentPaddingX: number;
+  /**
+   * Hvor indholdet ligger i rammen. 1.91:1 er så lav at midten ER rammen;
+   * 4:5 er halvanden gang så høj, og centreret indhold efterlader dødt rum
+   * både over og under. Portrættet lægger sig derfor i bunden, så det store
+   * piktogram får den øverste tredjedel.
+   */
+  justify: "center" | "flex-end";
+  /**
+   * Skal resultatet stå UNDER scoren i stedet for ved siden af? I 1080 px
+   * bredde løber «Brown 2 - Hofstra 1» + «Loss» ud over kanten.
+   */
+  stackOutcome: boolean;
+  edgePadding: number;
+  logoWidth: number;
+  logoHeight: number;
+}
+
+export const CARD_FORMATS: Record<CardFormat, CardFormatSpec> = {
+  landscape: {
+    width: 1200,
+    height: 630,
+    padding: "60px 80px",
+    nameSize: [52, 64],
+    nameMaxWidth: 800,
+    universitySize: 26,
+    factsSize: 22,
+    scoreSize: 54,
+    chipSize: 16,
+    chipEmojiSize: 36,
+    backdropEmojiSize: 320,
+    backdropRight: -30,
+    backdropEdge: "bottom",
+    backdropOffset: -50,
+    dateSize: 18,
+    contentPaddingX: 80,
+    justify: "center",
+    stackOutcome: false,
+    edgePadding: 28,
+    logoWidth: 200,
+    logoHeight: 36,
+  },
+  portrait: {
+    width: 1080,
+    height: 1350,
+    padding: "90px 70px 150px",
+    nameSize: [76, 96],
+    nameMaxWidth: 940,
+    universitySize: 38,
+    factsSize: 32,
+    scoreSize: 78,
+    chipSize: 22,
+    chipEmojiSize: 52,
+    backdropEmojiSize: 560,
+    backdropRight: -140,
+    backdropEdge: "top",
+    backdropOffset: 60,
+    dateSize: 26,
+    contentPaddingX: 70,
+    justify: "flex-end",
+    stackOutcome: true,
+    edgePadding: 44,
+    logoWidth: 280,
+    logoHeight: 50,
+  },
+};
+
 // ─── Element-hjælpere (satori-kompatible plain objects) ──────────────────────
 
 type Style = Record<string, string | number>;
@@ -83,13 +190,18 @@ function el(type: string, style: Style, children?: unknown, extra?: Record<strin
 
 /**
  * Byg kampkortets element-træ.
- * scale=0.5 → Worker-fallback (render i 600×315); scale=1 → pipeline (1200×630).
+ *
+ * scale=0.5 → Worker-fallback (render i 600×315); scale=1 → pipeline.
+ * format vælger lærredet — se `CARD_FORMATS`. Standard er `landscape`, så
+ * ingen eksisterende kalder skifter opførsel ved at lade være med at vælge.
  */
 export function buildMatchCardElement(
   data: CardData,
   logoDataUri: string,
   scale: 0.5 | 1,
+  format: CardFormat = "landscape",
 ): OgElement {
+  const fmt = CARD_FORMATS[format];
   // Kortet er det eneste stykke site der rejser ud på andres platforme, og
   // sproget kommer fra ARTIKLENS land — ikke fra standardsitet. Uden dette
   // stod der «FODBOLD» og «19. august 2026» på britiske artiklers delekort.
@@ -112,11 +224,11 @@ export function buildMatchCardElement(
       year: "numeric",
     });
   const name = data.athlete_name ?? data.title;
-  const nameSize = name.length > 22 ? 52 : 64;
+  const nameSize = name.length > 22 ? fmt.nameSize[0] : fmt.nameSize[1];
 
   const outerStyle: Style = {
-    width: "1200px",
-    height: "630px",
+    width: `${fmt.width}px`,
+    height: `${fmt.height}px`,
     display: "flex",
     position: "relative",
     fontFamily: "'Playfair Display', serif",
@@ -133,7 +245,7 @@ export function buildMatchCardElement(
       "div",
       { display: "flex", alignItems: "center", gap: 14, marginBottom: 24 },
       [
-        el("div", { fontSize: 36, display: "flex" }, emoji),
+        el("div", { fontSize: fmt.chipEmojiSize, display: "flex" }, emoji),
         ...(sportLabel
           ? [
               el(
@@ -143,7 +255,7 @@ export function buildMatchCardElement(
                   borderRadius: 4,
                   padding: "6px 16px",
                   color: "white",
-                  fontSize: 16,
+                  fontSize: fmt.chipSize,
                   fontWeight: 700,
                   letterSpacing: 2,
                   fontFamily: "'Noto Sans', sans-serif",
@@ -157,7 +269,7 @@ export function buildMatchCardElement(
     // Atletnavn
     el(
       "div",
-      { fontSize: nameSize, fontWeight: 900, color: "white", lineHeight: 1.1, maxWidth: 800 },
+      { fontSize: nameSize, fontWeight: 900, color: "white", lineHeight: 1.1, maxWidth: fmt.nameMaxWidth },
       name,
     ),
   ];
@@ -167,7 +279,7 @@ export function buildMatchCardElement(
       el(
         "div",
         {
-          fontSize: 26,
+          fontSize: fmt.universitySize,
           color: "rgba(255,255,255,0.75)",
           marginTop: 10,
           fontFamily: "'Noto Sans', sans-serif",
@@ -182,7 +294,7 @@ export function buildMatchCardElement(
       el(
         "div",
         {
-          fontSize: 22,
+          fontSize: fmt.factsSize,
           color: "rgba(255,255,255,0.6)",
           marginTop: 22,
           fontFamily: "'Noto Sans', sans-serif",
@@ -190,7 +302,7 @@ export function buildMatchCardElement(
           gap: 10,
         },
         [
-          facts.opponent ? `mod ${facts.opponent}` : "",
+          facts.opponent ? `${languagePack(lang).ui["card.versus"]} ${facts.opponent}` : "",
           facts.opponent && facts.competition ? " · " : "",
           facts.competition ?? "",
         ],
@@ -202,7 +314,13 @@ export function buildMatchCardElement(
     content.push(
       el(
         "div",
-        { display: "flex", alignItems: "center", gap: 16, marginTop: 26 },
+        {
+          display: "flex",
+          flexDirection: fmt.stackOutcome ? "column" : "row",
+          alignItems: fmt.stackOutcome ? "flex-start" : "center",
+          gap: 16,
+          marginTop: 26,
+        },
         [
           el(
             "div",
@@ -212,7 +330,7 @@ export function buildMatchCardElement(
               borderRadius: 8,
               padding: "10px 26px",
               color: "white",
-              fontSize: 54,
+              fontSize: fmt.scoreSize,
               fontWeight: 900,
               fontFamily: "'Noto Sans', sans-serif",
             },
@@ -223,7 +341,7 @@ export function buildMatchCardElement(
                 el(
                   "div",
                   {
-                    fontSize: 22,
+                    fontSize: fmt.factsSize,
                     color: "rgba(255,255,255,0.7)",
                     fontFamily: "'Noto Sans', sans-serif",
                   },
@@ -242,9 +360,9 @@ export function buildMatchCardElement(
       "div",
       {
         position: "absolute",
-        bottom: 28,
-        left: 80,
-        fontSize: 18,
+        bottom: fmt.edgePadding,
+        left: fmt.contentPaddingX,
+        fontSize: fmt.dateSize,
         color: "rgba(255,255,255,0.5)",
         fontFamily: "'Noto Sans', sans-serif",
       },
@@ -271,7 +389,14 @@ export function buildMatchCardElement(
     // Stort halvtransparent piktogram
     el(
       "div",
-      { position: "absolute", right: -30, bottom: -50, fontSize: 320, opacity: 0.14, display: "flex" },
+      {
+        position: "absolute",
+        right: fmt.backdropRight,
+        [fmt.backdropEdge]: fmt.backdropOffset,
+        fontSize: fmt.backdropEmojiSize,
+        opacity: 0.14,
+        display: "flex",
+      },
       emoji,
     ),
     // Rød venstre streg
@@ -282,8 +407,8 @@ export function buildMatchCardElement(
       {
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        padding: "60px 80px",
+        justifyContent: fmt.justify,
+        padding: fmt.padding,
         width: "100%",
         height: "100%",
         position: "relative",
@@ -293,9 +418,9 @@ export function buildMatchCardElement(
     // Logo-branding
     el(
       "img",
-      { position: "absolute", bottom: 28, right: 40, opacity: 0.4 },
+      { position: "absolute", bottom: fmt.edgePadding, right: fmt.edgePadding + 12, opacity: 0.4 },
       undefined,
-      { src: logoDataUri, width: 200, height: 36, alt: "" },
+      { src: logoDataUri, width: fmt.logoWidth, height: fmt.logoHeight, alt: "" },
     ),
     // Rød bund-streg
     el("div", { position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "#BF0A30" }),

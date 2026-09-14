@@ -177,6 +177,28 @@ export function cardBlobKey(articleId: number): string {
 }
 
 /**
+ * Nøgle for Instagram-kortet — 1080×1350 JPEG, eget lærred (se CARD_FORMATS).
+ *
+ * Egen nøgle og ikke en variant af `cardBlobKey`, fordi de to kort har hver sin
+ * livscyklus: delekortet skal findes FØR et opslag kan komme ud af social-køen
+ * (`cardReadyClause`), mens IG-kortet kun bremser Instagram-kanalen.
+ */
+export function igCardBlobKey(articleId: number): string {
+  return `ig-${articleId}-v${CARD_VERSION}`;
+}
+
+/**
+ * Instagram-kortets offentlige adresse.
+ *
+ * Den SKAL være offentligt hentbar: Meta henter billedet selv ud fra `image_url`
+ * når containeren oprettes — vi uploader ikke bytes. (Og derfor er /api/ i
+ * robots.txt en fælde her på samme måde som ved Facebooks OG-scrape 18-08.)
+ */
+export function getArticleIgCardUrl(article: Pick<Article, "id">): string {
+  return `/api/og?type=ig&article=${article.id}&v=${CARD_VERSION}`;
+}
+
+/**
  * Cover til lister/karrusel/thumbnails er ALTID det genererede 16:9 kampkort:
  * ensartede dimensioner + skarpt på store skærme. Rigtige profilfotos (typisk
  * portræt-headshots i lav opløsning) vises KUN på atletprofilen og inde i

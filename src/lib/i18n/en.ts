@@ -387,6 +387,7 @@ const ui: LanguagePack["ui"] = {
   "archive.page_x_of_y": "Page {page} of {last}",
   "archive.newer": "← Newer",
   "archive.older": "Older →",
+  "card.versus": "vs",
   "correction.prefix": "Corrected",
   "feed.description": "Coverage of {demonym} student athletes competing in the United States",
   "ads.disclosure": "Advertisement · {brand} may earn a commission if you buy through this link.",

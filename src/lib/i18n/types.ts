@@ -123,6 +123,7 @@ export type UiKey =
   | "archive.newer"
   | "archive.older"
   // Kort og karrusel
+  | "card.versus"
   | "correction.prefix"
   | "feed.description"
   | "ads.disclosure"
