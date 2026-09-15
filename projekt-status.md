@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-14 (Instagram-kort i 4:5; «mod Brown» rettet på britiske kort)
+**Sidst opdateret**: 2026-09-15 (Instagram-kanalen bygget; venter på konto og kort)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -51,8 +51,34 @@ Nyt værktøj: **`render-cards.ts --dry-run`** — render til disk uden at røre
 Det fandtes ikke før, så enhver designændring skulle skrives i produktion for at
 kunne ses. Også `--format landscape|portrait|begge`.
 
-**Næste skridt**: `channels/instagram.ts` (venter på `IG_USER_ID`), `/ig`-siden
-skal genopbygges, og kortene skal renderes én gang for alle publicerede.
+**`channels/instagram.ts` er bygget** (2026-09-15, commit `1bd3221`) og ligger
+inert: `isConfigured()` er false uden secrets, så kanalen får ingen kø-rækker.
+
+Det bærende valg er `cardKind` på `SocialChannel`. Den vælger ikke bare billedet
+— den afgør hvornår en artikel er KLAR. `cardReadyClause` bærer nu sit format,
+så Instagram venter på `ig-<id>-v<N>` og de andre på `card-<id>-v<N>`. Ventede
+Instagram på delekortet, ville den poste med et billede der ikke fandtes endnu,
+og Meta cacher sin egen hentning af `image_url` i ~30 dage.
+
+Captionen bærer ingen URL — links er ikke klikbare i en IG-caption — men
+`social.link_in_bio` fra sprogpakken. `PostCopyInput.lang` er påkrævet uden
+dansk standardværdi, af samme grund som `card.versus` blev en ui-nøgle.
+
+**Tre ting mangler, i rækkefølge:**
+
+1. **Kontoen**: @studentathlete.dk skal være professionel og koblet til
+   Facebook-siden i Business Suite (ikke Accounts Center — den kobling kan
+   API'et ikke se). Den gamle konto er den rigtige; dubletten er slettet.
+   Typiske spærrer på en gammel konto: stadig personlig, eller allerede bundet
+   til en anden — evt. slettet — side, for koblingen er 1:1.
+2. **Secrets**: `IG_USER_ID` + `IG_ACCESS_TOKEN` (page access token mintet MED
+   `instagram_basic` + `instagram_content_publish`; det nuværende
+   `FB_PAGE_ACCESS_TOKEN` har dem ikke).
+3. **Kortene**: `render-cards.ts` skal køre én gang, ellers svarer
+   `/api/og?type=ig` 404 for alt. Det er en D1-skrivning.
+
+`/ig`-siden (bio-linket) skal stadig genopbygges — den findes hverken som route
+eller som `pages`-række.
 
 ## 📣 Social-køen tabte 7 britiske artikler — pacingen kendte ikke sin deadline (2026-09-14)
 
