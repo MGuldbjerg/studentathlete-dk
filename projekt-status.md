@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-15 (Instagram-kanalen bygget; venter på konto og kort)
+**Sidst opdateret**: 2026-09-15 (Instagram er LIVE og konfigureret; opslag bærer nu også beskrivelse)
 
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
@@ -64,7 +64,26 @@ Captionen bærer ingen URL — links er ikke klikbare i en IG-caption — men
 `social.link_in_bio` fra sprogpakken. `PostCopyInput.lang` er påkrævet uden
 dansk standardværdi, af samme grund som `card.versus` blev en ui-nøgle.
 
-**Tre ting mangler, i rækkefølge:**
+✅ **Alle tre er gjort 2026-09-15.** Kontoen @studentathlete.dk er koblet til
+siden, og API'et bekræfter det: `106455735664643 → instagram_business_account
+17841459363274197`. Secrets `IG_USER_ID`, `IG_ACCESS_TOKEN` og et fornyet
+`FB_PAGE_ACCESS_TOKEN` er sat. De 27 danske IG-kort er renderet og verificeret
+live (`/api/og?type=ig&article=214` → 200, image/jpeg, 1080×1350).
+
+**Business Suite var et vildspor.** Porteføljen viste «login required» og to
+fejl («kontoen er begrænset», «brugernavnet hører ikke til profilen»), men den
+kobling API'et læser er Sidens, ikke Suitens. Lektien: **spørg API'et, ikke
+UI'et** — `me/accounts` var tom fordi tokenet manglede `pages_show_list`, mens
+et direkte opslag på side-id'et svarede med det samme.
+
+⚠️ **En utilsigtet produktionsskrivning, værd at huske.** Commit `f18cf1b` føjede
+portræt til render-cards' STANDARDformater — og det script kører hver time i
+Actions. Den timevise kørsel renderede derfor 94 IG-kort (11 MB) i D1 uden at
+nogen godkendte en D1-skrivning. **At tilføje noget til et script der kører på en
+cron, ER en produktionsskrivning** — bare forsinket en time. De 67 britiske kort
+(8 MB) er slettet igen, og landefilteret forhindrer gentagelsen.
+
+Historisk (før 2026-09-15) manglede:
 
 1. **Kontoen**: @studentathlete.dk skal være professionel og koblet til
    Facebook-siden i Business Suite (ikke Accounts Center — den kobling kan
