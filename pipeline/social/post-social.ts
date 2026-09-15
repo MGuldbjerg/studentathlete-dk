@@ -20,7 +20,13 @@
  */
 
 import { createD1Client, type D1Client } from "../lib/d1-client";
-import { CARD_VERSION, getArticleCoverUrl, getArticleIgCardUrl, getArticleUrl } from "../../src/lib/seo";
+import {
+  CARD_VERSION,
+  getArticleCoverUrl,
+  getArticleIgCardUrl,
+  getArticleUrl,
+  metaDescription,
+} from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
 import { DEFAULT_PACING, computeGapMinutes, minutesUntilExpiry, postsAllowedNow } from "./pacing";
@@ -71,6 +77,8 @@ interface QueuedRow {
   attempts: number;
   title: string;
   summary: string | null;
+  /** Brødteksten — reserve for beskrivelsen når ingressen er tom. */
+  content: string | null;
   slug: string;
   sport: string | null;
   cover_image_url: string | null;
@@ -125,14 +133,17 @@ function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
     (channel.cardKind === "ig"
       ? getArticleIgCardUrl({ id: row.article_id })
       : getArticleCoverUrl({ id: row.article_id }));
+  // Samme beskrivelse som sitets egen meta-tag: klippet ved sætningsgrænse, og
+  // med brødteksten som reserve, så et opslag ikke kan ende som en nøgen titel.
+  const description = metaDescription({ summary: row.summary, content: row.content });
   return {
     text: buildPostText(
-      { title: row.title, summary: row.summary, url, lang: profile.language },
+      { title: row.title, description, url, lang: profile.language },
       channel.name,
     ),
     url,
     title: row.title,
-    summary: row.summary,
+    summary: description,
     imageUrl,
   };
 }
@@ -199,7 +210,7 @@ async function postOne(
   const [row] = (
     await db.query<QueuedRow>(
       `SELECT sp.id, sp.article_id, sp.attempts,
-              a.title, a.summary, a.slug, a.cover_image_url, a.country,
+              a.title, a.summary, a.content, a.slug, a.cover_image_url, a.country,
               ath.sport
        FROM social_posts sp
        JOIN articles a ON a.id = sp.article_id

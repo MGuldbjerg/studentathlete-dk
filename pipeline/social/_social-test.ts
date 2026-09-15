@@ -15,7 +15,7 @@ import {
   postsAllowedNow,
   shouldPostNow,
 } from "./pacing";
-import { buildPostText, truncate } from "./copy";
+import { buildPostText, truncate, withDescription } from "./copy";
 import { CHANNEL_PLATFORM, ChannelAuthError } from "./types";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 
@@ -181,14 +181,42 @@ expect("truncate: ender med ellipse", truncate(long, 100).endsWith("…"), true)
 // ── buildPostText ────────────────────────────────────────────────────────────
 const input = {
   title: "Emma Hansen scorer hattrick i sæsonpremieren",
-  summary: "Den danske angriber viste klassen fra start.",
+  description: "Den danske angriber viste klassen fra start.",
   url: "https://studentathlete.dk/fodbold/emma-hansen-hattrick",
   lang: "da",
 };
+// Bluesky bar før KUN titlen, ud fra at embed-kortet viste resten. Men kortet
+// er ikke garanteret — thumb-uploaden kan fejle, og Facebooks scrape har været
+// tom før — så opslaget skal kunne læses uden det.
 expect(
-  "copy: bluesky = ren titel (link ligger i embed)",
+  "copy: bluesky = titel + beskrivelse",
   buildPostText(input, "bluesky"),
+  `${input.title}\n\n${input.description}`,
+);
+expect(
+  "copy: bluesky uden beskrivelse = ren titel",
+  buildPostText({ ...input, description: null }, "bluesky"),
   input.title,
+);
+expect(
+  "copy: bluesky holder 300 tegn med lang beskrivelse",
+  [...buildPostText({ ...input, description: "x".repeat(500) }, "bluesky")].length <= 300,
+  true,
+);
+
+// ── withDescription: titlen vinder, og stumper udelades ──────────────────────
+expect("fit: kort titel + beskrivelse", withDescription("Titel", "Beskrivelse", 100), `Titel\n\nBeskrivelse`);
+expect("fit: ingen beskrivelse → kun titel", withDescription("Titel", null, 100), "Titel");
+// Under 40 tegn tilbage er en stump af en sætning støj, ikke information.
+expect(
+  "fit: for lidt plads → beskrivelsen udelades helt",
+  withDescription("t".repeat(70), "en beskrivelse der ikke er plads til", 100),
+  "t".repeat(70),
+);
+expect(
+  "fit: titlen klippes kun hvis den alene sprænger budgettet",
+  [...withDescription("t".repeat(200), "beskrivelse", 100)].length <= 100,
+  true,
 );
 expect(
   "copy: x = titel + link",
@@ -198,11 +226,11 @@ expect(
 expect(
   "copy: facebook = titel + ingress (link sendes separat)",
   buildPostText(input, "facebook"),
-  `${input.title}\n\n${input.summary}`,
+  `${input.title}\n\n${input.description}`,
 );
 expect(
   "copy: facebook uden ingress = kun titel",
-  buildPostText({ ...input, summary: null }, "facebook"),
+  buildPostText({ ...input, description: null }, "facebook"),
   input.title,
 );
 // ── Instagram-captionen ──────────────────────────────────────────────────────
@@ -217,8 +245,13 @@ expect("ig: engelsk caption henviser til bio", igEn.includes("link in bio"), tru
 expect("ig: dansk og engelsk er IKKE ens", igDa === igEn, false);
 expect("ig: URL står ikke i captionen (links er døde dér)", igDa.includes(input.url), false);
 expect("ig: titlen er med", igDa.includes(input.title), true);
-expect("ig: ingressen er med", igDa.includes(input.summary), true);
+expect("ig: ingressen er med", igDa.includes(input.description), true);
 expect("ig: holder sig under Instagrams 2.200 tegn", [...igDa].length <= 2200, true);
+// Bio-linjen får sin plads reserveret FØR teksten fylder resten, så den aldrig
+// kan blive klippet væk af en lang beskrivelse.
+const igLang = buildPostText({ ...input, description: "x".repeat(4000) }, "instagram");
+expect("ig: bio-linjen overlever en meget lang beskrivelse", igLang.includes("link i bio"), true);
+expect("ig: og captionen holder stadig grænsen", [...igLang].length <= 2200, true);
 
 // ── Kanalen kræver sit EGET kort ─────────────────────────────────────────────
 // Ventede Instagram på delekortet, ville den poste med et billede der ikke
