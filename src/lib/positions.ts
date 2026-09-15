@@ -36,6 +36,10 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     goalkeeper: "goalkeeper",
     keeper: "goalkeeper",
     d: "defender",
+    // «B» og «FWD» stod uoversat på tre profiler (2026-09-15): tabellen havde
+    // «back» og «fw», men ikke skolernes egne forkortelser. Ukendte koder
+    // returneres uændret, så manglen var usynlig — den så ud som en rolle.
+    b: "defender",
     def: "defender",
     defense: "defender",
     defence: "defender",
@@ -63,6 +67,7 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     w: "winger",
     f: "striker",
     fw: "striker",
+    fwd: "striker",
     forward: "striker",
     st: "striker",
     striker: "striker",

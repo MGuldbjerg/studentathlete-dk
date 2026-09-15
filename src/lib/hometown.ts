@@ -40,6 +40,15 @@ const US_STATE_IDENTIFIERS = new Set([
   "usa","unitedstates","us",
 ]);
 
+/**
+ * Segmenter der IKKE er et sted. Rosterne udfylder tomme felter med en
+ * pladsholder, og uden dette stod der «Ben is from Irvine, NA.» på en profil
+ * (2026-09-15) — «NA» er hverken stat, provins eller land.
+ */
+const PLACEHOLDER_SEGMENTS = new Set([
+  "na", "n/a", "n.a.", "none", "null", "unknown", "ukendt", "-", "--", "?", "tbd",
+]);
+
 /** Hele-ord-match (Unicode-bevidst, så ø/å/æ og ü/ñ brydes korrekt). */
 function containsWholeWord(lowerHaystack: string, lowerNeedle: string): boolean {
   const escaped = lowerNeedle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -120,7 +129,12 @@ export function localizeHometown(
   return clean
     .split(",")
     .map((seg) => seg.replace(/\s+/g, " ").trim())
-    .filter((seg) => seg.length > 0 && !markers.has(seg.toLowerCase()))
+    .filter(
+      (seg) =>
+        seg.length > 0 &&
+        !markers.has(seg.toLowerCase()) &&
+        !PLACEHOLDER_SEGMENTS.has(seg.toLowerCase()),
+    )
     .map((seg) => aliases[seg.toLowerCase()] ?? seg)
     .join(", ");
 }

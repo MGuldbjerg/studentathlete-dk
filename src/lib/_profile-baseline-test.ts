@@ -1,7 +1,14 @@
 /**
  * Unit-tests for profile-baseline.ts. Kør: npx tsx src/lib/_profile-baseline-test.ts
  */
-import { baselineProfile, currentSeasonStart, type BaselineAthlete } from "./profile-baseline";
+import {
+  STATE_NAMES,
+  baselineProfile,
+  currentSeasonStart,
+  meaningfulPosition,
+  type BaselineAthlete,
+} from "./profile-baseline";
+import { localizeHometown } from "./hometown";
 import { dk } from "./countries/dk";
 
 let passed = 0;
@@ -246,6 +253,52 @@ for (const [key, value] of Object.entries(dk.cityAliases ?? {})) {
     passed++;
   }
 }
+
+
+function okEq(label: string, got: unknown, want: unknown): void {
+  if (got === want) passed++;
+  else {
+    failed++;
+    console.error(`  ✗ ${label}: fik ${JSON.stringify(got)}, forventede ${JSON.stringify(want)}`);
+  }
+}
+
+// ── Roster-støj i position-feltet (fundet 2026-09-15 i 642 ventende udkast) ──
+// Rosterne blander kolonnerne, så en ÅRGANG lander hvor rollen skulle stå.
+// «Fr.-HS» = freshman fra high school, «Jr.-TR» = junior der er transfer —
+// ingen af delene er en rolle, og begge stod på et udkast som «plays golf as a
+// Fr.-HS». Det gamle mønster krævede ciffer + «l» i suffikset.
+function okPos(label: string, sport: string, pos: string, want: string | null): void {
+  const got = meaningfulPosition(sport, pos);
+  if (got === want) passed++;
+  else {
+    failed++;
+    console.error(`  ✗ ${label}: fik ${JSON.stringify(got)}, forventede ${JSON.stringify(want)}`);
+  }
+}
+okPos("årgang: Fr.-HS er ikke en rolle", "golf", "Fr.-HS", null);
+okPos("årgang: Jr.-TR er ikke en rolle", "golf", "Jr.-TR", null);
+okPos("årgang: So.-JC er ikke en rolle", "golf", "So.-JC", null);
+okPos("årgang: roningens Sr.-3L virker stadig", "rowing", "Sr.-3L", null);
+okPos("årgang: R-Jr. virker stadig", "soccer", "R-Jr.", null);
+// …men en RIGTIG rolle må aldrig filtreres væk, uanset hvor kort den er.
+okPos("rolle: forward overlever", "soccer", "forward", "forward");
+okPos("rolle: GK overlever", "soccer", "GK", "GK");
+okPos("rolle: B overlever filteret (oversættes af expandPosition)", "soccer", "B", "B");
+
+// ── Canada findes (Simon Fraser er NCAA-medlem) ─────────────────────────────
+// «Burnaby, BC» stod uoversat på en profil, fordi tabellen kun kendte USA.
+okEq("delstat: BC → British Columbia", STATE_NAMES["BC"], "British Columbia");
+okEq("delstat: ON → Ontario", STATE_NAMES["ON"], "Ontario");
+okEq("delstat: IL virker stadig", STATE_NAMES["IL"], "Illinois");
+
+// ── Pladsholder-regioner i hjembyen ─────────────────────────────────────────
+// «Ben is from Irvine, NA.» — «NA» er hverken stat, provins eller land.
+okEq("hjemby: NA droppes", localizeHometown("Irvine, NA", dk), "Irvine");
+okEq("hjemby: Unknown droppes", localizeHometown("Leeds, Unknown", dk), "Leeds");
+okEq("hjemby: rigtig region beholdes", localizeHometown("Dartford, Kent", dk), "Dartford, Kent");
+okEq("hjemby: tom streng er stadig tom", localizeHometown("", dk), "");
+
 
 console.log(`\nprofile-baseline: ${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

@@ -19,9 +19,14 @@ import { countryProfile } from "./countries";
 import { displaySchoolName, schoolLocation } from "./school-display-name";
 import { teamName } from "./school-team-name";
 
-// Fulde delstatsnavne — roster-data har forkortelser ("IL"), men ikke alle
-// forkortelser er gennemskuelige for danske læsere (Mikkel 2026-07-08).
-// "USA" udelades helt: alle atleter på sitet spiller i USA.
+// Fulde delstats- og provinsnavne — roster-data har forkortelser ("IL"), men
+// ikke alle forkortelser er gennemskuelige for danske læsere (Mikkel
+// 2026-07-08). Landet udelades: læseren ved at det er nordamerikansk college.
+//
+// ⚠️ «Alle atleter spiller i USA» HOLDER IKKE (2026-09-15). Simon Fraser er
+// NCAA-medlem og ligger i British Columbia, så «Burnaby, BC» stod uoversat på
+// en profil. Canadiske provinser er derfor med — og antagelsen «kun USA» må
+// ikke skrives ind igen.
 export const STATE_NAMES: Record<string, string> = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "Californien",
   CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
@@ -34,6 +39,11 @@ export const STATE_NAMES: Record<string, string> = {
   RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota", TN: "Tennessee",
   TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington",
   WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming", DC: "Washington D.C.",
+  // Canada — NCAA har canadiske medlemmer (Simon Fraser).
+  BC: "British Columbia", AB: "Alberta", SK: "Saskatchewan", MB: "Manitoba",
+  ON: "Ontario", QC: "Quebec", NB: "New Brunswick", NS: "Nova Scotia",
+  PE: "Prince Edward Island", NL: "Newfoundland og Labrador",
+  YT: "Yukon", NT: "Northwest Territories", NU: "Nunavut",
 };
 
 function stateName(abbrevOrName: string): string {
@@ -121,8 +131,14 @@ const ROSTER_TIER_RE = /^(varsity|novice|junior varsity|jv|freshman|redshirt)$/i
  * uden dette skrev profilteksten «plays golf for Lamar in Texas as a Sr.-3L» —
  * en påstand om en rolle atleten ikke har. Dækker «Sr.», «R-Jr.», «Gr.» og
  * roningens år-på-holdet-suffiks («Sr.-3L», «So.-2L»).
+ *
+ * Suffikset er BOGSTAVER ELLER TAL (2026-09-15). Det gamle mønster krævede
+ * ciffer + «l», så «Fr.-HS» (high school) og «Jr.-TR» (transfer) slap igennem
+ * som roller: to udkast påstod at atleten spillede golf «as a Fr.-HS». Et felt
+ * der begynder med en årgangskode ER en årgang — uanset hvad der står efter
+ * bindestregen — for ingen rigtig position starter med «Fr.»/«Jr.»/«Sr.».
  */
-const CLASS_YEAR_RE = /^(r-)?(fr|so|jr|sr|gr|fy)\.?(-\d+l)?$/i;
+const CLASS_YEAR_RE = /^(r-)?(fr|so|jr|sr|gr|fy)\.?(-[a-z0-9]{1,4})?$/i;
 /**
  * Bredere årgangs-markører: «2nd Year (2029-30)», «1st Year», «Class of 2028».
  * Et felt der indeholder et årstal eller et ordenstal + «year» er en årgang,
