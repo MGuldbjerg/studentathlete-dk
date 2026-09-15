@@ -8,6 +8,7 @@ import {
   parseArticleJson,
   parseArticleOutput,
   parseArticleOutputSmart,
+  salvageTruncatedJson,
 } from "./parse-output";
 
 let passed = 0;
@@ -118,6 +119,38 @@ check("tom streng → null", parseArticleJson("") === null);
 {
   const p = parseArticleOutput("# T\n> I\n\nB");
   check("legacy stadig intakt", p.title === "T" && p.summary === "I" && p.content === "B");
+}
+
+
+// ── Redning af afbrudt JSON (15. september 2026) ────────────────────────────
+// Modellen skrev en FÆRDIG artikel og fyldte derefter budgettet med
+// tabulatortegn, så «}» aldrig kom. En komplet artikel blev smidt væk.
+{
+  const faerdig =
+    '{"title":"Standtke i top 10","summary":"Hun spillede godt.",' +
+    '"content":"Louise Standtke sluttede i top 10 ved Redbird Invitational."';
+
+  const reddet = salvageTruncatedJson(faerdig + String.fromCharCode(9).repeat(300));
+  check("redning: færdig artikel + selvsving reddes", reddet !== null);
+  if (reddet) {
+    const p2 = parseArticleOutputSmart(reddet);
+    check("redning: det reddede kan parses", p2 !== null);
+    check("redning: indholdet er urørt", (p2?.content ?? "").includes("Redbird Invitational."));
+  }
+
+  // ⚠️ Det vigtigste: en tekst der stopper MIDT i en sætning må aldrig lukkes.
+  // Sitet skriver om navngivne mennesker; en halv sætning er værre end intet.
+  const halv =
+    '{"title":"Standtke i top 10","summary":"Hun spillede godt.",' +
+    '"content":"Louise Standtke sluttede i top 10 ved Redbird Invit';
+  check("redning: halv sætning NÆGTES", salvageTruncatedJson(halv) === null);
+  check("redning: halv sætning + tomrum nægtes også", salvageTruncatedJson(halv + String.fromCharCode(9).repeat(300)) === null);
+
+  // Et svar uden titel eller indhold er ikke en artikel, uanset tegnsætning.
+  check("redning: kun titel nægtes", salvageTruncatedJson('{"title":"Noget."') === null);
+  // Hel JSON skal ikke "reddes" — den normale parser klarer den.
+  check("redning: komplet JSON røres ikke", salvageTruncatedJson(faerdig + '"}') === null);
+  check("redning: tom streng giver null", salvageTruncatedJson("") === null);
 }
 
 console.log(`\nparse-output: ${passed} passed, ${failed} failed`);

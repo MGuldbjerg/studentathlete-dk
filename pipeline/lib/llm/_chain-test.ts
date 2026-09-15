@@ -12,7 +12,7 @@
  */
 import type { D1Client } from "../d1-client";
 import type { LLMProvider, LLMResponse } from "./types";
-import { ProviderChain, isDegenerateOutput } from "./provider-chain";
+import { ProviderChain, isDegenerateOutput, trimRunawayWhitespace } from "./provider-chain";
 import { AllProvidersFailedError, LLMHttpError } from "./errors";
 
 let passed = 0;
@@ -117,38 +117,48 @@ async function main(): Promise<void> {
 
 
   // ── Selvsving (15. september 2026) ────────────────────────────────────────
-  // Ti historier i traek blev kasseret som «afbrudt JSON». Raasvaret viste en
-  // FAERDIG artikel efterfulgt af hundredvis af tabulatortegn — JSON'en naaede
-  // aldrig at lukke. Providerens fejl, ikke historiens.
+  // Modellen skrev en FAERDIG artikel og fyldte derefter budgettet med
+  // tabulatortegn, saa JSON'en aldrig lukkede. Halen klippes af; artiklen
+  // foran den er hel og skal IKKE kastes vaek.
   const artikel = '{"title":"Standtke skifter til Indiana State","content":"Hun har valgt Indiana State."';
-  check(isDegenerateOutput(artikel + String.fromCharCode(9).repeat(300)), true, "selvsving: 300 tabulatorer fanges");
-  check(isDegenerateOutput(" ".repeat(120)), true, "selvsving: kun mellemrum fanges");
-  check(isDegenerateOutput(""), true, "tomt svar er lige saa ubrugeligt");
+  check(trimRunawayWhitespace(artikel + String.fromCharCode(9).repeat(300)), artikel, "halen klippes af");
+  check(isDegenerateOutput(artikel + String.fromCharCode(9).repeat(300)), false, "artikel + hale er BRUGBAR efter klipning");
+  check(isDegenerateOutput(" ".repeat(120)), true, "kun tomrum er ubrugeligt");
+  check(isDegenerateOutput(""), true, "tomt svar er ubrugeligt");
   check(isDegenerateOutput(null), true, "null er ubrugeligt");
+  // Et loeb INDE i teksten kan klipningen ikke redde — der er JSON'en brudt.
+  check(isDegenerateOutput("start" + " ".repeat(100) + "slut."), true, "loeb inde i teksten er ubrugeligt");
   check(isDegenerateOutput(artikel + "}"), false, "normal: faerdig artikel er ikke selvsving");
   check(
     isDegenerateOutput("{" + String.fromCharCode(10) + '  "a": {' + String.fromCharCode(10) + '    "b": 1' + String.fromCharCode(10) + "  }" + String.fromCharCode(10) + "}"),
     false,
     "normal: pretty-printet JSON er ikke selvsving",
   );
-  check(
-    isDegenerateOutput("Afsnit et." + String.fromCharCode(10) + String.fromCharCode(10) + "Afsnit to."),
-    false,
-    "normal: blanke linjer mellem afsnit er ikke selvsving",
-  );
 
-  // Det der betyder noget: kaeden GAAR VIDERE i stedet for at levere skidtet.
-  const degenereret = new ProviderChain(workingDb(), [
-    provider("selvsving", () =>
-      Promise.resolve({ text: artikel + String.fromCharCode(9).repeat(300), tokens_input: 900, tokens_output: 2000, model: "test", provider: "selvsving" }),
+  // Kaeden BEHOLDER svaret (klippet) i stedet for at gaa videre til et
+  // daarligere. Foerste udgave gik videre og tabte en brugbar artikel.
+  const medHale = new ProviderChain(workingDb(), [
+    provider("hale", () =>
+      Promise.resolve({ text: artikel + String.fromCharCode(9).repeat(300), tokens_input: 900, tokens_output: 2000, model: "test", provider: "hale" }),
+    ),
+    provider("naeste", () =>
+      Promise.resolve({ text: "SKULLE IKKE BRUGES", tokens_input: 1, tokens_output: 1, model: "test", provider: "naeste" }),
+    ),
+  ]);
+  const beholdt = await medHale.generate(opts);
+  check(beholdt.text, artikel, "kaeden beholder artiklen og klipper kun halen");
+
+  // …men et TOMT svar koster stadig en ny provider.
+  const tomt = new ProviderChain(workingDb(), [
+    provider("tom", () =>
+      Promise.resolve({ text: "   ", tokens_input: 900, tokens_output: 2000, model: "test", provider: "tom" }),
     ),
     provider("frisk", () =>
       Promise.resolve({ text: artikel + "}", tokens_input: 900, tokens_output: 120, model: "test", provider: "frisk" }),
     ),
   ]);
-  const reddet = await degenereret.generate(opts);
-  check(reddet.text.endsWith("}"), true, "kaeden gaar videre til naeste provider ved selvsving");
-  check(reddet.tokens_output, 120, "...og leverer den friske providers svar");
+  const reddet = await tomt.generate(opts);
+  check(reddet.tokens_output, 120, "tomt svar udloeser skift til naeste provider");
 
   console.log(`\n${passed} bestået, ${failed} fejlet`);
   if (failed > 0) process.exit(1);

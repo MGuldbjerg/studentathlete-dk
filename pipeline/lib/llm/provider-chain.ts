@@ -79,14 +79,24 @@ async function recordUsage(
  * fejlede og ikke opslaget. Her betyder det: prøv næste provider, brænd ikke et
  * `gen_attempts` af på en model-quirk.
  *
- * Grænsen er 80 sammenhængende tomrumstegn. Pretty-printet JSON med dyb
- * indrykning kommer op i tyverne; 80 i træk er ingen formatering — det er
- * selvsving. Et helt tomt (eller kun-tomrum) svar tælles med: det er lige så
- * ubrugeligt, og skal også koste en ny provider frem for en historie.
+ * ⚠️ RETTET SAMME DAG: første udgave kasserede HELE svaret og gik videre. Det
+ * var forkert — tomrummet ligger i HALEN, efter en færdig artikel, så det
+ * kastede en brugbar artikel væk til fordel for næste providers dårligere
+ * (afkortede) svar. Nu klippes halen af, og svaret beholdes.
+ *
+ * Kun to ting koster en ny provider: et svar der er tomt efter klipningen, og
+ * et tomrums-løb INDE i teksten (som klipningen ikke kan redde — der er JSON'en
+ * brudt midt i). Grænsen er 80 sammenhængende tegn; pretty-printet JSON med dyb
+ * indrykning kommer op i tyverne, så 80 er ingen formatering.
  */
+export function trimRunawayWhitespace(text: string | null | undefined): string {
+  return (text ?? "").replace(/\s+$/, "");
+}
+
 export function isDegenerateOutput(text: string | null | undefined): boolean {
-  if (!text || text.trim().length === 0) return true;
-  return /\s{80,}/.test(text);
+  const trimmed = trimRunawayWhitespace(text);
+  if (trimmed.length === 0) return true;
+  return /\s{80,}/.test(trimmed);
 }
 
 export class ProviderChain {
@@ -168,8 +178,11 @@ export class ProviderChain {
       try {
         const response = await provider.generate(opts);
 
-        // Selvsving: svaret er betalt for, men ubrugeligt. Behandl det som
-        // providerens fejl og gå videre — se isDegenerateOutput.
+        // Klip selvsvingets hale af FØR alt andet: artiklen foran den er hel,
+        // og den skal ikke tabes. Se trimRunawayWhitespace.
+        response.text = trimRunawayWhitespace(response.text);
+
+        // Kun det uredelige koster en ny provider — se isDegenerateOutput.
         if (isDegenerateOutput(response.text)) {
           console.warn(`  ⚠ ${provider.name}: svaret gik i selvsving (tomrum) — prøver næste provider`);
           errors.push(`${provider.name}: degenereret svar`);

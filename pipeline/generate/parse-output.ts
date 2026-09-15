@@ -132,6 +132,56 @@ export function looksLikeJson(text: string): boolean {
 }
 
 /**
+ * Red en kladde ud af et JSON-svar der aldrig blev lukket.
+ *
+ * 15. september 2026 lavede genereringen nul artikler i et døgn. Råsvaret viste
+ * hvorfor: modellen skrev en FÆRDIG artikel — titel, manchet, brødtekst,
+ * punktum — og begyndte derefter at udsende tabulatortegn, indtil budgettet var
+ * brugt. Den afsluttende «}» kom aldrig, `JSON.parse` gav op, og en komplet
+ * artikel blev smidt væk.
+ *
+ * ⚠️ GRÆNSEN, og hele grunden til at funktionen er så snerpet: en afkortet
+ * tekst må ALDRIG lukkes hvis den stopper midt i en sætning. Sitet skriver om
+ * navngivne mennesker; en halv sætning er værre end ingen artikel. Derfor
+ * kræves det at brødteksten slutter på et punktum, udråbstegn, spørgsmålstegn
+ * eller et anførselstegn — altså at forfatteren var FÆRDIG, og at det kun var
+ * opmærkningen der manglede.
+ *
+ * Reparationen er rent mekanisk: tomrum i halen fjernes, og der prøves et lille
+ * sæt afslutninger. Ingen model spørges, så der kan ikke opfindes indhold.
+ */
+export function salvageTruncatedJson(text: string): string | null {
+  const stripped = text
+    .replace(/^```(?:json)?\s*/im, "")
+    .replace(/\s*```\s*$/im, "");
+  const start = stripped.indexOf("{");
+  if (start === -1) return null;
+
+  // Selvsvinget selv: alt tomrum i halen er støj, aldrig indhold.
+  const body = stripped.slice(start).replace(/\s+$/, "");
+  if (body.endsWith("}")) return null; // ikke afkortet — normal parsing klarer den
+
+  // Slutter teksten midt i et ord, er artiklen ikke færdig. Så lader vi være.
+  const FINISHED = /[.!?"»]$/;
+  if (!FINISHED.test(body)) return null;
+
+  // Luk det der mangler. Rækkefølgen er fra mindst til mest indgribende.
+  for (const tail of ['"}', '"}}', "}", "}}", '"]}']) {
+    const candidate = body + tail;
+    try {
+      const parsed = JSON.parse(candidate) as { title?: unknown; content?: unknown };
+      if (typeof parsed.title === "string" && parsed.title.trim().length > 0 &&
+          typeof parsed.content === "string" && parsed.content.trim().length > 0) {
+        return candidate;
+      }
+    } catch {
+      /* prøv næste afslutning */
+    }
+  }
+  return null;
+}
+
+/**
  * JSON først (structured output), ellers det gamle linjebaserede format.
  *
  * `null` betyder «modellen forsøgte JSON og blev klippet af» — kalderen skal

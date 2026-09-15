@@ -12,7 +12,7 @@ import { ProviderChain } from "../lib/llm/provider-chain";
 import type { StyleCorrectionEntry } from "./prompts/system";
 import { promptsFor, promptForType, type PromptSet } from "./prompts";
 import { countryProfile, DEFAULT_COUNTRY } from "../../src/lib/countries";
-import { parseArticleOutputSmart, type ParsedArticle } from "./parse-output";
+import { parseArticleOutputSmart, type ParsedArticle, salvageTruncatedJson } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
@@ -567,13 +567,32 @@ async function main(): Promise<void> {
         );
         console.log(`  [dry-run] provider-svar: ${raw.length} tegn`);
         console.log(`  [dry-run] RÅ SVAR:${String.fromCharCode(10)}${raw.slice(0, 1500)}`);
+        const direkte = parseArticleOutputSmart(raw, articleType);
+        const reddet = direkte ? null : salvageTruncatedJson(raw);
+        const efterRedning = reddet ? parseArticleOutputSmart(reddet, articleType) : null;
         console.log(
-          `  [dry-run] parser: ${parseArticleOutputSmart(raw, articleType) ? "OK" : "NULL (ville blive kasseret)"}`,
+          `  [dry-run] parser: ${direkte ? "OK" : "NULL"}` +
+            (direkte ? "" : ` · redning: ${efterRedning ? "OK — artiklen var færdig" : "nægtet (ikke færdig)"}`),
         );
+        if (efterRedning) console.log(`  [dry-run] reddet titel: ${efterRedning.title}`);
         continue;
       }
 
-      const first = parseArticleOutputSmart(response.text, articleType);
+      let first = parseArticleOutputSmart(response.text, articleType);
+
+      // Afbrudt JSON: var artiklen FÆRDIG og kun opmærkningen væk, kan den
+      // reddes mekanisk (se salvageTruncatedJson — den nægter at lukke en
+      // tekst der stopper midt i en sætning). Ellers kasseres den som før.
+      if (!first) {
+        const salvaged = salvageTruncatedJson(response.text);
+        if (salvaged) {
+          first = parseArticleOutputSmart(salvaged, articleType);
+          if (first) {
+            console.log(`  🔧 Story ${story.id}: afbrudt JSON reddet — artiklen var færdig, kun «}» manglede`);
+          }
+        }
+      }
+
       if (!first) {
         console.log(`  ⛔ Story ${story.id}: modellen returnerede afbrudt JSON — kasseret`);
         await recordTechnicalFailure(story, "afbrudt JSON");
