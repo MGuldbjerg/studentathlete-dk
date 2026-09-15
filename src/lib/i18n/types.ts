@@ -125,6 +125,9 @@ export type UiKey =
   | "archive.older"
   // Kort og karrusel
   | "card.versus"
+  | "card.outcome_win"
+  | "card.outcome_loss"
+  | "card.outcome_tie"
   | "social.link_in_bio"
   | "correction.prefix"
   | "feed.description"

@@ -32,6 +32,7 @@ import sharp from "sharp";
 import { createD1Client } from "../lib/d1-client";
 import { CARD_FORMATS, buildMatchCardElement, type CardData, type CardFormat } from "../../src/lib/og-card";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
+import { ALL_CHANNELS } from "../social/post-social";
 
 // Scripts køres fra repo-roden (som alle pipeline-scripts/workflows gør)
 const ROOT = process.cwd();
@@ -152,6 +153,24 @@ interface CardRow extends CardData {
   id: number;
 }
 
+/**
+ * Hvilke lande har brug for et portræt-kort?
+ *
+ * Svaret står i kanal-registeret, ikke i en konstant her: et portræt-kort er
+ * kun til Instagram, og Instagram er én konto i ét land. Uden det filter ville
+ * kørslen lave 67 britiske IG-kort som ingen konto kan poste — ~5 MB i en base
+ * IDEA-datalag.md i forvejen holder øje med.
+ *
+ * Bemærk at der IKKE spørges til `isConfigured()`. Om et kort skal findes,
+ * afhænger af at kanalen EKSISTERER — ikke af om dens secrets tilfældigvis er
+ * sat i netop denne kørsel. Ellers ville en manglende secret stille og roligt
+ * holde op med at rendere kort, og fejlen ville først vise sig som en kø der
+ * venter på et billede der aldrig kommer.
+ */
+function portraitCountries(): Set<string> {
+  return new Set(ALL_CHANNELS.filter((c) => c.cardKind === "ig").map((c) => c.country));
+}
+
 async function main(): Promise<void> {
   const { force, article, out, formats, dryRun } = parseArgs();
   const db = createD1Client();
@@ -172,10 +191,20 @@ async function main(): Promise<void> {
     article ? [article] : [],
   );
 
+  const igCountries = portraitCountries();
+  if (formats.includes("portrait")) {
+    console.log(`Portræt-kort renderes for: ${[...igCountries].join(", ") || "(ingen lande — ingen IG-kanal)"}`);
+  }
+
   let rendered = 0;
   let skipped = 0;
   for (const row of rows.results) {
     for (const format of formats) {
+      // Et portræt-kort til et land uden Instagram-konto er spildt arbejde og
+      // spildt plads. Springes stille over — det er ikke en fejl.
+      if (format === "portrait" && !igCountries.has(row.country ?? "")) {
+        continue;
+      }
       const { key, width, height } = blobSpec(format, row.id);
 
       // I dry-run springer vi ALDRIG over: man beder om den netop for at se

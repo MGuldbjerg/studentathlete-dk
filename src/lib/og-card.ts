@@ -176,6 +176,55 @@ export const CARD_FORMATS: Record<CardFormat, CardFormatSpec> = {
   },
 };
 
+/**
+ * Faktaarket er skrevet på KILDENS sprog — amerikansk. Kortet er skrevet på
+ * ARTIKLENS. To felter røg uoversat igennem indtil 2026-09-15: «win» og
+ * «Sep. 01, 2026» stod på danske kort, hvor de skulle have været «Sejr» og
+ * «1. september 2026». Det overlevede så længe, fordi det SER rigtigt ud på de
+ * britiske kort — og næsten alt nyt er britisk.
+ */
+
+/** Kendte udfald → sprogpakkens ord. Ukendte sendes uændret videre. */
+const OUTCOME_KEYS: Record<string, "card.outcome_win" | "card.outcome_loss" | "card.outcome_tie"> = {
+  win: "card.outcome_win",
+  won: "card.outcome_win",
+  w: "card.outcome_win",
+  loss: "card.outcome_loss",
+  lost: "card.outcome_loss",
+  l: "card.outcome_loss",
+  tie: "card.outcome_tie",
+  tied: "card.outcome_tie",
+  draw: "card.outcome_tie",
+  t: "card.outcome_tie",
+};
+
+export function localizedOutcome(raw: string | null, lang: string): string | null {
+  if (!raw) return null;
+  const key = OUTCOME_KEYS[raw.trim().toLowerCase()];
+  // Et ukendt udfald ("2nd of 14") er information, ikke en fejl — vis det som
+  // det står, frem for at tabe det.
+  return key ? languagePack(lang).ui[key] : raw;
+}
+
+/**
+ * Kampdatoen på sitets sprog.
+ *
+ * ⚠️ Kun når strengen bærer et FIRCIFRET ÅRSTAL. `new Date("Aug. 30")` er ikke
+ * ugyldig — den gætter år 2001, og «30. august 2001» på et kort er værre end
+ * den rå streng. Uden årstal viser vi derfor kilden uændret.
+ */
+export function localizedEventDate(raw: string | null, lang: string): string | null {
+  if (!raw) return null;
+  if (!/\b\d{4}\b/.test(raw)) return raw;
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return raw;
+  return parsed.toLocaleDateString(languagePack(lang).locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 // ─── Element-hjælpere (satori-kompatible plain objects) ──────────────────────
 
 type Style = Record<string, string | number>;
@@ -217,12 +266,13 @@ export function buildMatchCardElement(
     ? sportLabelFor(data.sport, lang)
     : null;
   const dateLabel =
-    facts.date ??
+    localizedEventDate(facts.date, lang) ??
     new Date(data.created_at).toLocaleDateString(languagePack(lang).locale, {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
+  const outcomeLabel = localizedOutcome(facts.outcome, lang);
   const name = data.athlete_name ?? data.title;
   const nameSize = name.length > 22 ? fmt.nameSize[0] : fmt.nameSize[1];
 
@@ -336,7 +386,7 @@ export function buildMatchCardElement(
             },
             facts.finalScore,
           ),
-          ...(facts.outcome && facts.outcome.length <= 24
+          ...(outcomeLabel && outcomeLabel.length <= 24
             ? [
                 el(
                   "div",
@@ -345,7 +395,7 @@ export function buildMatchCardElement(
                     color: "rgba(255,255,255,0.7)",
                     fontFamily: "'Noto Sans', sans-serif",
                   },
-                  facts.outcome,
+                  outcomeLabel,
                 ),
               ]
             : []),

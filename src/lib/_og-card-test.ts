@@ -9,7 +9,15 @@
  * er et plain-object-træ) og `_ui-strings-test` (strengen var aldrig en
  * ui-nøgle). Derfor denne: den læser den FÆRDIGE tekst ud af elementtræet.
  */
-import { CARD_FORMATS, buildMatchCardElement, type CardData, type CardFormat, type OgElement } from "./og-card";
+import {
+  CARD_FORMATS,
+  buildMatchCardElement,
+  localizedEventDate,
+  localizedOutcome,
+  type CardData,
+  type CardFormat,
+  type OgElement,
+} from "./og-card";
 import { cardBlobKey, igCardBlobKey, CARD_VERSION } from "./seo";
 
 let passed = 0;
@@ -60,6 +68,32 @@ expect(
   textOf(buildMatchCardElement({ ...base, country: "UK" }, "data:,", 1, "portrait")).includes("vs Brown"),
   true,
 );
+
+// ── Faktaarket er amerikansk; kortet er ikke ────────────────────────────────
+// fact_sheet skrives på KILDENS sprog: {"outcome":"win","date":"Sep. 01, 2026"}.
+// Begge stod uoversat på danske kort indtil 2026-09-15 — usynligt, fordi de ser
+// rigtige ud på de britiske, og næsten alt nyt er britisk.
+expect("udfald: win → Sejr på dansk", localizedOutcome("win", "da"), "Sejr");
+expect("udfald: win → Win på engelsk", localizedOutcome("win", "en"), "Win");
+expect("udfald: Loss normaliseres", localizedOutcome("Loss", "da"), "Nederlag");
+expect("udfald: draw → Uafgjort", localizedOutcome("draw", "da"), "Uafgjort");
+expect("udfald: ukendt tekst tabes ikke", localizedOutcome("2nd of 14", "da"), "2nd of 14");
+expect("udfald: null forbliver null", localizedOutcome(null, "da"), null);
+
+expect("dato: US-format bliver dansk", localizedEventDate("Sep. 01, 2026", "da"), "1. september 2026");
+// .co.uk er BRITISK, ikke amerikansk: kildens «Sep. 01, 2026» bliver til
+// britisk datoformat — en forbedring også for UK, som hidtil viste kildens
+// amerikanske form på sine egne kort.
+expect("dato: engelsk kort får britisk format", localizedEventDate("Sep. 01, 2026", "en"), "1 September 2026");
+// new Date("Aug. 30") er IKKE ugyldig — den gætter år 2001. Uden årstal må vi
+// ikke formatere, for «30. august 2001» er værre end kildens egen streng.
+expect("dato: uden årstal røres den ikke", localizedEventDate("Aug. 30", "da"), "Aug. 30");
+expect("dato: uparselig streng røres ikke", localizedEventDate("næste lørdag", "da"), "næste lørdag");
+expect("dato: null forbliver null", localizedEventDate(null, "da"), null);
+
+// Og hele vejen gennem træet
+const dkText = textOf(buildMatchCardElement(base, "data:,", 1));
+expect("dansk kort viser Sejr, ikke win", dkText.includes("win"), false);
 
 // ── Formaterne mod Instagrams egne grænser ───────────────────────────────────
 // Kilde: developers.facebook.com/docs/instagram-platform/content-publishing

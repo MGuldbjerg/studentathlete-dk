@@ -400,6 +400,9 @@ const ui: LanguagePack["ui"] = {
   "archive.older": "Ældre →",
 
   "card.versus": "mod",
+  "card.outcome_win": "Sejr",
+  "card.outcome_loss": "Nederlag",
+  "card.outcome_tie": "Uafgjort",
   "social.link_in_bio": "Læs hele historien — link i bio.",
   "correction.prefix": "Rettet",
   "feed.description": "Dækning af {demonym} student athletes i USA",
