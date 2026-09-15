@@ -535,12 +535,22 @@ async function main(): Promise<void> {
     ]);
 
     try {
-      // Lange/risikofyldte formater skrives bedst af Claude når nøglen findes;
-      // korte nyheder bliver på den gratis kæde. Dormant indtil ANTHROPIC_API_KEY sættes.
-      const preferProvider =
-        articleType === "feature" || articleType === "season_update"
-          ? "anthropic"
-          : undefined;
+      /**
+       * HVEM SKRIVER ARTIKLEN.
+       *
+       * Kæden har `ministral-8b` forrest med vilje: 188 rpm mod Geminis 5, og
+       * for korte opgaver (faktaark, gennemgang) er den rigelig. Men
+       * artikelskrivning er kædens tungeste opgave — målt 15-09: 3.959 tokens
+       * ind, en hel artikel ud, i streng JSON — og en 8B-model taber tråden.
+       * Den stoppede ved 433 tokens ud af et budget på 2.000, og andre gange
+       * gik den i selvsving på tomrum. Redningen ovenfor fanger følgerne; DEN
+       * HER linje fjerner årsagen.
+       *
+       * Claude når nøglen findes, ellers Gemini 2.5 Flash. Bliver Gemini
+       * rate-limited (5 rpm), falder kæden selv tilbage til mistral — og så
+       * står redningen klar. Det er derfor en PRÆFERENCE og ikke et krav.
+       */
+      const preferProvider = available.includes("anthropic") ? "anthropic" : "gemini";
       const response = await chain.generate({
         system: systemPrompt,
         prompt,
@@ -565,7 +575,10 @@ async function main(): Promise<void> {
         console.log(
           `  [dry-run] tomrums-løb i prompten: ${runs.length} stk, længste ${longest.length} tegn`,
         );
-        console.log(`  [dry-run] provider-svar: ${raw.length} tegn`);
+        console.log(
+          `  [dry-run] provider-svar: ${raw.length} tegn · provider: ${response.provider}` +
+            ` · model: ${response.model} · tokens ind/ud: ${response.tokens_input}/${response.tokens_output}`,
+        );
         console.log(`  [dry-run] RÅ SVAR:${String.fromCharCode(10)}${raw.slice(0, 1500)}`);
         const direkte = parseArticleOutputSmart(raw, articleType);
         const reddet = direkte ? null : salvageTruncatedJson(raw);
