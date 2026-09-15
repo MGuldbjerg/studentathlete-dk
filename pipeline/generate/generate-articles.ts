@@ -245,23 +245,35 @@ const MAX_PENDING_DRAFTS = 20;
  * `--dry-run` skriver INTET: ingen kladde, intet forsøg talt op, ingen status
  * rørt. Den bygger den rigtige prompt, kalder modellen og viser det RÅ svar.
  */
-function parseArgs(): { maxAgeDays: number; dryRun: boolean; storyId: number | null } {
+function parseArgs(): {
+  maxAgeDays: number;
+  dryRun: boolean;
+  storyId: number | null;
+  forceProvider: string | null;
+  noJson: boolean;
+} {
   const args = process.argv.slice(2);
   let maxAgeDays = 7; // 7 dage: fanger nyheder der er opdaget men ikke endnu genereret
   let dryRun = false;
   let storyId: number | null = null;
+  let forceProvider: string | null = null;
+  let noJson = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--max-age-days" && args[i + 1]) {
       maxAgeDays = parseInt(args[i + 1], 10) || 7;
     }
     if (args[i] === "--dry-run") dryRun = true;
     if (args[i] === "--story" && args[i + 1]) storyId = parseInt(args[i + 1], 10) || null;
+    // Kun til fejlsøgning: tving en bestemt provider, og slå JSON-tilstand fra.
+    // De to sammen svarer på «er det modellen eller er det tvangs-JSON?».
+    if (args[i] === "--provider" && args[i + 1]) forceProvider = args[i + 1];
+    if (args[i] === "--no-json") noJson = true;
   }
-  return { maxAgeDays, dryRun, storyId };
+  return { maxAgeDays, dryRun, storyId, forceProvider, noJson };
 }
 
 async function main(): Promise<void> {
-  const { maxAgeDays, dryRun, storyId } = parseArgs();
+  const { maxAgeDays, dryRun, storyId, forceProvider, noJson } = parseArgs();
   if (dryRun) console.log("DRY-RUN: ingen kladder, ingen forsøg talt op." + String.fromCharCode(10));
   const db = createD1Client();
   const chain = new ProviderChain(db);
@@ -555,8 +567,8 @@ async function main(): Promise<void> {
         system: systemPrompt,
         prompt,
         max_tokens: 2000,
-        json: true,
-        preferProvider,
+        json: !noJson,
+        preferProvider: forceProvider ?? preferProvider,
       });
 
       // null = modellen blev klippet af midt i sit JSON-svar. Før guarden faldt
