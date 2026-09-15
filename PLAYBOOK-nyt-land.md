@@ -1,6 +1,9 @@
 # Playbook: nyt land på motoren
 
-**Skrevet efter UK-launchen 2026-08-04. Skrevet til den næste session — læs den FØR du rører noget, og følg rækkefølgen.**
+**Skrevet efter UK-launchen 2026-08-04. Udvidet 2026-09-15 med DISTRIBUTION —
+konti, kort og kanaler (§7) — som ikke fandtes da den blev skrevet: UK fik sin
+Bluesky-kanal 31. august, og Instagram kom til 15. september. Læs den FØR du
+rører noget, og følg rækkefølgen.**
 
 Dette er ikke UK-dokumentation (den ligger i `SETUP-uk-launch.md`). Dette er den
 generelle opskrift, destilleret af hvad der faktisk gik galt, og hvad der faktisk
@@ -49,7 +52,8 @@ interessant så snart den har én aktiv atlet). Genereringen SKAL kende landet
 | 8 | Zone + DNS + route + deploy (dark launch, §5) | — | timer (NS-propagering) |
 | 9 | Generér + gennemlæs artikler | — | uger |
 | 10 | AdSense-site, e-mail routing | — | timer |
-| 11 | Offentligt push | — | — |
+| 11 | **Distribution: konti, secrets, kanal, kort (§7)** | FØR 12 | dage (konti kan hænge) |
+| 12 | Offentligt push | — | — |
 
 **Trin 5 skal ske så TIDLIGT som det er forsvarligt** (altså lige efter 2 og 3),
 fordi det er det eneste trin med uger af ventetid: scraperen roterer gennem
@@ -87,6 +91,10 @@ ser først.
 | Verifikationen siger 200, men brugeren får NXDOMAIN | `curl --resolve VÆRT:443:IP` springer DNS over. Den beviser at Workeren svarer — ikke at domænet kan slås op | Tjek ALTID opslaget separat: `curl -s "https://dns.google/resolve?name=VÆRT&type=A"` skal give svar for både A og AAAA |
 | Redirect giver 200 med `<meta refresh>` i stedet for 301 | `loading.tsx` streamer 200 før siden kan sætte status | Redirects hører i `src/middleware.ts`, ALDRIG i en side |
 | Track-POST giver 204 men ingen række | `ANALYTICS_EXCLUDE_IPS` dropper Mikkels eget net | Test INSERT direkte mod D1 i stedet |
+| **Landets kanal mangler i loggens «Kanaler: …», og intet fejler** | Secrets lå i GitHub, men workflowet mappede dem aldrig ind i jobbets `env`. `isConfigured()` er false, kanalen springes over, exit 0. En ukonfigureret kanal SKAL forsvinde lydløst (secrets kommer gradvist) — men det gør en manglende ledningsføring umulig at skelne fra «ikke sat op endnu» | env-linjer i `social-post.yml` SAMTIDIG med secret'et. Kørslen siger nu også højt hvad den springer over |
+| **Artikler udløber i social-køen med `attempts = 0`** | Drænet postede ét opslag pr. kørsel, og cron'en fyrer 6-8 gange i døgnet — ikke 24. Kapaciteten var ~12 opslag pr. 48 t, og 48 t er udløbsgrænsen. **Et nyt land udgiver i klumper** (25 artikler ved UK's launch), og alt over kapaciteten forsvandt tavst | Pacingen svarer med et ANTAL og kender sin deadline (`postsAllowedNow`). Tjek efter et launch-brag: `SELECT status, COUNT(*) FROM social_posts GROUP BY status` |
+| **Email Routing-wizarden kan ikke aktiveres på det nye domæne** | Registratoren leverer MX som standard (`mx.simply.com` + egen SPF), og de blokerer wizarden | Erstat MX med `route1/2/3.mx.cloudflare.net` + Cloudflares SPF, behold `_dmarc`. **Det kommer igen på hvert nyt domæne** |
+| **Et script du ændrede skrev i produktion uden at nogen godkendte noget** | Scriptet kører på en cron. At ændre en STANDARDVÆRDI i noget Actions kører hver time ER en produktionsskrivning — bare forsinket en time. 15. september skrev en timevis kørsel 94 kort (11 MB) i D1 på den måde | `grep -rl "<script>" .github/workflows/` FØR push. Er der et `schedule:`, så behandl ændringen som den handling den udfører |
 | Ændring "virker ikke" 10 sek. efter deploy | Edge-propagering tager 1-2 min | Vent og prøv igen, før du konkluderer |
 
 ### Fælder ved AUTOMATISK søg-og-erstat
@@ -214,7 +222,124 @@ En opdigtet national NCAA-stjerne er præcis den fejl sitet er bygget for at und
 
 ---
 
-## 7. Tjekliste før du siger "klar"
+## 7. Distribution: konti, kort og kanaler
+
+**Denne sektion fandtes ikke ved UK-launchen.** UK stod ude af dark launch 21.
+august med 25 publicerede artikler og **ingen konto at poste dem fra** — der gik
+ti dage. Læg distributionen ind i planen fra begyndelsen; konti er det eneste
+her der kan hænge i dagevis af grunde du ikke selv styrer.
+
+### Den ene regel
+
+**En kanal er en KONTO, ikke en platform.** Den danske Bluesky-konto og den
+britiske deler kode og intet andet: eget kanalnavn (pacing slås op på navnet),
+egne secrets med EGNE VARIABELNAVNE, eget land. Deler to lande variabelnavn,
+giver et glemt secret ikke en fejl — det giver **et opslag fra den forkerte
+konto**. Det skete 5. august.
+
+### Rækkefølgen
+
+| # | Trin | Bindende? | Lead time |
+|---|------|-----------|-----------|
+| D1 | Opret konti — én pr. platform pr. land | — | timer til dage |
+| D2 | Secrets med landets egne navne (`BLUESKY_XX_HANDLE`, …) | FØR D4 | minutter |
+| D3 | **env-linjer i `social-post.yml`** | **FØR D4** | minutter |
+| D4 | Kanal i `ALL_CHANNELS` med `country` + `cardKind` | — | ½ time |
+| D5 | Kort renderet for landet | FØR D6 | minutter |
+| D6 | **Verificér med dry-run** (se nedenfor) | — | minutter |
+
+D3 før D4 er ikke kosmetik — se fælden nedenfor.
+
+### Meta (Facebook + Instagram) — hvad der faktisk koster tid
+
+- **Koblingen Side↔Instagram er 1:1.** Et nyt land kan IKKE hænge på
+  standardsitets Facebook-side. Det skal have **sin egen Facebook-side OG sin
+  egen Instagram-konto**. Regn med det i planlægningen; det er to konti mere,
+  ikke én.
+- **Instagram kræver en professionel konto** koblet til Siden — og koblingen
+  skal laves i Business Suite eller fra Instagram-appens «Side»-felt.
+  **Accounts Center er en anden ting og tæller ikke** — API'et kan ikke se den.
+- **App Review er IKKE nødvendig**, når I poster til jeres egen konto: tilføj
+  kontoen som *Instagram Tester* på appen og publicér fra Development Mode.
+  Ellers venter I 2-4 uger uden grund.
+- **Instagram-permissions findes først når appen har use case'et.** Er
+  Explorer-dropdownen tom, når du søger `instagram_content_publish`, mangler
+  **Instagram → API setup with Facebook Login → «Add all required permissions»**
+  i App Dashboard. Page-permissions er en SEPARAT gruppe, som du selv skal
+  tilføje bagefter.
+- **En tilføjet permission ændrer ikke et token du allerede har.** Klik
+  *Generate Access Token* igen. Det fanger alle.
+
+### 🔑 Spørg API'et, ikke UI'et
+
+15. september brugte vi en time på Business Suite, som viste «login required»,
+«din konto er begrænset» og «brugernavnet hører ikke til profilen». **Ingen af
+delene betød noget.** Den kobling API'et læser er Sidens, ikke Suitens, og den
+var på plads hele tiden.
+
+```bash
+# Ground truth #1 — hvad kan tokenet egentlig?
+me/permissions
+# Ground truth #2 — er kontoen koblet? (spørg SIDEN direkte;
+# me/accounts kan være tom hvis pages_show_list mangler)
+<SIDE_ID>?fields=name,instagram_business_account
+```
+
+Kommer der et `instagram_business_account.id` (17-cifret, starter med `17841`),
+er koblingen ægte — uanset hvad Business Suite påstår.
+
+⚠️ **Bliver kontoen «midlertidigt begrænset»: STOP.** Hvert nyt forsøg logges og
+forlænger blokeringen; anden og tredje blokering springer fra 24-48 timer til
+7-14 dage. En konto der har ligget i dvale, bliver flagget netop når den
+pludselig kun laver administrative handlinger. Lad den ligge et døgn, brug den
+normalt i appen imens.
+
+### Kortene
+
+- **Instagram tager KUN JPEG**, formforhold 4:5 til 1.91:1, bredde 320-1440.
+  Sitets egne kort er WebP i 1200×630 og kan ikke bruges.
+- Derfor to lærreder i `CARD_FORMATS`: `landscape` (delekort) og `portrait`
+  (1080×1350 JPEG). **Målt:** samme kort vejer 35 KB som WebP mod 47 KB som
+  mozjpeg-JPEG — sitet skal IKKE skifte til JPEG for at have ét format.
+- `cardKind` på kanalen afgør både hvilket billede der sendes, **og hvornår en
+  artikel er klar**. Instagram venter på `ig-<id>-v<N>`, resten på
+  `card-<id>-v<N>`.
+- **Portræt-kort renderes kun for lande der HAR en Instagram-kanal.** Det slås
+  op i kanal-registeret, så et nyt land begynder af sig selv den dag kanalen
+  findes. Du skal intet gøre — men kortene skal være renderet FØR første opslag,
+  ellers står køen og venter på et billede der svarer 404.
+
+### Sproget i opslaget og på kortet
+
+- **Bluesky-opslag mærkes med `langs` fra landeprofilen.** Et engelsk opslag
+  mærket `da` bliver **skjult af Blueskys eget sprogfilter** for netop de
+  læsere det er skrevet til. Det er ikke kosmetik.
+- **`fact_sheet` er skrevet på KILDENS sprog — amerikansk.** Kortet gengav
+  `outcome` og `date` råt, så danske kort sagde «win» og «Sep. 01, 2026».
+  Nye sprogpakker skal definere `card.versus`, `card.outcome_win/loss/tie` og
+  `social.link_in_bio`; `_ui-strings-test` fejler hvis en nøgle mangler.
+- **Instagram-captions har ingen klikbare links.** Captionen henviser til
+  bio-linket, og bio-linket er `/<arkivsti>?kilde=xx` — **ikke en særlig side**.
+  Arkivet er allerede «seneste artikler, pagineret, mobil-først», sidetallet er
+  sprogstyret, og `Analytics.tsx` plukker `?kilde=` på enhver sidevisning.
+
+### Verifikation — den eneste der beviser noget
+
+```bash
+gh workflow run social-post.yml -f dry_run=true
+# I loggen SKAL landets kanal stå i «Kanaler: …».
+# Står den under «Springes over (mangler secrets i miljøet)», er D3 ikke gjort.
+```
+
+```bash
+# Kortet skal kunne hentes UDEFRA — Meta henter det selv ud fra image_url
+curl -sI "https://<VÆRT>/api/og?type=ig&article=<ID>" | head -3
+# → 200 og image/jpeg. 404 = render-cards har ikke kørt for landet.
+```
+
+---
+
+## 8. Tjekliste før du siger "klar"
 
 - [ ] `grep`-audit for landefiltre (§0) kørt og hver forekomst vurderet
 - [ ] `grep`-audit for `ON CONFLICT` efter enhver skemaændring
@@ -231,10 +356,19 @@ En opdigtet national NCAA-stjerne er præcis den fejl sitet er bygget for at und
 - [ ] `darkLaunch: true` i landeprofilen, og alle tre spærringer verificeret (§5)
 - [ ] Migrationer kørt mod remote FØR deploy af kode der bruger dem
 - [ ] Midlertidig natlig cron noteret til senere fjernelse
+- [ ] **Distribution (§7)**: konti oprettet, secrets med landets egne navne,
+      env-linjer i `social-post.yml`, kanal i `ALL_CHANNELS` med `country` +
+      `cardKind`
+- [ ] **Dry-run kørt, og landets kanal STÅR i «Kanaler: …»** — ikke under
+      «Springes over»
+- [ ] Kort renderet for landet og hentbart udefra (`curl -sI …?type=ig` → 200)
+- [ ] Sprogpakken har `card.versus`, `card.outcome_*`, `social.link_in_bio`
+- [ ] Bio-linket peger på arkivet med `?kilde=` — ikke på en nybygget side
+- [ ] Tjekket om ændringer til pipeline-scripts udløser en cron-kørsel
 
 ---
 
-## 8. Hvad der IKKE er løst (arv til næste land)
+## 9. Hvad der IKKE er løst (arv til næste land)
 
 - **Rute-navnene er danske mapper**: `/atleter`, `/viden`, `/skoler`, `/artikler`
   gælder alle sites. Sport-sluggene er sprogstyrede og virker; resten er ikke.
@@ -249,6 +383,15 @@ En opdigtet national NCAA-stjerne er præcis den fejl sitet er bygget for at und
   `AND home_country = ?` — helper'en giver koden, ikke filtret.
 - **Soft 404**: det andet lands URL'er (og alle ukendte stier) svarer 200 med
   "Side ikke fundet". Se fældetabellen.
+- **Kold isolate = `exceededCpu` på et lavtrafik-domæne.** Meta's crawler ramte
+  `student-athlete.co.uk` med 50 fejl ud af 50, alle `exceededCpu` ved 10 ms, fra
+  Chicago. Siden er ikke langsom — isolaten er kold, og `.co.uk` har ingen
+  trafik i USA, så hver crawl instantierer Workeren forfra inden for 10 ms.
+  **Et tredje land arver det på dag ét.** Ingen SQL- eller cache-rettelse
+  hjælper; en crawl er cache-misses by design. De to reelle veje er Workers Paid
+  ($5/md, 10 ms → 30 s) eller pre-generering. At blokere Meta's crawler ville
+  virke og er den forkerte handel — det er den der tegner link-forhåndsvisningen
+  på Facebook, Instagram og WhatsApp.
 - **Kun `.dk`-tokenet kan røre DNS.** `CLOUDFLARE_API_TOKEN` = Workers på
   kontoniveau, ingen DNS. `CLOUDFLARE_EMAIL_TOKEN` = DNS + Email Routing, men
   kun på zonen `studentathlete.dk`. Email routing på et nyt domæne kræver
