@@ -7,20 +7,15 @@ on:
     # 00/06/12/18 UTC, så 07:30/13:30/19:30 skriver oven på et friskt fund i
     # stedet for at lade det ligge et døgn. Gennemgangskøen er den reelle
     # bremse — generate-articles pauser selv ved MAX_PENDING_DRAFTS (20).
-    # 🛑 PAUSET 2026-09-15 — SKAL TÆNDES IGEN
-    #
-    # Genereringen laver nul artikler: modellen skriver en færdig artikel og
-    # fylder derefter budgettet med tomrum, så JSON'en aldrig lukker. Hver
-    # kørsel koster et `gen_attempts` på hver historie, og ved tre er historien
-    # `gen_failed` for altid. Kørslerne ville altså ikke bare fejle — de ville
-    # BRÆNDE dagens historier af, inklusive den eneste danske i elleve dage.
-    #
-    # Pausen er her og ikke i `gh workflow disable`, fordi en slukket workflow
-    # ikke kan ses i repoet. Fjern kommentar-tegnene når genereringen leverer
-    # en kladde i `--dry-run`.
-    # - cron: '30 7 * * *'
-    # - cron: '30 13 * * *'
-    # - cron: '30 19 * * *'
+    # Pauset i tre timer 15-09 mens selvsvings-fejlen blev fundet: modellen
+    # skrev en færdig artikel og fyldte derefter budgettet med tomrum, så
+    # JSON'en aldrig lukkede. Hver kørsel kostede et `gen_attempts`, og ved tre
+    # er historien `gen_failed` for altid — kørslerne ville have brændt dagens
+    # historier af frem for bare at fejle. Tændt igen da fire historier i træk
+    # gav en kladde i `--dry-run` (commit «Red artiklen ud af den JSON…»).
+    - cron: '30 7 * * *'
+    - cron: '30 13 * * *'
+    - cron: '30 19 * * *'
   # Manuelt: kan altid trigges fra GitHub eller admin-panelet
   workflow_dispatch:
     inputs:
