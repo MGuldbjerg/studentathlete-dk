@@ -389,6 +389,7 @@ const ui: LanguagePack["ui"] = {
   "archive.newer": "← Newer",
   "archive.older": "Older →",
   "card.versus": "vs",
+  "social.link_in_bio": "Read the full story — link in bio.",
   "correction.prefix": "Corrected",
   "feed.description": "Coverage of {demonym} student athletes competing in the United States",
   "ads.disclosure": "Advertisement · {brand} may earn a commission if you buy through this link.",

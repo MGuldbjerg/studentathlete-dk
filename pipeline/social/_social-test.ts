@@ -5,6 +5,7 @@
 import { ALL_CHANNELS, cardReadyClause, distributionAllowed, profileAllowsDistribution } from "./post-social";
 import { bluesky, blueskyUk, buildBlueskyRecord } from "./channels/bluesky";
 import { facebook } from "./channels/facebook";
+import { instagram } from "./channels/instagram";
 import {
   DEFAULT_PACING,
   computeGapMinutes,
@@ -16,7 +17,7 @@ import {
 } from "./pacing";
 import { buildPostText, truncate } from "./copy";
 import { CHANNEL_PLATFORM, ChannelAuthError } from "./types";
-import { cardBlobKey } from "../../src/lib/seo";
+import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 
 let passed = 0;
 let failed = 0;
@@ -182,6 +183,7 @@ const input = {
   title: "Emma Hansen scorer hattrick i sæsonpremieren",
   summary: "Den danske angriber viste klassen fra start.",
   url: "https://studentathlete.dk/fodbold/emma-hansen-hattrick",
+  lang: "da",
 };
 expect(
   "copy: bluesky = ren titel (link ligger i embed)",
@@ -203,6 +205,47 @@ expect(
   buildPostText({ ...input, summary: null }, "facebook"),
   input.title,
 );
+// ── Instagram-captionen ──────────────────────────────────────────────────────
+// To ting adskiller den fra de andre: links er IKKE klikbare i en IG-caption,
+// og teksten skal være på artiklens sprog. Det sidste er ikke teori — kortet
+// sagde «mod Brown» på britiske artikler indtil 2026-09-14, fordi en sprogværdi
+// havde en dansk standard. Derfor er `lang` påkrævet, og derfor testes begge.
+const igDa = buildPostText(input, "instagram");
+const igEn = buildPostText({ ...input, lang: "en" }, "instagram");
+expect("ig: dansk caption henviser til bio", igDa.includes("link i bio"), true);
+expect("ig: engelsk caption henviser til bio", igEn.includes("link in bio"), true);
+expect("ig: dansk og engelsk er IKKE ens", igDa === igEn, false);
+expect("ig: URL står ikke i captionen (links er døde dér)", igDa.includes(input.url), false);
+expect("ig: titlen er med", igDa.includes(input.title), true);
+expect("ig: ingressen er med", igDa.includes(input.summary), true);
+expect("ig: holder sig under Instagrams 2.200 tegn", [...igDa].length <= 2200, true);
+
+// ── Kanalen kræver sit EGET kort ─────────────────────────────────────────────
+// Ventede Instagram på delekortet, ville den poste med et billede der ikke
+// findes endnu — og Meta cacher sin egen hentning af image_url.
+expect("instagram bruger ig-kortet", instagram.cardKind, "ig");
+expect("facebook bruger delekortet", facebook.cardKind, "share");
+expect("bluesky bruger delekortet", bluesky.cardKind, "share");
+// Bind SQL'en til nøglefunktionen ved at SPLITTE en rigtig nøgle om id'et:
+// "ig-7-v9" → præfiks "ig-" og hale "-v9". Begge dele skal stå i klausulen,
+// så et versionsbump eller et omdøbt præfiks ikke kan skride fra hinanden.
+for (const [kind, keyOf] of [
+  ["ig", igCardBlobKey],
+  ["share", cardBlobKey],
+] as const) {
+  const [prefix, suffix] = keyOf(7).split("7");
+  const clause = cardReadyClause("a", kind);
+  expect(`SQL (${kind}): samme præfiks som nøglefunktionen`, clause.includes(`'${prefix}'`), true);
+  expect(`SQL (${kind}): samme version som nøglefunktionen`, clause.includes(suffix), true);
+}
+expect(
+  "de to klar-betingelser er ikke ens",
+  cardReadyClause("a", "ig") === cardReadyClause("a", "share"),
+  false,
+);
+expect("instagram er en dansk konto", instagram.country, "DK");
+expect("instagram uden secrets er ukonfigureret", instagram.isConfigured(), false);
+
 const longTitle = { ...input, title: "x".repeat(400) };
 expect(
   "copy: bluesky-titel klippes til 300",

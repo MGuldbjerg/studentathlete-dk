@@ -58,6 +58,7 @@ export const x: SocialChannel = {
   name: "x",
   // Kontoen er dansk (@StudAthleteDK). Adapteren er i dvale — se post-social.ts.
   country: "DK",
+  cardKind: "share",
 
   isConfigured(): boolean {
     return Boolean(

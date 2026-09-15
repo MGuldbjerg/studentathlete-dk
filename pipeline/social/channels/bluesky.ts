@@ -111,6 +111,7 @@ function createBlueskyChannel(name: "bluesky" | "bluesky_uk"): SocialChannel {
   return {
     name: name as ChannelName,
     country: account.country,
+    cardKind: "share",
 
     isConfigured(): boolean {
       return Boolean(process.env[account.handleEnv] && process.env[account.passwordEnv]);

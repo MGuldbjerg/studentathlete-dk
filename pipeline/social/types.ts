@@ -1,12 +1,12 @@
 /** Platformen — altså API'et. Flere kanaler kan dele én. */
-export type Platform = "bluesky" | "x" | "facebook";
+export type Platform = "bluesky" | "x" | "facebook" | "instagram";
 
 /**
  * En KANAL er en konto, ikke en platform. Derfor har hvert land sit eget navn:
  * pacing, kø-dybde og "hvornår postede vi sidst" slås alle op på kanalnavnet,
  * så to konti med samme navn ville stå i vejen for hinanden i køen.
  */
-export type ChannelName = "bluesky" | "bluesky_uk" | "x" | "facebook";
+export type ChannelName = "bluesky" | "bluesky_uk" | "x" | "facebook" | "instagram";
 
 /**
  * Kanal → platform. Eksplicit tabel frem for navne-gætteri: en ny kanal uden
@@ -18,7 +18,20 @@ export const CHANNEL_PLATFORM: Record<ChannelName, Platform> = {
   bluesky_uk: "bluesky",
   x: "x",
   facebook: "facebook",
+  instagram: "instagram",
 };
+
+/**
+ * Hvilket kort skal kanalen bruge?
+ *
+ * `share` = det liggende 1200×630-delekort. `ig` = 1080×1350 JPEG, som
+ * Instagram er alene om at kræve (kun JPEG, formforhold 4:5-1.91:1).
+ *
+ * Det afgør IKKE bare hvilket billede der sendes med — det afgør også hvornår
+ * en artikel er KLAR. Ventede Instagram på delekortet, ville den poste med et
+ * billede der ikke findes endnu, og Meta cacher sin egen hentning.
+ */
+export type CardKind = "share" | "ig";
 
 export interface PostContent {
   /** Færdigbygget opslagstekst (se copy.ts) */
@@ -33,6 +46,8 @@ export interface PostContent {
 
 export interface SocialChannel {
   name: ChannelName;
+  /** Hvilket pre-rendret kort kanalen kræver. Se CardKind. */
+  cardKind: CardKind;
   /**
    * Hvilket lands konto er det? En kanal er en KONTO, ikke en platform:
    * @studentathlete.dk på Bluesky og den danske Facebook-side er danske

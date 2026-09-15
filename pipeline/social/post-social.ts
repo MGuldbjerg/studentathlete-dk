@@ -20,24 +20,25 @@
  */
 
 import { createD1Client, type D1Client } from "../lib/d1-client";
-import { CARD_VERSION, getArticleCoverUrl, getArticleUrl } from "../../src/lib/seo";
+import { CARD_VERSION, getArticleCoverUrl, getArticleIgCardUrl, getArticleUrl } from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
 import { DEFAULT_PACING, computeGapMinutes, minutesUntilExpiry, postsAllowedNow } from "./pacing";
 import { buildPostText } from "./copy";
-import { ChannelAuthError, type PostContent, type SocialChannel } from "./types";
+import { ChannelAuthError, type CardKind, type PostContent, type SocialChannel } from "./types";
 import { bluesky, blueskyUk } from "./channels/bluesky";
 // X droppet 2026-06-15: X fjernede sit gratis API-tier (nu pay-per-use, ~$0,01/opslag).
 // Adapter + secrets bevares — for at gen-aktivere: gendan importen og føj `x` til
 // ALL_CHANNELS igen (kræver pay-per-use-kredit på X-kontoen).
 // import { x } from "./channels/x";
 import { facebook } from "./channels/facebook";
+import { instagram } from "./channels/instagram";
 
 /**
  * Alle kendte konti. Ukonfigurerede springes over i main(), så en konto kan
  * stå her længe før dens secrets findes — det er sådan UK-kontoen kom til.
  */
-export const ALL_CHANNELS: SocialChannel[] = [bluesky, blueskyUk, facebook];
+export const ALL_CHANNELS: SocialChannel[] = [bluesky, blueskyUk, facebook, instagram];
 
 /**
  * Må dette lands artikler distribueres overhovedet?
@@ -110,16 +111,25 @@ async function expireStale(db: D1Client): Promise<number> {
   return res.meta.changes;
 }
 
-function buildContent(row: QueuedRow, channel: SocialChannel["name"]): PostContent {
+function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
   // Artiklens EGET site — ikke modul-konstanten. Den britiske artikel blev
   // postet med et .dk-link, som ikke engang findes på det site.
   const profile = countryProfile(row.country);
   const base = siteBaseUrl(profile);
   // Sproget skal med: sport-sluggen i adressen er sitets, ikke standardsitets.
   const url = base + getArticleUrl({ slug: row.slug, sport: row.sport }, profile.language);
-  const imageUrl = base + getArticleCoverUrl({ id: row.article_id });
+  // Kanalens eget kort: Instagram kan kun bruge 1080×1350-JPEG'et, resten
+  // bruger delekortet. Se CardKind.
+  const imageUrl =
+    base +
+    (channel.cardKind === "ig"
+      ? getArticleIgCardUrl({ id: row.article_id })
+      : getArticleCoverUrl({ id: row.article_id }));
   return {
-    text: buildPostText({ title: row.title, summary: row.summary, url }, channel),
+    text: buildPostText(
+      { title: row.title, summary: row.summary, url, lang: profile.language },
+      channel.name,
+    ),
     url,
     title: row.title,
     summary: row.summary,
@@ -132,8 +142,11 @@ function buildContent(row: QueuedRow, channel: SocialChannel["name"]): PostConte
  * advarslen ikke kan komme til at spørge om hver sin nøgle. Nøgleformatet er
  * `cardBlobKey()`s (src/lib/seo.ts); testen holder de to sammen.
  */
-export function cardReadyClause(alias = "a"): string {
-  return `EXISTS (SELECT 1 FROM card_blobs cb WHERE cb.key = 'card-' || ${alias}.id || '-v${CARD_VERSION}')`;
+export function cardReadyClause(alias = "a", kind: CardKind = "share"): string {
+  // Nøgleformaterne er cardBlobKey()'s og igCardBlobKey()'s (src/lib/seo.ts);
+  // testen binder dem sammen, så en ændring dér ikke kan skride fra SQL'en.
+  const prefix = kind === "ig" ? "ig-" : "card-";
+  return `EXISTS (SELECT 1 FROM card_blobs cb WHERE cb.key = '${prefix}' || ${alias}.id || '-v${CARD_VERSION}')`;
 }
 
 /**
@@ -149,12 +162,13 @@ async function warnIfWaitingForCards(db: D1Client, ch: SocialChannel): Promise<v
        FROM social_posts sp
        JOIN articles a ON a.id = sp.article_id
       WHERE sp.channel = ? AND sp.status = 'queued' AND a.country = ?
-        AND NOT ${cardReadyClause("a")}
+        AND NOT ${cardReadyClause("a", ch.cardKind)}
       ORDER BY sp.created_at ASC`,
     [ch.name, ch.country],
   );
   for (const r of results) {
-    console.warn(`  ⚠ ${ch.name}: #${r.id} "${r.title}" venter på sit kampkort (card-${r.id}-v${CARD_VERSION}) — ikke postet.`);
+    const prefix = ch.cardKind === "ig" ? "ig" : "card";
+    console.warn(`  ⚠ ${ch.name}: #${r.id} "${r.title}" venter på sit kampkort (${prefix}-${r.id}-v${CARD_VERSION}) — ikke postet.`);
   }
 }
 
@@ -192,7 +206,7 @@ async function postOne(
        LEFT JOIN athletes ath ON ath.id = a.athlete_id
        WHERE sp.channel = ? AND sp.status = 'queued'
          AND a.country = ?
-         AND ${cardReadyClause("a")}
+         AND ${cardReadyClause("a", ch.cardKind)}
        ORDER BY sp.created_at ASC, sp.id ASC
        LIMIT 1`,
       [ch.name, ch.country],
@@ -211,7 +225,7 @@ async function postOne(
     return { posted: false, error: null, empty: false, fatal: false };
   }
 
-  const content = buildContent(row, ch.name);
+  const content = buildContent(row, ch);
 
   if (dryRun) {
     console.log(`  ${ch.name} [dry-run]: ville poste "${row.title}" → ${content.url}`);

@@ -400,6 +400,7 @@ const ui: LanguagePack["ui"] = {
   "archive.older": "Ældre →",
 
   "card.versus": "mod",
+  "social.link_in_bio": "Læs hele historien — link i bio.",
   "correction.prefix": "Rettet",
   "feed.description": "Dækning af {demonym} student athletes i USA",
   "ads.disclosure": "Annonce · {brand} kan tjene en kommission, hvis du handler via linket.",
