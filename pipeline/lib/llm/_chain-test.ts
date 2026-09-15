@@ -12,7 +12,7 @@
  */
 import type { D1Client } from "../d1-client";
 import type { LLMProvider, LLMResponse } from "./types";
-import { ProviderChain } from "./provider-chain";
+import { ProviderChain, isDegenerateOutput } from "./provider-chain";
 import { AllProvidersFailedError, LLMHttpError } from "./errors";
 
 let passed = 0;
@@ -114,6 +114,41 @@ async function main(): Promise<void> {
   ]);
   const badErr = await bad.generate(opts).catch((e: unknown) => e);
   check((badErr as AllProvidersFailedError).transient, false, "a 400 is not transient");
+
+
+  // ── Selvsving (15. september 2026) ────────────────────────────────────────
+  // Ti historier i traek blev kasseret som «afbrudt JSON». Raasvaret viste en
+  // FAERDIG artikel efterfulgt af hundredvis af tabulatortegn — JSON'en naaede
+  // aldrig at lukke. Providerens fejl, ikke historiens.
+  const artikel = '{"title":"Standtke skifter til Indiana State","content":"Hun har valgt Indiana State."';
+  check(isDegenerateOutput(artikel + String.fromCharCode(9).repeat(300)), true, "selvsving: 300 tabulatorer fanges");
+  check(isDegenerateOutput(" ".repeat(120)), true, "selvsving: kun mellemrum fanges");
+  check(isDegenerateOutput(""), true, "tomt svar er lige saa ubrugeligt");
+  check(isDegenerateOutput(null), true, "null er ubrugeligt");
+  check(isDegenerateOutput(artikel + "}"), false, "normal: faerdig artikel er ikke selvsving");
+  check(
+    isDegenerateOutput("{" + String.fromCharCode(10) + '  "a": {' + String.fromCharCode(10) + '    "b": 1' + String.fromCharCode(10) + "  }" + String.fromCharCode(10) + "}"),
+    false,
+    "normal: pretty-printet JSON er ikke selvsving",
+  );
+  check(
+    isDegenerateOutput("Afsnit et." + String.fromCharCode(10) + String.fromCharCode(10) + "Afsnit to."),
+    false,
+    "normal: blanke linjer mellem afsnit er ikke selvsving",
+  );
+
+  // Det der betyder noget: kaeden GAAR VIDERE i stedet for at levere skidtet.
+  const degenereret = new ProviderChain(workingDb(), [
+    provider("selvsving", () =>
+      Promise.resolve({ text: artikel + String.fromCharCode(9).repeat(300), tokens_input: 900, tokens_output: 2000, model: "test", provider: "selvsving" }),
+    ),
+    provider("frisk", () =>
+      Promise.resolve({ text: artikel + "}", tokens_input: 900, tokens_output: 120, model: "test", provider: "frisk" }),
+    ),
+  ]);
+  const reddet = await degenereret.generate(opts);
+  check(reddet.text.endsWith("}"), true, "kaeden gaar videre til naeste provider ved selvsving");
+  check(reddet.tokens_output, 120, "...og leverer den friske providers svar");
 
   console.log(`\n${passed} bestået, ${failed} fejlet`);
   if (failed > 0) process.exit(1);

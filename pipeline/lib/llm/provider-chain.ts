@@ -65,6 +65,30 @@ async function recordUsage(
   );
 }
 
+/**
+ * Gik modellen i selvsving?
+ *
+ * 15. september 2026 blev TI historier i træk kasseret med «modellen returnerede
+ * afbrudt JSON». Råsvaret viste noget andet end en for lang artikel: modellen
+ * skrev en FÆRDIG artikel — titel, manchet, brødtekst, punktum — og begyndte
+ * derefter at udsende tabulatortegn, indtil hele token-budgettet var brugt. JSON
+ * blev aldrig lukket, så parseren gav null, og historien mistede et forsøg.
+ *
+ * Det er providerens fejl, ikke historiens — samme skel som `ChannelAuthError` i
+ * social-køen, hvor en login-fejl lader kø-rækken stå urørt, fordi kontoen
+ * fejlede og ikke opslaget. Her betyder det: prøv næste provider, brænd ikke et
+ * `gen_attempts` af på en model-quirk.
+ *
+ * Grænsen er 80 sammenhængende tomrumstegn. Pretty-printet JSON med dyb
+ * indrykning kommer op i tyverne; 80 i træk er ingen formatering — det er
+ * selvsving. Et helt tomt (eller kun-tomrum) svar tælles med: det er lige så
+ * ubrugeligt, og skal også koste en ny provider frem for en historie.
+ */
+export function isDegenerateOutput(text: string | null | undefined): boolean {
+  if (!text || text.trim().length === 0) return true;
+  return /\s{80,}/.test(text);
+}
+
 export class ProviderChain {
   private providers: LLMProvider[];
 
@@ -143,6 +167,26 @@ export class ProviderChain {
 
       try {
         const response = await provider.generate(opts);
+
+        // Selvsving: svaret er betalt for, men ubrugeligt. Behandl det som
+        // providerens fejl og gå videre — se isDegenerateOutput.
+        if (isDegenerateOutput(response.text)) {
+          console.warn(`  ⚠ ${provider.name}: svaret gik i selvsving (tomrum) — prøver næste provider`);
+          errors.push(`${provider.name}: degenereret svar`);
+          await recordUsage(
+            this.db,
+            provider.name,
+            response.tokens_input,
+            response.tokens_output,
+            true,
+          ).catch(() => {
+            /* bogføringen må aldrig vælte selve kørslen */
+          });
+          // BEVIDST ingen cooldown: selvsving hænger sammen med den konkrete
+          // prompt, ikke med providerens helbred. En cooldown ville tage
+          // providereren ud af spil for alle de andre historier i samme kørsel.
+          continue;
+        }
         // The answer is already paid for. Accounting for it is a bookkeeping
         // detail and must never be able to throw it away: a NOT NULL failure
         // on llm_usage discarded finished factsheets on 9 September 2026.

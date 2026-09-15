@@ -235,19 +235,34 @@ const MAX_ARTICLES_PER_RUN = 12;
 // Maks antal kladder der må ligge ugodkendt (pause hvis for mange hober sig op)
 const MAX_PENDING_DRAFTS = 20;
 
-function parseArgs(): { maxAgeDays: number } {
+/**
+ * `--dry-run` og `--story N` findes fordi der 15. september ikke fandtes NOGEN
+ * måde at se hvorfor genereringen fejlede. Ti historier i træk blev kasseret med
+ * «modellen returnerede afbrudt JSON», og det eneste spor var den linje: svaret
+ * selv blev aldrig vist, og at køre scriptet igen brændte endnu et forsøg af på
+ * hver historie (gen_attempts, tre strikes → `gen_failed`).
+ *
+ * `--dry-run` skriver INTET: ingen kladde, intet forsøg talt op, ingen status
+ * rørt. Den bygger den rigtige prompt, kalder modellen og viser det RÅ svar.
+ */
+function parseArgs(): { maxAgeDays: number; dryRun: boolean; storyId: number | null } {
   const args = process.argv.slice(2);
   let maxAgeDays = 7; // 7 dage: fanger nyheder der er opdaget men ikke endnu genereret
+  let dryRun = false;
+  let storyId: number | null = null;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--max-age-days" && args[i + 1]) {
       maxAgeDays = parseInt(args[i + 1], 10) || 7;
     }
+    if (args[i] === "--dry-run") dryRun = true;
+    if (args[i] === "--story" && args[i + 1]) storyId = parseInt(args[i + 1], 10) || null;
   }
-  return { maxAgeDays };
+  return { maxAgeDays, dryRun, storyId };
 }
 
 async function main(): Promise<void> {
-  const { maxAgeDays } = parseArgs();
+  const { maxAgeDays, dryRun, storyId } = parseArgs();
+  if (dryRun) console.log("DRY-RUN: ingen kladder, ingen forsøg talt op." + String.fromCharCode(10));
   const db = createD1Client();
   const chain = new ProviderChain(db);
 
@@ -286,7 +301,8 @@ async function main(): Promise<void> {
   }
 
   // Sikkerhedsnet 2: Reset stories der har siddet i "drafting" i over 1 time (crashed run)
-  await db.execute(
+  // — springes over i dry-run, som ikke må røre nogen status.
+  if (!dryRun) await db.execute(
     `UPDATE stories SET status = 'new'
      WHERE status = 'drafting'
      AND datetime(discovered_at, '+1 hour') < datetime('now')`,
@@ -346,6 +362,7 @@ async function main(): Promise<void> {
      -- til at skrive om et navngivent menneske. Se MIN_RELEVANCE_GENERATE.
      AND s.relevance_score >= ?
      AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
+     ${storyId ? "AND s.id = " + String(storyId) : ""}
      ORDER BY
        -- Aldrig-prøvede historier først: en der allerede har brændt to forsøg
        -- må ikke tage pladsen fra en frisk (samme regel som fact_attempts).
@@ -508,8 +525,11 @@ async function main(): Promise<void> {
       `  → Story ${story.id}: ${story.athlete_name} — kilde: ${contentSource}, type: ${articleType}, land: ${country} (${prompts.language})`,
     );
 
-    // Marker som "drafting" så den ikke behandles igen
-    await db.execute('UPDATE stories SET status = ? WHERE id = ?', [
+    // Marker som "drafting" så den ikke behandles igen.
+    // Dry-run springer over: den efterlod historie 5392 i 'drafting' første
+    // gang flaget blev brugt (15-09) — sikkerhedsnettet ovenfor rydder op efter
+    // en time, men en diagnose må ikke ændre tilstand overhovedet.
+    if (!dryRun) await db.execute('UPDATE stories SET status = ? WHERE id = ?', [
       "drafting",
       story.id,
     ]);
@@ -532,6 +552,27 @@ async function main(): Promise<void> {
       // null = modellen blev klippet af midt i sit JSON-svar. Før guarden faldt
       // sådan et svar ned i linjeparseren og blev til en kladde med titlen «{»
       // og TOM slug — se parse-output.ts. Kasseres, så historien kan prøves igen.
+      if (dryRun) {
+        const raw = response.text ?? "";
+        // Grov token-tommelfingerregel: ~4 tegn pr. token.
+        const tok = (t: string) => Math.round(t.length / 4);
+        const runs = (prompt + systemPrompt).match(/\s{20,}/g) ?? [];
+        const longest = runs.reduce((a, b) => (b.length > a.length ? b : a), "");
+        console.log(
+          `  [dry-run] prompt: ${systemPrompt.length + prompt.length} tegn ` +
+            `(~${tok(systemPrompt) + tok(prompt)} tokens) · max_tokens: 2000`,
+        );
+        console.log(
+          `  [dry-run] tomrums-løb i prompten: ${runs.length} stk, længste ${longest.length} tegn`,
+        );
+        console.log(`  [dry-run] provider-svar: ${raw.length} tegn`);
+        console.log(`  [dry-run] RÅ SVAR:${String.fromCharCode(10)}${raw.slice(0, 1500)}`);
+        console.log(
+          `  [dry-run] parser: ${parseArticleOutputSmart(raw, articleType) ? "OK" : "NULL (ville blive kasseret)"}`,
+        );
+        continue;
+      }
+
       const first = parseArticleOutputSmart(response.text, articleType);
       if (!first) {
         console.log(`  ⛔ Story ${story.id}: modellen returnerede afbrudt JSON — kasseret`);
