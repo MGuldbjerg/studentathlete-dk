@@ -57,6 +57,12 @@ jobs:
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          # Instagram bruger IKKE FB_PAGE_ACCESS_TOKEN, selvom begge er page
+          # access tokens: IG kræver instagram_basic + instagram_content_publish
+          # oveni, og et delt navn ville skjule et token uden de scopes indtil
+          # en 403 midt i en kø.
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
 
       # Kun ved fejl — vellykkede opslag er synlige på kanalerne selv
       # (samme princip som discover-daily: ingen "postede N"-støj).

@@ -349,6 +349,17 @@ async function main(): Promise<void> {
   }
   console.log(`Kanaler: ${channels.map((c) => c.name).join(", ")}${dryRun ? " [dry-run]" : ""}`);
 
+  // Sig HØJT hvilke kendte kanaler der springes over. At en ukonfigureret kanal
+  // forsvinder lydløst er med vilje (secrets kan komme gradvist), men det gør
+  // en manglende LEDNINGSFØRING umulig at skelne fra «ikke sat op endnu»:
+  // 15. september stod Instagram klar med secrets i GitHub, men uden env-linjer
+  // i social-post.yml — og kanalen forsvandt uden et ord. Linjen her er den
+  // eneste grund til at det blev opdaget.
+  const skipped = ALL_CHANNELS.filter((c) => !c.isConfigured()).map((c) => c.name);
+  if (skipped.length > 0) {
+    console.log(`Springes over (mangler secrets i miljøet): ${skipped.join(", ")}`);
+  }
+
   const db = createD1Client();
 
   const added = await enqueue(db, channels);
