@@ -77,8 +77,22 @@ dansk standardværdi, af samme grund som `card.versus` blev en ui-nøgle.
 3. **Kortene**: `render-cards.ts` skal køre én gang, ellers svarer
    `/api/og?type=ig` 404 for alt. Det er en D1-skrivning.
 
-`/ig`-siden (bio-linket) skal stadig genopbygges — den findes hverken som route
-eller som `pages`-række.
+**`/ig` skal IKKE genopbygges** (besluttet 2026-09-15). Siden var «seneste 12
+artikler, mobil-først, store tryk-mål, noindex» — og `/artikler` er nøjagtig det,
+bare vedligeholdt: nyeste først, pagineret, sportsfiltre, ét stort kort pr.
+artikel. Verificeret på 375 px. Sidetallet er sprogstyret (`?side=` / `?page=`),
+så UK arver siden gratis.
+
+Attribueringen kræver heller ingen særlig side: `Analytics.tsx` ligger i
+layoutet og plukker `?kilde=` på enhver sidevisning — kommentaren dér nævner
+Instagram-bio'en ved navn. **Bio-linket er
+`https://studentathlete.dk/artikler?kilde=ig`.**
+
+`noindex` var ikke en gevinst ved `/ig`, men prisen for at have en tynd dublet
+af en side der allerede fandtes. En anden flade ville drive fra den rigtige.
+
+⚠️ Kilde-sporingen gælder kun besøgende der har givet samtykke — trackeren
+respekterer banneret. Det er ens for enhver landingsside og ændrer ikke valget.
 
 ## 📣 Social-køen tabte 7 britiske artikler — pacingen kendte ikke sin deadline (2026-09-14)
 
