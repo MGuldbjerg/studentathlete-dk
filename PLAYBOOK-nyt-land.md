@@ -53,6 +53,7 @@ interessant så snart den har én aktiv atlet). Genereringen SKAL kende landet
 | 9 | Generér + gennemlæs artikler | — | uger |
 | 10 | AdSense-site, e-mail routing | — | timer |
 | 11 | **Distribution: konti, secrets, kanal, kort (§7)** | FØR 12 | dage (konti kan hænge) |
+| 11b | Search Console-property + service-konto (§8) | FØR 12 | **uger at få nøgle** |
 | 12 | Offentligt push | — | — |
 
 **Trin 5 skal ske så TIDLIGT som det er forsvarligt** (altså lige efter 2 og 3),
@@ -339,7 +340,113 @@ curl -sI "https://<VÆRT>/api/og?type=ig&article=<ID>" | head -3
 
 ---
 
-## 8. Tjekliste før du siger "klar"
+## 8. Efter launch: opdagelse, crawl-budget og kanten
+
+Sitet er live, artiklerne er gode — og ingen finder dem. Alt i denne sektion er
+ramt på .co.uk mellem 21. august og 14. september, og **et nyt land rammer det
+igen**, fordi årsagen er domænets alder og trafik, ikke koden.
+
+### «Unknown to Google» er ikke en kvalitetsdom
+
+Den vigtigste skelnen i hele indekseringsarbejdet:
+
+| Googles svar | Hvad det betyder |
+|---|---|
+| `Crawled – currently not indexed` | Google HAR set siden og valgte den fra. **Kvalitet.** |
+| `URL is unknown to Google` | Google har **aldrig** hentet den. **Opdagelse.** |
+
+.co.uk havde det sidste, og vi troede længe det var det første. Tragten er
+`sitemap → discovered → (står stille) → crawlet → indekseret`, og den stod
+stille ved pil to. **Et tre uger gammelt domæne uden ét eneste indgående link
+får minimalt crawl-budget** — det er hele forklaringen.
+
+Hvad der virkede, og hvad der ikke gjorde:
+
+- ✅ **Knudepunkter frem for én kæmpeside.** Den eneste interne vej til en profil
+  gik gennem én side med 2.343 links, som Google sjældent gennemgår helt.
+  Opdelt i `/athletes` → bogstavside → profil (to hop gennem SMÅ sider) blev
+  knudepunktet crawlet og indekseret dagen efter.
+- ✅ **Indgående links.** Det var det reelt manglende. Bluesky er den billigste
+  kilde, og footerens familielinje (`liveSites()`) er ét sådant link — bevidst
+  bygget så et dark launch-site aldrig kan blive linket ind.
+- ❌ **Indexing API kan IKKE bruges.** Kun til job-opslag og livestreams.
+  Sitemap + intern linkning er vejen.
+- ⚠️ **`lastModified` må ikke være «nu».** ~70 statiske sider fik et tidsstempel
+  for HENTNINGEN. Et sitemap der altid råber «alt er nyt» lærer Google at
+  ignorere feltet — og crawl-budget er præcis det, et nyt domæne mangler.
+  Statiske sider: ingen lastmod. Bogstavsider: nyeste atlet-`updated_at`.
+
+### Search Console — to tal du ikke må læse forkert
+
+- **«0 indekseret» i sitemap-rapporten betyder INGENTING.** Feltet har været
+  dødt i årevis. .dk stod med «518 indsendt, 0 indekseret» samtidig med 112 klik
+  og 2.467 visninger på 28 dage. **Brug `--inspect`**, aldrig sitemap-tallet.
+- **Property + service-konto skal på plads tidligt** — det tog uger at få en
+  nøgle. Læg det ind i planen sammen med DNS, ikke bagefter.
+
+### ⚡ Gratis-planens 10 ms CPU — den dyreste fælde i hele projektet
+
+**40-60 % af ALLE forespørgsler til BEGGE sites svarede 503** (Cloudflare 1102 =
+CPU-grænsen) indtil 14. september. Det nåede aldrig en log, fordi invokationen
+dræbes før vores kode kører. En kontrolmåling med fire sekunder mellem hvert
+kald fejlede stadig 4 ud af 10 — det var **ikke** belastning.
+
+Intet blev cachet, og to ting stod i vejen:
+
+1. **`[cache]` i `wrangler.toml` blev droppet i tavshed**, fordi wrangler 4.66
+   ikke kendte feltet («Unexpected fields found in top-level field: cache»).
+   Kræver wrangler ≥ 4.131.
+2. **Middlewaren satte `private`** på læsersiderne, så kanten ikke MÅTTE gemme
+   dem. Det var et bevidst valg, fordi `pages`/`site_content` ingen
+   kladdetilstand har. Nu er vinduet eksplicit:
+   `public, max-age=0, s-maxage=300, stale-while-revalidate=60` — kanten svarer
+   uden at køre Workeren, og en rettelse er højst fem minutter undervejs.
+
+Målt efter rettelsen: **30 af 30 forespørgsler 200** på begge sites.
+
+```bash
+# Den måling der afslører det. Fejlraten ses ikke i nogen log.
+for i in $(seq 1 10); do curl -s -o /dev/null -w '%{http_code} ' "https://<VÆRT>/"; done
+```
+
+⚠️ **Cachen løser ikke crawler-varianten.** Et lavtrafik-domæne får stadig
+`exceededCpu` fra Meta's indexer, fordi en crawl er cache-misses by design og
+budgettet inkluderer kold instantiering af Next.js-bundlet. Se §10.
+
+### 💣 TOML-fælden der ville have taget begge domæner med sig
+
+`routes` lå EFTER `[cache]` i `wrangler.toml`. **I TOML hører alt efter en
+tabel-header til den tabel** — så ruterne var ikke deployet siden `[cache]` blev
+tilføjet. Sitet svarede kun, fordi Cloudflare beholder ruter fra tidligere
+deploys, så intet så galt ud. Næste deploy ville have taget begge domæners ruter
+med sig.
+
+**Regel: `routes` og alle andre top-level-felter skal stå FØR den første
+tabel-header.** wrangler ≥ 4.131 siger det højt («Unexpected fields found in
+cache field: "routes"»); ældre versioner tier.
+
+### Versionerede blobs og kanten
+
+`CARD_VERSION` står både i blob-NØGLEN og i URL'en. Skifter du format eller
+design uden at bumpe, serverer Cloudflares kant den gamle fil i op til en uge.
+Ved WebP-skiftet kostede det en runde. **Bump ved enhver visuel ændring** — og
+ryd de gamle blobs (det blev gjort i hånden ved v8 → v9: D1 fra 66 til 56 MB;
+der findes ingen automatisk oprydning).
+
+### Før du tror det er en kvote
+
+Tre flaskehalse blev undersøgt som kvoteproblemer. **Ingen af dem var det** —
+alle tre var vores egne indstillinger: en `--limit 50` med en sortering der
+aldrig kom forbi A, et relevans-boost der lod hver hædersbevisning slå hvert
+kampreferat, og en kø på 5 artikler pr. kørsel foran 20 færdige faktaark.
+Målt forbrug: 2-32 LLM-kald/dag ud af ~2.650 tilgængelige, D1 på 62 MB af 5 GB,
+og repoet er offentligt, så Actions-minutter er gratis og ubegrænsede.
+
+**Mål forbruget FØR du konkluderer kvote.**
+
+---
+
+## 9. Tjekliste før du siger "klar"
 
 - [ ] `grep`-audit for landefiltre (§0) kørt og hver forekomst vurderet
 - [ ] `grep`-audit for `ON CONFLICT` efter enhver skemaændring
@@ -365,10 +472,20 @@ curl -sI "https://<VÆRT>/api/og?type=ig&article=<ID>" | head -3
 - [ ] Sprogpakken har `card.versus`, `card.outcome_*`, `social.link_in_bio`
 - [ ] Bio-linket peger på arkivet med `?kilde=` — ikke på en nybygget side
 - [ ] Tjekket om ændringer til pipeline-scripts udløser en cron-kørsel
+- [ ] **Fejlrate målt på det nye domæne** (§8): 10 kald i træk skal alle give
+      200. 503 = CPU-grænsen, ikke belastning
+- [ ] `cache-control` på læsersiderne er `public` med `s-maxage` — ikke `private`
+- [ ] `wrangler.toml`: alle top-level-felter står FØR første tabel-header, og
+      `npx wrangler deploy --dry-run` giver ingen «Unexpected fields»-advarsel
+- [ ] Sitemappets `lastModified` afspejler INDHOLDET, ikke hentetidspunktet
+- [ ] Mindst ét indgående link til det nye site (footerens familielinje +
+      social-kanalen)
+- [ ] Knudepunkt-struktur: ingen enkeltside med tusindvis af links som eneste
+      vej ind
 
 ---
 
-## 9. Hvad der IKKE er løst (arv til næste land)
+## 10. Hvad der IKKE er løst (arv til næste land)
 
 - **Rute-navnene er danske mapper**: `/atleter`, `/viden`, `/skoler`, `/artikler`
   gælder alle sites. Sport-sluggene er sprogstyrede og virker; resten er ikke.
@@ -383,6 +500,11 @@ curl -sI "https://<VÆRT>/api/og?type=ig&article=<ID>" | head -3
   `AND home_country = ?` — helper'en giver koden, ikke filtret.
 - **Soft 404**: det andet lands URL'er (og alle ukendte stier) svarer 200 med
   "Side ikke fundet". Se fældetabellen.
+- **Opdagelse tager måneder, ikke uger.** .co.uk var stadig ikke fuldt
+  indekseret tre uger efter launch, og årsagen er domænets alder og mangel på
+  autoritet — ikke noget vi kan kode os ud af. Planlæg efter det: et nyt land
+  har reelt ingen organisk trafik det første kvartal, så distributionen (§7) ER
+  trafikken indtil da.
 - **Kold isolate = `exceededCpu` på et lavtrafik-domæne.** Meta's crawler ramte
   `student-athlete.co.uk` med 50 fejl ud af 50, alle `exceededCpu` ved 10 ms, fra
   Chicago. Siden er ikke langsom — isolaten er kold, og `.co.uk` har ingen
