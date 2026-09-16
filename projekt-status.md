@@ -1,7 +1,77 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-15 (Instagram er LIVE og konfigureret; opslag bærer nu også beskrivelse)
+**Sidst opdateret**: 2026-09-16 (Instagram handles harvested for manual following; sport-page D1 sync still awaiting approval)
 
+## 📸 Instagram: the finding is automated, the follow is not (2026-09-16)
+
+Mikkel asked whether the athletes who print an Instagram handle on their bio page
+could be followed programmatically. **They cannot.** Meta's Instagram Platform is
+publishing, comments, messages, mentions and insights; the relationship endpoint
+died with the legacy API in 2018. Driving a browser instead would put
+@studentathlete.dk at risk — the account `social/channels/instagram.ts` publishes
+through. That answer is written into `db/migration-053-instagram-handle.sql` so it
+is not re-litigated in six months.
+
+What was built is the half that IS mechanical:
+`pipeline/scrape/scrape-instagram.ts` reads each athlete's own bio page and files
+the handle in **admin → Instagram**, where one click opens the profile and marks
+the row followed.
+
+Measured on 52 British bio pages before building: 42 carried an instagram.com
+link, but nearly all were department accounts in the site chrome; **five (~10%)
+carried the athlete's own name-matched handle**. Scaled over the 2,583 British
+athletes with a `bio_url` that is roughly 250-300 handles — and Denmark's 241 a
+couple of dozen. Two filters do the separating: a handle that also appears on the
+athletics site's FRONT page is chrome by construction (one extra fetch per host),
+and handles built from the school's or the sport's own words are dropped by name.
+A name match must then survive having the name removed, or Jake Bryant at Bryant
+University is followed as `bryantufootball`. Identity rests where the photo queue
+rests it: the handle sits on the school's page for THIS athlete — the thing the
+Bluesky follower never had (0% precision on 30 name searches, 31 August).
+
+✅ **Run against production 2026-09-16.** All 2,824 athletes with a bio page were
+read in one pass (615 athletics sites, ~12 minutes):
+
+| | UK | DK |
+|---|---|---|
+| Name-matched (one click) | 336 | 34 |
+| For review | 117 | 16 |
+
+**503 handles, ~18% of the pages read** — better than the 10% the sample
+suggested. 170 bio pages (6%) no longer answer; those rows are stamped and
+rotate to the back rather than blocking the queue.
+
+The follow-through is Mikkel's: admin → Instagram, one click per athlete. The
+weekly job (`instagram-handles.yml`, Sundays 08:20 UTC) picks up new athletes
+from then on; the button under admin → Pipeline runs it on demand.
+
+## 🏟 The sport pages now have a fixed skeleton (2026-09-15)
+
+All 66 pillar texts (33 sports × 2 languages) now carry the same seven sections:
+intro → the season → the format → **scholarships and squad size** →
+**conferences and independents** → **the road to pro** → worth knowing → sources.
+The three in bold were all but absent before: the scholarship model appeared on
+2 of 33 Danish pages, conferences on 12, the road to pro on 9, and guide links
+on 1. They are now on every page. Headings were cut from 22 variants to 7.
+
+Background, measurements and the two proposals on hold (a fact box, and a
+conference data block) are in **`IDEA-sportsider.md`**.
+
+⚠️ **The Danish site shows none of this yet.** `resolveSportContent()` reads the
+D1 row over the code default, and all 33 Danish sport pages HAVE a published row
+in `pages(kind='sport', country='DK')`. Deploying therefore changes only the
+**UK** site, which has no rows. The sync is ready as
+`db/update-sport-pages-2026-09-15.sql` (33 UPDATEs, `content` + `updated_at`
+only) and has **not been run** — it is a production write of reader-facing text.
+Before that file was written it was verified that all 33 D1 rows were
+byte-identical to the old code default, so no hand-edits are lost; the file was
+then dry-run against a copy of the real rows with 0 mismatches.
+
+Facts were verified against primary sources, not written from memory. The
+load-bearing point is that the House settlement's squad limits apply **only** to
+the Division I schools that opted in — everyone else continues under the old
+scholarship caps, Division II on equivalency, Division III with no athletic
+scholarships at all.
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
