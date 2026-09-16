@@ -898,6 +898,98 @@ export async function decidePhotoSuggestion(
   return true;
 }
 
+// ─── Instagram-handles (migration-053) ───────────────────────────────────────
+// A worklist, not a queue of drafts: there is no follow endpoint at Meta, so
+// the decision here is Mikkel's click on instagram.com. The row records what
+// happened afterwards, which is the only part we can keep.
+//
+// 'rejected' clears the handle but keeps the status, so a candidate that was
+// once wrong is never harvested again.
+
+export interface InstagramCandidate {
+  id: number;
+  name: string;
+  slug: string;
+  university: string;
+  sport: string;
+  bio_url: string | null;
+  instagram_handle: string;
+  instagram_confidence: string;
+}
+
+/**
+ * Handles waiting to be followed, for the country the country picker points at.
+ * Name matches first — those are one click each; the unverified ones need a
+ * look at the profile before anyone follows them.
+ */
+export async function getInstagramCandidates(limit = 400): Promise<InstagramCandidate[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT id, name, slug, university, sport, bio_url,
+                instagram_handle, instagram_confidence
+         FROM athletes
+         WHERE instagram_handle IS NOT NULL
+           AND instagram_status = 'pending'
+           AND home_country = ?
+         ORDER BY CASE instagram_confidence WHEN 'name_match' THEN 0 ELSE 1 END, name
+         LIMIT ?`
+      )
+      .bind(await contentCountry(), limit)
+      .all();
+    return (r.results ?? []) as unknown as InstagramCandidate[];
+  } catch {
+    return [];
+  }
+}
+
+export async function getInstagramCandidateCount(): Promise<number> {
+  const db = await getDB();
+  if (!db) return 0;
+  try {
+    const r = await db
+      .prepare(
+        `SELECT COUNT(*) as cnt FROM athletes
+         WHERE instagram_handle IS NOT NULL
+           AND instagram_status = 'pending'
+           AND home_country = ?`
+      )
+      .bind(await contentCountry())
+      .first();
+    return (r as { cnt: number })?.cnt ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Mark a candidate followed, or reject it as not this athlete. */
+export async function decideInstagramCandidate(
+  id: number,
+  action: "followed" | "rejected",
+): Promise<boolean> {
+  const db = await getDB();
+  if (!db) return false;
+  const row = (await db
+    .prepare(
+      "SELECT id FROM athletes WHERE id = ? AND instagram_handle IS NOT NULL AND instagram_status = 'pending'"
+    )
+    .bind(id)
+    .first()) as { id: number } | null;
+  if (!row) return false;
+
+  await db
+    .prepare(
+      action === "followed"
+        ? "UPDATE athletes SET instagram_status = 'followed', updated_at = datetime('now') WHERE id = ?"
+        : "UPDATE athletes SET instagram_status = 'rejected', instagram_handle = NULL, instagram_confidence = NULL, updated_at = datetime('now') WHERE id = ?"
+    )
+    .bind(id)
+    .run();
+  return true;
+}
+
 // ─── Profiludkast (athletes.profile_draft, migration-031) ────────────────────
 // Udkast-konvention (deles med pipeline/profiles/build-profile-drafts.ts):
 // draft != NULL = afventer · godkend → summary=tekst, draft+draft_at=NULL ·

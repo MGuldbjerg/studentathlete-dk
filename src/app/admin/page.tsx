@@ -1,17 +1,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount, getNewLeadCount, getPendingProfileDraftCount, getMergeCandidateCount } from "@/lib/admin";
+import { getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount, getNewLeadCount, getPendingProfileDraftCount, getMergeCandidateCount, getInstagramCandidateCount } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 
 export default async function AdminDashboard() {
 
-  const [drafts, allArticles, pendingPhotos, newLeads, pendingProfiles, pendingDupes] = await Promise.all([
+  const [drafts, allArticles, pendingPhotos, newLeads, pendingProfiles, pendingDupes, pendingHandles] = await Promise.all([
     getDraftArticles(),
     getAllArticles(),
     getPendingPhotoSuggestionCount(),
     getNewLeadCount(),
     getPendingProfileDraftCount(),
     getMergeCandidateCount(),
+    getInstagramCandidateCount(),
   ]);
   const published = allArticles.filter((a) => a.published === 1);
 
@@ -75,6 +76,12 @@ export default async function AdminDashboard() {
             className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
           >
             Dubletter{pendingDupes > 0 ? ` (${pendingDupes})` : ""}
+          </Link>
+          <Link
+            href={`/admin/instagram`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Instagram{pendingHandles > 0 ? ` (${pendingHandles})` : ""}
           </Link>
           <Link
             href={`/admin/leads`}

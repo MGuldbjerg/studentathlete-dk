@@ -38,6 +38,10 @@ const STEPS: Record<string, StepConfig> = {
     label: "Scrap rosters",
     script: "pipeline/scrape/scrape-rosters.ts",
   },
+  instagram: {
+    label: "Find Instagram-handles",
+    script: "pipeline/scrape/scrape-instagram.ts",
+  },
   report: {
     label: "Dækningsrapport",
     script: "pipeline/report/coverage-report.ts",

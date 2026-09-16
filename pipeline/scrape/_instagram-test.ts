@@ -1,0 +1,99 @@
+/**
+ * Test of the handle harvest.
+ *
+ * Every case below is a real handle from the 52 British bio pages sampled on
+ * 16 September 2026. The danger here is not missing a handle — it is keeping a
+ * wrong one, because the next step is a human following a stranger under the
+ * site's name. So most of these are rejections.
+ */
+import {
+  extractInstagramHandles,
+  looksInstitutional,
+  matchesName,
+  pickHandle,
+} from "./scrape-instagram";
+
+let passed = 0;
+let failed = 0;
+function ok(cond: boolean, name: string) {
+  if (cond) passed++;
+  else { failed++; console.error(`✗ ${name}`); }
+}
+function eq(a: unknown, b: unknown, name: string) {
+  const x = JSON.stringify(a), y = JSON.stringify(b);
+  if (x === y) passed++;
+  else { failed++; console.error(`✗ ${name}\n    fik:      ${x}\n    forventet: ${y}`); }
+}
+
+// ── Udtræk ───────────────────────────────────────────────────────────────────
+eq(
+  extractInstagramHandles(
+    `<a href="https://www.instagram.com/joebrayson9/">IG</a>
+     <a href="http://instagram.com/gwsports">Dept</a>`,
+  ),
+  ["joebrayson9", "gwsports"],
+  "begge anker-handles findes",
+);
+eq(
+  extractInstagramHandles(`<a href="https://www.instagram.com/p/DM1x9kXoQ/">Opslag</a>`),
+  [],
+  "instagram.com/p/ er et opslag, ikke en konto",
+);
+eq(
+  extractInstagramHandles(
+    `<a href="https://instagram.com/Bryant_Rowing">A</a><a href="https://instagram.com/bryant_rowing">B</a>`,
+  ),
+  ["Bryant_Rowing"],
+  "samme handle i to stavemåder tælles én gang",
+);
+eq(
+  extractInstagramHandles(`Følg @francescajbaber på Instagram`),
+  [],
+  "handle i brødtekst uden link tælles ikke",
+);
+
+// ── Institutionelle konti ────────────────────────────────────────────────────
+ok(looksInstitutional("bryanthoops", "Bryant University"), "skolenavn + sportsord");
+ok(looksInstitutional("yalefencing", "Yale University"), "skolenavn + sportsgren");
+ok(looksInstitutional("fsc_waterski", "Florida Southern College"), "forkortelse + sportsgren");
+ok(looksInstitutional("gothunderwolves", "Colorado State University–Pueblo"), "kaldenavn uden skolenavn");
+ok(!looksInstitutional("hiangusdavies", "University of California, Berkeley"), "personligt handle slipper igennem");
+
+// ── Navnematch ───────────────────────────────────────────────────────────────
+ok(matchesName("francescajbaber", "Francesca Baber"), "fornavn + initial + efternavn");
+ok(matchesName("_boprice", "Bo Price"), "efternavn med understreg foran");
+ok(matchesName("joebrayson9", "Joe Brayson"), "efternavn med tal efter");
+ok(matchesName("hiangusdavies", "Angus Davies"), "efternavn midt i handlen");
+ok(!matchesName("stagsvb", "Matthew Ground"), "holdkonto matcher ikke navnet");
+ok(!matchesName("bryantbowl", "Bo Price"), "'bo' er for kort til at bære et match alene");
+
+// ── Valget ───────────────────────────────────────────────────────────────────
+eq(
+  pickHandle(["gwsports", "joebrayson9"], "Joe Brayson", "The George Washington University", new Set()),
+  { handle: "joebrayson9", confidence: "name_match" },
+  "navnematchet vinder over holdkontoen",
+);
+eq(
+  pickHandle(["eva_isabel_"], "Eva Barker", "Syracuse University", new Set()),
+  { handle: "eva_isabel_", confidence: "unverified" },
+  "plausibelt men ubevist handle stilles til gennemsyn",
+);
+eq(
+  pickHandle(["cuse", "cuseWLAX"], "Eva Barker", "Syracuse University", new Set(["cuse"])),
+  null,
+  "chrome-konti og holdkonti efterlader intet",
+);
+eq(
+  pickHandle(["thelocalcafe", "sunsetphotos"], "Eva Barker", "Syracuse University", new Set()),
+  null,
+  "to anonyme kandidater er et møntkast, ikke et fund",
+);
+// Athletes whose surname IS the school's: the name match must survive the filter.
+eq(
+  pickHandle(["bryantufootball", "jakebryant"], "Jake Bryant", "Bryant University", new Set()),
+  { handle: "jakebryant", confidence: "name_match" },
+  "efternavn = skolenavn filtreres ikke væk",
+);
+
+console.log(`\n${passed} bestået, ${failed} fejlet`);
+if (failed > 0) process.exit(1);
