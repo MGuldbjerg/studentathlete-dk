@@ -187,24 +187,22 @@ async function fetchPage(url: string): Promise<string | null> {
 }
 
 /**
- * The department accounts of the athletics site this bio page lives on, read
- * once from its front page. Cached per host for the run — and cached as an
- * empty set when the front page cannot be read, so a dead host is not fetched
- * again for every one of its athletes.
+ * The department accounts of the athletics site, read once from its front page.
+ * Empty when the front page cannot be read — then only the word filters apply.
  */
-async function chromeHandles(bioUrl: string, cache: Map<string, Set<string>>): Promise<Set<string>> {
-  let origin: string;
-  try {
-    origin = new URL(bioUrl).origin;
-  } catch {
-    return new Set();
-  }
-  const hit = cache.get(origin);
-  if (hit) return hit;
+async function chromeHandles(origin: string): Promise<Set<string>> {
+  if (!origin) return new Set();
   const html = await fetchPage(origin);
-  const set = new Set(html ? extractInstagramHandles(html).map((h) => h.toLowerCase()) : []);
-  cache.set(origin, set);
-  return set;
+  return new Set(html ? extractInstagramHandles(html).map((h) => h.toLowerCase()) : []);
+}
+
+/** The athletics site a bio page lives on; "" when the URL will not parse. */
+function originOf(bioUrl: string): string {
+  try {
+    return new URL(bioUrl).origin;
+  } catch {
+    return "";
+  }
 }
 
 function parseArgs(): { limit: number; dryRun: boolean; country: string | null } {
@@ -220,6 +218,18 @@ function parseArgs(): { limit: number; dryRun: boolean; country: string | null }
   }
   return { limit, dryRun: args.includes("--dry-run"), country };
 }
+
+/**
+ * Six schools at a time, one athlete at a time within a school.
+ *
+ * Serial, this is ~12 athletes a minute — four hours for the 2,800 athletes with
+ * a bio page, which is also longer than the weekly workflow's own timeout. The
+ * wait is nearly all fetch latency, so the fix is concurrency; the constraint is
+ * that a school's own server should not feel it. Grouping by host gives both:
+ * no school is ever fetched twice at once, and the school's front page is read
+ * once by the worker that owns it — no shared cache, no race.
+ */
+const HOST_CONCURRENCY = 6;
 
 async function main(): Promise<void> {
   const { limit, dryRun, country } = parseArgs();
@@ -240,46 +250,67 @@ async function main(): Promise<void> {
     country ? [country, limit] : [limit],
   );
 
-  console.log(`${athletes.results.length} atlet(er) i køen${country ? ` (${country})` : ""}`);
-  const cache = new Map<string, Set<string>>();
+  const byHost = new Map<string, AthleteRow[]>();
+  for (const athlete of athletes.results) {
+    const origin = originOf(athlete.bio_url);
+    const bucket = byHost.get(origin);
+    if (bucket) bucket.push(athlete);
+    else byHost.set(origin, [athlete]);
+  }
+  const hosts = [...byHost.entries()];
+  console.log(
+    `${athletes.results.length} atlet(er) i køen${country ? ` (${country})` : ""} fordelt på ${hosts.length} atletiksite(r)`,
+  );
+
   let found = 0;
   let unverified = 0;
+  let next = 0;
 
-  for (const athlete of athletes.results) {
-    const html = await fetchPage(athlete.bio_url);
-    // Stamped on every attempt, result or not — see migration-046. Without it
-    // the unresolvable pages stay at the front of the queue forever.
-    if (!dryRun) {
-      await db.execute(
-        `UPDATE athletes SET instagram_checked_at = datetime('now') WHERE id = ?`,
-        [athlete.id],
-      );
-    }
-    if (!html) {
-      console.log(`– ${athlete.name}: bio-siden kunne ikke hentes`);
-      continue;
-    }
-    const chrome = await chromeHandles(athlete.bio_url, cache);
-    const choice = pickHandle(
-      extractInstagramHandles(html),
-      athlete.name,
-      athlete.university,
-      chrome,
-    );
-    if (!choice) continue;
+  async function worker(): Promise<void> {
+    for (;;) {
+      const index = next++;
+      if (index >= hosts.length) return;
+      const [origin, rows] = hosts[index];
+      const chrome = await chromeHandles(origin);
 
-    if (choice.confidence === "name_match") found++;
-    else unverified++;
-    const mark = choice.confidence === "name_match" ? "✓" : "?";
-    console.log(`${mark} ${athlete.name}: @${choice.handle} (${choice.confidence})`);
-    if (dryRun) continue;
-    await db.execute(
-      `UPDATE athletes
-       SET instagram_handle = ?, instagram_confidence = ?, updated_at = datetime('now')
-       WHERE id = ?`,
-      [choice.handle, choice.confidence, athlete.id],
-    );
+      for (const athlete of rows) {
+        const html = await fetchPage(athlete.bio_url);
+        // Stamped on every attempt, result or not — see migration-046. Without
+        // it the unresolvable pages stay at the front of the queue forever.
+        if (!dryRun) {
+          await db.execute(
+            `UPDATE athletes SET instagram_checked_at = datetime('now') WHERE id = ?`,
+            [athlete.id],
+          );
+        }
+        if (!html) {
+          console.log(`– ${athlete.name}: bio-siden kunne ikke hentes`);
+          continue;
+        }
+        const choice = pickHandle(
+          extractInstagramHandles(html),
+          athlete.name,
+          athlete.university,
+          chrome,
+        );
+        if (!choice) continue;
+
+        if (choice.confidence === "name_match") found++;
+        else unverified++;
+        const mark = choice.confidence === "name_match" ? "✓" : "?";
+        console.log(`${mark} ${athlete.name}: @${choice.handle} (${choice.confidence})`);
+        if (dryRun) continue;
+        await db.execute(
+          `UPDATE athletes
+           SET instagram_handle = ?, instagram_confidence = ?, updated_at = datetime('now')
+           WHERE id = ?`,
+          [choice.handle, choice.confidence, athlete.id],
+        );
+      }
+    }
   }
+
+  await Promise.all(Array.from({ length: HOST_CONCURRENCY }, () => worker()));
 
   console.log(
     `\nFærdig: ${found} navne-matchede + ${unverified} usikre handles klar i admin → Instagram.`,

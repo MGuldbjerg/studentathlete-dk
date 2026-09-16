@@ -19,7 +19,7 @@ on:
       limit:
         description: "Antal atleter at tjekke i denne kørsel"
         required: false
-        default: '600'
+        default: '3000'
       country:
         description: "Landekode (tomt = alle)"
         required: false
@@ -43,7 +43,7 @@ jobs:
       - name: Hent handles fra bio-sider
         run: |
           npx tsx pipeline/scrape/scrape-instagram.ts \
-            --limit ${{ inputs.limit || '600' }} \
+            --limit ${{ inputs.limit || '3000' }} \
             ${{ inputs.country && format('--country {0}', inputs.country) || '' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
