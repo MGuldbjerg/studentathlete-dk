@@ -4,6 +4,7 @@
  */
 
 import { pronounHint } from "../../../src/lib/gender";
+import { countryProfile } from "../../../src/lib/countries";
 
 export interface ArticleContext {
   athleteName: string;
@@ -29,6 +30,36 @@ export interface ArticleContext {
 }
 
 /**
+ * Hjembyen som den skal stå i en dansk artikel.
+ *
+ * Rosteren skriver «Herlev, Denmark», fordi den skriver til et amerikansk
+ * publikum. Vores danske læser ved allerede, at atleten er dansk — hele sitet
+ * handler om danske student-athletes — så landet er støj i sætningen:
+ * «Filippa Mortensen, freshman fra Herlev, Danmark» siger ingenting, som
+ * «fra Herlev» ikke sagde bedre (Mikkel, 16. september 2026).
+ *
+ * Det fjernes HER frem for i en promptregel, fordi modellen ikke kan skrive et
+ * land, den aldrig har set. Det britiske site gør bevidst det modsatte: dér er
+ * England, Skotland, Wales og Nordirland fire forskellige svar, og `en.ts`
+ * beholder derfor landet.
+ *
+ * Kun et land til sidst fjernes. «Denmark» alene bliver stående — en hjemby vi
+ * kun kender på landsniveau er stadig den oplysning vi har.
+ */
+export function hometownForProse(hometown: string | null, markers: string[]): string | null {
+  if (!hometown) return hometown;
+  for (const marker of markers) {
+    const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const trailing = new RegExp(`\\s*,\\s*${escaped}\\s*$`, "i");
+    if (trailing.test(hometown)) {
+      const trimmed = hometown.replace(trailing, "").trim();
+      if (trimmed) return trimmed;
+    }
+  }
+  return hometown;
+}
+
+/**
  * Formaterer de verificerede atlet-fakta (fra databasen) som promptens ATLET-blok.
  * Disse felter er kendte fakta — modellen må bruge dem (jf. system-regel 16).
  * Delt mellem alle artikeltyper for konsistens.
@@ -40,7 +71,9 @@ export function athleteFactsBlock(context: ArticleContext): string {
   if (context.preferredName) {
     lines.push(`FORETRUKKET NAVN (brug i overskrift og efter første omtale): ${context.preferredName}`);
   }
-  lines.push(`HJEMBY: ${context.hometown ?? "Ukendt"}`);
+  lines.push(
+    `HJEMBY: ${hometownForProse(context.hometown, countryProfile("DK").countryMarkers) ?? "Ukendt"}`,
+  );
   // Stedord er FAKTA fra rosteren, ikke noget modellen skal udlede af kilden:
   // kildeartiklen kan handle om skolens andet hold (jf. regel 24).
   const pronouns = pronounHint(context.gender, "da");
