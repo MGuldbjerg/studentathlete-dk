@@ -36,10 +36,11 @@ interface AthleteRow {
   bio_url: string;
 }
 
-/** Instagram's own paths — never a person. */
+/** Instagram's own paths, plus the URL scheme — never a person. */
 const RESERVED = new Set([
   "p", "reel", "reels", "explore", "accounts", "stories", "tv", "direct",
   "developer", "about", "legal", "privacy", "terms", "help", "web", "s",
+  "http", "https", "www",
 ]);
 
 /** Words that make a handle a team's, not a person's. */
@@ -64,15 +65,31 @@ export function normalize(s: string): string {
 /**
  * Every instagram.com handle linked from a page. Anchors only: a handle in the
  * page's prose without a link is not something we can trust to be the athlete's.
+ *
+ * THE LAST MATCH IN THE HREF, NOT THE FIRST. Sidearm prefixes its own base onto
+ * whatever the athlete typed into the social field, so an athlete who pasted a
+ * full URL comes out doubled:
+ *
+ *     href="https://www.instagram.com/https://www.instagram.com/eva_isabel_/"
+ *
+ * Read from the front, that says the handle is `https` — 39 athletes were filed
+ * that way on the first run (Mikkel spotted it: «if the handle is http or https
+ * it's obviously not the correct handle»). Read from the back, it says
+ * `eva_isabel_`, which is what she wrote. The doubling is a marker worth
+ * noticing rather than a defect to discard: it only happens in the field the
+ * ATHLETE filled in, so those links are personal far more often than not.
+ *
+ * `RESERVED` still catches the leftovers — an inner link to somewhere other
+ * than Instagram leaves a bare scheme behind.
  */
 export function extractInstagramHandles(html: string): string[] {
   const $ = cheerio.load(html);
   const found = new Map<string, string>(); // normalized → first-seen spelling
   $("a[href]").each((_, el) => {
     const href = $(el).attr("href") ?? "";
-    const m = href.match(/instagram\.com\/([A-Za-z0-9_.]{1,30})/i);
-    if (!m) return;
-    const handle = m[1].replace(/\.+$/, "");
+    const matches = [...href.matchAll(/instagram\.com\/([A-Za-z0-9_.]{1,30})/gi)];
+    if (matches.length === 0) return;
+    const handle = matches[matches.length - 1][1].replace(/\.+$/, "");
     const key = handle.toLowerCase();
     if (!handle || RESERVED.has(key)) return;
     if (!found.has(key)) found.set(key, handle);

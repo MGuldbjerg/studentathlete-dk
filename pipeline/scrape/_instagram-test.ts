@@ -51,6 +51,27 @@ eq(
   [],
   "handle i brødtekst uden link tælles ikke",
 );
+// Sidearm sætter sin egen base foran det atleten selv skrev. Læst forfra hedder
+// handlen "https" — 39 atleter blev filet sådan i første kørsel.
+eq(
+  extractInstagramHandles(
+    `<a href="https://www.instagram.com/https://www.instagram.com/eva_isabel_/">IG</a>`,
+  ),
+  ["eva_isabel_"],
+  "dobbelt-præfikset URL pakkes ud til det atleten skrev",
+);
+eq(
+  extractInstagramHandles(`<a href="https://www.instagram.com/https://x.com/someone">IG</a>`),
+  [],
+  "dobbelt-præfiks om et ANDET site efterlader kun skemaet — og det er ingen",
+);
+eq(
+  extractInstagramHandles(
+    `<a href="/api/v2/promotions/840/click?redirect=https%3a%2f%2fwww.instagram.com%2fcusepics%2f">Foto</a>`,
+  ),
+  [],
+  "URL-kodet reklame-viderestilling er ikke et anker til en atlet",
+);
 
 // ── Institutionelle konti ────────────────────────────────────────────────────
 ok(looksInstitutional("bryanthoops", "Bryant University"), "skolenavn + sportsord");
