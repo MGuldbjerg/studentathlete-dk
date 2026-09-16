@@ -1,0 +1,21 @@
+-- Migration 054: rejecting a handle is not the same as retiring the athlete.
+--
+-- Mikkel, 16 September 2026, on the queue built a few hours earlier: «my worry
+-- is that it only looks at athletes once, and if that's right after they
+-- arrive, maybe they haven't had time to update links to socials on their bio».
+--
+-- The rotation itself was already right — nothing in the harvester's WHERE
+-- clause excludes an athlete for having been read before, so everyone without a
+-- handle is read again every Sunday, and a link added in November is found that
+-- week. The hole was «Ikke atleten»: it set instagram_status='rejected', which
+-- took the PERSON out of the queue for good. Reject a teammate's account that
+-- the school printed on someone's page this year, and the athlete's own handle
+-- next year would never be looked for.
+--
+-- The unit of stickiness was wrong. It is the HANDLE that was wrong, not the
+-- athlete. This column remembers the handles that have been turned down — a
+-- comma-separated list, because a page can be wrong more than once — and the
+-- reject action now returns the athlete to 'pending' so they keep rotating.
+-- A rejected handle is filtered out before the harvester ever weighs it, so it
+-- cannot come back next week under a different confidence.
+ALTER TABLE athletes ADD COLUMN instagram_rejected TEXT;

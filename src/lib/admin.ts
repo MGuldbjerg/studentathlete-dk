@@ -903,8 +903,9 @@ export async function decidePhotoSuggestion(
 // the decision here is Mikkel's click on instagram.com. The row records what
 // happened afterwards, which is the only part we can keep.
 //
-// 'rejected' clears the handle but keeps the status, so a candidate that was
-// once wrong is never harvested again.
+// Rejecting turns down the HANDLE, not the athlete (migration-054): the handle
+// goes on `instagram_rejected` and the row returns to 'pending', so the athlete
+// keeps rotating through the weekly harvest while that account never returns.
 
 export interface InstagramCandidate {
   id: number;
@@ -983,7 +984,16 @@ export async function decideInstagramCandidate(
     .prepare(
       action === "followed"
         ? "UPDATE athletes SET instagram_status = 'followed', updated_at = datetime('now') WHERE id = ?"
-        : "UPDATE athletes SET instagram_status = 'rejected', instagram_handle = NULL, instagram_confidence = NULL, updated_at = datetime('now') WHERE id = ?"
+        // Remember the HANDLE, keep the athlete (migration-054). SQLite reads
+        // every right-hand side from the pre-update row, so instagram_handle is
+        // still the rejected one while it is being appended to the list.
+        : `UPDATE athletes
+           SET instagram_rejected = TRIM(COALESCE(instagram_rejected || ',', '') || lower(instagram_handle), ','),
+               instagram_handle = NULL,
+               instagram_confidence = NULL,
+               instagram_status = 'pending',
+               updated_at = datetime('now')
+           WHERE id = ?`
     )
     .bind(id)
     .run();

@@ -34,6 +34,18 @@ interface AthleteRow {
   name: string;
   university: string;
   bio_url: string;
+  /** Comma-separated handles already turned down for this athlete (migration-054). */
+  instagram_rejected: string | null;
+}
+
+/** The handles turned down for one athlete, as a lookup. */
+export function rejectedSet(list: string | null): Set<string> {
+  return new Set(
+    (list ?? "")
+      .split(",")
+      .map((h) => h.trim().toLowerCase())
+      .filter(Boolean),
+  );
 }
 
 /** Instagram's own paths, plus the URL scheme — never a person. */
@@ -167,13 +179,20 @@ export interface HandleChoice {
  * chrome and the team words is offered as 'unverified', and only when there is
  * exactly one: two anonymous candidates on one page is not evidence, it is a
  * coin toss.
+ *
+ * A handle Mikkel has already turned down is removed before anything is weighed
+ * (migration-054) — otherwise the athlete would be offered the same wrong
+ * account every Sunday, and the only way to stop it would be to retire the
+ * athlete from the queue entirely.
  */
 export function pickHandle(
   handles: string[],
   athleteName: string,
   university: string,
   chrome: Set<string>,
+  rejected: Set<string> = new Set(),
 ): HandleChoice | null {
+  handles = handles.filter((h) => !rejected.has(h.toLowerCase()));
   const named = handles.find(
     (h) => matchesName(h, athleteName) && !looksInstitutional(withoutName(h, athleteName), university),
   );
@@ -255,7 +274,7 @@ async function main(): Promise<void> {
   // Athletes we have never resolved a handle for. A rejected candidate keeps
   // its status and stays out; a found handle keeps its row out too.
   const athletes = await db.query<AthleteRow>(
-    `SELECT a.id, a.name, a.university, a.bio_url
+    `SELECT a.id, a.name, a.university, a.bio_url, a.instagram_rejected
      FROM athletes a
      WHERE a.active = 1
        AND a.bio_url IS NOT NULL AND a.bio_url <> ''
@@ -309,6 +328,7 @@ async function main(): Promise<void> {
           athlete.name,
           athlete.university,
           chrome,
+          rejectedSet(athlete.instagram_rejected),
         );
         if (!choice) continue;
 

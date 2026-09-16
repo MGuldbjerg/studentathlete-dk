@@ -11,6 +11,7 @@ import {
   looksInstitutional,
   matchesName,
   pickHandle,
+  rejectedSet,
 } from "./scrape-instagram";
 
 let passed = 0;
@@ -115,6 +116,32 @@ eq(
   { handle: "jakebryant", confidence: "name_match" },
   "efternavn = skolenavn filtreres ikke væk",
 );
+
+// ── Afviste handles (migration-054) ──────────────────────────────────────────
+eq(
+  pickHandle(
+    ["joebrayson9"],
+    "Joe Brayson",
+    "The George Washington University",
+    new Set(),
+    rejectedSet("joebrayson9"),
+  ),
+  null,
+  "et afvist handle vejes ikke igen — heller ikke når det matcher navnet",
+);
+eq(
+  pickHandle(
+    ["joebrayson9", "jbrayson10"],
+    "Joe Brayson",
+    "The George Washington University",
+    new Set(),
+    rejectedSet("JoeBrayson9"),
+  ),
+  { handle: "jbrayson10", confidence: "name_match" },
+  "afvisningen gælder handlen, ikke atleten — næste kandidat må gerne vinde",
+);
+eq([...rejectedSet(" A_one , B.two ,, ")], ["a_one", "b.two"], "listen læses uafhængigt af mellemrum og store bogstaver");
+eq([...rejectedSet(null)], [], "ingen afvisninger er en tom mængde, ikke en fejl");
 
 console.log(`\n${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);
