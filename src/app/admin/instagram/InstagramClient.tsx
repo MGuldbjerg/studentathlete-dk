@@ -5,34 +5,63 @@ import type { InstagramCandidate } from "@/lib/admin";
 import { ADMIN_LANG, sportLabel } from "@/lib/i18n";
 
 /**
- * One row = one click. The handle IS the button: it opens the profile in a new
- * tab and marks the row followed in the same gesture, because that is what the
- * gesture means. Opening 25 tabs from one button is what a popup blocker exists
- * to stop, so the list is the queue instead.
+ * One row, but the two lists behave differently — because the question they ask
+ * is different.
  *
- * Marking happens optimistically. The cost of a wrong mark is one athlete not
- * followed, and «fortryd» is right there — the cost of blocking the UI on a
- * round trip is felt 250 times.
+ * On a NAME MATCH the handle carries the athlete's own name on the school's own
+ * page, so opening it and following are the same intention: one click does both.
+ *
+ * ON REVIEW IT IS NOT. Mikkel, 16 September: «when reviewing and I press the
+ * link, it looks like I accept that the handle is correct, but I need to follow
+ * the link to check before deciding». Opening the profile is how you FIND OUT —
+ * making that gesture a verdict is the opposite of what the list is for. So in
+ * the review list the handle is an ordinary link and the verdict is a separate
+ * button.
  */
-function CandidateRow({ candidate }: { candidate: InstagramCandidate }) {
+function CandidateRow({
+  candidate,
+  followOnOpen,
+}: {
+  candidate: InstagramCandidate;
+  followOnOpen: boolean;
+}) {
   const [decided, setDecided] = useState<"followed" | "rejected" | null>(null);
   const [error, setError] = useState(false);
 
-  async function decide(action: "followed" | "rejected") {
-    const previous = decided;
-    setDecided(action);
-    setError(false);
+  async function send(action: "followed" | "rejected" | "undo"): Promise<boolean> {
     try {
       const res = await fetch(`/api/admin/instagram/${candidate.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({
+          action,
+          // Undoing a rejection: the row has lost the handle by then, so hand
+          // back what is still on screen.
+          handle: candidate.instagram_handle,
+          confidence: candidate.instagram_confidence,
+        }),
       });
-      if (!res.ok) {
-        setDecided(previous);
-        setError(true);
-      }
+      return res.ok;
     } catch {
+      return false;
+    }
+  }
+
+  async function decide(action: "followed" | "rejected") {
+    setDecided(action);
+    setError(false);
+    if (!(await send(action))) {
+      setDecided(null);
+      setError(true);
+    }
+  }
+
+  /** Undo reaches the database too — otherwise the next click fails the guard. */
+  async function undo() {
+    const previous = decided;
+    setDecided(null);
+    setError(false);
+    if (!(await send("undo"))) {
       setDecided(previous);
       setError(true);
     }
@@ -44,15 +73,14 @@ function CandidateRow({ candidate }: { candidate: InstagramCandidate }) {
         <span>
           {candidate.name} — {decided === "followed" ? "✓ fulgt" : "afvist"}
         </span>
-        <button
-          onClick={() => setDecided(null)}
-          className="text-xs text-muted hover:text-ink underline"
-        >
+        <button onClick={undo} className="text-xs text-muted hover:text-ink underline">
           Fortryd
         </button>
       </div>
     );
   }
+
+  const profileUrl = `https://www.instagram.com/${candidate.instagram_handle}/`;
 
   return (
     <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border">
@@ -78,16 +106,36 @@ function CandidateRow({ candidate }: { candidate: InstagramCandidate }) {
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <a
-          href={`https://www.instagram.com/${candidate.instagram_handle}/`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => decide("followed")}
-          className="px-3 py-2 text-sm font-semibold text-white rounded-lg"
-          style={{ backgroundColor: "#00205B" }}
-        >
-          @{candidate.instagram_handle} ↗
-        </a>
+        {followOnOpen ? (
+          <a
+            href={profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => decide("followed")}
+            className="px-3 py-2 text-sm font-semibold text-white rounded-lg"
+            style={{ backgroundColor: "#00205B" }}
+          >
+            Følg @{candidate.instagram_handle} ↗
+          </a>
+        ) : (
+          <>
+            <a
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+            >
+              Se @{candidate.instagram_handle} ↗
+            </a>
+            <button
+              onClick={() => decide("followed")}
+              className="px-3 py-2 text-sm font-semibold text-white rounded-lg"
+              style={{ backgroundColor: "#00205B" }}
+            >
+              Fulgt
+            </button>
+          </>
+        )}
         <button
           onClick={() => decide("rejected")}
           className="px-3 py-2 text-xs font-medium rounded-lg border border-border bg-paper text-muted hover:text-ink"
@@ -115,16 +163,14 @@ export function InstagramClient({ candidates }: { candidates: InstagramCandidate
   return (
     <div className="flex flex-col gap-8">
       <section>
-        <h2 className="text-lg font-bold text-ink mb-1">
-          Navnematch ({sure.length})
-        </h2>
+        <h2 className="text-lg font-bold text-ink mb-1">Navnematch ({sure.length})</h2>
         <p className="text-sm text-muted mb-3">
-          Handlen står på skolens egen side for atleten og bærer atletens navn. Klik
-          for at åbne profilen — rækken markeres som fulgt med det samme.
+          Handlen står på skolens egen side for atleten og bærer atletens navn.
+          Knappen gør begge dele: åbner profilen og markerer rækken som fulgt.
         </p>
         <div className="bg-paper rounded-lg border border-border overflow-hidden">
           {sure.map((c) => (
-            <CandidateRow key={c.id} candidate={c} />
+            <CandidateRow key={c.id} candidate={c} followOnOpen />
           ))}
           {sure.length === 0 ? (
             <p className="px-4 py-3 text-sm text-muted">Ingen tilbage.</p>
@@ -135,13 +181,13 @@ export function InstagramClient({ candidates }: { candidates: InstagramCandidate
       <section>
         <h2 className="text-lg font-bold text-ink mb-1">Til gennemsyn ({unsure.length})</h2>
         <p className="text-sm text-muted mb-3">
-          Handlen stod på atletens bio-side, men bærer ikke navnet. Det kan være
-          atletens eget kaldenavn — og det kan være en ven, en sponsor eller en
-          holdkonto. Se profilen efter, før du følger.
+          Handlen stod på atletens bio-side, men bærer ikke navnet. «Se» åbner
+          profilen uden at afgøre noget — det er sådan du finder ud af det. Først
+          bagefter vælger du «Fulgt» eller «Ikke atleten».
         </p>
         <div className="bg-paper rounded-lg border border-border overflow-hidden">
           {unsure.map((c) => (
-            <CandidateRow key={c.id} candidate={c} />
+            <CandidateRow key={c.id} candidate={c} followOnOpen={false} />
           ))}
           {unsure.length === 0 ? (
             <p className="px-4 py-3 text-sm text-muted">Ingen tilbage.</p>

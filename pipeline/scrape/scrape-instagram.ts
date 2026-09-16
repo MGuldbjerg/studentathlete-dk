@@ -26,7 +26,7 @@
  *       npx tsx pipeline/scrape/scrape-instagram.ts --country UK --limit 500
  */
 import * as cheerio from "cheerio";
-import { createD1Client } from "../lib/d1-client";
+import { createD1Client, type D1Client } from "../lib/d1-client";
 import { pipelineUserAgent } from "../../src/lib/site";
 
 interface AthleteRow {
@@ -241,6 +241,63 @@ function originOf(bioUrl: string): string {
   }
 }
 
+/**
+ * Clear handles that were filed for more than one athlete.
+ *
+ * `lmurailsplitters` was offered as thirteen different Lincoln Memorial
+ * athletes' personal account (Mikkel, 16 September: «Alexander Dueholm and
+ * Andreas Dudek both link to their teams IG, not their own»). The word filters
+ * could not see it — the handle carries neither the school's name nor a sport —
+ * and the chrome comparison missed it because the account is printed on bio
+ * pages without being linked from the front page.
+ *
+ * But repetition gives it away for nothing: a personal account belongs to one
+ * person. Two athletes sharing a handle is proof it is a team's, whatever the
+ * words say. It runs at the END of a harvest, over the whole table rather than
+ * the run, so a team account collected a week apart is caught just the same.
+ *
+ * Name matches are left alone — a handle carrying an athlete's own name is
+ * evidence of a different kind, and no shared handle has ever been one.
+ *
+ * The handles go on `instagram_rejected` so the next harvest does not re-file
+ * them, and a row that had already been marked followed is pulled back: it was
+ * followed on this bad suggestion.
+ */
+export async function dropSharedHandles(db: D1Client, dryRun: boolean): Promise<number> {
+  const shared = await db.query<{ handle: string; n: number }>(
+    `SELECT lower(instagram_handle) AS handle, COUNT(*) AS n
+     FROM athletes
+     WHERE instagram_handle IS NOT NULL AND instagram_confidence = 'unverified'
+     GROUP BY lower(instagram_handle)
+     HAVING COUNT(*) > 1`,
+  );
+  if (shared.results.length === 0) return 0;
+
+  // Two statements, not one: an UPDATE whose own subquery counts the rows it is
+  // clearing stops matching halfway through, and the second athlete of a pair
+  // keeps the handle.
+  const handles = shared.results.map((r) => r.handle);
+  for (const row of shared.results) {
+    console.log(`⊘ @${row.handle}: ${row.n} atleter deler handlen — holdkonto`);
+  }
+  if (dryRun) return handles.length;
+
+  const placeholders = handles.map(() => "?").join(",");
+  await db.execute(
+    `UPDATE athletes
+     SET instagram_rejected = TRIM(COALESCE(instagram_rejected || ',', '') || lower(instagram_handle), ','),
+         instagram_handle = NULL,
+         instagram_confidence = NULL,
+         instagram_status = 'pending',
+         updated_at = datetime('now')
+     WHERE instagram_handle IS NOT NULL
+       AND instagram_confidence = 'unverified'
+       AND lower(instagram_handle) IN (${placeholders})`,
+    handles,
+  );
+  return handles.length;
+}
+
 function parseArgs(): { limit: number; dryRun: boolean; country: string | null } {
   const args = process.argv.slice(2);
   let limit = 400;
@@ -348,6 +405,11 @@ async function main(): Promise<void> {
   }
 
   await Promise.all(Array.from({ length: HOST_CONCURRENCY }, () => worker()));
+
+  const shared = await dropSharedHandles(db, dryRun);
+  if (shared > 0) {
+    console.log(`\n${shared} handle(s) ryddet: delt af flere atleter = holdkonto.`);
+  }
 
   console.log(
     `\nFærdig: ${found} navne-matchede + ${unverified} usikre handles klar i admin → Instagram.`,

@@ -965,35 +965,89 @@ export async function getInstagramCandidateCount(): Promise<number> {
   }
 }
 
-/** Mark a candidate followed, or reject it as not this athlete. */
+/**
+ * Record what happened to a candidate: followed, turned down, or undone.
+ *
+ * UNDO HAS TO REACH THE DATABASE. It used to be local state only, which was
+ * wrong in a way that showed up as a different bug: opening the link wrote
+ * 'followed', «Fortryd» cleared only the button, and «Ikke atleten» then failed
+ * the pending-guard with "Kunne ikke gemmes" (Mikkel, 16 September). An undo the
+ * server never hears about is not an undo.
+ *
+ * Undoing a rejection needs the handle back, and by then the row no longer has
+ * it — so the caller passes what it is holding on screen.
+ */
 export async function decideInstagramCandidate(
   id: number,
-  action: "followed" | "rejected",
+  action: "followed" | "rejected" | "undo",
+  restore?: { handle?: string | null; confidence?: string | null },
 ): Promise<boolean> {
   const db = await getDB();
   if (!db) return false;
   const row = (await db
     .prepare(
-      "SELECT id FROM athletes WHERE id = ? AND instagram_handle IS NOT NULL AND instagram_status = 'pending'"
+      "SELECT instagram_handle, instagram_status, instagram_rejected FROM athletes WHERE id = ?",
     )
     .bind(id)
-    .first()) as { id: number } | null;
+    .first()) as
+    | { instagram_handle: string | null; instagram_status: string; instagram_rejected: string | null }
+    | null;
   if (!row) return false;
 
+  if (action === "undo") {
+    if (row.instagram_status === "followed") {
+      await db
+        .prepare(
+          "UPDATE athletes SET instagram_status = 'pending', updated_at = datetime('now') WHERE id = ?",
+        )
+        .bind(id)
+        .run();
+      return true;
+    }
+    // Undoing a rejection: put the handle back and take it off the list.
+    const handle = restore?.handle;
+    if (!handle) return false;
+    const kept = (row.instagram_rejected ?? "")
+      .split(",")
+      .map((h) => h.trim())
+      .filter((h) => h && h.toLowerCase() !== handle.toLowerCase());
+    await db
+      .prepare(
+        `UPDATE athletes
+         SET instagram_handle = ?, instagram_confidence = ?, instagram_rejected = ?,
+             instagram_status = 'pending', updated_at = datetime('now')
+         WHERE id = ?`,
+      )
+      .bind(handle, restore?.confidence ?? "unverified", kept.join(",") || null, id)
+      .run();
+    return true;
+  }
+
+  // Both decisions need a live candidate to act on.
+  if (row.instagram_status !== "pending" || !row.instagram_handle) return false;
+
+  if (action === "followed") {
+    await db
+      .prepare(
+        "UPDATE athletes SET instagram_status = 'followed', updated_at = datetime('now') WHERE id = ?",
+      )
+      .bind(id)
+      .run();
+    return true;
+  }
+
+  // Remember the HANDLE, keep the athlete (migration-054). SQLite reads every
+  // right-hand side from the pre-update row, so instagram_handle is still the
+  // rejected one while it is being appended to the list.
   await db
     .prepare(
-      action === "followed"
-        ? "UPDATE athletes SET instagram_status = 'followed', updated_at = datetime('now') WHERE id = ?"
-        // Remember the HANDLE, keep the athlete (migration-054). SQLite reads
-        // every right-hand side from the pre-update row, so instagram_handle is
-        // still the rejected one while it is being appended to the list.
-        : `UPDATE athletes
-           SET instagram_rejected = TRIM(COALESCE(instagram_rejected || ',', '') || lower(instagram_handle), ','),
-               instagram_handle = NULL,
-               instagram_confidence = NULL,
-               instagram_status = 'pending',
-               updated_at = datetime('now')
-           WHERE id = ?`
+      `UPDATE athletes
+       SET instagram_rejected = TRIM(COALESCE(instagram_rejected || ',', '') || lower(instagram_handle), ','),
+           instagram_handle = NULL,
+           instagram_confidence = NULL,
+           instagram_status = 'pending',
+           updated_at = datetime('now')
+       WHERE id = ?`,
     )
     .bind(id)
     .run();

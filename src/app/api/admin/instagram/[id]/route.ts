@@ -17,12 +17,18 @@ export async function POST(
       return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
     const body = await req.json();
-    const { action } = body as { action: "followed" | "rejected" };
-    if (action !== "followed" && action !== "rejected") {
+    const { action, handle, confidence } = body as {
+      action: "followed" | "rejected" | "undo";
+      // Only for undoing a rejection: by then the row has lost the handle, so
+      // the page hands back what it still has on screen.
+      handle?: string | null;
+      confidence?: string | null;
+    };
+    if (action !== "followed" && action !== "rejected" && action !== "undo") {
       return NextResponse.json({ error: "Ugyldig handling" }, { status: 400 });
     }
 
-    const ok = await decideInstagramCandidate(id, action);
+    const ok = await decideInstagramCandidate(id, action, { handle, confidence });
     if (!ok) {
       return NextResponse.json(
         { error: "Kandidat ikke fundet eller allerede afgjort" },
