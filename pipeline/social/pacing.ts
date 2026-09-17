@@ -51,6 +51,44 @@ export const DEFAULT_PACING: PacingConfig = {
 };
 
 /**
+ * Bluesky poster tættere end resten.
+ *
+ * Mikkel, 17. september 2026: «make the Bluesky queue 55 minutes instead of
+ * 180». De 180 er `maxGapMinutes` — den generøse afstand når køen er lille —
+ * men 55 ligger UNDER `minGapMinutes`, den hårde grænse på ét opslag i timen.
+ * Derfor er det ikke ét tal der ændres: begge ender flyttes til 55, ellers
+ * regner `computeGapMinutes` gulvet (60) op og loftet (55) ned igen, og
+ * resultatet ville være konstant 55 uden nogen adaptiv opførsel overhovedet.
+ *
+ * Med 55 minutter er afstanden mindre end kørsels-intervallet, så drænet
+ * sender ét opslag hver gang det kører — hvilket er hele pointen: 25 britiske
+ * artikler udgivet på én gang kunne ikke nå ud på 48 timer med 180 minutters
+ * afstand, og seks britiske artikler udløb uforsøgt 4. september.
+ *
+ * KUN Bluesky. Facebook og Instagram er Metas platforme med Metas tolerance og
+ * beholder 60/180 — et fælles tal ville have flyttet dem i tavshed.
+ */
+export const BLUESKY_PACING: PacingConfig = {
+  ...DEFAULT_PACING,
+  minGapMinutes: 55,
+  maxGapMinutes: 55,
+};
+
+/**
+ * Pacing for én kanal. Kanaler uden egen post i tabellen kører på DEFAULT.
+ * Slås op på KANALEN, ikke platformen: de to Bluesky-konti er to køer, og
+ * det er køen der pacer.
+ */
+const CHANNEL_PACING: Record<string, PacingConfig> = {
+  bluesky: BLUESKY_PACING,
+  bluesky_uk: BLUESKY_PACING,
+};
+
+export function pacingFor(channel: string): PacingConfig {
+  return CHANNEL_PACING[channel] ?? DEFAULT_PACING;
+}
+
+/**
  * D1's datetime('now') gemmer "YYYY-MM-DD HH:MM:SS" i UTC uden zone-suffix —
  * new Date() ville tolke det som lokal tid, så vi tilføjer Z selv.
  */

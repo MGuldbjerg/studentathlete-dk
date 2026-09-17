@@ -29,7 +29,7 @@ import {
 } from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
-import { DEFAULT_PACING, computeGapMinutes, minutesUntilExpiry, postsAllowedNow } from "./pacing";
+import { DEFAULT_PACING, computeGapMinutes, minutesUntilExpiry, pacingFor, postsAllowedNow } from "./pacing";
 import { buildPostText } from "./copy";
 import { ChannelAuthError, type CardKind, type PostContent, type SocialChannel } from "./types";
 import { bluesky, blueskyUk } from "./channels/bluesky";
@@ -102,7 +102,7 @@ async function enqueue(db: D1Client, channels: SocialChannel[]): Promise<number>
        WHERE a.published = 1
          AND a.country = ?
          AND a.published_at >= datetime('now', ?)`,
-      [ch.name, ch.country, `-${DEFAULT_PACING.expiryMinutes} minutes`],
+      [ch.name, ch.country, `-${pacingFor(ch.name).expiryMinutes} minutes`],
     );
     added += res.meta.changes;
   }
@@ -314,10 +314,14 @@ async function drainChannel(
       [ch.name],
     )
   ).results;
-  const leftMin = oldest?.created_at ? minutesUntilExpiry(oldest.created_at) : null;
+  // Kanalens egen config hele vejen — også til udløbet. De to er ens i dag,
+  // men et Bluesky-specifikt expiry ville ellers blive regnet med DEFAULT her
+  // og med kanalens tal to linjer nede.
+  const cfg = pacingFor(ch.name);
+  const leftMin = oldest?.created_at ? minutesUntilExpiry(oldest.created_at, new Date(), cfg) : null;
 
-  const allowed = postsAllowedNow(last?.posted_at ?? null, depth, new Date(), DEFAULT_PACING, leftMin);
-  const gap = computeGapMinutes(depth, DEFAULT_PACING, leftMin);
+  const allowed = postsAllowedNow(last?.posted_at ?? null, depth, new Date(), cfg, leftMin);
+  const gap = computeGapMinutes(depth, cfg, leftMin);
   if (allowed === 0) {
     console.log(`  ${ch.name}: venter (kø ${depth}, gap ${gap} min, sidst ${last?.posted_at ?? "aldrig"})`);
     return { posted: 0, error: null };

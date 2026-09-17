@@ -8,6 +8,8 @@ import { facebook } from "./channels/facebook";
 import { instagram } from "./channels/instagram";
 import {
   DEFAULT_PACING,
+  BLUESKY_PACING,
+  pacingFor,
   computeGapMinutes,
   isExpired,
   minutesUntilExpiry,
@@ -442,3 +444,31 @@ void (async () => {
   if (failed > 0) process.exit(1);
 })();
 
+// ── Bluesky pacer tættere end Meta-kanalerne (2026-09-17) ───────────────────
+expect("bluesky har sin egen pacing", pacingFor("bluesky").maxGapMinutes, 55);
+expect("bluesky_uk deler den", pacingFor("bluesky_uk").maxGapMinutes, 55);
+expect("facebook rører sig ikke", pacingFor("facebook").maxGapMinutes, 180);
+expect("instagram rører sig ikke", pacingFor("instagram").maxGapMinutes, 180);
+expect("ukendt kanal falder tilbage på DEFAULT", pacingFor("threads").maxGapMinutes, 180);
+
+// Gulvet SKAL flytte med loftet: var minGap blevet stående på 60, ville
+// computeGapMinutes regne max(60, raw) og derefter min(55, …) = konstant 55,
+// og pacingen holdt op med at være adaptiv.
+expect("gulv og loft følges ad", BLUESKY_PACING.minGapMinutes, 55);
+expect(
+  "en lille kø får 55, ikke 180",
+  computeGapMinutes(1, BLUESKY_PACING, null),
+  55,
+);
+expect(
+  "en dyb kø kan ikke komme under 55",
+  computeGapMinutes(200, BLUESKY_PACING, 60),
+  55,
+);
+// Dagsloftet stiger fra 24 til ~26 opslag/døgn. Indhentningen må stadig ikke
+// kunne overskride det på den målte kadence (~6 kørsler i døgnet).
+expect(
+  "indhentning sprænger ikke det nye dagsloft",
+  BLUESKY_PACING.maxPerRun * 6 <= (24 * 60) / BLUESKY_PACING.minGapMinutes,
+  true,
+);
