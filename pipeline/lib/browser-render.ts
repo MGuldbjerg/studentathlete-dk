@@ -69,7 +69,13 @@ export async function renderPage(
     // Spar browser-tid: skip billeder/fonts/css/media — vi skal kun bruge DOM-teksten.
     rejectResourceTypes: ["image", "font", "media", "stylesheet"],
   };
-  if (opts.waitForSelector) body.waitForSelector = opts.waitForSelector;
+  // OBJEKT, ikke streng. API'et svarer ellers 7001 «Invalid input: expected
+  // object, received string» — og det er forklaringen på HTTP 400'eren som
+  // scrape-js-rosters.ts noterede og arbejdede uden om ved slet ikke at sende
+  // en selektor. Muligheden har altså aldrig virket, siden den blev skrevet.
+  if (opts.waitForSelector) {
+    body.waitForSelector = { selector: opts.waitForSelector, timeout: timeoutMs };
+  }
 
   for (let attempt = 0; ; attempt++) {
     let res: Response;

@@ -29,9 +29,11 @@ interface JsRosterCheck {
 
 // Ingen SPORT_MAP: roster_checks.sport er allerede den kanoniske nøgle.
 
-// Renderingen sker via den fælles renderPage-helper (CF /content-endpointet), som
-// er den eneste der virker: det tidligere bespoke /scrape-kald med formats:["html"]
-// + waitForSelector-streng gav HTTP 400 (forkert endpoint-skema). renderPage
+// Renderingen sker via den fælles renderPage-helper (CF /content-endpointet).
+// Det tidligere bespoke /scrape-kald gav HTTP 400, og årsagen blev fundet
+// 17. september 2026: `waitForSelector` skal sendes som et OBJEKT, ikke som en
+// streng (fejl 7001). renderPage sender det rigtigt nu, så en selektor kan
+// bruges her, hvis rosteren viser sig at hydrere for langsomt. renderPage
 // returnerer fuld HTML, håndterer 429-retry og kaster BrowserRenderError ved
 // auth/kvote, så main kan stoppe resten af kørslen.
 
