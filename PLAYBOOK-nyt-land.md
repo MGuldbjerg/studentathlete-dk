@@ -81,6 +81,9 @@ ser først.
 | Alt ser tomt ud i dev | `next dev` har TOM lokal D1 | Brug `wrangler dev --remote` når du skal se rigtige data |
 | Nyt site indekseres ikke af Google | `BASE_URL` er en modul-konstant → canonical/sitemap/robots/feed peger på standardsitet. **Fejler LYDLØST — siderne renderer perfekt** | `currentBaseUrl()` i alt der udsender absolutte URL'er |
 | Det nye site viser standardsitets atleter, og de to sitemaps har PRÆCIS samme antal URL'er | **`siteCountry()`s default var en KONSTANT, ikke værten** — filtrene fandtes, men ingen kalder sendte et land med (LØST 2026-08-05) | Defaulten slår nu landet op via `currentSite()`. Sender du et land eksplicit, vinder det |
+| **Deployet er ude, men det ene site viser stadig den gamle tekst** | Landet HAR rækker i `pages`, og `resolveSportContent()` læser rækken FØR kode-defaulten. Det andet land har ingen rækker og fik ændringen med deployet. **Fejler lydløst: begge sites svarer 200 med pæne sider** | Indholdsændring = deploy **og** D1-skrivning. Tjek efter på BEGGE værter, ikke kun den ene (2026-09-17) |
+| Korrekturen er læst på ét sprog, men fejlene står på det andet | De to sprogudgaver er ikke oversættelser af hinanden: 27 af 33 sportssider havde indhold, der kun fandtes på engelsk, og 5 af dem bar 19 tal ingen havde læst efter | Faktatjek hvert sprog for sig. `pipeline/report/export-sport-pages.ts` skriver begge udgaver ud, så de kan læses side om side |
+| Danske ord på det engelske site, selvom UI-strengene er oversat | En værdi i basen er en kanonisk NØGLE, ikke visningstekst (`award_name` = «Mesterskab», «Rekord») og blev renderet råt | Oversæt ved visning, ikke i rækken. Sproget hører til SITET — se `awardLabel()` i `athlete-events.ts` (2026-09-17) |
 | Det andet lands URL'er svarer 200 med "Side ikke fundet" | Soft 404: `loading.tsx` streamer 200, før `notFound()` når at sætte status. **Gælder også helt ukendte stier på standardsitet — ældre fejl, ikke ny** | Ikke løst. Rigtig vej: slå op i middlewaren (som atlet-aliasserne) og svar 301 til det rigtige site |
 | Sitet er noindex overalt — undtagen på de sider der har mest indhold | Enkelte sider hårdkoder `robots: { index: true }` i deres metadata og **overskriver layoutet** | `siteRobots()` fra `site-server.ts`; statisk `metadata` må slet ikke sætte `robots` |
 | Nyt site sender standardsitets sprog i `<title>`, meta og footer | `site_content` har ingen rækker for landet, og **kode-defaults i `site-content.ts` er skrevet på standardsitets sprog** | Seed `site_content` for landet FØR domænet peger på sitet |
@@ -216,6 +219,32 @@ Jeg tog fejl på dette ved UK og korrigerede det bagefter. Lær af det:
 - **Skal skrives om, ikke oversættes**: sport-pillartekster. De danske indeholder
   danske navne; et andet land skal have sine egne. Sæsonstruktur og kampformater
   er derimod landeneutrale og kan genbruges ordret — de er faktatjekkede.
+
+### Hvordan indholdet bliver udgivet: to veje, ikke én
+
+Det her kostede næsten en fejludgivelse 17. september 2026, og det rammer
+præcis ved et nyt land, fordi de to lande står forskelligt:
+
+- **Et land UDEN rækker i `pages`** (som UK var) læser kode-defaulten. Teksten
+  bliver udgivet af **deployet**.
+- **Et land MED rækker** (som DK) læser rækken over defaulten. Teksten bliver
+  udgivet af **D1-skrivningen** — deployet alene gør ingenting.
+
+Et nyt land begynder derfor i første tilstand og skifter til den anden, i det
+øjeblik nogen seeder rækker. Skriv i landets egen status hvilken tilstand det er
+i; ellers opdager du det først, når den ene halvdel af udgivelsen mangler.
+
+**Gem ALDRIG læservendt tekst i en SQL-fil, der skal køres senere.** Filen til
+de danske sportssider blev skrevet 15. september og godkendt til kørsel den
+17. — efter to runders korrektur. En kørsel ville have udgivet præcis de fejl,
+korrekturen havde fundet, og den ville have set ud til at lykkes. SQL'en
+genereres nu fra kilden (`pipeline/report/generate-sport-sql.ts`) og kasseres
+efter brug.
+
+**Tjek at rækkerne ikke er håndredigeret, før du overskriver dem.** Alle 33
+danske rækker var byte-identiske med den gamle kode-default, så ingen
+rettelser gik tabt — men det var et tjek, ikke et held. Sammenlign mod den
+kode-udgave, rækkerne blev seedet fra.
 
 **Navne på atleter: web-verificér HVER ENKELT, eller lad være med at nævne dem.**
 Ved UK blev tre verificeret og brugt; ti sportsgrene fik bevidst ingen navne.
