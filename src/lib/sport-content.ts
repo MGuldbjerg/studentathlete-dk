@@ -1487,9 +1487,9 @@ Sæsonen kulminerer i maj. I 2026 blev begge mesterskaber spillet i Illinois: D-
 ### Formatet
 Syv spillere pr. hold, og der scores ved at gribe disken i modstanderens endzone. Man må ikke løbe med disken, så spillet bygges op af kast og løb i frirum — handlerne styrer opbygningen, cutterne løber sig fri. Kampene spilles til 15 point med tidsgrænse.
 
-### Stipendier og trupstørrelse
-
 Ultimate er **selvdømt**. Spillerne dømmer selv deres kampe efter princippet Spirit of the Game, og ved de største stævner assisterer observatører i stedet for dommere. Det er sportens mest karakteristiske træk og en af grundene til, at den har holdt fast i sit eget forbund frem for at søge ind i NCAA.
+
+### Stipendier og trupstørrelse
 
 **Ultimate er ikke en NCAA-sport.** College-ultimate styres af USA Ultimate, og NCAA's stipendieregler og trupslofter gælder ikke. Så godt som alle programmer er studenterdrevne klubhold, og der findes i praksis ingen idrætsstipendier i sporten.
 

@@ -1477,9 +1477,9 @@ The season builds to May. In 2026 both championships were played in Illinois: D-
 ### The format
 Seven players a side, and points are scored by catching the disc in the opponent's end zone. You may not run with the disc, so the game is built from throws and runs into space — handlers control the build-up, cutters run free. Games are played to 15 points under a time cap.
 
-### Scholarships and squad size
-
 Ultimate is **self-refereed**. Players call their own games under the principle of Spirit of the Game, and at the biggest tournaments observers assist rather than referee. It is the sport's defining feature, and one reason it has held on to its own governing body instead of seeking a place in the NCAA.
+
+### Scholarships and squad size
 
 **Ultimate is not an NCAA sport.** College ultimate is run by USA Ultimate, and NCAA scholarship rules and squad limits do not apply. Almost every programme is a student-run club team, and there are in practice no athletic scholarships in the sport.
 
@@ -1524,6 +1524,10 @@ Know a British athlete at an American university who we are not covering? [Tell 
 
 The sports in this category share no common season — they range from autumn to spring sports, and from championship sports to club activities. If your sport is here, it is because we follow athletes in it but it does not have its own page yet.
 
+### The format
+
+The sports in this category are decided in very different ways. Some, such as lacrosse and water polo, are straight team matches between two schools. Others — fencing, wrestling, skiing — run as meets, where each individual bout or race scores points and the school's combined total decides the team result, the same way swimming and athletics work. It means a school can win a meet on depth and reliability rather than on a few stars.
+
 ### Scholarships and squad size
 
 When assessing a sport without its own page, one question settles everything financial: **is it an NCAA sport, or does it sit outside?**
@@ -1531,6 +1535,15 @@ When assessing a sport without its own page, one question settles everything fin
 If it is an NCAA sport, the rules described on the other sport pages apply: sport-specific scholarship caps have, at the Division I schools that opted into the House settlement in 2025, given way to a squad limit per sport; Division II awards partial scholarships under the equivalency model; and Division III offers no athletic scholarships. See [the divisions](/guides/ncaa-divisions).
 
 If the sport sits outside the NCAA — as squash, sailing, cycling, ultimate and polo do — none of that applies. Support is then the individual school's own affair, and academic scholarships and need-based aid are usually the only real route. That is the first thing to establish.
+
+### Worth knowing
+
+Several of the NCAA's smaller sports draw fewer scholarship applicants, which can be a real advantage for a British athlete with talent in a niche event. Wrestling is a large and deeply traditional college sport, and lacrosse is growing quickly. The list is still expanding: women's wrestling held its first NCAA championship in 2026, with acrobatics and tumbling and stunt to follow from 2027.
+
+### Sources
+
+- [NCAA. (2026, 16 January). NCAA to add four new championships.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-to-add-four-new-championships.aspx)
+- [NCAA. (2026, 4 March). NCAA's first women's wrestling championships: What to know.](https://www.ncaa.org/news/2026/3/4/media-center-ncaas-first-womens-wrestling-championships-what-to-know.aspx)
 `,
   },
 };

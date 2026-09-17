@@ -16,27 +16,32 @@ import { resolve } from "node:path";
 
 import { SPORT_CONTENT } from "../../src/lib/sport-content";
 import { SPORT_CONTENT_EN } from "../../src/lib/sport-content-en";
-import { SPORT_KEYS } from "../../src/lib/sports";
+import { SPORT_KEYS, type SportKey } from "../../src/lib/sports";
 import { sportSlug } from "../../src/lib/i18n";
 
 type Content = { title: string; intro: string; metaDescription: string; pillar: string };
 
-function anchor(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+/**
+ * Ankeret er sidens EGEN slug, ikke noget udledt af overskriften.
+ *
+ * Den udledte udgave gik galt på dansk: ø og æ er selvstændige bogstaver, ikke
+ * o og a med tegn over, så NFD dekomponerer dem ikke — «Svømning» blev til
+ * `#sv-mning` og «Fægtning» til `#f-gtning`. Slugsene findes i forvejen og er
+ * dem, siderne faktisk ligger på (`svoemning`, `faegtning`), så de bruges.
+ */
+function anchor(key: SportKey, lang: "da" | "en"): string {
+  return sportSlug(key, lang);
 }
 
 function build(record: Record<string, Content>, lang: "da" | "en", heading: string): string {
-  const entries = SPORT_KEYS.map((key) => record[sportSlug(key, lang)]).filter(Boolean) as Content[];
+  const entries = SPORT_KEYS.map((key) => [key, record[sportSlug(key, lang)]] as const).filter(
+    (pair): pair is readonly [SportKey, Content] => Boolean(pair[1]),
+  );
   const lines = [`# ${heading}`, ""];
   lines.push(lang === "da" ? "## Indhold" : "## Contents", "");
-  for (const c of entries) lines.push(`- [${c.title}](#${anchor(c.title)})`);
+  for (const [key, c] of entries) lines.push(`- [${c.title}](#${anchor(key, lang)})`);
   lines.push("");
-  for (const c of entries) {
+  for (const [, c] of entries) {
     lines.push(`# ${c.title}`, "");
     lines.push(`*${c.intro}*`, "");
     lines.push(c.pillar.trim(), "");
