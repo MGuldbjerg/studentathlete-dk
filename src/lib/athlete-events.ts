@@ -25,9 +25,42 @@ interface Pattern {
   significance: Significance;
 }
 
+/**
+ * Konference-forkortelser, som «All-ACC» og «All-SoCon» bygges af.
+ *
+ * Skolerne skriver næsten aldrig «All-Conference». De skriver forkortelsen, og
+ * mønstret herunder fangede den ikke: NC State-bioen siger «Tabbed to All-ACC
+ * Team for the second consecutive year», og udtrækket gav nul (17. september
+ * 2026). Listen er EKSPLICIT frem for `All-[A-Z]{2,}`, fordi den generelle form
+ * også ville tage «All-Time», «All-Access» og «All-Star».
+ */
+const CONFERENCES =
+  "ACC|SEC|Big Ten|Big 12|Pac-12|Big East|Big Sky|Big South|SoCon|MAC|CUSA|C-USA|MVC|CAA|WCC|SSC|GSC|GLIAC|GLVC|ECC|NEC|OVC|Sun Belt|AAC|Ivy|Patriot|Horizon|Summit|WAC|MEAC|SWAC|America East|ASUN|Southland|SLC|NE-10|PSAC|RMAC|SIAC|MIAA|NSIC|GNAC|PacWest|Lone Star|MIAC|NCAC|NESCAC|SCIAC|UAA|Landmark|Empire 8";
+
 const PATTERNS: Pattern[] = [
-  { re: /\ball[-\s]?american\b/i, kind: "award", award: "All-American", significance: "honor" },
+  // Academic All-America er en ANDEN pris end All-America og skal stå først;
+  // den generelle form nedenfor ser bevidst bort fra den.
+  {
+    re: /\bacademic\s+all[-\s]?americ(a|an)\b/i,
+    kind: "award",
+    award: "Academic All-American",
+    significance: "honor",
+  },
+  // «All-America Second Team» er den almindelige skrivemåde — uden n.
+  {
+    re: /(?<!academic\s)\ball[-\s]?americ(a|an)\b/i,
+    kind: "award",
+    award: "All-American",
+    significance: "honor",
+  },
   { re: /\ball[-\s]?conference\b/i, kind: "award", award: "All-Conference", significance: "honor" },
+  {
+    re: new RegExp(`\\ball[-\\s]?(${CONFERENCES})\\b`, "i"),
+    kind: "award",
+    award: "All-Conference",
+    significance: "honor",
+  },
+  { re: /\ball[-\s]?(region|district)\b/i, kind: "award", award: "All-Region", significance: "honor" },
   {
     re: /\b(player|athlete|freshman|rookie|defensive player|offensive player|pitcher|golfer|swimmer|newcomer) of the year\b/i,
     kind: "award",
@@ -39,8 +72,20 @@ const PATTERNS: Pattern[] = [
   { re: /\bugens (spiller|atlet)\b/i, kind: "award", award: "Ugens spiller", significance: "notable" },
   { re: /\b(rookie|freshman) of the (week|month)\b/i, kind: "award", award: "Rookie of the Week/Month", significance: "notable" },
   { re: /\bmvp\b|\bmost valuable player\b/i, kind: "award", award: "MVP", significance: "honor" },
+  /**
+   * AT DELTAGE ER IKKE AT VINDE.
+   *
+   * Mønstret var `(national|conference|ncaa)\s+champion(ship)?s?` og matchede
+   * derfor «competed at the NCAA Championships» — altså en kvalifikation — som
+   * et mesterskab. På en stikprøve 17. september 2026 var det den hyppigste
+   * udmærkelse i høsten, og det ville have skrevet på navngivne menneskers
+   * profiler, at de har vundet noget, de har deltaget i.
+   *
+   * Nu kræves enten et sejr-udsagnsord tæt på, eller ordet «champion» om
+   * PERSONEN (uden -ship). Grænsen på 60 tegn holder sig inden for sætningen.
+   */
   {
-    re: /\b(national|conference|ncaa)\s+champion(ship)?s?\b|\bmesterskab\b|\bnational champion\b/i,
+    re: /\b(won|winner of|claimed|captured|secured)\b[^.]{0,60}\bchampionship\b|\bchampionship\b[^.]{0,40}\b(title|winners?)\b|\b(national|conference|ncaa|league)\s+champions?\b(?!hip)|\bvandt\b[^.]{0,60}\bmesterskab\b|\b(danmarks|verdens|europa)mester\b/i,
     kind: "championship",
     award: "Mesterskab",
     significance: "honor",

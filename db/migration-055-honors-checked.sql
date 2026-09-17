@@ -1,0 +1,21 @@
+-- Migration 055: the honours are on the page we already fetch.
+--
+-- Mikkel, 17 September 2026, picking the first of the profile ideas: the school's
+-- own bio page carries what our profiles lack. Marie Eline Madsen's page says
+-- "WGCA All-America Second Team" and "All-ACC"; Noah Anker's says he played six
+-- games at Northwestern Oklahoma State; Frederik Jellum's says he was in
+-- Denmark's U15 national team. We fetch these pages for photos and Instagram
+-- handles and throw the rest away, while `athlete_events` holds 52 rows for 45
+-- athletes out of 2,853 — so 98.4% of profiles show no career highlights at all.
+--
+-- NOT A COPY. Mikkel: «I prefer a table style summary of honors to avoid a
+-- complete copy, as I don't want a copy/paste solution». What is stored is the
+-- canonical label `extractEvents()` already produces — "All-American",
+-- "All-Conference", "Mesterskab" — plus the season and a link back to the
+-- school's page. The school's sentences are theirs; the fact that an award was
+-- won is nobody's, and a table is our own presentation of it.
+--
+-- Rotation column, same reason as migration-046 and -053: stamped on every
+-- attempt so a bio page that carries no honours rotates to the back instead of
+-- being re-read first every week.
+ALTER TABLE athletes ADD COLUMN honors_checked_at TEXT;

@@ -165,24 +165,63 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
               </section>
             )}
 
-            {/* Karriere-højdepunkter */}
+            {/* Karriere-højdepunkter — en TABEL, ikke skolens prosa.
+                Mikkel, 17. september 2026: «I prefer a table style summary of
+                honors to avoid a complete copy». Cellerne indeholder derfor det
+                kanoniske prisnavn og sæsonen; skolens egen sætning står hos
+                skolen, og kilde-linket peger derhen. */}
             {events.length > 0 && (
               <section className="mb-10">
-                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-5">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-2">
                   {t("profile.career_highlights", lang)}
                 </p>
-                <ul className="flex flex-col gap-2">
-                  {events.map((e) => (
-                    <li key={e.id} className="flex items-baseline gap-2">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0 translate-y-1.5"
-                        style={{ backgroundColor: e.significance === "honor" ? "#BF0A30" : "#00205B" }}
-                      />
-                      <span className="text-sm font-medium text-ink">{e.award_name ?? e.summary}</span>
-                      {e.season && <span className="text-xs text-muted">{e.season}</span>}
-                    </li>
-                  ))}
-                </ul>
+                <p className="text-xs text-muted mb-4">{t("profile.honours_note", lang)}</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #E2E0DC" }}>
+                        <th className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-4">
+                          {t("profile.season", lang)}
+                        </th>
+                        <th className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-4">
+                          {t("profile.honour", lang)}
+                        </th>
+                        <th className="text-right font-semibold text-muted text-xs tracking-wide py-2">
+                          {t("profile.source", lang)}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {events.map((e) => (
+                        <tr key={e.id} style={{ borderBottom: "1px solid #F0EEEA" }}>
+                          <td className="py-2.5 pr-4 text-muted whitespace-nowrap align-baseline">
+                            {e.season ?? "—"}
+                          </td>
+                          <td className="py-2.5 pr-4 align-baseline">
+                            <span
+                              className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle"
+                              style={{ backgroundColor: e.significance === "honor" ? "#BF0A30" : "#00205B" }}
+                            />
+                            <span className="font-semibold text-ink">{e.award_name ?? e.summary}</span>
+                          </td>
+                          <td className="py-2.5 text-right align-baseline">
+                            {e.source_url ? (
+                              <a
+                                href={e.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs hover:underline"
+                                style={{ color: "#BF0A30" }}
+                              >
+                                ↗
+                              </a>
+                            ) : null}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             )}
 
