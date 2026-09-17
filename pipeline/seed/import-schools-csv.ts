@@ -94,6 +94,29 @@ function parseCsv(text: string): SchoolCsvRow[] {
   });
 }
 
+/** Canadiske provinser, som de står i skole-listerne. */
+const CANADIAN_STATES = new Set([
+  "BC", "AB", "SK", "MB", "ON", "QC", "NB", "NS", "PE", "NL", "YT", "NT", "NU",
+  "B.C.", "Ont.", "Que.", "Alta.", "Sask.", "Man.",
+]);
+
+/**
+ * Må en canadisk skole komme ind?
+ *
+ * Mikkel, 17. september 2026: «I don't want Canadian colleges in this» — og
+ * prøven er MEDLEMSKAB, ikke geografi. Simon Fraser University ligger i Burnaby,
+ * BC, men er fuldt NCAA D2-medlem i Great Northwest Athletic Conference og
+ * spiller et amerikansk program; den bliver. NAIA-listen bar tre canadiske
+ * skoler med (UBC*, Trinity Western*, University of Victoria*) — stjernen er
+ * NAIA's egen markering af tilknyttede medlemmer — og de havde nul atleter.
+ *
+ * Uden det her tjek kommer de tre igen, næste gang NAIA-listen importeres.
+ */
+export function canadianSchoolAllowed(state: string | undefined, division: string): boolean {
+  if (!state || !CANADIAN_STATES.has(state.trim())) return true;
+  return division.toUpperCase().startsWith("NCAA");
+}
+
 async function main(): Promise<void> {
   const csvPath =
     process.argv[2] ??
@@ -127,6 +150,12 @@ async function main(): Promise<void> {
 
   for (const row of rows) {
     if (!row.name) {
+      skipped++;
+      continue;
+    }
+
+    if (!canadianSchoolAllowed(row.state, DIVISION_MAP[row.division] ?? row.division)) {
+      console.log(`  ⊘ ${row.name} (${row.state}) — canadisk skole uden NCAA-medlemskab`);
       skipped++;
       continue;
     }
@@ -217,7 +246,13 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error("Import fejlede:", err);
-  process.exit(1);
-});
+// Kør kun når filen ER kommandoen. Uden den her kørte `main()` også når en
+// anden fil bare importerede en funktion herfra — 17. september 2026 startede
+// en unit-test af landefilteret en rigtig skole-import mod produktions-D1,
+// fordi den importerede `canadianSchoolAllowed` fra denne fil.
+if (process.argv[1] && process.argv[1].endsWith("import-schools-csv.ts")) {
+  main().catch((err) => {
+    console.error("Import fejlede:", err);
+    process.exit(1);
+  });
+}

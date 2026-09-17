@@ -152,4 +152,8 @@ function main(): void {
   console.log(`\nKør nu: wrangler d1 execute studentathlete-dk --file=db/seed-schools.sql --remote`);
 }
 
-main();
+// Kør kun når filen ER kommandoen. Uden den her kører `main()` også når en
+// anden fil bare importerer noget herfra — se import-schools-csv.ts.
+if (process.argv[1] && process.argv[1].endsWith("generate-schools-sql.ts")) {
+  main();
+}

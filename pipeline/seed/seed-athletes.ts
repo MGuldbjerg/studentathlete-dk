@@ -87,7 +87,11 @@ async function main(): Promise<void> {
   console.log(`Seedet ${athleteCount} atleter`);
 }
 
-main().catch((err) => {
-  console.error("Seed fejlede:", err);
-  process.exit(1);
-});
+// Kør kun når filen ER kommandoen. Uden den her kører `main()` også når en
+// anden fil bare importerer noget herfra — se import-schools-csv.ts.
+if (process.argv[1] && process.argv[1].endsWith("seed-athletes.ts")) {
+  main().catch((err) => {
+    console.error("Seed fejlede:", err);
+    process.exit(1);
+  });
+}
