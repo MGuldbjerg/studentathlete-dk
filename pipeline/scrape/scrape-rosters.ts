@@ -773,18 +773,22 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch(async (err) => {
-  console.error("Scraping fejlede:", err);
-  try {
-    const db = createD1Client();
-    await db.execute(
-      `UPDATE pipeline_runs SET status = 'failed', finished_at = datetime('now'),
-       error_message = ? WHERE status = 'running' AND run_type = 'roster_scrape'
-       ORDER BY id DESC LIMIT 1`,
-      [String(err)],
-    );
-  } catch {
-    // Kan ikke opdatere pipeline_runs — ignorer
-  }
-  process.exit(1);
-});
+// Kør kun når filen ER kommandoen. Uden den her kører `main()` også når en
+// anden fil bare importerer noget herfra — se import-schools-csv.ts.
+if (process.argv[1] && process.argv[1].endsWith("scrape-rosters.ts")) {
+  main().catch(async (err) => {
+    console.error("Scraping fejlede:", err);
+    try {
+      const db = createD1Client();
+      await db.execute(
+        `UPDATE pipeline_runs SET status = 'failed', finished_at = datetime('now'),
+         error_message = ? WHERE status = 'running' AND run_type = 'roster_scrape'
+         ORDER BY id DESC LIMIT 1`,
+        [String(err)],
+      );
+    } catch {
+      // Kan ikke opdatere pipeline_runs — ignorer
+    }
+    process.exit(1);
+  });
+}

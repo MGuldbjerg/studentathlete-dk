@@ -82,102 +82,35 @@ addressable — roughly 800 athletes — and at 40 renders a night
 
 ⏳ **Open:** `Mesterskab` cannot tell a conference title from a national one.
 
-### ⏭ Næste opgave: Canada skal ud af datasættet
+### 🇨🇦 Canada: prøven er medlemskab, ikke geografi (2026-09-17)
 
-Mikkel, 17. september: «I don't want Canadian colleges in this, but there's a
-profile draft for an athlete in British Columbia.» Canada was deprioritised in
-strategien 2026-07-02, men en canadisk skole er åbenbart sluppet gennem
-roster-scrapingen og helt frem til en profilkladde. To spørgsmål at besvare, i
-den rækkefølge: hvor mange canadiske skoler/atleter ligger der allerede i basen,
-og hvad slap dem ind (skole-import, division-filter eller
-hjemby-klassifikation). Ikke påbegyndt.
+Mikkel: «I don't want Canadian colleges in this, but there's a profile draft for
+an athlete in British Columbia.» Undersøgelsen vendte sagen: **intet var gået
+galt.**
 
-## 📸 Instagram: the finding is automated, the follow is not (2026-09-16)
+**Simon Fraser University** i Burnaby, BC, er fuldt **NCAA D2**-medlem i Great
+Northwest Athletic Conference og spiller et amerikansk program. Den står i
+skole-listen fordi den hører hjemme der, og den danske atlet på rosteren kom
+igennem alle filtre korrekt. Mikkel valgte derfor **medlemskab som prøve**:
+SFU bliver.
 
-Mikkel asked whether the athletes who print an Instagram handle on their bio page
-could be followed programmatically. **They cannot.** Meta's Instagram Platform is
-publishing, comments, messages, mentions and insights; the relationship endpoint
-died with the legacy API in 2018. Driving a browser instead would put
-@studentathlete.dk at risk — the account `social/channels/instagram.ts` publishes
-through. That answer is written into `db/migration-053-instagram-handle.sql` so it
-is not re-litigated in six months.
+**Kaia Permanand var i forvejen forkert på sitet.** Hendes udgivne profil sagde
+«spillet fodbold for The University of Texas at El Paso i Texas»; kladden sagde
+Simon Fraser. Hun er skiftet, og profilen var ikke fulgt med. Kladden er
+godkendt, så profilen nu passer.
 
-What was built is the half that IS mechanical:
-`pipeline/scrape/scrape-instagram.ts` reads each athlete's own bio page and files
-the handle in **admin → Instagram**, where one click opens the profile and marks
-the row followed.
+**Tre canadiske NAIA-skoler er fjernet** — UBC*, Trinity Western*, University of
+Victoria* (stjernen er NAIA's egen markering af tilknyttede medlemmer). Nul
+atleter, 12 roster_checks og én url_probe med. `canadianSchoolAllowed()` i
+`import-schools-csv.ts` holder dem ude ved næste import; canadiske skoler
+kræver NCAA-medlemskab.
 
-Measured on 52 British bio pages before building: 42 carried an instagram.com
-link, but nearly all were department accounts in the site chrome; **five (~10%)
-carried the athlete's own name-matched handle**. Scaled over the 2,583 British
-athletes with a `bio_url` that is roughly 250-300 handles — and Denmark's 241 a
-couple of dozen. Two filters do the separating: a handle that also appears on the
-athletics site's FRONT page is chrome by construction (one extra fetch per host),
-and handles built from the school's or the sport's own words are dropped by name.
-A name match must then survive having the name removed, or Jake Bryant at Bryant
-University is followed as `bryantufootball`. Identity rests where the photo queue
-rests it: the handle sits on the school's page for THIS athlete — the thing the
-Bluesky follower never had (0% precision on 30 name searches, 31 August).
-
-✅ **Run against production 2026-09-16**, then re-run after two fixes Mikkel
-caught. Final state, 2,824 bio pages read:
-
-| | UK | DK |
-|---|---|---|
-| Name-matched (one click) | 350 | 34 |
-| For review | 92 | 13 |
-
-**489 handles.** 169 bio pages (6%) no longer answer; those rows are stamped and
-rotate to the back rather than blocking the queue.
-
-**Fix 1 — the handle is the LAST `instagram.com` in the href.** Sidearm prefixes
-its own base onto whatever the athlete typed, so a pasted URL comes out doubled:
-`instagram.com/https://www.instagram.com/eva_isabel_/`. Read from the front, 39
-athletes were filed with the handle `https`. Read from the back, they are what
-the athlete wrote — and the doubling only happens in the field the ATHLETE fills
-in, so those links skew personal. It also caused silent misses: where a doubled
-link sat beside a team account, two candidates cancelled out and nothing was
-filed. Re-reading all 2,416 unresolved rows moved name matches 364 → 384.
-
-**Fix 2 — rejecting turns down the HANDLE, not the athlete** (migration-054).
-«Ikke atleten» used to set `instagram_status='rejected'` and retire the person
-from the queue for good. It now appends to `instagram_rejected` and returns the
-row to `pending`. This matters because of how the rotation works: nothing in the
-harvester excludes an athlete for having been read before, so **everyone without
-a handle is re-read every Sunday** — a link added in November is found that week,
-and new athletes sort ahead of the re-reads on `checked_at ASC NULLS FIRST`.
-
-The follow-through is Mikkel's: admin → Instagram, one click per athlete. The
-weekly job (`instagram-handles.yml`, Sundays 08:20 UTC) keeps the queue fed; the
-button under admin → Pipeline runs it on demand.
-
-## 🏟 The sport pages now have a fixed skeleton (2026-09-15)
-
-All 66 pillar texts (33 sports × 2 languages) now carry the same seven sections:
-intro → the season → the format → **scholarships and squad size** →
-**conferences and independents** → **the road to pro** → worth knowing → sources.
-The three in bold were all but absent before: the scholarship model appeared on
-2 of 33 Danish pages, conferences on 12, the road to pro on 9, and guide links
-on 1. They are now on every page. Headings were cut from 22 variants to 7.
-
-Background, measurements and the two proposals on hold (a fact box, and a
-conference data block) are in **`IDEA-sportsider.md`**.
-
-⚠️ **The Danish site shows none of this yet.** `resolveSportContent()` reads the
-D1 row over the code default, and all 33 Danish sport pages HAVE a published row
-in `pages(kind='sport', country='DK')`. Deploying therefore changes only the
-**UK** site, which has no rows. The sync is ready as
-`db/update-sport-pages-2026-09-15.sql` (33 UPDATEs, `content` + `updated_at`
-only) and has **not been run** — it is a production write of reader-facing text.
-Before that file was written it was verified that all 33 D1 rows were
-byte-identical to the old code default, so no hand-edits are lost; the file was
-then dry-run against a copy of the real rows with 0 mismatches.
-
-Facts were verified against primary sources, not written from memory. The
-load-bearing point is that the House settlement's squad limits apply **only** to
-the Division I schools that opted in — everyone else continues under the old
-scholarship caps, Division II on equivalency, Division III with no athletic
-scholarships at all.
+**Og en fælde der ikke havde noget med Canada at gøre:** tolv pipeline-scripts
+kørte deres `main()` ved import, uden `process.argv[1]`-vagt. En unit-test af
+landefilteret startede derfor en **rigtig skole-import mod produktions-D1** —
+den nåede at læse 1.749 CSV-rækker. Ingen skade skete (UPDATE bruger COALESCE,
+så opdagede websites og conferences er urørte, og det nye filter blokerede netop
+de tre canadiske). Alle tolv har nu vagten.
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne

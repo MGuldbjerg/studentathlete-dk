@@ -234,7 +234,11 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((err) => {
-  console.error("JS roster-scraping fejlede:", err);
-  process.exit(1);
-});
+// Kør kun når filen ER kommandoen. Uden den her kører `main()` også når en
+// anden fil bare importerer noget herfra — se import-schools-csv.ts.
+if (process.argv[1] && process.argv[1].endsWith("scrape-js-rosters.ts")) {
+  main().catch((err) => {
+    console.error("JS roster-scraping fejlede:", err);
+    process.exit(1);
+  });
+}

@@ -117,7 +117,11 @@ async function main(): Promise<void> {
   console.log(`${dbSchools.length - matched} skoler mangler stadig URL.`);
 }
 
-main().catch((err) => {
-  console.error("NAIA URL-scraping fejlede:", err);
-  process.exit(1);
-});
+// Kør kun når filen ER kommandoen. Uden den her kører `main()` også når en
+// anden fil bare importerer noget herfra — se import-schools-csv.ts.
+if (process.argv[1] && process.argv[1].endsWith("naia-urls.ts")) {
+  main().catch((err) => {
+    console.error("NAIA URL-scraping fejlede:", err);
+    process.exit(1);
+  });
+}

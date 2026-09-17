@@ -47,7 +47,11 @@ async function main() {
   console.log(`Backfill færdig: ${scanned} publicerede artikler scannet, op til ${inserted} begivenheder indsat (dedup).`);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// Kør kun når filen ER kommandoen. Uden den her kører `main()` også når en
+// anden fil bare importerer noget herfra — se import-schools-csv.ts.
+if (process.argv[1] && process.argv[1].endsWith("backfill-events.ts")) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
