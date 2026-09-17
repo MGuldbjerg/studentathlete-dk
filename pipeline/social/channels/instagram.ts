@@ -2,10 +2,12 @@
  * Instagram-adapter (Graph API, Content Publishing).
  * Secrets: IG_USER_ID, IG_ACCESS_TOKEN.
  *
- * TO TRIN, ikke ét: først oprettes en mediecontainer (`POST /<ig-id>/media`),
- * derefter udgives den (`POST /<ig-id>/media_publish`). Det er ikke en detalje
- * i API'et — det er stedet hvor tingene går galt, for **Meta henter selv
- * billedet** ud fra `image_url` i trin 1. Vi uploader ingen bytes. Derfor:
+ * TRE TRIN, ikke ét: først oprettes en mediecontainer (`POST /<ig-id>/media`),
+ * så VENTES der til den er `FINISHED`, og først derefter udgives den
+ * (`POST /<ig-id>/media_publish`). Det er ikke en detalje i API'et — det er
+ * stedet hvor tingene går galt, for **Meta henter selv billedet** ud fra
+ * `image_url` i trin 1, og den hentning er asynkron. Vi uploader ingen bytes.
+ * Ventetrinnet var udeladt indtil 17. september; se `waitForContainer`. Derfor:
  *
  *  - URL'en skal være offentligt hentbar UDEN login. `Allow: /api/og` i
  *    robots.txt dækker den (matcher på sti, ikke query) — samme regel der blev
@@ -47,6 +49,115 @@ async function fetchPermalink(mediaId: string, token: string): Promise<string | 
   }
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Hvad betyder containerens `status_code`?
+ *
+ * Udskilt fra ventelykken med vilje: selve beslutningen er ren og kan testes,
+ * hvor en løkke med `setTimeout` ikke kan. Ukendte værdier tolkes som «vent» —
+ * Meta må gerne tilføje en status uden at vi taber et opslag på det; deadlinen
+ * i `waitForContainer` sikrer at «vent» aldrig bliver «for evigt».
+ */
+export function interpretContainerStatus(statusCode: string | undefined): "ready" | "wait" | "dead" {
+  if (statusCode === "FINISHED" || statusCode === "PUBLISHED") return "ready";
+  if (statusCode === "ERROR" || statusCode === "EXPIRED") return "dead";
+  return "wait";
+}
+
+/**
+ * Er det «media-id'et er ikke slået igennem endnu» (9007) — eller en ægte fejl?
+ *
+ * Kun den første må prøves igen. Tjekket læser fejlkoden i JSON'en og ikke
+ * beskedteksten: teksten er engelsk prosa fra Meta og kan ændre sig, koden kan
+ * ikke. `2207027` er undersubkoden, som artikel 275 ramte tre gange.
+ */
+export function isContainerNotReadyError(body: string): boolean {
+  return /"code"\s*:\s*9007/.test(body);
+}
+
+/** Hvor længe vi venter på en container, og hvor tit vi spørger. */
+const CONTAINER_TIMEOUT_MS = 90_000;
+const CONTAINER_POLL_MS = 3_000;
+
+/**
+ * Vent til containeren er FINISHED.
+ *
+ * Meta henter selv billedet i trin 1, og den hentning er asynkron. `status_code`
+ * er det eneste ærlige svar på «må jeg udgive nu?»:
+ *   IN_PROGRESS — henter stadig · FINISHED — klar · ERROR/EXPIRED — dødfødt.
+ *
+ * ERROR og EXPIRED kastes som almindelige fejl, ikke som ChannelAuthError:
+ * dét ER opslagets problem (billedet), og så skal forsøget tælle.
+ */
+async function waitForContainer(creationId: string, token: string): Promise<void> {
+  const deadline = Date.now() + CONTAINER_TIMEOUT_MS;
+  let lastStatus = "ukendt";
+
+  while (Date.now() < deadline) {
+    const res = await fetch(
+      `${GRAPH}/${creationId}?fields=status_code,status&access_token=${encodeURIComponent(token)}`,
+    );
+    if (!res.ok) {
+      const body = await res.text();
+      if (authFailed(res.status)) {
+        throw new ChannelAuthError(`Instagram afviste tokenet ved statusopslaget (${res.status}): ${body}`);
+      }
+      // Et enkelt fejlende statusopslag er ikke et dødt opslag — prøv igen
+      // indtil deadline. Det er netop dét tålmodighed er til for.
+      lastStatus = `opslag fejlede (${res.status})`;
+      await sleep(CONTAINER_POLL_MS);
+      continue;
+    }
+    const data = (await res.json()) as { status_code?: string; status?: string };
+    lastStatus = data.status_code ?? "uden status_code";
+
+    const verdict = interpretContainerStatus(data.status_code);
+    if (verdict === "ready") return;
+    if (verdict === "dead") {
+      throw new Error(`Instagram-containeren endte som ${lastStatus}: ${data.status ?? "ingen forklaring"}`);
+    }
+    await sleep(CONTAINER_POLL_MS);
+  }
+
+  throw new Error(
+    `Instagram-containeren blev ikke klar inden for ${CONTAINER_TIMEOUT_MS / 1000} s (sidste status: ${lastStatus})`,
+  );
+}
+
+/**
+ * Udgiv containeren, med plads til at media-id'et er et øjeblik bagefter.
+ *
+ * Kun 9007 prøves igen — enhver anden fejl er ægte og skal koste et forsøg.
+ */
+async function publishWithRetry(igUserId: string, creationId: string, token: string): Promise<string | null> {
+  const delays = [0, 3_000, 6_000, 12_000];
+
+  for (let i = 0; i < delays.length; i++) {
+    if (delays[i] > 0) await sleep(delays[i]);
+
+    const res = await fetch(`${GRAPH}/${igUserId}/media_publish`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ creation_id: creationId, access_token: token }),
+    });
+    if (res.ok) {
+      const { id } = (await res.json()) as { id?: string };
+      return id ?? null;
+    }
+
+    const body = await res.text();
+    if (authFailed(res.status)) {
+      throw new ChannelAuthError(`Instagram afviste tokenet ved udgivelsen (${res.status}): ${body}`);
+    }
+    if (!isContainerNotReadyError(body) || i === delays.length - 1) {
+      throw new Error(`Instagram-udgivelse fejlede (${res.status}): ${body}`);
+    }
+    console.log(`  instagram: media-id'et er ikke slået igennem endnu — prøver igen (${i + 1}/${delays.length - 1})`);
+  }
+  return null;
+}
+
 export const instagram: SocialChannel = {
   name: "instagram",
   // Kontoen er dansk: @studentathlete.dk. En britisk konto bliver en EGEN
@@ -84,22 +195,19 @@ export const instagram: SocialChannel = {
     const { id: creationId } = (await createRes.json()) as { id?: string };
     if (!creationId) throw new Error("Instagram-container uden id i svaret");
 
-    // Trin 2: udgivelsen. Billeder er klar med det samme; er de mod forventning
-    // ikke det, fejler kaldet, kø-rækken beholder sit forsøg og næste kørsel
-    // prøver igen. Det er billigere end at holde en kørsel i live og pulje.
-    const pubRes = await fetch(`${GRAPH}/${igUserId}/media_publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ creation_id: creationId, access_token: token }),
-    });
-    if (!pubRes.ok) {
-      const body = await pubRes.text();
-      if (authFailed(pubRes.status)) {
-        throw new ChannelAuthError(`Instagram afviste tokenet ved udgivelsen (${pubRes.status}): ${body}`);
-      }
-      throw new Error(`Instagram-udgivelse fejlede (${pubRes.status}): ${body}`);
-    }
-    const { id: mediaId } = (await pubRes.json()) as { id?: string };
+    // Trin 2: VENT til containeren er færdig. Her stod før at «billeder er klar
+    // med det samme, og er de ikke, prøver næste kørsel igen». Begge led var
+    // forkerte, og artikel 275 betalte prisen 16. september: tre forsøg, tre
+    // gange `9007/2207027 Media ID is not available`, og så `failed` for altid.
+    // Næste kørsel prøver nemlig ikke det samme igen — den bygger en HELT NY
+    // container og taber det samme kapløb. Et forsøg brugt på en race er et
+    // forsøg brugt på ingenting. Ventetiden hører til her, i kørslen.
+    await waitForContainer(creationId, token);
+
+    // Trin 3: udgivelsen. Selv en FÆRDIG container kan svare 9007 et øjeblik
+    // endnu — media-id'et er ikke slået igennem. Det er sekunder, ikke minutter,
+    // så vi prøver igen her frem for at bruge et kø-forsøg på det.
+    const mediaId = await publishWithRetry(igUserId, creationId, token);
     if (!mediaId) return { postUrl: null };
 
     return { postUrl: await fetchPermalink(mediaId, token) };
