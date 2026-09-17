@@ -5,7 +5,7 @@
 import { ALL_CHANNELS, cardReadyClause, distributionAllowed, profileAllowsDistribution } from "./post-social";
 import { bluesky, blueskyUk, buildBlueskyRecord } from "./channels/bluesky";
 import { facebook } from "./channels/facebook";
-import { instagram } from "./channels/instagram";
+import { instagram, interpretContainerStatus, isContainerNotReadyError } from "./channels/instagram";
 import {
   DEFAULT_PACING,
   BLUESKY_PACING,
@@ -471,4 +471,42 @@ expect(
   "indhentning sprænger ikke det nye dagsloft",
   BLUESKY_PACING.maxPerRun * 6 <= (24 * 60) / BLUESKY_PACING.minGapMinutes,
   true,
+);
+
+// ── Instagram-containeren skal være FÆRDIG før udgivelsen (artikel 275) ──────
+// 16. september blev artikel 275 udgivet tre gange uden ventetrin og fejlede
+// alle tre med 9007. Beslutningen «vent / udgiv / opgiv» er nu ren, og det er
+// den her der prøves — ikke løkken omkring den.
+expect("FINISHED er klar", interpretContainerStatus("FINISHED"), "ready");
+expect("PUBLISHED er også klar", interpretContainerStatus("PUBLISHED"), "ready");
+expect("IN_PROGRESS venter", interpretContainerStatus("IN_PROGRESS"), "wait");
+expect("ERROR er dødfødt", interpretContainerStatus("ERROR"), "dead");
+expect("EXPIRED er dødfødt", interpretContainerStatus("EXPIRED"), "dead");
+// Et manglende eller ukendt felt må aldrig tolkes som «klar» — dét var netop
+// antagelsen der kostede artikel 275. Deadlinen gør «vent» endeligt.
+expect("manglende status venter", interpretContainerStatus(undefined), "wait");
+expect("ukendt status venter", interpretContainerStatus("NOGET_NYT"), "wait");
+
+// ── 9007 må prøves igen; alt andet skal koste et forsøg ─────────────────────
+expect(
+  "9007 er «ikke klar endnu»",
+  isContainerNotReadyError('{"error":{"message":"Media ID is not available","code":9007,"error_subcode":2207027}}'),
+  true,
+);
+expect(
+  "mellemrum i JSON'en tæller også",
+  isContainerNotReadyError('{"error": {"code": 9007}}'),
+  true,
+);
+expect(
+  "en rettighedsfejl er ægte og prøves ikke igen",
+  isContainerNotReadyError('{"error":{"message":"(#200) Permissions error","code":200}}'),
+  false,
+);
+// Koden læses, ikke prosaen: teksten er Metas engelske formulering og kan
+// ændre sig uden varsel, koden kan ikke.
+expect(
+  "teksten alene udløser ikke en genprøve",
+  isContainerNotReadyError('{"error":{"message":"Media ID is not available","code":100}}'),
+  false,
 );

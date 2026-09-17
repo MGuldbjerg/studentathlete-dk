@@ -39,6 +39,23 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
 
+      # Hvad fejlede, og hvorfor? Uden dette står svaret kun i Metas egen
+      # fejltekst, midt i en kø, tre timer efter tokenet blev skiftet. Her står
+      # den manglende rettighed ved navn i samme log som opslaget.
+      #
+      # `--warn-only` ER pointen: 16. september postede Bluesky fire britiske
+      # artikler i præcis den kørsel hvor Facebook-tokenet blev afvist. Et dødt
+      # Meta-token må advare, ikke stoppe de kanaler der virker.
+      - name: Tjek Meta-tokens (advarer, stopper ikke)
+        run: npx tsx pipeline/social/check-tokens.ts --warn-only
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          FB_APP_ID: ${{ secrets.FB_APP_ID }}
+          FB_APP_SECRET: ${{ secrets.FB_APP_SECRET }}
+
       - name: Enqueue + dræn social-kø
         run: npx tsx pipeline/social/post-social.ts ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
         env:
