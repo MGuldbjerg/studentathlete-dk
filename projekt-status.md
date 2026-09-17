@@ -1,6 +1,62 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-16 (Instagram handles harvested for manual following; sport-page D1 sync still awaiting approval)
+**Sidst opdateret**: 2026-09-17 (honours harvested onto profiles; Bluesky at 55 min; sport-page D1 sync still awaiting approval)
+
+## 🏅 Profiles now carry honours — from the page we already fetch (2026-09-17)
+
+Mikkel asked what would make the player profiles better. The measurement said
+the structure was fine and the *content* was not: 85% have a photo and
+essentially all 2,853 have a summary, but that summary averages **124
+characters** and restates the facts table beside it ("X has played tennis for Y
+since 2023"). Career highlights existed for **45 athletes (1.6%)**, articles for
+102 (3.6%) — so 2,700 pages were the same page with the nouns swapped, on a site
+where Search Console already answers *"URL is unknown to Google"*.
+
+The fix took nothing new: the school's own bio page, which we already fetch for
+photos and Instagram handles, states the honours plainly. `scrape-honors.ts`
+reads only the bio container (never the navigation, which is full of award
+words) and files the canonical label.
+
+| | before | after |
+|---|---|---|
+| Athletes with career highlights | 45 | **492** |
+| Events | 52 | **874** |
+
+433 of 2,586 British athletes (17%) and 59 of 267 Danish (22%). 1,281 bio pages
+of 2,825 yielded a readable bio; the rest are 404s or client-rendered.
+
+**A table, not a transcript** — Mikkel: «I prefer a table style summary of honors
+to avoid a complete copy». Stored is the canonical label (All-American,
+All-Conference, Mesterskab), the season, and a link back. The school's sentences
+stay the school's.
+
+Four defects the tests and two real samples forced out, two of which would have
+published falsehoods about named people:
+
+1. **Competing is not winning.** "Competed at the NCAA Championships" scored as a
+   championship and was the most common honour in the first sample.
+2. **The old patterns missed the real forms**: schools write "All-America" (no n)
+   and "All-ACC", neither of which matched. Conferences are an explicit list —
+   `All-[A-Z]{2,}` would have taken All-Time, All-Access and All-Star.
+3. A bio's intro summarises the career without a season, producing a duplicate
+   row with an em-dash where the year belongs.
+4. **"2018-22" is a degree, not a season** — a season is two consecutive years.
+
+And one found only by opening the live page: `award_name` is a canonical KEY on
+mixed Danish/English, so British profiles showed «Mesterskab» and «Rekord» until
+`awardLabel()` moved the translation to render time. The language belongs to the
+site, not to the row.
+
+✅ **Publishing straight to profiles is approved** (Mikkel, 17. september 2026):
+«This is table data, not prose, and directly from official sources, so I'm okay
+with publishing straight to profiles.» That draws the line for the no-auto-publish
+rule: it governs PROSE. Sourced tabular facts, extracted mechanically and linked
+back to the source, do not need a human between the harvest and the page — so no
+approval queue for honours. Prose about named people still does.
+
+⏳ **Open:** `Mesterskab` cannot yet tell a conference title from a national one.
+The ceiling on coverage is the bio pages, not the patterns: only 1,281 of 2,825
+had a readable bio container, the same wall the photo queue hit.
 
 ## 📸 Instagram: the finding is automated, the follow is not (2026-09-16)
 
@@ -29,21 +85,37 @@ University is followed as `bryantufootball`. Identity rests where the photo queu
 rests it: the handle sits on the school's page for THIS athlete — the thing the
 Bluesky follower never had (0% precision on 30 name searches, 31 August).
 
-✅ **Run against production 2026-09-16.** All 2,824 athletes with a bio page were
-read in one pass (615 athletics sites, ~12 minutes):
+✅ **Run against production 2026-09-16**, then re-run after two fixes Mikkel
+caught. Final state, 2,824 bio pages read:
 
 | | UK | DK |
 |---|---|---|
-| Name-matched (one click) | 336 | 34 |
-| For review | 117 | 16 |
+| Name-matched (one click) | 350 | 34 |
+| For review | 92 | 13 |
 
-**503 handles, ~18% of the pages read** — better than the 10% the sample
-suggested. 170 bio pages (6%) no longer answer; those rows are stamped and
+**489 handles.** 169 bio pages (6%) no longer answer; those rows are stamped and
 rotate to the back rather than blocking the queue.
 
+**Fix 1 — the handle is the LAST `instagram.com` in the href.** Sidearm prefixes
+its own base onto whatever the athlete typed, so a pasted URL comes out doubled:
+`instagram.com/https://www.instagram.com/eva_isabel_/`. Read from the front, 39
+athletes were filed with the handle `https`. Read from the back, they are what
+the athlete wrote — and the doubling only happens in the field the ATHLETE fills
+in, so those links skew personal. It also caused silent misses: where a doubled
+link sat beside a team account, two candidates cancelled out and nothing was
+filed. Re-reading all 2,416 unresolved rows moved name matches 364 → 384.
+
+**Fix 2 — rejecting turns down the HANDLE, not the athlete** (migration-054).
+«Ikke atleten» used to set `instagram_status='rejected'` and retire the person
+from the queue for good. It now appends to `instagram_rejected` and returns the
+row to `pending`. This matters because of how the rotation works: nothing in the
+harvester excludes an athlete for having been read before, so **everyone without
+a handle is re-read every Sunday** — a link added in November is found that week,
+and new athletes sort ahead of the re-reads on `checked_at ASC NULLS FIRST`.
+
 The follow-through is Mikkel's: admin → Instagram, one click per athlete. The
-weekly job (`instagram-handles.yml`, Sundays 08:20 UTC) picks up new athletes
-from then on; the button under admin → Pipeline runs it on demand.
+weekly job (`instagram-handles.yml`, Sundays 08:20 UTC) keeps the queue fed; the
+button under admin → Pipeline runs it on demand.
 
 ## 🏟 The sport pages now have a fixed skeleton (2026-09-15)
 
