@@ -128,3 +128,40 @@ export interface AthleteEventRow {
   source_url: string | null;
   occurred_on: string | null;
 }
+
+/**
+ * Prisens navn på sitets eget sprog.
+ *
+ * `award_name` er en KANONISK nøgle, ikke visningstekst — den skrives af
+ * mønstrene ovenfor og er derfor på blandet dansk/engelsk ("Mesterskab",
+ * "All-American"). Gemt som den er, og renderet råt, stod der «Mesterskab» og
+ * «Rekord» på britiske profiler (fundet på student-athlete.co.uk/time-esan
+ * 17. september 2026). Sproget hører til sitet, ikke til rækken i basen — så
+ * oversættelsen sker HER, ved visning.
+ *
+ * Navne der er egennavne (All-American, MVP) er ens på begge sprog og står
+ * kun én gang. Ukendte nøgler vises som de er: en manglende oversættelse skal
+ * ligne en manglende oversættelse, ikke en tom celle.
+ */
+const AWARD_LABELS: Record<string, { da: string; en: string }> = {
+  "All-American": { da: "All-American", en: "All-American" },
+  "Academic All-American": { da: "Academic All-American", en: "Academic All-American" },
+  "All-Conference": { da: "All-Conference", en: "All-Conference" },
+  "All-Region": { da: "All-Region", en: "All-Region" },
+  "Player of the Year": { da: "Årets spiller", en: "Player of the Year" },
+  "Årets spiller": { da: "Årets spiller", en: "Player of the Year" },
+  "Player of the Week": { da: "Ugens spiller", en: "Player of the Week" },
+  "Ugens spiller": { da: "Ugens spiller", en: "Player of the Week" },
+  "Rookie of the Week/Month": { da: "Ugens/månedens nykommer", en: "Rookie of the Week/Month" },
+  MVP: { da: "MVP", en: "MVP" },
+  Mesterskab: { da: "Mesterskab", en: "Championship" },
+  Rekord: { da: "Rekord", en: "Record" },
+  Draftet: { da: "Draftet", en: "Drafted" },
+};
+
+export function awardLabel(awardName: string | null, lang: string): string {
+  if (!awardName) return "";
+  const entry = AWARD_LABELS[awardName];
+  if (!entry) return awardName;
+  return lang === "da" ? entry.da : entry.en;
+}

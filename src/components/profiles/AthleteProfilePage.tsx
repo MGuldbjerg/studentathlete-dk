@@ -2,7 +2,7 @@ import type { Athlete, Article } from "@/lib/types";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
-import type { AthleteEventRow } from "@/lib/athlete-events";
+import { awardLabel, type AthleteEventRow } from "@/lib/athlete-events";
 
 import { sportLabel, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
@@ -202,7 +202,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
                               className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle"
                               style={{ backgroundColor: e.significance === "honor" ? "#BF0A30" : "#00205B" }}
                             />
-                            <span className="font-semibold text-ink">{e.award_name ?? e.summary}</span>
+                            <span className="font-semibold text-ink">{awardLabel(e.award_name, lang) || e.summary}</span>
                           </td>
                           <td className="py-2.5 text-right align-baseline">
                             {e.source_url ? (
