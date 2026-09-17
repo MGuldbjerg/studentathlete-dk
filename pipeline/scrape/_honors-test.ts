@@ -5,7 +5,7 @@
  * farlige fejl står nederst: at læse navigationen som en pris, og at give en
  * atlet en holdkammerats udmærkelse.
  */
-import { extractBioText, seasonChunks, harvestHonors } from "./scrape-honors";
+import { extractBioText, seasonChunks, harvestHonors, pageIsAboutAthlete } from "./scrape-honors";
 
 let passed = 0;
 let failed = 0;
@@ -51,6 +51,24 @@ eq(seasonChunks("Played at Kentucky 2018-22 before transferring.").map((c) => c.
    "«2018-22» er en studietid, ikke en sæson");
 eq(seasonChunks("SENIOR (2099-00) Vandt alt.").map((c) => c.season), [null, "2099-00"],
    "årtusindskiftet ruller korrekt (99 → 00)");
+
+// ── Årstal alene, som Cornell m.fl. skriver dem ────────────────────────────
+eq(seasonChunks("Biography 2025 I JUNIOR SEASON Did not compete. 2024 I SOPHOMORE SEASON All-Ivy.")
+     .map((c) => c.season),
+   [null, "2025", "2024"],
+   "«2024 I SOPHOMORE SEASON» er en sæson");
+eq(seasonChunks("REDSHIRT 2023 SEASON: sad ude.").map((c) => c.season), [null, "2023"],
+   "årstal + SEASON tæller, uanset ordstilling");
+eq(seasonChunks("Moved to England in 2020 and never looked back.").map((c) => c.season), [null],
+   "et årstal i almindelig prosa er IKKE en sæson");
+eq(seasonChunks("Played 2018-22 before transferring. 2024 FRESHMAN SEASON here.")
+     .map((c) => c.season),
+   [null, "2024"],
+   "studietiden ignoreres stadig, sæsonen fanges");
+eq(harvestHonors("2024 I SOPHOMORE SEASON Honorable mention All-Ivy League.")
+     .map((x) => `${x.award_name}/${x.season}`),
+   ["All-Conference/2024"],
+   "prisen får årstallet med");
 
 // ── Høsten ───────────────────────────────────────────────────────────────────
 const NCSTATE = `SOPHOMORE (2025-26) Earned All-America honors for the second consecutive season,
@@ -111,6 +129,22 @@ eq(harvestHonors("A two-time All-American with no seasons listed anywhere.")
      .map((x) => `${x.award_name}/${x.season ?? "-"}`),
    ["All-American/-"],
    "… men står den KUN uden årstal, beholdes den");
+
+// ── Identitet ───────────────────────────────────────────────────────────────
+// Den ægte sag: calbears.com svarede på Pippa Jamiesons adresse med en
+// linebackers side. En 404 havde været ufarlig; dette var det ikke.
+ok(pageIsAboutAthlete("<h1>Pippa Jamieson</h1> Women's Soccer", "Pippa Jamieson"),
+   "hendes egen side godkendes");
+ok(!pageIsAboutAthlete("<h1>Nick Antzoulatos</h1> Linebacker, Cal Football", "Pippa Jamieson"),
+   "en anden atlets side afvises");
+ok(pageIsAboutAthlete("<h1>Martha Jane Burgoyne Broderick</h1>", "Martha Broderick"),
+   "mellemnavne forhindrer ikke genkendelse");
+ok(pageIsAboutAthlete("<h1>MARIE ELINE MADSEN</h1>", "Marie Eline Madsen"),
+   "versaler betyder intet");
+ok(pageIsAboutAthlete("<h1>Zara Ali</h1> Athletics", "Zara Ali"),
+   "kort efternavn godkendes når fornavnet også står der");
+ok(!pageIsAboutAthlete("<h1>Jonas Alistair</h1> Swimming", "Zara Ali"),
+   "kort efternavn må ikke ramme et andet navn det tilfældigvis står inde i");
 
 console.log(`\n${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);
