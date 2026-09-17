@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-17 (honours harvested onto profiles; Bluesky at 55 min; sport-page D1 sync still awaiting approval)
+**Sidst opdateret**: 2026-09-17 (sportssiderne udgivet på begge sites; honours på 492 profiler; Bluesky på 55 min)
 
 ## 🏅 Profiles now carry honours — from the page we already fetch (2026-09-17)
 
@@ -111,6 +111,74 @@ landefilteret startede derfor en **rigtig skole-import mod produktions-D1** —
 den nåede at læse 1.749 CSV-rækker. Ingen skade skete (UPDATE bruger COALESCE,
 så opdagede websites og conferences er urørte, og det nye filter blokerede netop
 de tre canadiske). Alle tolv har nu vagten.
+
+> 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
+> med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
+> resterende trin. `ARKITEKTUR-motor.md` = de tre lag (kerne/sprog/land).
+
+> 🗄️ **Spørgsmål om databasen, kvoten eller «skal D1 ligge et andet sted»?**
+> `IDEA-datalag.md` = måling af hvor de 161 mio. daglige rækkelæsninger kommer
+> fra, vurdering af opsætningen, og hele mulighedsrummet lag for lag (læsesti ·
+> hvor basen bor · om der skal være en runtime-base · at skille arbejdsbyrderne
+> · anden platform). Læs den FØR du foreslår en migration til Turso, Neon eller
+> Postgres — konklusionen er at ingen af dem rører årsagen.
+
+## 🏟 Sportssiderne er udgivet (2026-09-17)
+
+**«They're approved, publish.»** 33 danske sider skrevet til D1, koden deployet,
+begge sites verificeret: akrobatik viser 52 og ikke 47, ingen dobbeltoverskrift,
+og cyklingens oktober- og december-mesterskaber står som forestående.
+
+**SQL'en fra 15. september ville have udgivet den forkerte tekst.** Den indeholdt
+teksterne som de så ud den dag, og korrekturen landede den 17. — så en kørsel
+ville have sendt præcis de fejl ud, som gennemlæsningen fandt. En gemt SQL-fil
+med læservendt tekst er en kopi, der bliver forældet i samme øjeblik kilden
+ændrer sig. Den genereres nu af `pipeline/report/generate-sport-sql.ts`, og den
+gamle fil er slettet.
+
+Før overskrivningen blev filens eget forbehold indfriet: alle 33 danske rækker
+var stadig byte-identiske med den gamle kode-default, så ingen håndrettelser gik
+tabt. Skrevet med bundne parametre, ikke citeret SQL.
+
+**To gennemlæsninger, ni fund, alle rigtige** — heraf tre af mine: link-målene
+som min docx-konvertering smed væk, de redaktionelle noter fra den håndlavede
+udkastfil, og min egen fejlagtige flytning af ultimate-afsnittet i første runde.
+
+### ⚠️ Afsnittet nedenfor blev væk og er genskabt
+
+Statusfilens sportsside-afsnit fra 15. september forsvandt, da arbejdet blev
+rebaset fra `fix/meta-token-canary-og-ig-polling` til main 17. september. Det er
+hentet tilbage fra commit 692a25a. Selve teksterne var aldrig i fare — de lå i
+commits hele tiden — men det er værd at vide, at en rebase kan tage
+ikke-committede statusnoter med sig.
+
+## 🏟 The sport pages now have a fixed skeleton (2026-09-15)
+
+All 66 pillar texts (33 sports × 2 languages) now carry the same seven sections:
+intro → the season → the format → **scholarships and squad size** →
+**conferences and independents** → **the road to pro** → worth knowing → sources.
+The three in bold were all but absent before: the scholarship model appeared on
+2 of 33 Danish pages, conferences on 12, the road to pro on 9, and guide links
+on 1. They are now on every page. Headings were cut from 22 variants to 7.
+
+Background, measurements and the two proposals on hold (a fact box, and a
+conference data block) are in **`IDEA-sportsider.md`**.
+
+✅ **Udgivet 17. september 2026** (var: «The Danish site shows none of this yet»). `resolveSportContent()` reads the
+D1 row over the code default, and all 33 Danish sport pages HAVE a published row
+in `pages(kind='sport', country='DK')`. Deploying therefore changes only the
+**UK** site, which has no rows. The sync is ready as
+`db/update-sport-pages-2026-09-15.sql` (33 UPDATEs, `content` + `updated_at`
+only) and has **not been run** — it is a production write of reader-facing text.
+Before that file was written it was verified that all 33 D1 rows were
+byte-identical to the old code default, so no hand-edits are lost; the file was
+then dry-run against a copy of the real rows with 0 mismatches.
+
+Facts were verified against primary sources, not written from memory. The
+load-bearing point is that the House settlement's squad limits apply **only** to
+the Division I schools that opted in — everyone else continues under the old
+scholarship caps, Division II on equivalency, Division III with no athletic
+scholarships at all.
 
 > 📘 **Nyt land på vej?** `PLAYBOOK-nyt-land.md` = bindende rækkefølge, fælder
 > med symptomer, verifikationskommandoer. `SETUP-uk-launch.md` = UK's egne
