@@ -6,6 +6,7 @@ import { ALL_CHANNELS, cardReadyClause, distributionAllowed, profileAllowsDistri
 import { bluesky, blueskyUk, buildBlueskyRecord } from "./channels/bluesky";
 import { facebook } from "./channels/facebook";
 import { instagram, interpretContainerStatus, isContainerNotReadyError } from "./channels/instagram";
+import { scopesNotGrantedForTarget } from "./check-tokens";
 import {
   DEFAULT_PACING,
   BLUESKY_PACING,
@@ -509,4 +510,41 @@ expect(
   "teksten alene udløser ikke en genprøve",
   isContainerNotReadyError('{"error":{"message":"Media ID is not available","code":100}}'),
   false,
+);
+
+// ── «Rettigheden er givet» ≠ «rettigheden gælder her» (17. september) ────────
+// Tjekket meldte grønt — pages_manage_posts stod i scopes — og Facebook afviste
+// stadig opslaget med (#200). Metas granulære samtykker knytter hver rettighed
+// til bestemte sider, og scopes-listen viser ikke hvilke.
+const granular = [
+  { scope: "pages_manage_posts", targetIds: ["111"] },
+  { scope: "pages_read_engagement", targetIds: ["111", "222"] },
+];
+expect(
+  "samtykket gælder siden → intet problem",
+  scopesNotGrantedForTarget(["pages_manage_posts"], granular, "111").length,
+  0,
+);
+expect(
+  "samtykket peger på en anden side → fanget",
+  scopesNotGrantedForTarget(["pages_manage_posts"], granular, "222").join(","),
+  "pages_manage_posts",
+);
+expect(
+  "flere sider på ét samtykke tæller alle med",
+  scopesNotGrantedForTarget(["pages_read_engagement"], granular, "222").length,
+  0,
+);
+// Fravær af en begrænsning er ikke en begrænsning: har en rettighed ingen
+// granulær post, er den ikke afgrænset til nogen side.
+expect(
+  "rettighed uden granulær post er ikke afgrænset",
+  scopesNotGrantedForTarget(["instagram_basic"], granular, "111").length,
+  0,
+);
+expect("tomt granulært svar afgrænser intet", scopesNotGrantedForTarget(["pages_manage_posts"], [], "111").length, 0);
+expect(
+  "tom target-liste afgrænser heller ikke",
+  scopesNotGrantedForTarget(["x"], [{ scope: "x", targetIds: [] }], "111").length,
+  0,
 );
