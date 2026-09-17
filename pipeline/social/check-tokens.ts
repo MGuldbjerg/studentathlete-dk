@@ -55,6 +55,19 @@ interface TokenDebug {
   /** Sekunder siden epoch. 0 betyder «udløber aldrig» hos Meta. */
   expiresAt: number | null;
   isValid: boolean;
+  /** USER eller PAGE. Et USER-token kan bære alle rettigheder og alligevel ikke poste SOM siden. */
+  type: string | null;
+  /** Hvem tokenet ER. For et page-token: sidens id. */
+  profileId: string | null;
+  /**
+   * Hvilke SIDER hver rettighed gælder for.
+   *
+   * `scopes` siger at rettigheden er givet — ikke hvor. Siden Metas granulære
+   * samtykker kan en administrator give `pages_manage_posts` for side A og ikke
+   * for side B, og så står rettigheden i `scopes` mens opslaget på side B
+   * afvises med præcis den samme `(#200)`.
+   */
+  granularScopes: { scope: string; targetIds: string[] }[];
   error: string | null;
 }
 
@@ -66,14 +79,29 @@ interface TokenDebug {
  * troværdigt beskrive sig selv.
  */
 async function debugToken(input: string, appId: string, appSecret: string): Promise<TokenDebug> {
-  const empty: TokenDebug = { scopes: [], expiresAt: null, isValid: false, error: null };
+  const empty: TokenDebug = {
+    scopes: [],
+    expiresAt: null,
+    isValid: false,
+    type: null,
+    profileId: null,
+    granularScopes: [],
+    error: null,
+  };
   try {
     const url =
       `${GRAPH}/debug_token?input_token=${encodeURIComponent(input)}` +
       `&access_token=${encodeURIComponent(`${appId}|${appSecret}`)}`;
     const res = await fetch(url);
     const body = (await res.json()) as {
-      data?: { scopes?: string[]; expires_at?: number; is_valid?: boolean };
+      data?: {
+        scopes?: string[];
+        expires_at?: number;
+        is_valid?: boolean;
+        type?: string;
+        profile_id?: string;
+        granular_scopes?: { scope?: string; target_ids?: string[] }[];
+      };
       error?: { message?: string };
     };
     if (!res.ok || body.error) {
@@ -83,6 +111,12 @@ async function debugToken(input: string, appId: string, appSecret: string): Prom
       scopes: body.data?.scopes ?? [],
       expiresAt: body.data?.expires_at ?? null,
       isValid: Boolean(body.data?.is_valid),
+      type: body.data?.type ?? null,
+      profileId: body.data?.profile_id ?? null,
+      granularScopes: (body.data?.granular_scopes ?? []).map((g) => ({
+        scope: g.scope ?? "",
+        targetIds: g.target_ids ?? [],
+      })),
       error: null,
     };
   } catch (err) {
@@ -103,6 +137,29 @@ async function probe(url: string, token: string): Promise<string | null> {
   }
 }
 
+/**
+ * Hvilke af de krævede rettigheder gælder IKKE for denne side?
+ *
+ * Skrevet 17. september, efter at tjekket meldte grønt og Facebook stadig
+ * afviste opslaget med `(#200)`. «Rettigheden er givet» og «rettigheden gælder
+ * her» er to forskellige ting: Metas granulære samtykker knytter hver
+ * rettighed til bestemte sider, og `scopes` viser kun det første.
+ *
+ * Har en rettighed ingen granulær post, er den ikke afgrænset — så tæller den
+ * som gældende. Fravær af en begrænsning er ikke en begrænsning.
+ */
+export function scopesNotGrantedForTarget(
+  required: string[],
+  granularScopes: { scope: string; targetIds: string[] }[],
+  targetId: string,
+): string[] {
+  return required.filter((scope) => {
+    const granular = granularScopes.find((g) => g.scope === scope);
+    if (!granular || granular.targetIds.length === 0) return false;
+    return !granular.targetIds.includes(targetId);
+  });
+}
+
 function daysUntil(epochSeconds: number): number {
   return Math.round((epochSeconds * 1000 - Date.now()) / 86_400_000);
 }
@@ -113,7 +170,7 @@ function daysUntil(epochSeconds: number): number {
  * Svarer `/debug_token` slet ikke, siger vi det og lader være med at gætte —
  * en manglende oplysning er ikke det samme som en manglende rettighed.
  */
-function judgeToken(account: string, required: string[], debug: TokenDebug): Problem[] {
+function judgeToken(account: string, required: string[], debug: TokenDebug, pageId?: string): Problem[] {
   const problems: Problem[] = [];
   if (debug.error) {
     console.log(`  ${account}: /debug_token svarede ikke (${debug.error}) — scopes ukendte`);
@@ -122,6 +179,26 @@ function judgeToken(account: string, required: string[], debug: TokenDebug): Pro
   if (!debug.isValid) {
     problems.push({ label: `${account}: tokenet er ugyldigt`, detail: "debug_token: is_valid = false" });
     return problems;
+  }
+
+  console.log(`  ${account}: tokentype ${debug.type ?? "ukendt"}`);
+
+  // ER det et page-token? Et USER-token kan bære hver eneste rettighed og
+  // alligevel ikke poste SOM siden — Meta svarer med nøjagtig samme `(#200)`,
+  // og fejlteksten nævner ikke med ét ord at typen er problemet.
+  if (pageId && debug.type && debug.type !== "PAGE") {
+    problems.push({
+      label: `${account}: tokenet er et ${debug.type}-token, ikke et PAGE-token`,
+      detail:
+        "Et user token kan ikke poste som siden, uanset hvilke scopes det har. " +
+        "Byt det til et page access token: GET /me/accounts med en langtids user token.",
+    });
+  }
+  if (pageId && debug.profileId && debug.profileId !== pageId) {
+    problems.push({
+      label: `${account}: tokenet hører til en ANDEN side`,
+      detail: `debug_token.profile_id matcher ikke FB_PAGE_ID. Tokenet er mintet for den forkerte side.`,
+    });
   }
 
   const missing = required.filter((s) => !debug.scopes.includes(s));
@@ -134,6 +211,22 @@ function judgeToken(account: string, required: string[], debug: TokenDebug): Pro
     });
   } else {
     console.log(`  ${account}: alle krævede scopes til stede (${required.join(", ")})`);
+  }
+
+  // …men gælder de HER? Se scopesNotGrantedForTarget: et samtykke kan være
+  // givet for én side og ikke for en anden, og `scopes` skelner ikke.
+  if (pageId) {
+    const elsewhere = scopesNotGrantedForTarget(required, debug.granularScopes, pageId);
+    if (elsewhere.length > 0) {
+      problems.push({
+        label: `${account}: ${elsewhere.join(", ")} er givet, men IKKE for denne side`,
+        detail:
+          "Rettigheden står i scopes, men Metas granulære samtykke peger på andre sider. " +
+          "Kør OAuth-flowet igennem igen og vælg SIDEN til i dialogen — det er dét trin der springes over.",
+      });
+    } else if (debug.granularScopes.length > 0) {
+      console.log(`  ${account}: de granulære samtykker dækker denne side ✓`);
+    }
   }
 
   // Udløb. 0 = udløber aldrig, hvilket er dét et page-token afledt af en
@@ -165,13 +258,22 @@ async function checkAccount(
   fields: string,
   required: string[],
   app: { id: string; secret: string } | null,
+  /**
+   * Sidens id, når tokenet skal poste SOM en side. Kun da giver «er det et
+   * page-token, og gælder samtykket denne side?» mening. Instagram-tokenet
+   * hører til siden, men kontoen vi slår op er IG-brugeren, så det id ville
+   * aldrig matche — derfor er feltet valgfrit og udelades der.
+   */
+  pageId?: string,
 ): Promise<Problem[]> {
   console.log(`${account}:`);
   const problems: Problem[] = [];
   const err = await probe(`${GRAPH}/${id}?fields=${fields}`, token);
   if (err) problems.push({ label: `${account}: kontoen kunne ikke læses`, detail: err });
   else console.log("  kontoen kan læses ✓");
-  if (app) problems.push(...judgeToken(account, required, await debugToken(token, app.id, app.secret)));
+  if (app) {
+    problems.push(...judgeToken(account, required, await debugToken(token, app.id, app.secret), pageId));
+  }
   return problems;
 }
 
@@ -201,6 +303,7 @@ async function main(): Promise<void> {
         "name,category",
         ["pages_manage_posts", "pages_read_engagement"],
         app,
+        process.env.FB_PAGE_ID,
       )),
     );
   } else {
