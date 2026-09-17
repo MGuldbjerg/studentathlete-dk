@@ -224,6 +224,30 @@ function parseArgs(): {
 /** Samme vært-gruppering som handle-høsten: seks skoler ad gangen, én atlet ad gangen pr. skole. */
 const HOST_CONCURRENCY = 6;
 
+/**
+ * Rendering foregår i ÉN bane, uanset hvor mange hentnings-arbejdere der er.
+ *
+ * Første forsøg lod alle seks arbejdere rendere samtidig, og Cloudflare svarede
+ * 2001 «Rate limit exceeded» efter ni sider — gratis-planen tillader omkring tre
+ * browsere i minuttet. Det blev læst som "kvoten er brugt" og stoppede
+ * renderingen for resten af kørslen. Grænsen var altså ikke dagskvoten, men
+ * hastigheden: én ad gangen med luft imellem kommer meget længere end seks på én
+ * gang.
+ */
+const RENDER_SPACING_MS = 21000;
+let renderLane: Promise<unknown> = Promise.resolve();
+
+function queueRender(url: string): Promise<string | null> {
+  const run = renderLane.then(async () => {
+    const html = await renderPage(url, { waitUntil: "networkidle2" });
+    await new Promise((r) => setTimeout(r, RENDER_SPACING_MS));
+    return html;
+  });
+  // Banen må ikke knække på en fejl: næste render skal stadig kunne stille sig i kø.
+  renderLane = run.catch(() => null);
+  return run;
+}
+
 async function main(): Promise<void> {
   const { limit, dryRun, country, renderBudget } = parseArgs();
   const db: D1Client = createD1Client();
@@ -302,13 +326,16 @@ async function main(): Promise<void> {
         // med vilje: vi render KUN når almindelig fetch har fejlet, og kun på
         // sider vi genkender som klientrenderede.
         if (!bio && renderLeft > 0 && !renderQuotaGone && needsRendering(html)) {
+          // Budgettet trækkes FØR renderingen, ikke efter. Seks arbejdere når
+          // ellers alle at se "der er budget tilbage", inden den første har
+          // brugt noget: en prøvekørsel med budget 8 lavede 13 renderinger.
+          renderLeft--;
           try {
             // INGEN waitForSelector: den nye Sidearm bruger ikke de gamle
             // id'er, så en ventetid på dem løber 45 sekunder ud og koster
             // browser-tid uden at give noget. networkidle2 returnerer siden som
-            // den er hydreret.
-            const full = await renderPage(athlete.bio_url, { waitUntil: "networkidle2" });
-            renderLeft--;
+            // den er hydreret. Køen sikrer én render ad gangen.
+            const full = await queueRender(athlete.bio_url);
             // Samme vagt igen: renderingen er dét kald der faktisk returnerede
             // en fremmed atlets side.
             if (full && pageIsAboutAthlete(full, athlete.name)) {
