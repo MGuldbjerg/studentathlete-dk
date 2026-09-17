@@ -1,22 +1,16 @@
--- Sport pillar texts: sync D1 with the new code defaults (2026-09-15).
+-- Sportssidernes pillar-tekster → D1 (genereret 2026-09-17).
 --
--- WHY THIS FILE EXISTS. `resolveSportContent()` reads the D1 row over the code
--- default (`pillar: db.content || base.pillar`). All 33 Danish sport pages HAVE
--- a published row in `pages(kind='sport', country='DK')`, seeded from the old
--- code default. Deploying the new texts therefore changes NOTHING on the Danish
--- site — only the UK site, which has no rows at all.
+-- Genereret af pipeline/report/generate-sport-sql.ts fra src/lib/sport-content.ts.
+-- Skriv den ikke i hånden: så kan den nå at blive forældet i forhold til teksterne.
 --
--- CHECKED BEFORE WRITING THIS FILE: all 33 rows were byte-identical to the old
--- code default (git HEAD 132159e), so there are no hand-edits to lose. Repeat
--- that check if this file is run later than 2026-09-15.
+-- `resolveSportContent()` læser D1-rækken FØR kode-defaulten, så de danske
+-- sider viser det her. UK har ingen rækker og skal ikke have nogen.
 --
--- This is a PRODUCTION WRITE of reader-facing text. Run it only after Mikkel
--- has approved it:
---   npx wrangler d1 execute studentathlete-dk --remote --file db/update-sport-pages-2026-09-15.sql
+-- PRODUKTIONSSKRIVNING af læservendt tekst. Kør først når Mikkel har godkendt:
+--   npx wrangler d1 execute studentathlete-dk --remote --file db/update-sport-pages.sql
 --
--- Only `content` and `updated_at` are touched. Title, meta, published, kind and
--- category are left alone. The UK has no rows and needs none: there the code
--- default wins, as it should.
+-- Tjek før kørsel, at rækkerne ikke er håndredigeret siden sidst — ellers
+-- overskriver den her nogens rettelser.
 
 UPDATE pages SET content = '## Dansk football i NCAA
 
@@ -59,7 +53,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 - [CBS Sports. (2025). NCAA removes scholarship limits, aligns with House settlement as roster sizes evolve.](https://www.cbssports.com/college-football/news/ncaa-removes-scholarship-limits-aligns-with-house-settlement-as-roster-sizes-evolve-in-new-college-sports-era/)
 - [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)
-- [Pro Football Hall of Fame. (2017). Morten Andersen.](https://www.profootballhof.com/players/morten-andersen)', updated_at = datetime('now')
+- [Pro Football Hall of Fame. (2017). Morten Andersen.](https://www.profootballhof.com/players/morten-andersen)',
+       updated_at = datetime('now')
  WHERE slug = 'football' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk basketball i NCAA
@@ -103,7 +98,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (2026, 7. maj). NCAA basketball tournaments expanding to 76 teams: What to know.](https://www.ncaa.org/sports/2026/5/7/ncaa-basketball-tournaments-expanding-to-76-teams-what-to-know.aspx)
 - [NCAA. (2026, 7. maj). How the 2027 expanded NCAA tournament and March Madness brackets will work.](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)
 - [Women''s Basketball Hall of Fame. (2012). Inge Nissen.](https://wbhof.com/member/inge-nissen/)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
  WHERE slug = 'basketball' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk baseball i NCAA
@@ -144,7 +140,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/news/2025/6/23/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits.aspx)
 - [NCSA. (2025). New NCAA scholarship and roster limits for 2025-26.](https://www.ncsasports.org/blog/ncaa-scholarship-roster-limits-2024)
 
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
+',
+       updated_at = datetime('now')
  WHERE slug = 'baseball' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk fodbold i NCAA (soccer)
@@ -189,48 +187,9 @@ Skifter man undervejs, foregår det gennem [transfer-portalen](/viden/transfer-p
 - [NCAA. (n.d.). Road to the championship: Men''s soccer (College Cup).](https://www.ncaa.com/championships/soccer-men/d1/road-to-the-championship)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 - [Major League Soccer. (2025). 2026 MLS SuperDraft rules and regulations.](https://www.mlssoccer.com/news/2026-mls-superdraft-rules-and-regulations)
-- [NWSL Players Association. (2024, 22. august). NWSL players announce groundbreaking CBA, first American league to eliminate the draft.](https://www.nwslplayers.com/news/nwsl-players-announce-groundbreaking-cba,-first-american-league-to-eliminate-the-draft-)', updated_at = datetime('now')
+- [NWSL Players Association. (2024, 22. august). NWSL players announce groundbreaking CBA, first American league to eliminate the draft.](https://www.nwslplayers.com/news/nwsl-players-announce-groundbreaking-cba,-first-american-league-to-eliminate-the-draft-)',
+       updated_at = datetime('now')
  WHERE slug = 'fodbold' AND country = 'DK' AND kind = 'sport';
-
-UPDATE pages SET content = '## Dansk svømning i NCAA
-
-Danmark har en stærk svømmetradition, og NCAA tilbyder en unik mulighed for danske svømmere til at kombinere sport på højt niveau med en amerikansk universitetsuddannelse. Flere danske svømmere har opnået imponerende resultater i college-regi.
-
-### Sæsonens gang
-
-College-svømning løber fra oktober til marts, med conference-mesterskaberne i februar og NCAA Championships i marts som sæsonens højdepunkt. Træningen er intensiv — op til 20 timer om ugen i vandet plus styrketræning. Den lange opbygning er tilrettelagt med "tapering", så svømmerne topper præcis til mesterskaberne.
-
-### Formatet
-
-I et "dual meet" møder to skoler hinanden, og selvom hver svømmer kæmper individuelt, er det holdets samlede pointsum, der afgør sejren. I hver disciplin tildeles point efter placering — for eksempel 9 point for førstepladsen, derefter 4, 3, 2 og 1 til de næste — og stafetterne giver dobbelt op. Et hold kan altså vinde stævnet uden at have den hurtigste enkeltsvømmer, hvis bredden er stor nok. Udspring tæller med i den samlede score på lige fod med svømningen. Til de store mesterskaber stiller mange hold op samtidig, og pointene lægges sammen på tværs af alle discipliner.
-
-### Stipendier og trupstørrelse
-
-Svømning er en af de sportsgrene, hvor House-forliget gjorde mest ondt. For de Division I-skoler, der tilsluttede sig, er de gamle stipendielofter afskaffet og erstattet af et **truploft på 30 svømmere og udspringere tilsammen** — og det er et lille tal for en sport, hvor et program skal dække alle fire svømmearter, alle distancer, stafetter og udspring. Mange amerikanske hold havde rosters langt over 30 og har skullet skære. Til gengæld må skolen give stipendium til alle 30, hvor den før skulle dele en begrænset pulje ud.
-
-Uden for forligets skoler og i Division II gælder equivalency-modellen som hidtil: én samlet pulje delt ud i brøkdele, så et fuldt stipendium er sjældent, og de fleste svømmere har en blanding af idrætsstøtte, akademiske legater og egenbetaling. Division III giver ingen idrætsstipendier. Se [divisionerne](/viden/ncaa-divisioner).
-
-### Conferences og independents
-
-Conferencen sætter hverdagen i svømning — dual meets hen over efteråret og conference-mesterskabet i februar, som for de fleste svømmere er årets vigtigste stævne. Men adgangen til NCAA Championships går **ikke** gennem conferencen: den går gennem **tider**. Man svømmer sig ind ved at ramme et kvalifikationskrav, og de hurtigste i landet inviteres. Det er den samme individuelle logik som i atletikken, og den har en vigtig konsekvens for en dansk svømmer: man kan nå et nationalt amerikansk mesterskab fra et program, der ikke er blandt landets bedste, hvis uret siger god for det.
-
-Fordi svømning kræver et 50-meters- eller 25-yards-anlæg, er programmerne dyre at drive, og flere universiteter har nedlagt deres hold gennem årene. Det er værd at spørge ind til programmets økonomi, inden man takker ja.
-
-### Vejen til prof
-
-Der er ingen draft og ingen stor professionel svømmeliga at gå til. Vejen videre er landsholdet: DM, internationale stævner, EM, VM og OL. Til gengæld er NCAA i praksis verdens tætteste konkurrencemiljø for svømmere i den aldersgruppe, og mange nationers olympiske svømmere er udviklet i amerikanske college-programmer. For en dansk svømmer er regnestykket ofte enkelt: fire år med to daglige træninger, fysisk træner, fysioterapeut og et hold omkring sig — og en uddannelse ved siden af.
-
-### Tidbits
-
-En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-yards-bassin ("short course yards"), ikke de 50 meter, man kender hjemmefra — så tiderne kan ikke sammenlignes direkte. De fleste stævner afvikles med indledende heat om morgenen og finaler om aftenen. Den danske svømmeskoles fokus på teknik og udholdenhed forbereder atleterne godt, og flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships. North Carolina State har været et samlingspunkt for danske svømmere: distancesvømmeren Anton Ipsen markerede sig blandt USA''s bedste, og Søren Dahl vandt to NCAA-titler med skolens stafetter i 2016 og 2017.
-
-Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer-portal); se også [redshirt og eligibility-år](/viden/redshirt-og-eligibility).
-
-### Kilder
-
-- [NCAA. (n.d.). NCAA Division I men''s swimming & diving.](https://www.ncaa.com/sports/swimming-men/d1)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
- WHERE slug = 'svoemning' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk atletik i NCAA (track & field)
 
@@ -270,8 +229,50 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (n.d.). NCAA Division I men''s outdoor track and field.](https://www.ncaa.com/sports/track-field-outdoor-men/d1)
 - [NCAA. (n.d.). NCAA Division I men''s cross country.](https://www.ncaa.com/sports/cross-country-men/d1)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
  WHERE slug = 'atletik' AND country = 'DK' AND kind = 'sport';
+
+UPDATE pages SET content = '## Dansk svømning i NCAA
+
+Danmark har en stærk svømmetradition, og NCAA tilbyder en unik mulighed for danske svømmere til at kombinere sport på højt niveau med en amerikansk universitetsuddannelse. Flere danske svømmere har opnået imponerende resultater i college-regi.
+
+### Sæsonens gang
+
+College-svømning løber fra oktober til marts, med conference-mesterskaberne i februar og NCAA Championships i marts som sæsonens højdepunkt. Træningen er intensiv — op til 20 timer om ugen i vandet plus styrketræning. Den lange opbygning er tilrettelagt med "tapering", så svømmerne topper præcis til mesterskaberne.
+
+### Formatet
+
+I et "dual meet" møder to skoler hinanden, og selvom hver svømmer kæmper individuelt, er det holdets samlede pointsum, der afgør sejren. I hver disciplin tildeles point efter placering — for eksempel 9 point for førstepladsen, derefter 4, 3, 2 og 1 til de næste — og stafetterne giver dobbelt op. Et hold kan altså vinde stævnet uden at have den hurtigste enkeltsvømmer, hvis bredden er stor nok. Udspring tæller med i den samlede score på lige fod med svømningen. Til de store mesterskaber stiller mange hold op samtidig, og pointene lægges sammen på tværs af alle discipliner.
+
+### Stipendier og trupstørrelse
+
+Svømning er en af de sportsgrene, hvor House-forliget gjorde mest ondt. For de Division I-skoler, der tilsluttede sig, er de gamle stipendielofter afskaffet og erstattet af et **truploft på 30 svømmere og udspringere tilsammen** — og det er et lille tal for en sport, hvor et program skal dække alle fire svømmearter, alle distancer, stafetter og udspring. Mange amerikanske hold havde rosters langt over 30 og har skullet skære. Til gengæld må skolen give stipendium til alle 30, hvor den før skulle dele en begrænset pulje ud.
+
+Uden for forligets skoler og i Division II gælder equivalency-modellen som hidtil: én samlet pulje delt ud i brøkdele, så et fuldt stipendium er sjældent, og de fleste svømmere har en blanding af idrætsstøtte, akademiske legater og egenbetaling. Division III giver ingen idrætsstipendier. Se [divisionerne](/viden/ncaa-divisioner).
+
+### Conferences og independents
+
+Conferencen sætter hverdagen i svømning — dual meets hen over efteråret og conference-mesterskabet i februar, som for de fleste svømmere er årets vigtigste stævne. Men adgangen til NCAA Championships går **ikke** gennem conferencen: den går gennem **tider**. Man svømmer sig ind ved at ramme et kvalifikationskrav, og de hurtigste i landet inviteres. Det er den samme individuelle logik som i atletikken, og den har en vigtig konsekvens for en dansk svømmer: man kan nå et nationalt amerikansk mesterskab fra et program, der ikke er blandt landets bedste, hvis uret siger god for det.
+
+Fordi svømning kræver et 50-meters- eller 25-yards-anlæg, er programmerne dyre at drive, og flere universiteter har nedlagt deres hold gennem årene. Det er værd at spørge ind til programmets økonomi, inden man takker ja.
+
+### Vejen til prof
+
+Der er ingen draft og ingen stor professionel svømmeliga at gå til. Vejen videre er landsholdet: DM, internationale stævner, EM, VM og OL. Til gengæld er NCAA i praksis verdens tætteste konkurrencemiljø for svømmere i den aldersgruppe, og mange nationers olympiske svømmere er udviklet i amerikanske college-programmer. For en dansk svømmer er regnestykket ofte enkelt: fire år med to daglige træninger, fysisk træner, fysioterapeut og et hold omkring sig — og en uddannelse ved siden af.
+
+### Tidbits
+
+En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-yards-bassin ("short course yards"), ikke de 50 meter, man kender hjemmefra — så tiderne kan ikke sammenlignes direkte. De fleste stævner afvikles med indledende heat om morgenen og finaler om aftenen. Den danske svømmeskoles fokus på teknik og udholdenhed forbereder atleterne godt, og flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships. North Carolina State har været et samlingspunkt for danske svømmere: distancesvømmeren Anton Ipsen markerede sig blandt USA''s bedste, og Søren Dahl vandt to NCAA-titler med skolens stafetter i 2016 og 2017.
+
+Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer-portal); se også [redshirt og eligibility-år](/viden/redshirt-og-eligibility).
+
+### Kilder
+
+- [NCAA. (n.d.). NCAA Division I men''s swimming & diving.](https://www.ncaa.com/sports/swimming-men/d1)
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
+ WHERE slug = 'svoemning' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk golf i NCAA
 
@@ -314,7 +315,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (n.d.). NCAA Division I men''s golf.](https://www.ncaa.com/sports/golf-men/d1)
 - [NCAA. (n.d.). DI men''s golf championship history.](https://www.ncaa.com/history/golf-men/d1)
 - [PGA TOUR. (n.d.). How it works: PGA TOUR University Ranking.](https://www.pgatour.com/article/news/how-it-works/pga-tour-university-ranking-criteria-points-eligibility-benefits-status)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
  WHERE slug = 'golf' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk tennis i NCAA
@@ -357,7 +359,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2015, 13. august). Division I tennis championships move to no-ad scoring.](https://www.ncaa.com/news/tennis-men/article/2015-08-13/division-i-tennis-championships-move-no-ad-scoring)
 - [Intercollegiate Tennis Association. (2025, 14. juli). 2025-2026 ITA rule modifications, changes and clarifications.](https://wearecollegetennis.com/2025/07/14/2025-2026-ita-rule-modifications-changes-and-clarifications/)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
  WHERE slug = 'tennis' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk roning i NCAA
@@ -399,7 +402,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (n.d.). NCAA Division I women''s rowing.](https://www.ncaa.com/sports/rowing-women/d1)
 - [California Golden Bears Athletics. (2017, 1. februar). Inside the lair: Danish rower makes immediate impact in Berkeley.](https://calbears.com/news/2017/2/1/inside-the-lair-danish-rower-makes-immediate-impact-in-berkeley.aspx)
 - [Intercollegiate Rowing Association. (n.d.). Compliance.](https://www.irarowing.com/compliance)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
  WHERE slug = 'roning' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk gymnastik i NCAA
@@ -439,7 +443,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (n.d.). NCAA Division I women''s gymnastics.](https://www.ncaa.com/sports/gymnastics-women/d1)
 
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
+',
+       updated_at = datetime('now')
  WHERE slug = 'gymnastik' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk ishockey i NCAA
@@ -483,7 +489,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NHL.com. (2024, 7. november). CHL players to be eligible to play NCAA hockey beginning in 2025-26.](https://www.nhl.com/news/chl-players-to-be-eligible-to-play-ncaa-hockey-beginning-in-2025-26)
 - [College Hockey Inc. (2024, november). NCAA DI Council votes to make CHL players eligible.](https://www.collegehockeyinc.com/2024/11/breaking-ncaa-di-council-votes-to-make-chl-players-eligible/)
 
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
+',
+       updated_at = datetime('now')
  WHERE slug = 'ishockey' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Dansk volleyball i NCAA
@@ -524,7 +532,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (n.d.). NCAA Division I women''s volleyball.](https://www.ncaa.com/sports/volleyball-women/d1)
 
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
+',
+       updated_at = datetime('now')
  WHERE slug = 'volleyball' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Field hockey i NCAA
@@ -568,7 +578,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (n.d.). Division I field hockey.](https://www.ncaa.org/championship/division-i/field-hockey/)
 - [USA Field Hockey. (2025, August 25). 2025 NCAA field hockey season preview: Division I.](https://www.usafieldhockey.com/news/2025/august/25/2025-ncaa-field-hockey-season-preview-division-i)
 - [ScholarshipStats.com. (n.d.). Field hockey scholarships.](https://scholarshipstats.com/fieldhockey)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
  WHERE slug = 'field-hockey' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Rugby i amerikansk college-sport
@@ -613,7 +624,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [ScholarshipStats.com. (n.d.). Rugby scholarships and college varsity teams.](https://scholarshipstats.com/rugby)
 - [The Rugby Breakdown. (n.d.). Tracking: NCAA varsity programs.](https://therugbybreakdown.com/tracking-ncaa-varsity-programs/)
 - [National Collegiate Rugby. (2026). NCR partners with the All Women''s Sports Network for the 2026 National 7s Championships.](https://www.ncr.rugby/news/national-collegiate-rugby-partners-with-the-all-womens-sports-network-for-global-broadcast-of-2026-national-7s-championships/)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)',
+       updated_at = datetime('now')
  WHERE slug = 'rugby' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Vandpolo i NCAA
@@ -651,7 +663,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [ScholarshipStats.com. (n.d.). Water polo scholarships.](https://scholarshipstats.com/waterpolo)
 - [Collegiate Water Polo Association. (n.d.). NCAA announces sites of the 2026-2028 men''s and women''s water polo championships.](https://collegiatewaterpolo.org/national-collegiate-athletic-association-announces-sites-of-2026-to-2028-national-collegiate-athletic-association-mens-womens-water-polo-championships/)
 - [NCAA.com. (2026, April 13). 2026 National Collegiate women''s water polo championship selections.](https://www.ncaa.com/news/waterpolo-women/article/2026-04-13/2026-national-collegiate-womens-water-polo-championship-selections)
-- [NCAA. (n.d.). National Collegiate men''s water polo.](https://www.ncaa.org/championship/national-collegiate/mens-water-polo/)', updated_at = datetime('now')
+- [NCAA. (n.d.). National Collegiate men''s water polo.](https://www.ncaa.org/championship/national-collegiate/mens-water-polo/)',
+       updated_at = datetime('now')
  WHERE slug = 'vandpolo' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Fægtning i NCAA
@@ -693,7 +706,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA.com. (2026, March 10). NCAA men''s and women''s fencing committee selects championships participants.](https://www.ncaa.com/news/fencing/article/2026-03-10/ncaa-mens-and-womens-fencing-committee-selects-championships-participants)
 - [NCAA.com. (2026, March 3). Notre Dame wins the 2026 NC men''s and women''s fencing championships.](https://www.ncaa.com/news/fencing/article/2026-03-03/notre-dame-wins-2026-nc-mens-and-womens-fencing-championships)
 
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
+',
+       updated_at = datetime('now')
  WHERE slug = 'faegtning' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Squash i amerikansk college-sport
@@ -732,7 +747,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [College Squash Association. (n.d.). College squash recruiting FAQ.](https://csasquash.com/college-squash-recruiting-faq-2/)
 - [College Squash Association. (2026). 2026 CSA national team championships.](https://csasquash.com/2026-national-team-championship/)
-- [ScholarshipStats.com. (n.d.). Colleges with varsity squash teams.](https://scholarshipstats.com/squash)', updated_at = datetime('now')
+- [ScholarshipStats.com. (n.d.). Colleges with varsity squash teams.](https://scholarshipstats.com/squash)',
+       updated_at = datetime('now')
  WHERE slug = 'squash' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Esport i amerikansk college-sport
@@ -769,7 +785,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [National Esports Collegiate Conference. (2026). NECC announces 2026-2027 competition calendar.](https://necc.gg/blogs/news/necc-announces-2026-2027-competition-calendar)
 - [Esports Insider. (2026). Esports scholarships in 2026: How gaming can put you through school.](https://esportsinsider.com/esports-scholarships)
-- [Liquipedia. (2026). Collegiate League of Legends 2026 championship.](https://liquipedia.net/leagueoflegends/CLOL/2026/Championship)', updated_at = datetime('now')
+- [Liquipedia. (2026). Collegiate League of Legends 2026 championship.](https://liquipedia.net/leagueoflegends/CLOL/2026/Championship)',
+       updated_at = datetime('now')
  WHERE slug = 'esport' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Lacrosse i NCAA
@@ -806,7 +823,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [ScholarshipStats.com. (n.d.). Lacrosse scholarships and college programs.](https://scholarshipstats.com/lacrosse)
 - [NCAA.com. (2026, May 3). NCAA Division I women''s lacrosse championship subcommittee announces 2026 field.](https://www.ncaa.com/news/lacrosse-women/article/2026-05-03/ncaa-division-i-womens-lacrosse-championship-subcommittee-announces-2026-field)
-- [USA Lacrosse. (2026). NCAA 2026 preview: Your guide to the college lacrosse season.](https://www.usalacrosse.com/magazine/college/ncaa-2026-preview-your-guide-college-lacrosse-season)', updated_at = datetime('now')
+- [USA Lacrosse. (2026). NCAA 2026 preview: Your guide to the college lacrosse season.](https://www.usalacrosse.com/magazine/college/ncaa-2026-preview-your-guide-college-lacrosse-season)',
+       updated_at = datetime('now')
  WHERE slug = 'lacrosse' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Softball i NCAA
@@ -842,7 +860,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 ### Kilder
 
 - [ScholarshipStats.com. (n.d.). Softball scholarships and college programs.](https://scholarshipstats.com/softball)
-- [NCAA.com. (2026, June 4). Texas wins the 2026 NCAA DI softball championship.](https://www.ncaa.com/news/softball/article/2026-06-04/2026-ncaa-softball-tournament-bracket-schedule-womens-college-world-series-scores)', updated_at = datetime('now')
+- [NCAA.com. (2026, June 4). Texas wins the 2026 NCAA DI softball championship.](https://www.ncaa.com/news/softball/article/2026-06-04/2026-ncaa-softball-tournament-bracket-schedule-womens-college-world-series-scores)',
+       updated_at = datetime('now')
  WHERE slug = 'softball' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Brydning i NCAA
@@ -879,7 +898,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2026, March 4). NCAA''s first women''s wrestling championships: What to know.](https://www.ncaa.org/media-center-ncaas-first-womens-wrestling-championships-what-to-know/)
 - [NCAA.com. (2026, March 7). McKendree clinches the 2026 NC women''s wrestling championship.](https://www.ncaa.com/news/wrestling-women/article/2026-03-07/mckendree-clinches-2026-nc-womens-wrestling-championship)
-- [ScholarshipStats.com. (n.d.). Wrestling scholarships and college programs.](https://scholarshipstats.com/wrestling)', updated_at = datetime('now')
+- [ScholarshipStats.com. (n.d.). Wrestling scholarships and college programs.](https://scholarshipstats.com/wrestling)',
+       updated_at = datetime('now')
  WHERE slug = 'brydning' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Bowling i NCAA
@@ -916,7 +936,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (n.d.). National Collegiate bowling.](https://www.ncaa.org/championship/national-collegiate/womens-bowling/)
 - [NCAA.com. (2026, April 11). Jax State wins 2026 NC bowling championship.](https://www.ncaa.com/news/bowling/article/2026-04-11/jax-state-wins-2026-nc-bowling-championship)
-- [ScholarshipStats.com. (n.d.). Bowling scholarships and college programs.](https://scholarshipstats.com/bowling)', updated_at = datetime('now')
+- [ScholarshipStats.com. (n.d.). Bowling scholarships and college programs.](https://scholarshipstats.com/bowling)',
+       updated_at = datetime('now')
  WHERE slug = 'bowling' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Sejlsport i amerikansk college-sport
@@ -955,7 +976,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [Inter-Collegiate Sailing Association. (n.d.). Championships.](https://www.collegesailing.org/championships/coed)
 - [College Sailing National Championships. (2026). National championship regatta.](https://nationals.collegesailing.org/)
-- [Inter-Collegiate Sailing Association. (n.d.). Women''s team race championships.](https://www.collegesailing.org/championships/womens-team-race)', updated_at = datetime('now')
+- [Inter-Collegiate Sailing Association. (n.d.). Women''s team race championships.](https://www.collegesailing.org/championships/womens-team-race)',
+       updated_at = datetime('now')
  WHERE slug = 'sejlsport' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Skydning i amerikansk college-sport
@@ -994,7 +1016,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA.com. (2026, March 14). West Virginia wins 2026 NCAA rifle championship.](https://www.ncaa.com/news/rifle/article/2026-03-14/west-virginia-wins-2026-ncaa-rifle-championship)
 - [NCAA.com. (2026, February 23). 2026 National Collegiate men''s and women''s rifle selections.](https://www.ncaa.com/news/rifle/article/2026-02-23/2026-national-collegiate-mens-and-womens-rifle-selections)
-- [NRA Shooting Sports USA. (2026). Ohio State captures 2026 intercollegiate pistol crown as NRA returns to the range.](https://www.ssusa.org/content/ohio-state-captures-2026-intercollegiate-pistol-crown-as-nra-returns-to-the-range/)', updated_at = datetime('now')
+- [NRA Shooting Sports USA. (2026). Ohio State captures 2026 intercollegiate pistol crown as NRA returns to the range.](https://www.ssusa.org/content/ohio-state-captures-2026-intercollegiate-pistol-crown-as-nra-returns-to-the-range/)',
+       updated_at = datetime('now')
  WHERE slug = 'skydning' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Skisport i NCAA
@@ -1035,7 +1058,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA.com. (2026, March 14). Utah wins 2026 NCAA skiing championship.](https://www.ncaa.com/news/skiing/article/2026-03-14/utah-wins-2026-ncaa-skiing-championship)
 - [NCAA.com. (2026, March 4). NC men''s and women''s skiing committee selects 2026 championship field.](https://www.ncaa.com/news/skiing/article/2026-03-04/nc-mens-and-womens-skiing-committee-selects-2026-championship-field)
 
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)', updated_at = datetime('now')
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
+',
+       updated_at = datetime('now')
  WHERE slug = 'skisport' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Triatlon i amerikansk college-sport
@@ -1056,7 +1081,7 @@ Triatlon er en af NCAA''s emerging sports for kvinder — en anerkendt vej mod f
 Antallet af programmer er stadig lille, men det er selve pointen med emerging sport-status: listen vokser, og flere skoler kommer til. Se [divisionerne](/viden/ncaa-divisioner).
 
 ### Conferences og independents
-Antallet af programmer vokser støt, og Conference Carolinas blev i efteråret 2026 den første NCAA-konference til at sponsorere sporten samlet. Vejen videre går gennem NCAA''s emerging sports-proces, hvor en sport skal have et bestemt antal værtsskoler for at få sit eget mesterskab.
+Antallet af programmer vokser støt, og fra dette efterår sponsorerer Conference Carolinas sporten samlet som den første NCAA-konference — en premiere-sæson med syv skoler, hvoraf fire deltager som associerede medlemmer. Vejen videre går gennem NCAA''s emerging sports-proces, hvor en sport skal have et bestemt antal værtsskoler for at få sit eget mesterskab.
 
 ### Vejen til prof
 
@@ -1072,7 +1097,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [USA Triathlon. (n.d.). NCAA triathlon.](https://www.usatriathlon.org/multisport/ncaa-triathlon)
 - [NCAA. (n.d.). Emerging sports for women.](https://www.ncaa.org/championships/emerging-sports-for-women/)
-- [NCAA. (2026, May 4). Conference Carolinas announces the addition of women''s triathlon.](https://www.ncaa.org/news/2026/5/4/media-center-conference-carolinas-announces-the-addition-of-womens-triathlon.aspx)', updated_at = datetime('now')
+- [NCAA. (2026, May 4). Conference Carolinas announces the addition of women''s triathlon.](https://www.ncaa.org/news/2026/5/4/media-center-conference-carolinas-announces-the-addition-of-womens-triathlon.aspx)',
+       updated_at = datetime('now')
  WHERE slug = 'triatlon' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Hestepolo i amerikansk college-sport
@@ -1111,7 +1137,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [United States Polo Association. (n.d.). Intercollegiate.](https://www.uspolo.org/association/programs/intercollegiate-interscholastic/intercollegiate)
 - [United States Polo Association. (n.d.). Division I men''s national intercollegiate championship.](https://www.uspolo.org/calendar/tournaments/division-i-mens-national-intercollegiate-championship)
-- [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)', updated_at = datetime('now')
+- [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)',
+       updated_at = datetime('now')
  WHERE slug = 'hestepolo' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Flag football i amerikansk college-sport
@@ -1153,7 +1180,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2026, January 16). NCAA adds flag football to Emerging Sports for Women program.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-adds-flag-football-to-emerging-sports-for-women-program.aspx)
 - [NAIA. (n.d.). Women''s flag football.](https://www.naia.org/sports/wflag/index)
-- [Olympics.com. (n.d.). Flag football at the Olympic Games Los Angeles 2028: Everything you need to know.](https://www.olympics.com/en/news/flag-football-at-the-olympic-games-los-angeles-2028-everything-you-need-to-know-about-the-new-sport-at-la-28)', updated_at = datetime('now')
+- [Olympics.com. (n.d.). Flag football at the Olympic Games Los Angeles 2028: Everything you need to know.](https://www.olympics.com/en/news/flag-football-at-the-olympic-games-los-angeles-2028-everything-you-need-to-know-about-the-new-sport-at-la-28)',
+       updated_at = datetime('now')
  WHERE slug = 'flag-football' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Cykling i amerikansk college-sport
@@ -1162,7 +1190,7 @@ Collegecykling ligger uden for NCAA og styres af USA Cycling, som afvikler de na
 
 ### Sæsonens gang
 
-Kalenderen følger disciplinerne hen over hele året i stedet for at samle sig om én sæson. I 2026 blev banemesterskabet kørt 10.-13. september på Major Taylor Velodrome i Indianapolis, mountainbike 7. oktober i Grand Junction i Colorado og cyclocross 9. december i Fayetteville i Arkansas, mens landevejsmesterskabet blev afviklet i Wisconsin.
+Kalenderen følger disciplinerne hen over hele året i stedet for at samle sig om én sæson. I 2026 blev banemesterskabet kørt 10.-13. september på Major Taylor Velodrome i Indianapolis, og landevejsmesterskabet blev afviklet i Wisconsin. Efteråret og vinteren har endnu to tilbage: mountainbike 6.-11. oktober i Grand Junction i Colorado og cyclocross 9.-13. december i Fayetteville i Arkansas.
 
 ### Formatet
 
@@ -1193,7 +1221,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [USA Cycling. (n.d.). National championships.](https://usacycling.org/national-championships)
 - [USA Cycling. (2026). USA Cycling announces 2026 national championship schedule.](https://usacycling.org/article/usa-cycling-announces-2026-national-championship-schedule)
-- [USA Cycling. (n.d.). Collegiate mountain bike national championships.](https://mtbnats.usacycling.org/coll-mtb)', updated_at = datetime('now')
+- [USA Cycling. (n.d.). Collegiate mountain bike national championships.](https://mtbnats.usacycling.org/coll-mtb)',
+       updated_at = datetime('now')
  WHERE slug = 'cykling' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Bueskydning i amerikansk college-sport
@@ -1232,7 +1261,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [USA Archery. (n.d.). Collegiate archery.](https://www.usarchery.org/participate/collegiate)
 - [USA Archery. (2026). USA Archery Collegiate Target Nationals.](https://www.usarchery.org/events/national-tournaments/USA-Archery-Collegiate-Target-Nationals)
-- [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)', updated_at = datetime('now')
+- [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)',
+       updated_at = datetime('now')
  WHERE slug = 'bueskydning' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Akrobatik og tumbling i NCAA
@@ -1248,14 +1278,13 @@ Akrobatik og tumbling er en forårssport. Sæsonen løber fra januar til april o
 ### Formatet
 Et møde består af **seks discipliner** og varer typisk halvanden til to timer. Holdene udfører synkrone serier i akrobatik, pyramide, kast, tumbling og en afsluttende holdrutine, og hver færdighed bedømmes på både sværhedsgrad og udførelse. Formatet er bygget som en direkte duel mellem to hold — pointene lægges sammen undervejs, så stillingen følger med hele vejen.
 
-### Formatet
-Rosterne er delt efter, hvad kroppen laver: baserne løfter, toppen bliver løftet og kastet, backspotten sikrer, og tumblerne løber deres baner uden at løfte nogen. Det er en holdsport bygget af individuelle specialister, og rekrutteringen følger rollen.
-
 ### Stipendier og trupstørrelse
 
-Sporten fik NCAA-status ved konventet i januar 2026, hvor alle tre divisioner stemte for at gøre akrobatik og tumbling til en mesterskabssport; det første NCAA-mesterskab ventes i foråret 2027. 47 universiteter har programmer med over 1.300 udøvere. Vejen dertil gik gennem emerging sport-status, som sporten fik i 2020.
+Sporten fik NCAA-status ved konventet i januar 2026, hvor alle tre divisioner stemte for at gøre akrobatik og tumbling til en mesterskabssport; det første NCAA-mesterskab ventes i foråret 2027. Vejen dertil gik gennem emerging sport-status, som sporten fik i 2020.
 
 Stipendierne følger equivalency-modellen, og for de Division I-skoler, der tilsluttede sig House-forliget i 2025, gælder et **truploft på 55 udøvere** — et af de største i college-sporten, fordi en dyst kræver mange kroppe i pyramiderne. Se [divisionerne](/viden/ncaa-divisioner).
+
+Rosterne er delt efter, hvad kroppen laver: baserne løfter, toppen bliver løftet og kastet, backspotten sikrer, og tumblerne løber deres baner uden at løfte nogen. Det er en holdsport bygget af individuelle specialister, og rekrutteringen følger rollen.
 
 ### Conferences og independents
 
@@ -1277,7 +1306,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [National Collegiate Acrobatics & Tumbling Association. (2026). NCAA elevates acrobatics & tumbling to championship status.](https://thencata.org/news/2026/1/16/ncaa-elevates-acrobatics-tumbling-to-championship-status.aspx)
 - [USA Gymnastics. (2026). Acrobatics & tumbling becomes an NCAA championship.](https://usagym.org/acrobatics-tumbling-becomes-an-ncaa-championship/)
 
-- [NCAA. (2026, 16. januar). NCAA elevates acrobatics and tumbling to championship status.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-elevates-acrobatics-and-tumbling-to-championship-status.aspx)', updated_at = datetime('now')
+- [NCAA. (2026, 16. januar). NCAA elevates acrobatics and tumbling to championship status.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-elevates-acrobatics-and-tumbling-to-championship-status.aspx)
+',
+       updated_at = datetime('now')
  WHERE slug = 'akrobatik' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Ultimate i amerikansk college-sport
@@ -1291,7 +1322,6 @@ Sæsonen kulminerer i maj. I 2026 blev begge mesterskaber spillet i Illinois: D-
 ### Formatet
 Syv spillere pr. hold, og der scores ved at gribe disken i modstanderens endzone. Man må ikke løbe med disken, så spillet bygges op af kast og løb i frirum — handlerne styrer opbygningen, cutterne løber sig fri. Kampene spilles til 15 point med tidsgrænse.
 
-### Formatet
 Ultimate er **selvdømt**. Spillerne dømmer selv deres kampe efter princippet Spirit of the Game, og ved de største stævner assisterer observatører i stedet for dommere. Det er sportens mest karakteristiske træk og en af grundene til, at den har holdt fast i sit eget forbund frem for at søge ind i NCAA.
 
 ### Stipendier og trupstørrelse
@@ -1318,7 +1348,8 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [USA Ultimate. (2026). 2026 D-I college championships.](https://usaultimate.org/2026-d-i-college-championships/)
 - [USA Ultimate. (2026). D-III college championships wrap with historic sweep.](https://usaultimate.org/news/2026/06/d-iii-college-championships-wrap-with-historic-sweep/)
-- [USA Ultimate. (2025). Illinois set to host 2026 college championships.](https://usaultimate.org/news/2025/08/illinois-set-to-host-2026-college-championships/)', updated_at = datetime('now')
+- [USA Ultimate. (2025). Illinois set to host 2026 college championships.](https://usaultimate.org/news/2025/08/illinois-set-to-host-2026-college-championships/)',
+       updated_at = datetime('now')
  WHERE slug = 'ultimate' AND country = 'DK' AND kind = 'sport';
 
 UPDATE pages SET content = '## Andre sportsgrene i NCAA
@@ -1347,5 +1378,8 @@ Flere af NCAAʼs mindre sportsgrene har færre ansøgere til stipendierne, hvilk
 ### Kilder
 
 - [NCAA. (2026, 16. januar). NCAA to add four new championships.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-to-add-four-new-championships.aspx)
-- [NCAA. (2026, 4. marts). NCAA''s first women''s wrestling championships: What to know.](https://www.ncaa.org/news/2026/3/4/media-center-ncaas-first-womens-wrestling-championships-what-to-know.aspx)', updated_at = datetime('now')
+- [NCAA. (2026, 4. marts). NCAA''s first women''s wrestling championships: What to know.](https://www.ncaa.org/news/2026/3/4/media-center-ncaas-first-womens-wrestling-championships-what-to-know.aspx)',
+       updated_at = datetime('now')
  WHERE slug = 'andet' AND country = 'DK' AND kind = 'sport';
+
+-- 33 sider.
