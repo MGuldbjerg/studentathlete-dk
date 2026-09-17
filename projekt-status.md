@@ -54,9 +54,43 @@ rule: it governs PROSE. Sourced tabular facts, extracted mechanically and linked
 back to the source, do not need a human between the harvest and the page — so no
 approval queue for honours. Prose about named people still does.
 
-⏳ **Open:** `Mesterskab` cannot yet tell a conference title from a national one.
-The ceiling on coverage is the bio pages, not the patterns: only 1,281 of 2,825
-had a readable bio container, the same wall the photo queue hit.
+### Coverage, 17. september (anden runde)
+
+Asked to increase coverage, and the honest result is that **it did not go up**:
+492 athletes before and after. What the round produced was correctness.
+
+- **A bio address can answer with a DIFFERENT athlete.** calbears.com served
+  Pippa Jamieson's URL with a full, valid page about an American linebacker —
+  not a 404. 14 such pages were caught in one pass and are now skipped, and a
+  page that fails the surname check deletes any rows previously taken from it.
+- **`waitForSelector` had never worked**: `renderPage` sent a string where the
+  API wants an object (error 7001). That is the HTTP 400 `scrape-js-rosters.ts`
+  recorded and worked around by never passing a selector.
+- **Bare years are seasons too.** Cornell writes "2024 I SOPHOMORE SEASON", so
+  541 of 1,233 rows now carry a season where almost none did — and 80 rows that
+  had become duplicates (same award, once with a season and once without) were
+  deleted.
+- **Rendering is rate, not quota.** Six workers rendering at once hit code 2001
+  «Rate limit exceeded» after nine pages; the free plan allows ~3 browsers a
+  minute. Rendering now runs in ONE lane with spacing and a per-run budget.
+
+**Where the remaining gap actually is.** Of 140 sampled athletes without
+honours: 56 had a perfectly readable bio and simply no awards, 8 were 404s, and
+47 were the new Sidearm's client-rendered skeleton. Only that last group is
+addressable — roughly 800 athletes — and at 40 renders a night
+(`honours.yml`, 02:35) it drains in about three weeks.
+
+⏳ **Open:** `Mesterskab` cannot tell a conference title from a national one.
+
+### ⏭ Næste opgave: Canada skal ud af datasættet
+
+Mikkel, 17. september: «I don't want Canadian colleges in this, but there's a
+profile draft for an athlete in British Columbia.» Canada was deprioritised in
+strategien 2026-07-02, men en canadisk skole er åbenbart sluppet gennem
+roster-scrapingen og helt frem til en profilkladde. To spørgsmål at besvare, i
+den rækkefølge: hvor mange canadiske skoler/atleter ligger der allerede i basen,
+og hvad slap dem ind (skole-import, division-filter eller
+hjemby-klassifikation). Ikke påbegyndt.
 
 ## 📸 Instagram: the finding is automated, the follow is not (2026-09-16)
 

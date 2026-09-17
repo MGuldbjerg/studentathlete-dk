@@ -16,6 +16,7 @@ const STEPS: Step[] = [
   { id: "scrape-js", label: "Scrap JS-rosters", description: "JS-renderede sider via CF" },
   { id: "backfill-class-year", label: "Backfill årgangsbetegnelser", description: "Sætter class_year for atleter der mangler den" },
   { id: "instagram", label: "Find Instagram-handles", description: "Læser atleternes bio-sider → admin → Instagram" },
+  { id: "honours", label: "Hent udmærkelser", description: "Fylder karriere-tabellen på profilerne" },
 ];
 
 type Phase = "queued" | "running" | "done";

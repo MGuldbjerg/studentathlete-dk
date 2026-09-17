@@ -12,6 +12,7 @@ const WORKFLOWS: Record<string, { file: string; label: string }> = {
   "scrape-js": { file: "daily-js-scrape.yml", label: "Scrap JS-rosters" },
   "backfill-class-year": { file: "backfill-class-year.yml", label: "Backfill årgangsbetegnelser" },
   instagram: { file: "instagram-handles.yml", label: "Find Instagram-handles" },
+  honours: { file: "honours.yml", label: "Hent udmærkelser" },
 };
 
 export async function POST(req: NextRequest) {
