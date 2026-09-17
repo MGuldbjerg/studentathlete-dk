@@ -1,6 +1,4 @@
-# Sport pillar drafts — English — student-athlete.co.uk
-
-Generated 2026-09-15 from `src/lib/sport-content-en.ts`. 33 sports. This is the code default; the live Danish site still serves the old D1 rows.
+# Sport pages — English
 
 ## Contents
 
@@ -9,7 +7,7 @@ Generated 2026-09-15 from `src/lib/sport-content-en.ts`. 33 sports. This is the 
 - [Baseball](#baseball)
 - [Football](#football)
 - [Athletics](#athletics)
-- [Swimming & Diving](#swimming)
+- [Swimming & Diving](#swimming-diving)
 - [Golf](#golf)
 - [Tennis](#tennis)
 - [Rowing](#rowing)
@@ -36,18 +34,11 @@ Generated 2026-09-15 from `src/lib/sport-content-en.ts`. 33 sports. This is the 
 - [Archery](#archery)
 - [Acrobatics & Tumbling](#acrobatics-tumbling)
 - [Ultimate](#ultimate)
-- [Other sports](#other)
+- [Other sports](#other-sports)
 
+# American Football
 
----
-
-<a id="american-football"></a>
-## American Football  <sub>`american-football`</sub>
-
-**Intro (hero):** British players in college football. A small but growing pathway, driven largely by the NFL Academy in London.
-
-**Meta description:** British players in NCAA American football — news, profiles and results from college football in the United States.
-
+*British players in college football. A small but growing pathway, driven largely by the NFL Academy in London.*
 
 ## British players in college football
 
@@ -93,16 +84,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [CBS Sports. (2025). NCAA removes scholarship limits, aligns with House settlement as roster sizes evolve.](https://www.cbssports.com/college-football/news/ncaa-removes-scholarship-limits-aligns-with-house-settlement-as-roster-sizes-evolve-in-new-college-sports-era/)
 - [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)
 
+# Basketball
 
----
-
-<a id="basketball"></a>
-## Basketball  <sub>`basketball`</sub>
-
-**Intro (hero):** British basketball players in the NCAA. College is the established route for British talent aiming at the professional game.
-
-**Meta description:** British basketball players in the NCAA — news, profiles and results from college basketball in the United States.
-
+*British basketball players in the NCAA. College is the established route for British talent aiming at the professional game.*
 
 ## British basketball in the NCAA
 
@@ -144,16 +128,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA. (2026, 7 May). How the 2027 expanded NCAA tournament and March Madness brackets will work.](https://www.ncaa.com/news/basketball-men/article/2026-05-07/how-2027-expanded-ncaa-tournament-and-march-madness-brackets-will-work)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Baseball
 
----
-
-<a id="baseball"></a>
-## Baseball  <sub>`baseball`</sub>
-
-**Intro (hero):** British players in college baseball. A rare route, but one that exists for players from Britain's small domestic baseball scene.
-
-**Meta description:** British players in NCAA baseball — news, profiles and results from college baseball in the United States.
-
+*British players in college baseball. A rare route, but one that exists for players from Britain's small domestic baseball scene.*
 
 ## British players in college baseball
 
@@ -194,16 +171,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 - [NCAA. (n.d.). NCAA Division I baseball.](https://www.ncaa.com/sports/baseball/d1)
 
+# Football
 
----
-
-<a id="football"></a>
-## Football  <sub>`football`</sub>
-
-**Intro (hero):** British footballers in the NCAA. For players released by an academy, American college football is one of the few routes that keeps both the sport and the education open.
-
-**Meta description:** British footballers in NCAA soccer — news, profiles and results from college soccer in the United States.
-
+*British footballers in the NCAA. For players released by an academy, American college football is one of the few routes that keeps both the sport and the education open.*
 
 ## British footballers in the NCAA
 
@@ -251,16 +221,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [Major League Soccer. (2025). 2026 MLS SuperDraft rules and regulations.](https://www.mlssoccer.com/news/2026-mls-superdraft-rules-and-regulations)
 - [NWSL Players Association. (2024, 22 August). NWSL players announce groundbreaking CBA, first American league to eliminate the draft.](https://www.nwslplayers.com/news/nwsl-players-announce-groundbreaking-cba,-first-american-league-to-eliminate-the-draft-)
 
+# Athletics
 
----
-
-<a id="athletics"></a>
-## Athletics  <sub>`athletics`</sub>
-
-**Intro (hero):** British athletes in NCAA track and field. The American college system offers year-round competition across three seasons.
-
-**Meta description:** British athletes in NCAA athletics — news, profiles and results from college track and field in the United States.
-
+*British athletes in NCAA track and field. The American college system offers year-round competition across three seasons.*
 
 ## British athletics in the NCAA
 
@@ -300,16 +263,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA. (n.d.). NCAA Division I men's cross country.](https://www.ncaa.com/sports/cross-country-men/d1)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Swimming & Diving
 
----
-
-<a id="swimming"></a>
-## Swimming & Diving  <sub>`swimming`</sub>
-
-**Intro (hero):** British swimmers in the NCAA. College swimming combines full-time training with a degree, and the team scoring makes it unlike club swimming at home.
-
-**Meta description:** British swimmers in NCAA swimming and diving — news, profiles and results from college swimming in the United States.
-
+*British swimmers in the NCAA. College swimming combines full-time training with a degree, and the team scoring makes it unlike club swimming at home.*
 
 ## British swimming in the NCAA
 
@@ -350,16 +306,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA. (n.d.). NCAA Division I men's swimming & diving.](https://www.ncaa.com/sports/swimming-men/d1)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Golf
 
----
-
-<a id="golf"></a>
-## Golf  <sub>`golf`</sub>
-
-**Intro (hero):** British golfers in the NCAA. American college golf is one of the best-established routes from the British amateur game to the professional tours.
-
-**Meta description:** British golfers in NCAA golf — news, profiles and results from college golf in the United States.
-
+*British golfers in the NCAA. American college golf is one of the best-established routes from the British amateur game to the professional tours.*
 
 ## British golf in the NCAA
 
@@ -403,16 +352,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [PGA TOUR. (n.d.). How it works: PGA TOUR University Ranking.](https://www.pgatour.com/article/news/how-it-works/pga-tour-university-ranking-criteria-points-eligibility-benefits-status)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Tennis
 
----
-
-<a id="tennis"></a>
-## Tennis  <sub>`tennis`</sub>
-
-**Intro (hero):** British tennis players in the NCAA. College tennis offers a funded, team-based alternative to the punishing economics of the junior professional tour.
-
-**Meta description:** British tennis players in NCAA tennis — news, profiles and results from college tennis in the United States.
-
+*British tennis players in the NCAA. College tennis offers a funded, team-based alternative to the punishing economics of the junior professional tour.*
 
 ## British tennis in the NCAA
 
@@ -454,16 +396,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [Intercollegiate Tennis Association. (2025, 14 July). 2025-2026 ITA rule modifications, changes and clarifications.](https://wearecollegetennis.com/2025/07/14/2025-2026-ita-rule-modifications-changes-and-clarifications/)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Rowing
 
----
-
-<a id="rowing"></a>
-## Rowing  <sub>`rowing`</sub>
-
-**Intro (hero):** British rowers in the NCAA. British school and club rowing produces exactly the experience American programmes recruit for.
-
-**Meta description:** British rowers in NCAA rowing — news, profiles and results from college rowing in the United States.
-
+*British rowers in the NCAA. British school and club rowing produces exactly the experience American programmes recruit for.*
 
 ## British rowing in the NCAA
 
@@ -505,16 +440,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [Intercollegiate Rowing Association. (n.d.). Compliance.](https://www.irarowing.com/compliance)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Gymnastics
 
----
-
-<a id="gymnastics"></a>
-## Gymnastics  <sub>`gymnastics`</sub>
-
-**Intro (hero):** British gymnasts in the NCAA. College gymnastics offers competitive years beyond the age at which elite careers usually end.
-
-**Meta description:** British gymnasts in NCAA gymnastics — news, profiles and results from college gymnastics in the United States.
-
+*British gymnasts in the NCAA. College gymnastics offers competitive years beyond the age at which elite careers usually end.*
 
 ## British gymnastics in the NCAA
 
@@ -553,16 +481,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Ice Hockey
 
----
-
-<a id="ice-hockey"></a>
-## Ice Hockey  <sub>`ice-hockey`</sub>
-
-**Intro (hero):** British players in NCAA ice hockey. A narrow route, and one that usually runs through junior hockey in North America first.
-
-**Meta description:** British players in NCAA ice hockey — news, profiles and results from college hockey in the United States.
-
+*British players in NCAA ice hockey. A narrow route, and one that usually runs through junior hockey in North America first.*
 
 ## British players in college hockey
 
@@ -603,16 +524,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NHL.com. (2024). CHL players to be eligible to play NCAA hockey beginning in 2025-26.](https://www.nhl.com/news/chl-players-to-be-eligible-to-play-ncaa-hockey-beginning-in-2025-26)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Volleyball
 
----
-
-<a id="volleyball"></a>
-## Volleyball  <sub>`volleyball`</sub>
-
-**Intro (hero):** British volleyball players in the NCAA. A small pathway from a small domestic sport, but the college game is one of the biggest in American college sport.
-
-**Meta description:** British volleyball players in NCAA volleyball — news, profiles and results from college volleyball in the United States.
-
+*British volleyball players in the NCAA. A small pathway from a small domestic sport, but the college game is one of the biggest in American college sport.*
 
 ## British volleyball in the NCAA
 
@@ -652,16 +566,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Field Hockey
 
----
-
-<a id="field-hockey"></a>
-## Field Hockey  <sub>`field-hockey`</sub>
-
-**Intro (hero):** British field hockey players in the NCAA. One of the strongest British pathways into American college sport — and, in the NCAA, a women's sport only.
-
-**Meta description:** British field hockey players in the NCAA — news, profiles and results from American college field hockey.
-
+*British field hockey players in the NCAA. One of the strongest British pathways into American college sport — and, in the NCAA, a women's sport only.*
 
 ## British field hockey in the NCAA
 
@@ -706,16 +613,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [ScholarshipStats.com. (n.d.). Field hockey scholarships.](https://scholarshipstats.com/fieldhockey)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Rugby
 
----
-
-<a id="rugby"></a>
-## Rugby  <sub>`rugby`</sub>
-
-**Intro (hero):** British rugby players in American college sport. Two separate worlds: the women's game is on its way into the NCAA, the men's game sits outside it.
-
-**Meta description:** British rugby players in American college sport — news, profiles and results from NCAA and college rugby in the United States.
-
+*British rugby players in American college sport. Two separate worlds: the women's game is on its way into the NCAA, the men's game sits outside it.*
 
 ## British rugby in American college sport
 
@@ -763,16 +663,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [National Collegiate Rugby. (2026). NCR partners with the All Women's Sports Network for the 2026 National 7s Championships.](https://www.ncr.rugby/news/national-collegiate-rugby-partners-with-the-all-womens-sports-network-for-global-broadcast-of-2026-national-7s-championships/)
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Water Polo
 
----
-
-<a id="water-polo"></a>
-## Water Polo  <sub>`water-polo`</sub>
-
-**Intro (hero):** British water polo players in the NCAA. The men play in the autumn, the women in the spring, and every division competes for the same title.
-
-**Meta description:** British water polo players in the NCAA — news, profiles and results from American college water polo.
-
+*British water polo players in the NCAA. The men play in the autumn, the women in the spring, and every division competes for the same title.*
 
 ## British water polo in the NCAA
 
@@ -811,16 +704,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA.com. (2026, April 13). 2026 National Collegiate women's water polo championship selections.](https://www.ncaa.com/news/waterpolo-women/article/2026-04-13/2026-national-collegiate-womens-water-polo-championship-selections)
 - [NCAA. (n.d.). National Collegiate men's water polo.](https://www.ncaa.org/championship/national-collegiate/mens-water-polo/)
 
+# Fencing
 
----
-
-<a id="fencing"></a>
-## Fencing  <sub>`fencing`</sub>
-
-**Intro (hero):** British fencers in the NCAA. One of the few championships where Division I, II and III meet on the same piste.
-
-**Meta description:** British fencers in the NCAA — news, profiles and results from American college fencing.
-
+*British fencers in the NCAA. One of the few championships where Division I, II and III meet on the same piste.*
 
 ## British fencing in the NCAA
 
@@ -863,16 +749,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Squash
 
----
-
-<a id="squash"></a>
-## Squash  <sub>`squash`</sub>
-
-**Intro (hero):** British squash players in American college sport. A varsity sport at some of the oldest universities in the country — and outside the NCAA.
-
-**Meta description:** British squash players in American college sport — news, profiles and results from college squash in the United States.
-
+*British squash players in American college sport. A varsity sport at some of the oldest universities in the country — and outside the NCAA.*
 
 ## British squash in American college sport
 
@@ -912,16 +791,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [College Squash Association. (2026). 2026 CSA national team championships.](https://csasquash.com/2026-national-team-championship/)
 - [ScholarshipStats.com. (n.d.). Colleges with varsity squash teams.](https://scholarshipstats.com/squash)
 
+# Esports
 
----
-
-<a id="esports"></a>
-## Esports  <sub>`esports`</sub>
-
-**Intro (hero):** British players on American college esports teams. Varsity programmes with coaches, team rooms and scholarships — entirely outside the NCAA.
-
-**Meta description:** British players in American college esports — news, profiles and results from varsity college esports in the United States.
-
+*British players on American college esports teams. Varsity programmes with coaches, team rooms and scholarships — entirely outside the NCAA.*
 
 ## British players in American college esports
 
@@ -959,16 +831,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [Esports Insider. (2026). Esports scholarships in 2026: How gaming can put you through school.](https://esportsinsider.com/esports-scholarships)
 - [Liquipedia. (2026). Collegiate League of Legends 2026 championship.](https://liquipedia.net/leagueoflegends/CLOL/2026/Championship)
 
+# Lacrosse
 
----
-
-<a id="lacrosse"></a>
-## Lacrosse  <sub>`lacrosse`</sub>
-
-**Intro (hero):** British lacrosse players in the NCAA. One of the largest team sports in American college sport, and one of its broadest fields.
-
-**Meta description:** British lacrosse players in the NCAA — news, profiles and results from American college lacrosse.
-
+*British lacrosse players in the NCAA. One of the largest team sports in American college sport, and one of its broadest fields.*
 
 ## British lacrosse in the NCAA
 
@@ -1006,16 +871,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA.com. (2026, May 3). NCAA Division I women's lacrosse championship subcommittee announces 2026 field.](https://www.ncaa.com/news/lacrosse-women/article/2026-05-03/ncaa-division-i-womens-lacrosse-championship-subcommittee-announces-2026-field)
 - [USA Lacrosse. (2026). NCAA 2026 preview: Your guide to the college lacrosse season.](https://www.usalacrosse.com/magazine/college/ncaa-2026-preview-your-guide-college-lacrosse-season)
 
+# Softball
 
----
-
-<a id="softball"></a>
-## Softball  <sub>`softball`</sub>
-
-**Intro (hero):** British softball players in the NCAA. The most widely sponsored women's team sport in American college sport.
-
-**Meta description:** British softball players in the NCAA — news, profiles and results from American college softball.
-
+*British softball players in the NCAA. The most widely sponsored women's team sport in American college sport.*
 
 ## British softball in the NCAA
 
@@ -1052,16 +910,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [ScholarshipStats.com. (n.d.). Softball scholarships and college programs.](https://scholarshipstats.com/softball)
 - [NCAA.com. (2026, June 4). Texas wins the 2026 NCAA DI softball championship.](https://www.ncaa.com/news/softball/article/2026-06-04/2026-ncaa-softball-tournament-bracket-schedule-womens-college-world-series-scores)
 
+# Wrestling
 
----
-
-<a id="wrestling"></a>
-## Wrestling  <sub>`wrestling`</sub>
-
-**Intro (hero):** British wrestlers in the NCAA. One of college sport's oldest disciplines — and since 2026 an NCAA championship sport for women too.
-
-**Meta description:** British wrestlers in the NCAA — news, profiles and results from American college wrestling.
-
+*British wrestlers in the NCAA. One of college sport's oldest disciplines — and since 2026 an NCAA championship sport for women too.*
 
 ## British wrestling in the NCAA
 
@@ -1099,16 +950,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA.com. (2026, March 7). McKendree clinches the 2026 NC women's wrestling championship.](https://www.ncaa.com/news/wrestling-women/article/2026-03-07/mckendree-clinches-2026-nc-womens-wrestling-championship)
 - [ScholarshipStats.com. (n.d.). Wrestling scholarships and college programs.](https://scholarshipstats.com/wrestling)
 
+# Bowling
 
----
-
-<a id="bowling"></a>
-## Bowling  <sub>`bowling`</sub>
-
-**Intro (hero):** British bowlers in the NCAA. A women's championship where all three divisions play for the same title.
-
-**Meta description:** British bowlers in the NCAA — news, profiles and results from American college bowling.
-
+*British bowlers in the NCAA. A women's championship where all three divisions play for the same title.*
 
 ## British bowling in the NCAA
 
@@ -1146,16 +990,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA.com. (2026, April 11). Jax State wins 2026 NC bowling championship.](https://www.ncaa.com/news/bowling/article/2026-04-11/jax-state-wins-2026-nc-bowling-championship)
 - [ScholarshipStats.com. (n.d.). Bowling scholarships and college programs.](https://scholarshipstats.com/bowling)
 
+# Sailing
 
----
-
-<a id="sailing"></a>
-## Sailing  <sub>`sailing`</sub>
-
-**Intro (hero):** British sailors in American college sport. A varsity sport with national championships — run outside the NCAA, by sailing's own association.
-
-**Meta description:** British sailors in American college sport — news, profiles and results from college sailing in the United States.
-
+*British sailors in American college sport. A varsity sport with national championships — run outside the NCAA, by sailing's own association.*
 
 ## British sailing in American college sport
 
@@ -1195,16 +1032,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [College Sailing National Championships. (2026). National championship regatta.](https://nationals.collegesailing.org/)
 - [Inter-Collegiate Sailing Association. (n.d.). Women's team race championships.](https://www.collegesailing.org/championships/womens-team-race)
 
+# Shooting
 
----
-
-<a id="shooting"></a>
-## Shooting  <sub>`shooting`</sub>
-
-**Intro (hero):** British shooters in American college sport. Rifle is an NCAA sport contested by men and women together; pistol has championships of its own.
-
-**Meta description:** British shooters in American college sport — news, profiles and results from college rifle and pistol in the United States.
-
+*British shooters in American college sport. Rifle is an NCAA sport contested by men and women together; pistol has championships of its own.*
 
 ## British shooting in American college sport
 
@@ -1244,16 +1074,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA.com. (2026, February 23). 2026 National Collegiate men's and women's rifle selections.](https://www.ncaa.com/news/rifle/article/2026-02-23/2026-national-collegiate-mens-and-womens-rifle-selections)
 - [NRA Shooting Sports USA. (2026). Ohio State captures 2026 intercollegiate pistol crown as NRA returns to the range.](https://www.ssusa.org/content/ohio-state-captures-2026-intercollegiate-pistol-crown-as-nra-returns-to-the-range/)
 
+# Skiing
 
----
-
-<a id="skiing"></a>
-## Skiing  <sub>`skiing`</sub>
-
-**Intro (hero):** British skiers in the NCAA. Alpine and nordic are one team and one championship — and the field is among the most international in college sport.
-
-**Meta description:** British skiers in the NCAA — news, profiles and results from American college skiing.
-
+*British skiers in the NCAA. Alpine and nordic are one team and one championship — and the field is among the most international in college sport.*
 
 ## British skiing in the NCAA
 
@@ -1295,16 +1118,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 
 - [NCAA. (2025, 23 June). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Triathlon
 
----
-
-<a id="triathlon"></a>
-## Triathlon  <sub>`triathlon`</sub>
-
-**Intro (hero):** British triathletes in American college sport. An NCAA emerging sport for women, raced draft-legal, with the championship in November.
-
-**Meta description:** British triathletes in American college sport — news, profiles and results from college triathlon in the United States.
-
+*British triathletes in American college sport. An NCAA emerging sport for women, raced draft-legal, with the championship in November.*
 
 ## British triathlon in American college sport
 
@@ -1324,7 +1140,7 @@ Triathlon is one of the NCAA's emerging sports for women — a recognised route 
 The number of programmes is still small, but that is the point of emerging-sport status: the list grows and more schools join. See [the divisions](/guides/ncaa-divisions).
 
 ### Conferences and independents
-The number of programmes is growing steadily, and in autumn 2026 Conference Carolinas became the first NCAA conference to sponsor the sport as a whole. The way forward runs through the NCAA's emerging sports process, where a sport needs a set number of sponsoring schools to earn a championship of its own.
+The number of programmes is growing steadily, and from this autumn Conference Carolinas sponsors the sport as a whole — the first NCAA conference to do so, with seven schools in the inaugural season, four of them as associate members. The way forward runs through the NCAA's emerging sports process, where a sport needs a set number of sponsoring schools to earn a championship of its own.
 
 ### The road to pro
 
@@ -1342,16 +1158,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NCAA. (n.d.). Emerging sports for women.](https://www.ncaa.org/championships/emerging-sports-for-women/)
 - [NCAA. (2026, May 4). Conference Carolinas announces the addition of women's triathlon.](https://www.ncaa.org/news/2026/5/4/media-center-conference-carolinas-announces-the-addition-of-womens-triathlon.aspx)
 
+# Polo
 
----
-
-<a id="polo"></a>
-## Polo  <sub>`polo`</sub>
-
-**Intro (hero):** British polo players in American college sport. Arena polo, three a side, a national championship of its own — and no NCAA.
-
-**Meta description:** British polo players in American college sport — news, profiles and results from college polo in the United States.
-
+*British polo players in American college sport. Arena polo, three a side, a national championship of its own — and no NCAA.*
 
 ## British polo in American college sport
 
@@ -1391,16 +1200,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [United States Polo Association. (n.d.). Division I men's national intercollegiate championship.](https://www.uspolo.org/calendar/tournaments/division-i-mens-national-intercollegiate-championship)
 - [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)
 
+# Flag Football
 
----
-
-<a id="flag-football"></a>
-## Flag Football  <sub>`flag-football`</sub>
-
-**Intro (hero):** British flag football players in American college sport. The fastest-growing women's sport in the college system — and an Olympic sport from 2028.
-
-**Meta description:** British flag football players in American college sport — news, profiles and results from college flag football in the United States.
-
+*British flag football players in American college sport. The fastest-growing women's sport in the college system — and an Olympic sport from 2028.*
 
 ## British flag football in American college sport
 
@@ -1443,16 +1245,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [NAIA. (n.d.). Women's flag football.](https://www.naia.org/sports/wflag/index)
 - [Olympics.com. (n.d.). Flag football at the Olympic Games Los Angeles 2028: Everything you need to know.](https://www.olympics.com/en/news/flag-football-at-the-olympic-games-los-angeles-2028-everything-you-need-to-know-about-the-new-sport-at-la-28)
 
+# Cycling
 
----
-
-<a id="cycling"></a>
-## Cycling  <sub>`cycling`</sub>
-
-**Intro (hero):** British riders on American college teams. Five national collegiate championships a year — road, track, mountain bike, cyclocross and now gravel.
-
-**Meta description:** British riders in American college cycling — news, profiles and results from collegiate cycling in the United States.
-
+*British riders on American college teams. Five national collegiate championships a year — road, track, mountain bike, cyclocross and now gravel.*
 
 ## British cycling in American college sport
 
@@ -1460,7 +1255,7 @@ Collegiate cycling sits outside the NCAA and is run by USA Cycling, which stages
 
 ### The season
 
-The calendar follows the disciplines across the whole year rather than gathering into one season. In 2026 the track championships were held from 10 to 13 September at the Major Taylor Velodrome in Indianapolis, mountain bike on 7 October in Grand Junction, Colorado, and cyclocross on 9 December in Fayetteville, Arkansas, while the road championships were staged in Wisconsin.
+The calendar follows the disciplines across the whole year rather than gathering into one season. In 2026 the track championships were held from 10 to 13 September at the Major Taylor Velodrome in Indianapolis, and the road championships were staged in Wisconsin. Two more are still to come: mountain bike from 6 to 11 October in Grand Junction, Colorado, and cyclocross from 9 to 13 December in Fayetteville, Arkansas.
 
 ### The format
 
@@ -1493,16 +1288,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [USA Cycling. (2026). USA Cycling announces 2026 national championship schedule.](https://usacycling.org/article/usa-cycling-announces-2026-national-championship-schedule)
 - [USA Cycling. (n.d.). Collegiate mountain bike national championships.](https://mtbnats.usacycling.org/coll-mtb)
 
+# Archery
 
----
-
-<a id="archery"></a>
-## Archery  <sub>`archery`</sub>
-
-**Intro (hero):** British archers on American college teams. Varsity programmes with scholarships, club squads, and four bow classes shooting for the same national title.
-
-**Meta description:** British archers in American college sport — news, profiles and results from collegiate archery in the United States.
-
+*British archers on American college teams. Varsity programmes with scholarships, club squads, and four bow classes shooting for the same national title.*
 
 ## British archery in American college sport
 
@@ -1542,16 +1330,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [USA Archery. (2026). USA Archery Collegiate Target Nationals.](https://www.usarchery.org/events/national-tournaments/USA-Archery-Collegiate-Target-Nationals)
 - [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)
 
+# Acrobatics & Tumbling
 
----
-
-<a id="acrobatics-tumbling"></a>
-## Acrobatics & Tumbling  <sub>`acrobatics-tumbling`</sub>
-
-**Intro (hero):** British acrobatics and tumbling athletes on American college teams. The NCAA's newest championship sport, voted through in January 2026.
-
-**Meta description:** British athletes in NCAA acrobatics and tumbling — news, profiles and results from American college acrobatics & tumbling.
-
+*British acrobatics and tumbling athletes on American college teams. The NCAA's newest championship sport, voted through in January 2026.*
 
 ## British acrobatics and tumbling in the NCAA
 
@@ -1566,14 +1347,13 @@ Acrobatics and tumbling is a spring sport. The season runs from January to April
 ### The format
 A meet runs to **six events** and usually lasts an hour and a half to two hours. Teams perform synchronised skills in acro, pyramid, toss and tumbling before a closing team routine, and every skill is scored on both difficulty and execution. The format is a head-to-head duel between two teams, with the score running throughout.
 
-### The format
-Rosters are divided by what the body does: bases lift, tops are lifted and thrown, back spots protect, and tumblers run their passes without lifting anyone. It is a team sport built out of individual specialists, and recruiting follows the role.
-
 ### Scholarships and squad size
 
-The sport gained NCAA status at the January 2026 convention, where all three divisions voted to make acrobatics and tumbling a championship sport; the first NCAA championship is expected in spring 2027. 47 universities sponsor programmes with more than 1,300 participants. The road there ran through emerging-sport status, granted in 2020.
+The sport gained NCAA status at the January 2026 convention, where all three divisions voted to make acrobatics and tumbling a championship sport; the first NCAA championship is expected in spring 2027. The road there ran through emerging-sport status, granted in 2020.
 
 Scholarships follow the equivalency model, and at the Division I schools that opted into the House settlement in 2025 a **squad limit of 55** applies — among the largest in college sport, because a meet needs a lot of bodies in the pyramids. See [the divisions](/guides/ncaa-divisions).
+
+Rosters are divided by what the body does: bases lift, tops are lifted and thrown, back spots protect, and tumblers run their passes without lifting anyone. It is a team sport built out of individual specialists, and recruiting follows the role.
 
 ### Conferences and independents
 
@@ -1597,16 +1377,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 
 - [NCAA. (2026, 16 January). NCAA elevates acrobatics and tumbling to championship status.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-elevates-acrobatics-and-tumbling-to-championship-status.aspx)
 
+# Ultimate
 
----
-
-<a id="ultimate"></a>
-## Ultimate  <sub>`ultimate`</sub>
-
-**Intro (hero):** British ultimate players on American college teams. A self-refereed team sport with a national championship of its own, in two divisions.
-
-**Meta description:** British ultimate players in American college sport — news, profiles and results from college ultimate in the United States.
-
+*British ultimate players on American college teams. A self-refereed team sport with a national championship of its own, in two divisions.*
 
 ## British ultimate in American college sport
 
@@ -1619,10 +1392,9 @@ The season builds to May. In 2026 both championships were played in Illinois: D-
 ### The format
 Seven players a side, and points are scored by catching the disc in the opponent's end zone. You may not run with the disc, so the game is built from throws and runs into space — handlers control the build-up, cutters run free. Games are played to 15 points under a time cap.
 
-### The format
-Ultimate is **self-refereed**. Players call their own games under the principle of Spirit of the Game, and at the biggest tournaments observers assist rather than referee. It is the sport's defining feature, and one reason it has held on to its own governing body instead of seeking a place in the NCAA.
-
 ### Scholarships and squad size
+
+Ultimate is **self-refereed**. Players call their own games under the principle of Spirit of the Game, and at the biggest tournaments observers assist rather than referee. It is the sport's defining feature, and one reason it has held on to its own governing body instead of seeking a place in the NCAA.
 
 **Ultimate is not an NCAA sport.** College ultimate is run by USA Ultimate, and NCAA scholarship rules and squad limits do not apply. Almost every programme is a student-run club team, and there are in practice no athletic scholarships in the sport.
 
@@ -1648,16 +1420,9 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
 - [USA Ultimate. (2026). D-III college championships wrap with historic sweep.](https://usaultimate.org/news/2026/06/d-iii-college-championships-wrap-with-historic-sweep/)
 - [USA Ultimate. (2025). Illinois set to host 2026 college championships.](https://usaultimate.org/news/2025/08/illinois-set-to-host-2026-college-championships/)
 
+# Other sports
 
----
-
-<a id="other"></a>
-## Other sports  <sub>`other`</sub>
-
-**Intro (hero):** British athletes in the NCAA sports we do not yet cover with their own section.
-
-**Meta description:** British athletes in other NCAA sports — news, profiles and results from college sport in the United States.
-
+*British athletes in the NCAA sports we do not yet cover with their own section.*
 
 ## Other sports
 

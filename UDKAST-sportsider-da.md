@@ -1,15 +1,13 @@
-# Sport pillar drafts — Danish — studentathlete.dk
+# Sportsider — dansk
 
-Generated 2026-09-15 from `src/lib/sport-content.ts`. 33 sports. This is the code default; the live Danish site still serves the old D1 rows.
-
-## Contents
+## Indhold
 
 - [Football](#football)
 - [Basketball](#basketball)
 - [Baseball](#baseball)
 - [Fodbold](#fodbold)
-- [Svømning](#svoemning)
 - [Atletik](#atletik)
+- [Svømning](#sv-mning)
 - [Golf](#golf)
 - [Tennis](#tennis)
 - [Roning](#roning)
@@ -19,7 +17,7 @@ Generated 2026-09-15 from `src/lib/sport-content.ts`. 33 sports. This is the cod
 - [Field hockey](#field-hockey)
 - [Rugby](#rugby)
 - [Vandpolo](#vandpolo)
-- [Fægtning](#faegtning)
+- [Fægtning](#f-gtning)
 - [Squash](#squash)
 - [Esport](#esport)
 - [Lacrosse](#lacrosse)
@@ -34,20 +32,13 @@ Generated 2026-09-15 from `src/lib/sport-content.ts`. 33 sports. This is the cod
 - [Flag football](#flag-football)
 - [Cykling](#cykling)
 - [Bueskydning](#bueskydning)
-- [Akrobatik og tumbling](#akrobatik)
+- [Akrobatik og tumbling](#akrobatik-og-tumbling)
 - [Ultimate](#ultimate)
-- [Andre sportsgrene](#andet)
+- [Andre sportsgrene](#andre-sportsgrene)
 
+# Football
 
----
-
-<a id="football"></a>
-## Football  <sub>`football`</sub>
-
-**Intro (hero):** Danske kickers, puntere og linemen på NCAA-hold i hele USA. Følg deres kampe, resultater og vejen fra Danmark til college football.
-
-**Meta description:** Danske football-atleter i NCAA – nyheder, profiler og resultater fra college football i USA.
-
+*Danske kickers, puntere og linemen på NCAA-hold i hele USA. Følg deres kampe, resultater og vejen fra Danmark til college football.*
 
 ## Dansk football i NCAA
 
@@ -92,16 +83,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)
 - [Pro Football Hall of Fame. (2017). Morten Andersen.](https://www.profootballhof.com/players/morten-andersen)
 
+# Basketball
 
----
-
-<a id="basketball"></a>
-## Basketball  <sub>`basketball`</sub>
-
-**Intro (hero):** Danske basketballspillere på amerikanske universiteter. Fra danske klubber til NCAA-parkettet — følg deres udvikling og resultater.
-
-**Meta description:** Danske basketball-atleter i NCAA – nyheder, profiler og resultater fra college basketball i USA.
-
+*Danske basketballspillere på amerikanske universiteter. Fra danske klubber til NCAA-parkettet — følg deres udvikling og resultater.*
 
 ## Dansk basketball i NCAA
 
@@ -146,16 +130,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [Women's Basketball Hall of Fame. (2012). Inge Nissen.](https://wbhof.com/member/inge-nissen/)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Baseball
 
----
-
-<a id="baseball"></a>
-## Baseball  <sub>`baseball`</sub>
-
-**Intro (hero):** Danske baseball-spillere i NCAA. Følg danskerne, der har taget springet fra dansk baseball til amerikanske college-hold.
-
-**Meta description:** Danske baseball-atleter i NCAA – nyheder, profiler og resultater fra college baseball i USA.
-
+*Danske baseball-spillere i NCAA. Følg danskerne, der har taget springet fra dansk baseball til amerikanske college-hold.*
 
 ## Dansk baseball i NCAA
 
@@ -197,16 +174,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Fodbold
 
----
-
-<a id="fodbold"></a>
-## Fodbold  <sub>`fodbold`</sub>
-
-**Intro (hero):** Danske fodboldspillere på NCAA-hold. Fodbold (soccer) er en af de mest populære sportsgrene for danske atleter i USA.
-
-**Meta description:** Danske fodboldspillere (soccer) i NCAA – nyheder, profiler og resultater fra college soccer i USA.
-
+*Danske fodboldspillere på NCAA-hold. Fodbold (soccer) er en af de mest populære sportsgrene for danske atleter i USA.*
 
 ## Dansk fodbold i NCAA (soccer)
 
@@ -252,66 +222,9 @@ Skifter man undervejs, foregår det gennem [transfer-portalen](/viden/transfer-p
 - [Major League Soccer. (2025). 2026 MLS SuperDraft rules and regulations.](https://www.mlssoccer.com/news/2026-mls-superdraft-rules-and-regulations)
 - [NWSL Players Association. (2024, 22. august). NWSL players announce groundbreaking CBA, first American league to eliminate the draft.](https://www.nwslplayers.com/news/nwsl-players-announce-groundbreaking-cba,-first-american-league-to-eliminate-the-draft-)
 
+# Atletik
 
----
-
-<a id="svoemning"></a>
-## Svømning  <sub>`svoemning`</sub>
-
-**Intro (hero):** Danske svømmere på NCAA-hold i USA. Fra danske svømmeklubber til college pools — følg de danske talenter.
-
-**Meta description:** Danske svømmere i NCAA – nyheder, profiler og resultater fra college-svømning i USA.
-
-
-## Dansk svømning i NCAA
-
-Danmark har en stærk svømmetradition, og NCAA tilbyder en unik mulighed for danske svømmere til at kombinere sport på højt niveau med en amerikansk universitetsuddannelse. Flere danske svømmere har opnået imponerende resultater i college-regi.
-
-### Sæsonens gang
-
-College-svømning løber fra oktober til marts, med conference-mesterskaberne i februar og NCAA Championships i marts som sæsonens højdepunkt. Træningen er intensiv — op til 20 timer om ugen i vandet plus styrketræning. Den lange opbygning er tilrettelagt med "tapering", så svømmerne topper præcis til mesterskaberne.
-
-### Formatet
-
-I et "dual meet" møder to skoler hinanden, og selvom hver svømmer kæmper individuelt, er det holdets samlede pointsum, der afgør sejren. I hver disciplin tildeles point efter placering — for eksempel 9 point for førstepladsen, derefter 4, 3, 2 og 1 til de næste — og stafetterne giver dobbelt op. Et hold kan altså vinde stævnet uden at have den hurtigste enkeltsvømmer, hvis bredden er stor nok. Udspring tæller med i den samlede score på lige fod med svømningen. Til de store mesterskaber stiller mange hold op samtidig, og pointene lægges sammen på tværs af alle discipliner.
-
-### Stipendier og trupstørrelse
-
-Svømning er en af de sportsgrene, hvor House-forliget gjorde mest ondt. For de Division I-skoler, der tilsluttede sig, er de gamle stipendielofter afskaffet og erstattet af et **truploft på 30 svømmere og udspringere tilsammen** — og det er et lille tal for en sport, hvor et program skal dække alle fire svømmearter, alle distancer, stafetter og udspring. Mange amerikanske hold havde rosters langt over 30 og har skullet skære. Til gengæld må skolen give stipendium til alle 30, hvor den før skulle dele en begrænset pulje ud.
-
-Uden for forligets skoler og i Division II gælder equivalency-modellen som hidtil: én samlet pulje delt ud i brøkdele, så et fuldt stipendium er sjældent, og de fleste svømmere har en blanding af idrætsstøtte, akademiske legater og egenbetaling. Division III giver ingen idrætsstipendier. Se [divisionerne](/viden/ncaa-divisioner).
-
-### Conferences og independents
-
-Conferencen sætter hverdagen i svømning — dual meets hen over efteråret og conference-mesterskabet i februar, som for de fleste svømmere er årets vigtigste stævne. Men adgangen til NCAA Championships går **ikke** gennem conferencen: den går gennem **tider**. Man svømmer sig ind ved at ramme et kvalifikationskrav, og de hurtigste i landet inviteres. Det er den samme individuelle logik som i atletikken, og den har en vigtig konsekvens for en dansk svømmer: man kan nå et nationalt amerikansk mesterskab fra et program, der ikke er blandt landets bedste, hvis uret siger god for det.
-
-Fordi svømning kræver et 50-meters- eller 25-yards-anlæg, er programmerne dyre at drive, og flere universiteter har nedlagt deres hold gennem årene. Det er værd at spørge ind til programmets økonomi, inden man takker ja.
-
-### Vejen til prof
-
-Der er ingen draft og ingen stor professionel svømmeliga at gå til. Vejen videre er landsholdet: DM, internationale stævner, EM, VM og OL. Til gengæld er NCAA i praksis verdens tætteste konkurrencemiljø for svømmere i den aldersgruppe, og mange nationers olympiske svømmere er udviklet i amerikanske college-programmer. For en dansk svømmer er regnestykket ofte enkelt: fire år med to daglige træninger, fysisk træner, fysioterapeut og et hold omkring sig — og en uddannelse ved siden af.
-
-### Tidbits
-
-En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-yards-bassin ("short course yards"), ikke de 50 meter, man kender hjemmefra — så tiderne kan ikke sammenlignes direkte. De fleste stævner afvikles med indledende heat om morgenen og finaler om aftenen. Den danske svømmeskoles fokus på teknik og udholdenhed forbereder atleterne godt, og flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships. North Carolina State har været et samlingspunkt for danske svømmere: distancesvømmeren Anton Ipsen markerede sig blandt USA's bedste, og Søren Dahl vandt to NCAA-titler med skolens stafetter i 2016 og 2017.
-
-Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer-portal); se også [redshirt og eligibility-år](/viden/redshirt-og-eligibility).
-
-### Kilder
-
-- [NCAA. (n.d.). NCAA Division I men's swimming & diving.](https://www.ncaa.com/sports/swimming-men/d1)
-- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
-
-
----
-
-<a id="atletik"></a>
-## Atletik  <sub>`atletik`</sub>
-
-**Intro (hero):** Danske atletikudøvere i NCAA. Sprint, spring, kast og mellemdistance — følg danskere på college-hold i USA.
-
-**Meta description:** Danske atletikudøvere i NCAA – nyheder, profiler og resultater fra track and field i USA.
-
+*Danske atletikudøvere i NCAA. Sprint, spring, kast og mellemdistance — følg danskere på college-hold i USA.*
 
 ## Dansk atletik i NCAA (track & field)
 
@@ -353,16 +266,52 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (n.d.). NCAA Division I men's cross country.](https://www.ncaa.com/sports/cross-country-men/d1)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Svømning
 
----
+*Danske svømmere på NCAA-hold i USA. Fra danske svømmeklubber til college pools — følg de danske talenter.*
 
-<a id="golf"></a>
-## Golf  <sub>`golf`</sub>
+## Dansk svømning i NCAA
 
-**Intro (hero):** Danske golfspillere på NCAA-hold. Danmark har en stærk golftradition, og flere talenter spiller på amerikanske universiteter.
+Danmark har en stærk svømmetradition, og NCAA tilbyder en unik mulighed for danske svømmere til at kombinere sport på højt niveau med en amerikansk universitetsuddannelse. Flere danske svømmere har opnået imponerende resultater i college-regi.
 
-**Meta description:** Danske golfspillere i NCAA – nyheder, profiler og resultater fra college golf i USA.
+### Sæsonens gang
 
+College-svømning løber fra oktober til marts, med conference-mesterskaberne i februar og NCAA Championships i marts som sæsonens højdepunkt. Træningen er intensiv — op til 20 timer om ugen i vandet plus styrketræning. Den lange opbygning er tilrettelagt med "tapering", så svømmerne topper præcis til mesterskaberne.
+
+### Formatet
+
+I et "dual meet" møder to skoler hinanden, og selvom hver svømmer kæmper individuelt, er det holdets samlede pointsum, der afgør sejren. I hver disciplin tildeles point efter placering — for eksempel 9 point for førstepladsen, derefter 4, 3, 2 og 1 til de næste — og stafetterne giver dobbelt op. Et hold kan altså vinde stævnet uden at have den hurtigste enkeltsvømmer, hvis bredden er stor nok. Udspring tæller med i den samlede score på lige fod med svømningen. Til de store mesterskaber stiller mange hold op samtidig, og pointene lægges sammen på tværs af alle discipliner.
+
+### Stipendier og trupstørrelse
+
+Svømning er en af de sportsgrene, hvor House-forliget gjorde mest ondt. For de Division I-skoler, der tilsluttede sig, er de gamle stipendielofter afskaffet og erstattet af et **truploft på 30 svømmere og udspringere tilsammen** — og det er et lille tal for en sport, hvor et program skal dække alle fire svømmearter, alle distancer, stafetter og udspring. Mange amerikanske hold havde rosters langt over 30 og har skullet skære. Til gengæld må skolen give stipendium til alle 30, hvor den før skulle dele en begrænset pulje ud.
+
+Uden for forligets skoler og i Division II gælder equivalency-modellen som hidtil: én samlet pulje delt ud i brøkdele, så et fuldt stipendium er sjældent, og de fleste svømmere har en blanding af idrætsstøtte, akademiske legater og egenbetaling. Division III giver ingen idrætsstipendier. Se [divisionerne](/viden/ncaa-divisioner).
+
+### Conferences og independents
+
+Conferencen sætter hverdagen i svømning — dual meets hen over efteråret og conference-mesterskabet i februar, som for de fleste svømmere er årets vigtigste stævne. Men adgangen til NCAA Championships går **ikke** gennem conferencen: den går gennem **tider**. Man svømmer sig ind ved at ramme et kvalifikationskrav, og de hurtigste i landet inviteres. Det er den samme individuelle logik som i atletikken, og den har en vigtig konsekvens for en dansk svømmer: man kan nå et nationalt amerikansk mesterskab fra et program, der ikke er blandt landets bedste, hvis uret siger god for det.
+
+Fordi svømning kræver et 50-meters- eller 25-yards-anlæg, er programmerne dyre at drive, og flere universiteter har nedlagt deres hold gennem årene. Det er værd at spørge ind til programmets økonomi, inden man takker ja.
+
+### Vejen til prof
+
+Der er ingen draft og ingen stor professionel svømmeliga at gå til. Vejen videre er landsholdet: DM, internationale stævner, EM, VM og OL. Til gengæld er NCAA i praksis verdens tætteste konkurrencemiljø for svømmere i den aldersgruppe, og mange nationers olympiske svømmere er udviklet i amerikanske college-programmer. For en dansk svømmer er regnestykket ofte enkelt: fire år med to daglige træninger, fysisk træner, fysioterapeut og et hold omkring sig — og en uddannelse ved siden af.
+
+### Tidbits
+
+En vigtig detalje for danskere: amerikansk college-svømning foregår i et 25-yards-bassin ("short course yards"), ikke de 50 meter, man kender hjemmefra — så tiderne kan ikke sammenlignes direkte. De fleste stævner afvikles med indledende heat om morgenen og finaler om aftenen. Den danske svømmeskoles fokus på teknik og udholdenhed forbereder atleterne godt, og flere danskere har sat universitetsrekorder og kvalificeret sig til NCAA Championships. North Carolina State har været et samlingspunkt for danske svømmere: distancesvømmeren Anton Ipsen markerede sig blandt USA's bedste, og Søren Dahl vandt to NCAA-titler med skolens stafetter i 2016 og 2017.
+
+Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer-portal); se også [redshirt og eligibility-år](/viden/redshirt-og-eligibility).
+
+### Kilder
+
+- [NCAA. (n.d.). NCAA Division I men's swimming & diving.](https://www.ncaa.com/sports/swimming-men/d1)
+- [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
+
+# Golf
+
+*Danske golfspillere på NCAA-hold. Danmark har en stærk golftradition, og flere talenter spiller på amerikanske universiteter.*
 
 ## Dansk golf i NCAA
 
@@ -407,16 +356,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [PGA TOUR. (n.d.). How it works: PGA TOUR University Ranking.](https://www.pgatour.com/article/news/how-it-works/pga-tour-university-ranking-criteria-points-eligibility-benefits-status)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Tennis
 
----
-
-<a id="tennis"></a>
-## Tennis  <sub>`tennis`</sub>
-
-**Intro (hero):** Danske tennisspillere i NCAA. Følg de danske talenter, der kombinerer topsport og uddannelse på amerikanske universiteter.
-
-**Meta description:** Danske tennisspillere i NCAA – nyheder, profiler og resultater fra college tennis i USA.
-
+*Danske tennisspillere i NCAA. Følg de danske talenter, der kombinerer topsport og uddannelse på amerikanske universiteter.*
 
 ## Dansk tennis i NCAA
 
@@ -460,16 +402,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [Intercollegiate Tennis Association. (2025, 14. juli). 2025-2026 ITA rule modifications, changes and clarifications.](https://wearecollegetennis.com/2025/07/14/2025-2026-ita-rule-modifications-changes-and-clarifications/)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Roning
 
----
-
-<a id="roning"></a>
-## Roning  <sub>`roning`</sub>
-
-**Intro (hero):** Danske roere på NCAA-hold. Roning er en stor sport i det amerikanske college-system, og danske roere er eftertragtede.
-
-**Meta description:** Danske roere i NCAA – nyheder, profiler og resultater fra college rowing i USA.
-
+*Danske roere på NCAA-hold. Roning er en stor sport i det amerikanske college-system, og danske roere er eftertragtede.*
 
 ## Dansk roning i NCAA
 
@@ -512,16 +447,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [Intercollegiate Rowing Association. (n.d.). Compliance.](https://www.irarowing.com/compliance)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Gymnastik
 
----
-
-<a id="gymnastik"></a>
-## Gymnastik  <sub>`gymnastik`</sub>
-
-**Intro (hero):** Danske gymnaster på NCAA-hold. Følg de danske talenter inden for kunstnerisk gymnastik og rytmisk gymnastik i USA.
-
-**Meta description:** Danske gymnaster i NCAA – nyheder, profiler og resultater fra college gymnastics i USA.
-
+*Danske gymnaster på NCAA-hold. Følg de danske talenter inden for kunstnerisk gymnastik og rytmisk gymnastik i USA.*
 
 ## Dansk gymnastik i NCAA
 
@@ -562,16 +490,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Ishockey
 
----
-
-<a id="ishockey"></a>
-## Ishockey  <sub>`ishockey`</sub>
-
-**Intro (hero):** Danske ishockeyspillere på amerikanske universiteter. Følg danskerne i NCAA og college hockey.
-
-**Meta description:** Danske ishockeyspillere i NCAA – nyheder, profiler og resultater fra college hockey i USA.
-
+*Danske ishockeyspillere på amerikanske universiteter. Følg danskerne i NCAA og college hockey.*
 
 ## Dansk ishockey i NCAA
 
@@ -616,16 +537,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Volleyball
 
----
-
-<a id="volleyball"></a>
-## Volleyball  <sub>`volleyball`</sub>
-
-**Intro (hero):** Danske volleyballspillere i NCAA. Følg de danske talenter på amerikanske universitetshold.
-
-**Meta description:** Danske volleyballspillere i NCAA – nyheder, profiler og resultater fra college volleyball i USA.
-
+*Danske volleyballspillere i NCAA. Følg de danske talenter på amerikanske universitetshold.*
 
 ## Dansk volleyball i NCAA
 
@@ -667,16 +581,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Field hockey
 
----
-
-<a id="field-hockey"></a>
-## Field hockey  <sub>`field-hockey`</sub>
-
-**Intro (hero):** Danske field hockey-spillere på NCAA-hold. En lille sport i Danmark, men et af de mest internationale felter i amerikansk college-sport.
-
-**Meta description:** Danske field hockey-spillere i NCAA – nyheder, profiler og resultater fra college field hockey i USA.
-
+*Danske field hockey-spillere på NCAA-hold. En lille sport i Danmark, men et af de mest internationale felter i amerikansk college-sport.*
 
 ## Field hockey i NCAA
 
@@ -721,16 +628,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [ScholarshipStats.com. (n.d.). Field hockey scholarships.](https://scholarshipstats.com/fieldhockey)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Rugby
 
----
-
-<a id="rugby"></a>
-## Rugby  <sub>`rugby`</sub>
-
-**Intro (hero):** Danske rugbyspillere på amerikanske college-hold. To adskilte verdener: kvindernes rugby er på vej ind i NCAA, mens mændenes stadig ligger udenfor.
-
-**Meta description:** Rugby i amerikansk college-sport – nyheder, profiler og resultater fra NCAA-emerging sport og college-rugby i USA.
-
+*Danske rugbyspillere på amerikanske college-hold. To adskilte verdener: kvindernes rugby er på vej ind i NCAA, mens mændenes stadig ligger udenfor.*
 
 ## Rugby i amerikansk college-sport
 
@@ -776,16 +676,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [National Collegiate Rugby. (2026). NCR partners with the All Women's Sports Network for the 2026 National 7s Championships.](https://www.ncr.rugby/news/national-collegiate-rugby-partners-with-the-all-womens-sports-network-for-global-broadcast-of-2026-national-7s-championships/)
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Vandpolo
 
----
-
-<a id="vandpolo"></a>
-## Vandpolo  <sub>`vandpolo`</sub>
-
-**Intro (hero):** Danske vandpolospillere på NCAA-hold. En sport hvor herrerne spiller om efteråret, kvinderne om foråret, og hele landet dyster i ét mesterskab.
-
-**Meta description:** Vandpolo i NCAA – nyheder, profiler og resultater fra college-vandpolo i USA.
-
+*Danske vandpolospillere på NCAA-hold. En sport hvor herrerne spiller om efteråret, kvinderne om foråret, og hele landet dyster i ét mesterskab.*
 
 ## Vandpolo i NCAA
 
@@ -824,16 +717,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA.com. (2026, April 13). 2026 National Collegiate women's water polo championship selections.](https://www.ncaa.com/news/waterpolo-women/article/2026-04-13/2026-national-collegiate-womens-water-polo-championship-selections)
 - [NCAA. (n.d.). National Collegiate men's water polo.](https://www.ncaa.org/championship/national-collegiate/mens-water-polo/)
 
+# Fægtning
 
----
-
-<a id="faegtning"></a>
-## Fægtning  <sub>`faegtning`</sub>
-
-**Intro (hero):** Danske fægtere på amerikanske college-hold. Et af de få NCAA-mesterskaber, hvor Division I, II og III mødes på samme planche.
-
-**Meta description:** Fægtning i NCAA – nyheder, profiler og resultater fra college-fægtning i USA.
-
+*Danske fægtere på amerikanske college-hold. Et af de få NCAA-mesterskaber, hvor Division I, II og III mødes på samme planche.*
 
 ## Fægtning i NCAA
 
@@ -876,16 +762,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Squash
 
----
-
-<a id="squash"></a>
-## Squash  <sub>`squash`</sub>
-
-**Intro (hero):** Danske squashspillere på amerikanske college-hold. Varsity-sport på nogle af landets ældste universiteter — men uden for NCAA.
-
-**Meta description:** Squash i amerikansk college-sport – nyheder, profiler og resultater fra college-squash i USA.
-
+*Danske squashspillere på amerikanske college-hold. Varsity-sport på nogle af landets ældste universiteter — men uden for NCAA.*
 
 ## Squash i amerikansk college-sport
 
@@ -925,16 +804,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [College Squash Association. (2026). 2026 CSA national team championships.](https://csasquash.com/2026-national-team-championship/)
 - [ScholarshipStats.com. (n.d.). Colleges with varsity squash teams.](https://scholarshipstats.com/squash)
 
+# Esport
 
----
-
-<a id="esport"></a>
-## Esport  <sub>`esport`</sub>
-
-**Intro (hero):** Danske esportsudøvere på amerikanske college-hold. Varsity-programmer med trænere, holdlokaler og legater — helt uden for NCAA.
-
-**Meta description:** Esport i amerikansk college-sport – nyheder, profiler og resultater fra college-esport i USA.
-
+*Danske esportsudøvere på amerikanske college-hold. Varsity-programmer med trænere, holdlokaler og legater — helt uden for NCAA.*
 
 ## Esport i amerikansk college-sport
 
@@ -972,16 +844,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [Esports Insider. (2026). Esports scholarships in 2026: How gaming can put you through school.](https://esportsinsider.com/esports-scholarships)
 - [Liquipedia. (2026). Collegiate League of Legends 2026 championship.](https://liquipedia.net/leagueoflegends/CLOL/2026/Championship)
 
+# Lacrosse
 
----
-
-<a id="lacrosse"></a>
-## Lacrosse  <sub>`lacrosse`</sub>
-
-**Intro (hero):** Danske lacrossespillere på NCAA-hold. Den største af de sportsgrene, der ikke har en dansk klubtradition bag sig — og et af de bredeste felter i college-sporten.
-
-**Meta description:** Lacrosse i NCAA – nyheder, profiler og resultater fra college-lacrosse i USA.
-
+*Danske lacrossespillere på NCAA-hold. Den største af de sportsgrene, der ikke har en dansk klubtradition bag sig — og et af de bredeste felter i college-sporten.*
 
 ## Lacrosse i NCAA
 
@@ -1019,16 +884,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA.com. (2026, May 3). NCAA Division I women's lacrosse championship subcommittee announces 2026 field.](https://www.ncaa.com/news/lacrosse-women/article/2026-05-03/ncaa-division-i-womens-lacrosse-championship-subcommittee-announces-2026-field)
 - [USA Lacrosse. (2026). NCAA 2026 preview: Your guide to the college lacrosse season.](https://www.usalacrosse.com/magazine/college/ncaa-2026-preview-your-guide-college-lacrosse-season)
 
+# Softball
 
----
-
-<a id="softball"></a>
-## Softball  <sub>`softball`</sub>
-
-**Intro (hero):** Danske softballspillere på NCAA-hold. Baseballs søstersport er en af de mest udbredte kvindesportsgrene i amerikansk college-sport.
-
-**Meta description:** Softball i NCAA – nyheder, profiler og resultater fra college-softball i USA.
-
+*Danske softballspillere på NCAA-hold. Baseballs søstersport er en af de mest udbredte kvindesportsgrene i amerikansk college-sport.*
 
 ## Softball i NCAA
 
@@ -1065,16 +923,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [ScholarshipStats.com. (n.d.). Softball scholarships and college programs.](https://scholarshipstats.com/softball)
 - [NCAA.com. (2026, June 4). Texas wins the 2026 NCAA DI softball championship.](https://www.ncaa.com/news/softball/article/2026-06-04/2026-ncaa-softball-tournament-bracket-schedule-womens-college-world-series-scores)
 
+# Brydning
 
----
-
-<a id="brydning"></a>
-## Brydning  <sub>`brydning`</sub>
-
-**Intro (hero):** Danske brydere på NCAA-hold. En af college-sportens ældste discipliner — og siden 2026 med et NCAA-mesterskab for kvinder.
-
-**Meta description:** Brydning i NCAA – nyheder, profiler og resultater fra college-brydning i USA.
-
+*Danske brydere på NCAA-hold. En af college-sportens ældste discipliner — og siden 2026 med et NCAA-mesterskab for kvinder.*
 
 ## Brydning i NCAA
 
@@ -1112,16 +963,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA.com. (2026, March 7). McKendree clinches the 2026 NC women's wrestling championship.](https://www.ncaa.com/news/wrestling-women/article/2026-03-07/mckendree-clinches-2026-nc-womens-wrestling-championship)
 - [ScholarshipStats.com. (n.d.). Wrestling scholarships and college programs.](https://scholarshipstats.com/wrestling)
 
+# Bowling
 
----
-
-<a id="bowling"></a>
-## Bowling  <sub>`bowling`</sub>
-
-**Intro (hero):** Danske bowlingspillere på NCAA-hold. En kvindesport i NCAA, hvor alle divisioner spiller om den samme titel.
-
-**Meta description:** Bowling i NCAA – nyheder, profiler og resultater fra college-bowling i USA.
-
+*Danske bowlingspillere på NCAA-hold. En kvindesport i NCAA, hvor alle divisioner spiller om den samme titel.*
 
 ## Bowling i NCAA
 
@@ -1159,16 +1003,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA.com. (2026, April 11). Jax State wins 2026 NC bowling championship.](https://www.ncaa.com/news/bowling/article/2026-04-11/jax-state-wins-2026-nc-bowling-championship)
 - [ScholarshipStats.com. (n.d.). Bowling scholarships and college programs.](https://scholarshipstats.com/bowling)
 
+# Sejlsport
 
----
-
-<a id="sejlsport"></a>
-## Sejlsport  <sub>`sejlsport`</sub>
-
-**Intro (hero):** Danske collegesejlere i USA. Varsity-sport med nationale mesterskaber — men uden for NCAA, i sejlsportens eget forbund.
-
-**Meta description:** Sejlsport i amerikansk college-sport – nyheder, profiler og resultater fra college-sejlsport i USA.
-
+*Danske collegesejlere i USA. Varsity-sport med nationale mesterskaber — men uden for NCAA, i sejlsportens eget forbund.*
 
 ## Sejlsport i amerikansk college-sport
 
@@ -1208,16 +1045,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [College Sailing National Championships. (2026). National championship regatta.](https://nationals.collegesailing.org/)
 - [Inter-Collegiate Sailing Association. (n.d.). Women's team race championships.](https://www.collegesailing.org/championships/womens-team-race)
 
+# Skydning
 
----
-
-<a id="skydning"></a>
-## Skydning  <sub>`skydning`</sub>
-
-**Intro (hero):** Danske skytter på amerikanske college-hold. Riffel er NCAA-sport for begge køn i samme konkurrence; pistol har sine egne mesterskaber.
-
-**Meta description:** Skydning i amerikansk college-sport – nyheder, profiler og resultater fra college-riffel og -pistol i USA.
-
+*Danske skytter på amerikanske college-hold. Riffel er NCAA-sport for begge køn i samme konkurrence; pistol har sine egne mesterskaber.*
 
 ## Skydning i amerikansk college-sport
 
@@ -1257,16 +1087,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA.com. (2026, February 23). 2026 National Collegiate men's and women's rifle selections.](https://www.ncaa.com/news/rifle/article/2026-02-23/2026-national-collegiate-mens-and-womens-rifle-selections)
 - [NRA Shooting Sports USA. (2026). Ohio State captures 2026 intercollegiate pistol crown as NRA returns to the range.](https://www.ssusa.org/content/ohio-state-captures-2026-intercollegiate-pistol-crown-as-nra-returns-to-the-range/)
 
+# Skisport
 
----
-
-<a id="skisport"></a>
-## Skisport  <sub>`skisport`</sub>
-
-**Intro (hero):** Danske skiløbere på NCAA-hold. Alpint og langrend er ét hold og ét mesterskab — og feltet er et af de mest nordiske i amerikansk college-sport.
-
-**Meta description:** Skisport i NCAA – nyheder, profiler og resultater fra college-ski i USA.
-
+*Danske skiløbere på NCAA-hold. Alpint og langrend er ét hold og ét mesterskab — og feltet er et af de mest nordiske i amerikansk college-sport.*
 
 ## Skisport i NCAA
 
@@ -1308,16 +1131,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2025, 23. juni). DI Board of Directors formally adopts changes to roster limits.](https://www.ncaa.org/media-center-di-board-of-directors-formally-adopts-changes-to-roster-limits/)
 
+# Triatlon
 
----
-
-<a id="triatlon"></a>
-## Triatlon  <sub>`triatlon`</sub>
-
-**Intro (hero):** Danske triatleter på amerikanske college-hold. NCAA-emerging sport for kvinder, med drafting tilladt og mesterskab i november.
-
-**Meta description:** Triatlon i amerikansk college-sport – nyheder, profiler og resultater fra college-triatlon i USA.
-
+*Danske triatleter på amerikanske college-hold. NCAA-emerging sport for kvinder, med drafting tilladt og mesterskab i november.*
 
 ## Triatlon i amerikansk college-sport
 
@@ -1337,7 +1153,7 @@ Triatlon er en af NCAA's emerging sports for kvinder — en anerkendt vej mod fu
 Antallet af programmer er stadig lille, men det er selve pointen med emerging sport-status: listen vokser, og flere skoler kommer til. Se [divisionerne](/viden/ncaa-divisioner).
 
 ### Conferences og independents
-Antallet af programmer vokser støt, og Conference Carolinas blev i efteråret 2026 den første NCAA-konference til at sponsorere sporten samlet. Vejen videre går gennem NCAA's emerging sports-proces, hvor en sport skal have et bestemt antal værtsskoler for at få sit eget mesterskab.
+Antallet af programmer vokser støt, og fra dette efterår sponsorerer Conference Carolinas sporten samlet som den første NCAA-konference — en premiere-sæson med syv skoler, hvoraf fire deltager som associerede medlemmer. Vejen videre går gennem NCAA's emerging sports-proces, hvor en sport skal have et bestemt antal værtsskoler for at få sit eget mesterskab.
 
 ### Vejen til prof
 
@@ -1355,16 +1171,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NCAA. (n.d.). Emerging sports for women.](https://www.ncaa.org/championships/emerging-sports-for-women/)
 - [NCAA. (2026, May 4). Conference Carolinas announces the addition of women's triathlon.](https://www.ncaa.org/news/2026/5/4/media-center-conference-carolinas-announces-the-addition-of-womens-triathlon.aspx)
 
+# Hestepolo
 
----
-
-<a id="hestepolo"></a>
-## Hestepolo  <sub>`hestepolo`</sub>
-
-**Intro (hero):** Danske polospillere på amerikanske college-hold. Arenapolo med tre spillere pr. hold, eget nationalt mesterskab — og ingen NCAA.
-
-**Meta description:** Hestepolo i amerikansk college-sport – nyheder, profiler og resultater fra college-polo i USA.
-
+*Danske polospillere på amerikanske college-hold. Arenapolo med tre spillere pr. hold, eget nationalt mesterskab — og ingen NCAA.*
 
 ## Hestepolo i amerikansk college-sport
 
@@ -1404,16 +1213,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [United States Polo Association. (n.d.). Division I men's national intercollegiate championship.](https://www.uspolo.org/calendar/tournaments/division-i-mens-national-intercollegiate-championship)
 - [United States Polo Association. (2026). USA roster announced for 2026 international intercollegiate challenge cup.](https://www.uspolo.org/news-social/news/usa-roster-announced-for-2026-international-intercollegiate-challenge-cup)
 
+# Flag football
 
----
-
-<a id="flag-football"></a>
-## Flag football  <sub>`flag-football`</sub>
-
-**Intro (hero):** Danske flag football-spillere på amerikanske college-hold. Den hurtigst voksende kvindesport i college-sporten — og OL-sport fra 2028.
-
-**Meta description:** Flag football i amerikansk college-sport – nyheder, profiler og resultater fra college-flag football i USA.
-
+*Danske flag football-spillere på amerikanske college-hold. Den hurtigst voksende kvindesport i college-sporten — og OL-sport fra 2028.*
 
 ## Flag football i amerikansk college-sport
 
@@ -1456,16 +1258,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [NAIA. (n.d.). Women's flag football.](https://www.naia.org/sports/wflag/index)
 - [Olympics.com. (n.d.). Flag football at the Olympic Games Los Angeles 2028: Everything you need to know.](https://www.olympics.com/en/news/flag-football-at-the-olympic-games-los-angeles-2028-everything-you-need-to-know-about-the-new-sport-at-la-28)
 
+# Cykling
 
----
-
-<a id="cykling"></a>
-## Cykling  <sub>`cykling`</sub>
-
-**Intro (hero):** Danske cykelryttere på amerikanske college-hold. Fem nationale collegemesterskaber om året — landevej, bane, mountainbike, cyclocross og nu gravel.
-
-**Meta description:** Cykling i amerikansk college-sport – nyheder, profiler og resultater fra college-cykling i USA.
-
+*Danske cykelryttere på amerikanske college-hold. Fem nationale collegemesterskaber om året — landevej, bane, mountainbike, cyclocross og nu gravel.*
 
 ## Cykling i amerikansk college-sport
 
@@ -1473,7 +1268,7 @@ Collegecykling ligger uden for NCAA og styres af USA Cycling, som afvikler de na
 
 ### Sæsonens gang
 
-Kalenderen følger disciplinerne hen over hele året i stedet for at samle sig om én sæson. I 2026 blev banemesterskabet kørt 10.-13. september på Major Taylor Velodrome i Indianapolis, mountainbike 7. oktober i Grand Junction i Colorado og cyclocross 9. december i Fayetteville i Arkansas, mens landevejsmesterskabet blev afviklet i Wisconsin.
+Kalenderen følger disciplinerne hen over hele året i stedet for at samle sig om én sæson. I 2026 blev banemesterskabet kørt 10.-13. september på Major Taylor Velodrome i Indianapolis, og landevejsmesterskabet blev afviklet i Wisconsin. Efteråret og vinteren har endnu to tilbage: mountainbike 6.-11. oktober i Grand Junction i Colorado og cyclocross 9.-13. december i Fayetteville i Arkansas.
 
 ### Formatet
 
@@ -1506,16 +1301,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [USA Cycling. (2026). USA Cycling announces 2026 national championship schedule.](https://usacycling.org/article/usa-cycling-announces-2026-national-championship-schedule)
 - [USA Cycling. (n.d.). Collegiate mountain bike national championships.](https://mtbnats.usacycling.org/coll-mtb)
 
+# Bueskydning
 
----
-
-<a id="bueskydning"></a>
-## Bueskydning  <sub>`bueskydning`</sub>
-
-**Intro (hero):** Danske bueskytter på amerikanske college-hold. Varsity-programmer med legater, klubhold og fire buetyper til det samme nationale mesterskab.
-
-**Meta description:** Bueskydning i amerikansk college-sport – nyheder, profiler og resultater fra college-bueskydning i USA.
-
+*Danske bueskytter på amerikanske college-hold. Varsity-programmer med legater, klubhold og fire buetyper til det samme nationale mesterskab.*
 
 ## Bueskydning i amerikansk college-sport
 
@@ -1555,16 +1343,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [USA Archery. (2026). USA Archery Collegiate Target Nationals.](https://www.usarchery.org/events/national-tournaments/USA-Archery-Collegiate-Target-Nationals)
 - [USA Archery. (2026). USA Archery announces the 2026 All-American Academic Team.](https://www.usarchery.org/news/top-athletes-and-top-students-usa-archery-announces-the-2026-all-american-academic-team)
 
+# Akrobatik og tumbling
 
----
-
-<a id="akrobatik"></a>
-## Akrobatik og tumbling  <sub>`akrobatik`</sub>
-
-**Intro (hero):** Danske akrobatik- og tumbling-udøvere på amerikanske college-hold. NCAA's nyeste mesterskabssport — vedtaget i januar 2026.
-
-**Meta description:** Akrobatik og tumbling i NCAA – nyheder, profiler og resultater fra college-acrobatics & tumbling i USA.
-
+*Danske akrobatik- og tumbling-udøvere på amerikanske college-hold. NCAA's nyeste mesterskabssport — vedtaget i januar 2026.*
 
 ## Akrobatik og tumbling i NCAA
 
@@ -1579,14 +1360,13 @@ Akrobatik og tumbling er en forårssport. Sæsonen løber fra januar til april o
 ### Formatet
 Et møde består af **seks discipliner** og varer typisk halvanden til to timer. Holdene udfører synkrone serier i akrobatik, pyramide, kast, tumbling og en afsluttende holdrutine, og hver færdighed bedømmes på både sværhedsgrad og udførelse. Formatet er bygget som en direkte duel mellem to hold — pointene lægges sammen undervejs, så stillingen følger med hele vejen.
 
-### Formatet
-Rosterne er delt efter, hvad kroppen laver: baserne løfter, toppen bliver løftet og kastet, backspotten sikrer, og tumblerne løber deres baner uden at løfte nogen. Det er en holdsport bygget af individuelle specialister, og rekrutteringen følger rollen.
-
 ### Stipendier og trupstørrelse
 
-Sporten fik NCAA-status ved konventet i januar 2026, hvor alle tre divisioner stemte for at gøre akrobatik og tumbling til en mesterskabssport; det første NCAA-mesterskab ventes i foråret 2027. 47 universiteter har programmer med over 1.300 udøvere. Vejen dertil gik gennem emerging sport-status, som sporten fik i 2020.
+Sporten fik NCAA-status ved konventet i januar 2026, hvor alle tre divisioner stemte for at gøre akrobatik og tumbling til en mesterskabssport; det første NCAA-mesterskab ventes i foråret 2027. Vejen dertil gik gennem emerging sport-status, som sporten fik i 2020.
 
 Stipendierne følger equivalency-modellen, og for de Division I-skoler, der tilsluttede sig House-forliget i 2025, gælder et **truploft på 55 udøvere** — et af de største i college-sporten, fordi en dyst kræver mange kroppe i pyramiderne. Se [divisionerne](/viden/ncaa-divisioner).
+
+Rosterne er delt efter, hvad kroppen laver: baserne løfter, toppen bliver løftet og kastet, backspotten sikrer, og tumblerne løber deres baner uden at løfte nogen. Det er en holdsport bygget af individuelle specialister, og rekrutteringen følger rollen.
 
 ### Conferences og independents
 
@@ -1610,16 +1390,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 
 - [NCAA. (2026, 16. januar). NCAA elevates acrobatics and tumbling to championship status.](https://www.ncaa.org/news/2026/1/16/media-center-ncaa-elevates-acrobatics-and-tumbling-to-championship-status.aspx)
 
+# Ultimate
 
----
-
-<a id="ultimate"></a>
-## Ultimate  <sub>`ultimate`</sub>
-
-**Intro (hero):** Danske ultimate-spillere på amerikanske college-hold. Selvdømt holdsport med eget nationalt mesterskab i to divisioner.
-
-**Meta description:** Ultimate i amerikansk college-sport – nyheder, profiler og resultater fra college-ultimate i USA.
-
+*Danske ultimate-spillere på amerikanske college-hold. Selvdømt holdsport med eget nationalt mesterskab i to divisioner.*
 
 ## Ultimate i amerikansk college-sport
 
@@ -1632,10 +1405,9 @@ Sæsonen kulminerer i maj. I 2026 blev begge mesterskaber spillet i Illinois: D-
 ### Formatet
 Syv spillere pr. hold, og der scores ved at gribe disken i modstanderens endzone. Man må ikke løbe med disken, så spillet bygges op af kast og løb i frirum — handlerne styrer opbygningen, cutterne løber sig fri. Kampene spilles til 15 point med tidsgrænse.
 
-### Formatet
-Ultimate er **selvdømt**. Spillerne dømmer selv deres kampe efter princippet Spirit of the Game, og ved de største stævner assisterer observatører i stedet for dommere. Det er sportens mest karakteristiske træk og en af grundene til, at den har holdt fast i sit eget forbund frem for at søge ind i NCAA.
-
 ### Stipendier og trupstørrelse
+
+Ultimate er **selvdømt**. Spillerne dømmer selv deres kampe efter princippet Spirit of the Game, og ved de største stævner assisterer observatører i stedet for dommere. Det er sportens mest karakteristiske træk og en af grundene til, at den har holdt fast i sit eget forbund frem for at søge ind i NCAA.
 
 **Ultimate er ikke en NCAA-sport.** College-ultimate styres af USA Ultimate, og NCAA's stipendieregler og trupslofter gælder ikke. Så godt som alle programmer er studenterdrevne klubhold, og der findes i praksis ingen idrætsstipendier i sporten.
 
@@ -1661,16 +1433,9 @@ Skifter man skole undervejs, sker det gennem [transfer-portalen](/viden/transfer
 - [USA Ultimate. (2026). D-III college championships wrap with historic sweep.](https://usaultimate.org/news/2026/06/d-iii-college-championships-wrap-with-historic-sweep/)
 - [USA Ultimate. (2025). Illinois set to host 2026 college championships.](https://usaultimate.org/news/2025/08/illinois-set-to-host-2026-college-championships/)
 
+# Andre sportsgrene
 
----
-
-<a id="andet"></a>
-## Andre sportsgrene  <sub>`andet`</sub>
-
-**Intro (hero):** Danske atleter i mindre repræsenterede sportsgrene i NCAA — fra lacrosse til fægtning.
-
-**Meta description:** Danske atleter i øvrige NCAA-sportsgrene – nyheder og profiler fra niche-sportsgrene i USA.
-
+*Danske atleter i mindre repræsenterede sportsgrene i NCAA — fra lacrosse til fægtning.*
 
 ## Andre sportsgrene i NCAA
 
