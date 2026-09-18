@@ -6,7 +6,7 @@
  * og match mod ALLE danske atleter på den skole.
  */
 
-import { createHash } from "crypto";
+import { storyHash } from "../lib/story-url";
 import { createD1Client } from "../lib/d1-client";
 import {
   extractStoriesForSchool,
@@ -144,9 +144,10 @@ async function checkSchoolFeeds(
           // Hashen er pr. ATLET. Var den global pr. URL — som før — kunne en
           // artikel kun tilhøre ÉN atlet: den anden blev tavst droppet af
           // INSERT OR IGNORE (0 rækker, ingen fejl, intet i loggen).
-          const urlHash = createHash("sha256")
-            .update(`${story.athlete_id}:${url}`)
-            .digest("hex");
+          // Adressen normaliseres FØR hashen: http/https og www betyder intet
+          // for hvilken side man er havnet på. Se pipeline/lib/story-url.ts —
+          // Nathan Hopley stod to gange i køen 18. september af netop den grund.
+          const urlHash = storyHash(story.athlete_id, url);
 
           try {
             const res = await db.execute(

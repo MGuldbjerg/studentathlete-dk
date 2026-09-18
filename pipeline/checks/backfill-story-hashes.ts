@@ -13,8 +13,8 @@
  * Kør:  npx tsx pipeline/checks/backfill-story-hashes.ts           (kun tal)
  *       npx tsx pipeline/checks/backfill-story-hashes.ts --apply
  */
-import { createHash } from "crypto";
 import { createD1Client } from "../lib/d1-client";
+import { storyHash } from "../lib/story-url";
 
 interface Row {
   id: number;
@@ -23,9 +23,9 @@ interface Row {
   url_hash: string;
 }
 
-export function storyHash(athleteId: number | null, url: string): string {
-  return createHash("sha256").update(`${athleteId}:${url}`).digest("hex");
-}
+// Nøglen bor nu i pipeline/lib/story-url.ts, så høsten og efter-beregningen
+// ikke kan nå at være uenige. Re-eksporteres, fordi ældre kald bruger den her.
+export { storyHash };
 
 async function main(): Promise<void> {
   const apply = process.argv.includes("--apply");
