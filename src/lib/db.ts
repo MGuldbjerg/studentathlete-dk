@@ -671,6 +671,31 @@ export async function getAlumniAthletes(country?: string): Promise<Athlete[]> {
   } catch { return []; }
 }
 
+/**
+ * Antal alumner — som TAL, ikke som rækker.
+ *
+ * `/atleter` hentede hele alumne-listen for at vise `alumni.length`. Sammen med
+ * `getAllAthletes()` var det ~3.000 rækker, der blev serialiseret, sendt og
+ * pakket ud i workeren for at skrive to tal og 25 links. Det er både D1-rækker
+ * og CPU — og CPU er det, der vælter siden (fejl 1102).
+ */
+export async function getAlumniCount(country?: string): Promise<number> {
+  const db = await getDB();
+  if (!db) return MOCK_ATHLETES.filter((a) => a.active === 0).length;
+  const code = await siteCountry(country);
+  try {
+    return await cachedStat<number>("alumni_count", code, async () => {
+      const r = (await db
+        .prepare("SELECT COUNT(*) AS n FROM athletes WHERE home_country = ? AND active = 0")
+        .bind(code)
+        .first()) as { n: number } | null;
+      return r?.n ?? 0;
+    });
+  } catch {
+    return 0;
+  }
+}
+
 export async function getAthletesBySport(
   sport: string, limit = 50, country?: string
 ): Promise<Athlete[]> {

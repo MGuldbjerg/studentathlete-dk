@@ -8,10 +8,10 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllAthletes, getAlumniAthletes } from "@/lib/db";
+import { getAthleteInitialCounts, getAlumniCount } from "@/lib/db";
 import { AthleteLetterNav } from "@/components/AthleteLetterNav";
 import { GraduationHelp } from "@/components/athletes/AthleteFullList";
-import { alphabetFor, countByLetter, athletesAllPath } from "@/lib/athlete-letters";
+import { alphabetFor, letterOf, athletesAllPath } from "@/lib/athlete-letters";
 import { t, routePath } from "@/lib/i18n";
 import { currentLanguage, currentSite } from "@/lib/site-server";
 
@@ -27,11 +27,24 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AtleterPage() {
-  const [active, alumni, lang] = await Promise.all([
-    getAllAthletes(),
-    getAlumniAthletes(),
+  // Siden bruger KUN to tal og 25 bogstavtællinger. Den hentede hele
+  // atletlisten og hele alumnelisten for at regne dem ud — ~3.000 rækker
+  // serialiseret og pakket ud i workeren pr. visning, på en rute uden cache.
+  // Tællingen sker i SQL nu (og ligger i stats_cache).
+  const [initials, alumniCount, lang] = await Promise.all([
+    getAthleteInitialCounts(),
+    getAlumniCount(),
     currentLanguage(),
   ]);
+  // Bogstavet udledes stadig af letterOf, så sprogets regler er de samme som
+  // på bogstavsiderne — kun optællingen er flyttet til basen.
+  const counts = new Map<string, number>();
+  for (const { initial, n } of initials) {
+    const l = letterOf(initial, lang);
+    if (!l) continue;
+    counts.set(l, (counts.get(l) ?? 0) + n);
+  }
+  const activeCount = initials.reduce((sum, i) => sum + i.n, 0);
 
   return (
     <main className="max-w-5xl mx-auto px-4 md:px-8 py-10">
@@ -42,23 +55,23 @@ export default async function AtleterPage() {
         {t("athletes.h1", lang)}
       </h1>
       <p className="text-muted text-sm mb-8">
-        {t("athletes.active_count", lang, { n: String(active.length) })}
-        {alumni.length > 0
-          ? ` · ${t("athletes.alumni_count", lang, { n: String(alumni.length) })}`
+        {t("athletes.active_count", lang, { n: String(activeCount) })}
+        {alumniCount > 0
+          ? ` · ${t("athletes.alumni_count", lang, { n: String(alumniCount) })}`
           : ""}
       </p>
 
       <p className="text-ink text-sm mb-6 max-w-2xl">{t("athletes.intro", lang)}</p>
 
-      {active.length === 0 && alumni.length === 0 ? (
+      {activeCount === 0 && alumniCount === 0 ? (
         <p className="text-muted py-20 text-center">{t("athletes.none", lang)}</p>
       ) : (
         <>
           {/* Akse 1: forbogstavet. Hver profil får en kort vej ind. */}
-          {active.length > 0 && (
+          {activeCount > 0 && (
             <AthleteLetterNav
               alphabet={alphabetFor(lang)}
-              counts={countByLetter(active, lang)}
+              counts={counts}
               active={null}
               lang={lang}
             />
