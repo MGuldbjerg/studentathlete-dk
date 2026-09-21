@@ -180,6 +180,7 @@ export type UiKey =
   | "error.body"
   | "error.retry"
   | "profile.career_highlights"
+  | "profile.schoolmates"
   | "profile.season"
   | "profile.honour"
   | "profile.source"

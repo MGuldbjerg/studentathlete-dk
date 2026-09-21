@@ -474,13 +474,24 @@ export default async function DynamicPage({
         if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget, lang));
       }
       if (athlete) {
-        const [articles, events] = await Promise.all([
+        // Seks hentes, fem vises: atleten selv skal filtreres fra, og uden den
+        // ekstra ville en profil kunne stå med fire landsmænd på skolen, hvor
+        // der er fem. Opslaget er indekseret (idx_athletes_university) og
+        // returnerer en håndfuld rækker — ingen CPU, én rundtur.
+        const [articles, events, schoolmatesRaw] = await Promise.all([
           getArticlesByAthleteId(athlete.id, 10),
           getAthleteEvents(athlete.id),
+          getAthletesByUniversity(athlete.university, 6),
         ]);
+        const schoolmates = schoolmatesRaw.filter((a) => a.id !== athlete.id).slice(0, 5);
         return (
           <>
-            <AthleteProfilePage athlete={athlete} articles={articles} events={events} />
+            <AthleteProfilePage
+              athlete={athlete}
+              articles={articles}
+              events={events}
+              schoolmates={schoolmates}
+            />
             <AdminEditButton href={`/admin/atleter/${athlete.id}`} label="Rediger atlet" />
           </>
         );

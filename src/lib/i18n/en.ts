@@ -446,6 +446,7 @@ const ui: LanguagePack["ui"] = {
   "error.body": "The page could not be loaded. Try reloading.",
   "error.retry": "Try again",
   "profile.career_highlights": "Career highlights",
+  "profile.schoolmates": "Other British athletes at {school}",
   "profile.honour": "Honour",
   "profile.season": "Season",
   "profile.source": "Source",

@@ -4,14 +4,27 @@ import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { awardLabel, type AthleteEventRow } from "@/lib/athlete-events";
 
-import { sportLabel, t, articleTypeLabel, routePath } from "@/lib/i18n";
+import { sportLabel, sportSlug, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
 import { countryProfile } from "@/lib/countries";
 import { currentLanguage, currentSite } from "@/lib/site-server";
-interface Props { athlete: Athlete; articles: Article[]; events?: AthleteEventRow[] }
+interface Props {
+  athlete: Athlete;
+  articles: Article[];
+  events?: AthleteEventRow[];
+  /** Landsmænd på samme skole — profilens eneste vej VIDERE for de ~95%, der
+   *  ikke har en artikel. Hentes af siden, ikke her. */
+  schoolmates?: Athlete[];
+}
 
 const STAT_ROWS = (a: Athlete, lang: string) => [
-  { label: t("fact.sport", lang),     value: sportLabel(a.sport, lang) },
+  // Sportssiden lister i forvejen 30 atleter; uden linket går trafikken kun
+  // den ene vej. Samme mønster som universitetet lige nedenfor.
+  {
+    label: t("fact.sport", lang),
+    value: sportLabel(a.sport, lang),
+    href: `/${sportSlug(a.sport, lang)}`,
+  },
   { label: t("fact.position", lang),  value: a.position },
   // Skolens stavemåde ("Copenhagen, Denmark") er data; læseren skal se byen
   // som den hedder på sitets sprog ("København").
@@ -41,7 +54,7 @@ const STAT_ROWS = (a: Athlete, lang: string) => [
   },
 ].filter((r) => r.value);
 
-export async function AthleteProfilePage({ athlete, articles, events = [] }: Props) {
+export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   return (
@@ -157,6 +170,27 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
                 </div>
               ))}
             </dl>
+
+            {schoolmates.length > 0 && (
+              <section className="mt-8">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
+                  {t("profile.schoolmates", lang, { school: athlete.university })}
+                </p>
+                <ul className="flex flex-col gap-2">
+                  {schoolmates.map((m) => (
+                    <li key={m.id}>
+                      <a
+                        href={`${routePath("athletes", lang)}/${m.slug}`}
+                        className="text-sm text-ink hover:underline"
+                      >
+                        {m.name}
+                      </a>
+                      <span className="text-xs text-muted"> · {sportLabel(m.sport, lang)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {athlete.bio_url && (
               <a href={athlete.bio_url} target="_blank" rel="noopener noreferrer"

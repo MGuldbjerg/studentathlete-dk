@@ -456,6 +456,7 @@ const ui: LanguagePack["ui"] = {
   "error.body": "Siden kunne ikke indlæses. Prøv at genindlæse.",
   "error.retry": "Prøv igen",
   "profile.career_highlights": "Karriere-højdepunkter",
+  "profile.schoolmates": "Andre danske atleter på {school}",
   "profile.honour": "Udmærkelse",
   "profile.season": "Sæson",
   "profile.source": "Kilde",
