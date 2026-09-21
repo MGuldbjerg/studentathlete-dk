@@ -16,7 +16,16 @@ const STAT_ROWS = (a: Athlete, lang: string) => [
   // Skolens stavemåde ("Copenhagen, Denmark") er data; læseren skal se byen
   // som den hedder på sitets sprog ("København").
   { label: t("fact.hometown", lang),   value: localizeHometown(a.hometown, countryProfile(a.home_country ?? undefined)) },
-  { label: t("fact.university", lang), value: a.university },
+  // Universitetet er den ENESTE vej fra profilen til resten af sitet, og det
+  // stod som ren tekst. Skolesiden viser i forvejen skolens atleter, så linket
+  // gør profilen til andet end en blindgyde — og skolesiderne til andet end
+  // noget kun oversigten peger på. `school_slug` kommer med atleten, så det
+  // koster ingen ekstra forespørgsel (se getAthleteBySlug).
+  {
+    label: t("fact.university", lang),
+    value: a.university,
+    href: a.school_slug ? `${routePath("schools", lang)}/${a.school_slug}` : undefined,
+  },
   { label: t("fact.state", lang),     value: a.university_state },
   { label: t("fact.division", lang), value: a.division },
   { label: t("fact.class_year", lang),   value: a.class_year },
@@ -136,7 +145,15 @@ export async function AthleteProfilePage({ athlete, articles, events = [] }: Pro
               {STAT_ROWS(athlete, lang).map((row) => (
                 <div key={row.label} className="flex justify-between items-baseline py-3 px-1 gap-4">
                   <dt className="text-xs text-muted tracking-wide flex-shrink-0">{row.label}</dt>
-                  <dd className="text-sm font-semibold text-ink text-right">{row.value}</dd>
+                  <dd className="text-sm font-semibold text-ink text-right">
+                    {row.href ? (
+                      <a href={row.href} className="hover:underline" style={{ color: "#BF0A30" }}>
+                        {row.value}
+                      </a>
+                    ) : (
+                      row.value
+                    )}
+                  </dd>
                 </div>
               ))}
             </dl>

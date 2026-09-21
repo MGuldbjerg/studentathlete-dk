@@ -55,6 +55,13 @@ export interface Athlete {
   bio_url?: string | null;
   class_year: string | null;
   expected_graduation: number | null;
+  /**
+   * Skolens slug, slået op via `schools.name = athletes.university` — den
+   * eneste kobling der findes mellem de to tabeller. Sættes af
+   * `getAthleteBySlug()`, så profilen kan linke til skolesiden uden et ekstra
+   * opslag. Kan være null: en skole kan mangle i `schools`.
+   */
+  school_slug?: string | null;
   /** Skolens stavemåde af navnet (matchnøgle for scraperen, migration-032). */
   roster_name?: string | null;
   /** Skolens eget spiller-id, "vært#id" — sand identitet på tværs af navneskift. */

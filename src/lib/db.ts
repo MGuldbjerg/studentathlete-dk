@@ -508,8 +508,16 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
     return MOCK_ATHLETES.find((a) => a.slug === slug) ?? null;
   }
   try {
+    // Skolens slug kommer med i SAMME forespørgsel. Et separat opslag ville
+    // være en ekstra rundtur pr. profilvisning; joinen koster ingenting efter
+    // migration-057 (indeks på schools.name) — uden det var den en fuld scan.
     const r = await db
-      .prepare("SELECT * FROM athletes WHERE slug = ? AND home_country = ?")
+      .prepare(
+        `SELECT a.*, s.slug AS school_slug
+           FROM athletes a
+           LEFT JOIN schools s ON s.name = a.university
+          WHERE a.slug = ? AND a.home_country = ?`,
+      )
       .bind(slug, await siteCountry(country))
       .first();
     return (r as Athlete) ?? null;

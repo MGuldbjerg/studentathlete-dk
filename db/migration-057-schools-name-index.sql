@@ -1,0 +1,15 @@
+-- Migration 057: atletprofilen skal kunne finde sin skole uden at scanne.
+--
+-- Profilen viser universitetet som ren TEKST. Skal det være et link til
+-- skolesiden, skal navnet slås op — `schools.name = athletes.university` er den
+-- eneste kobling, der findes (der er ingen school_id på athletes), og det er
+-- også den join `getSchoolsWithAthletes()` bruger i forvejen.
+--
+-- Uden indeks er det en SCAN af 1.758 rækker PR. profilvisning. Med ~9.000
+-- requests i døgnet og 2.745 profiler er det den slags, der spiser D1's
+-- 5M rækkelæsninger om dagen uden at nogen opdager hvorfor.
+--
+-- Navnet er i praksis unikt (alle 2.745 aktive atleter matcher præcis én
+-- skole), men indekset er bevidst IKKE unikt: dubletter i skolelisten skal
+-- kunne ligge der og blive ryddet op i, ikke vælte en import.
+CREATE INDEX IF NOT EXISTS idx_schools_name ON schools(name);

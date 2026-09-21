@@ -8,7 +8,7 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
-import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
+import { sportLabel, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
@@ -83,6 +83,16 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
                 <a href={getAthleteUrl(athlete.slug, lang)}
                   className="font-semibold text-ink hover:underline decoration-flag-red">
                   {athlete.name}
+                </a>
+              )}
+                {/* Skolen ved siden af atleten: artiklen kendte den i forvejen
+                    (athlete.school_slug følger med getAthleteBySlug), og uden
+                    linket peger artiklen kun ét sted hen. Ingen ekstra
+                    forespørgsel, og ingen ændring i selve artikelteksten. */}
+              {athlete?.school_slug && (
+                <a href={`${routePath("schools", lang)}/${athlete.school_slug}`}
+                  className="hover:underline hover:text-ink">
+                  · {athlete.university}
                 </a>
               )}
               {article.author && (
