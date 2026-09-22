@@ -2,7 +2,13 @@
  * Unit-tests for social-modulets rene logik (pacing + copy).
  * Kør: npx tsx pipeline/social/_social-test.ts
  */
-import { ALL_CHANNELS, cardReadyClause, distributionAllowed, profileAllowsDistribution } from "./post-social";
+import {
+  ALL_CHANNELS,
+  cardReadyClause,
+  channelIsDisabled,
+  distributionAllowed,
+  profileAllowsDistribution,
+} from "./post-social";
 import { bluesky, blueskyUk, buildBlueskyRecord, tagFacets } from "./channels/bluesky";
 import { hashtagLine, hashtagsFor } from "./hashtags";
 import { facebook } from "./channels/facebook";
@@ -690,3 +696,16 @@ const accounts = allAccounts();
 expect("alle lande × alle platforme", accounts.length, 6);
 expect("UK har en facebook-konto i registret", accounts.some((a) => a.channel === "facebook_uk"), true);
 expect("DK's bluesky hedder stadig bluesky", accounts.some((a) => a.channel === "bluesky"), true);
+
+// ── Kanaler slaaet fra med vilje (22. september 2026: facebook) ──────────
+// Forskellen paa «ukonfigureret» og «slaaet fra» er reel: den foerste mangler
+// secrets, den anden HAR dem og er stoppet af en grund et menneske kender.
+expect("uden variabel er intet slaaet fra", channelIsDisabled("facebook", undefined), false);
+expect("tom variabel slaar intet fra", channelIsDisabled("facebook", ""), false);
+expect("navnet paa listen", channelIsDisabled("facebook", "facebook"), true);
+expect("et andet navn er upaavirket", channelIsDisabled("bluesky", "facebook"), false);
+expect("flere navne", channelIsDisabled("instagram", "facebook,instagram"), true);
+expect("mellemrum taeller ikke med", channelIsDisabled("instagram", "facebook, instagram"), true);
+expect("tomme led springes over", channelIsDisabled("bluesky", "facebook,,"), false);
+// Delnavne maa ikke ramme: «facebook» slaar ikke «facebook_uk» fra.
+expect("delnavn rammer ikke", channelIsDisabled("facebook_uk", "facebook"), false);

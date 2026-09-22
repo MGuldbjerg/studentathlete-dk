@@ -78,6 +78,37 @@ export function profileAllowsDistribution(profile: { darkLaunch?: boolean }): bo
   // reglen ville kunne skride fra hinanden præcis når det gør mest skade.
   return siteIsLive(profile);
 }
+
+/**
+ * Kanaler slået fra med vilje, ved navn.
+ *
+ * Forskellen på «ukonfigureret» og «slået fra» er værd at holde: en
+ * ukonfigureret kanal mangler secrets og kan komme til når som helst, mens en
+ * frakoblet kanal HAR sine secrets og er stoppet af en grund et menneske kender.
+ *
+ * Skrevet 22. september 2026 til Facebook. Siden ejes af en
+ * virksomhedsportefølje, Mikkels adgang går gennem porteføljen, og `/me/accounts`
+ * viser kun sider med en klassisk rolle — så der kan ikke mintes et
+ * PAGE-token. Vejen udenom (systembruger i en rigtig portefølje) er lukket:
+ * hans konto har en PERMANENT annonceringsbegrænsning, og Meta lægger
+ * oprettelse af porteføljer under annoncerettigheder.
+ *
+ * Uden det her fejler drænet hver time for evigt: rød kørsel og en
+ * Discord-besked i timen om noget ingen kan gøre noget ved i dag. Kanariefuglen
+ * bliver ved med at tjekke tokenet, så dagen det virker igen, siger den det —
+ * det er dér man fjerner navnet herfra igen.
+ *
+ * Sættes i `social-post.yml`, ikke som secret: det er konfiguration, ikke en
+ * hemmelighed, og så står begrundelsen i git ved siden af værdien.
+ */
+export function channelIsDisabled(name: string, raw = process.env.SOCIAL_DISABLED_CHANNELS): boolean {
+  return (raw ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .includes(name);
+}
+
 const MAX_ATTEMPTS = 3;
 
 interface QueuedRow {
@@ -373,7 +404,11 @@ async function drainChannel(
 
 async function main(): Promise<void> {
   const dryRun = process.argv.includes("--dry-run");
-  const channels = ALL_CHANNELS.filter((c) => c.isConfigured());
+  const disabled = ALL_CHANNELS.filter((c) => channelIsDisabled(c.name));
+  for (const c of disabled) {
+    console.log(`  ${c.name}: SLÅET FRA med vilje (SOCIAL_DISABLED_CHANNELS) — se channelIsDisabled`);
+  }
+  const channels = ALL_CHANNELS.filter((c) => c.isConfigured() && !channelIsDisabled(c.name));
 
   if (channels.length === 0) {
     console.log("Ingen kanaler konfigureret (secrets mangler) — intet at gøre.");
