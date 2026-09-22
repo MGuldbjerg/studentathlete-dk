@@ -3,7 +3,8 @@
  * Kør: npx tsx pipeline/social/_social-test.ts
  */
 import { ALL_CHANNELS, cardReadyClause, distributionAllowed, profileAllowsDistribution } from "./post-social";
-import { bluesky, blueskyUk, buildBlueskyRecord } from "./channels/bluesky";
+import { bluesky, blueskyUk, buildBlueskyRecord, tagFacets } from "./channels/bluesky";
+import { hashtagLine, hashtagsFor } from "./hashtags";
 import { facebook } from "./channels/facebook";
 import { instagram, interpretContainerStatus, isContainerNotReadyError } from "./channels/instagram";
 import { scopesNotGrantedForTarget } from "./check-tokens";
@@ -588,3 +589,51 @@ expect("RSC-anmodning udenom", bypasses(mkReq("https://studentathlete.dk/", { he
 expect("admin udenom", bypasses(mkReq("https://studentathlete.dk/admin")), true);
 expect("hele /api udenom", bypasses(mkReq("https://studentathlete.dk/api/og?article=1")), true);
 expect("POST udenom", bypasses(mkReq("https://studentathlete.dk/", { method: "POST" })), true);
+
+// ── Hashtags: kun Bluesky, og kun to ─────────────────────────────────
+expect("sport + land giver to tags", hashtagsFor("golf", "DK").join(","), "CollegeGolf,dansksport");
+expect("britisk konto får sit eget land-tag", hashtagsFor("rowing", "UK").join(","), "CollegeRowing,BritsAbroad");
+expect("ukendt sport springes over", hashtagsFor("curling", "DK").join(","), "dansksport");
+expect("ukendt land springes over", hashtagsFor("golf", "XX").join(","), "CollegeGolf");
+expect("intet kendt → ingen tags", hashtagsFor(null, undefined).length, 0);
+expect("linjen bærer havelågerne", hashtagLine(["CollegeGolf", "dansksport"]), "#CollegeGolf #dansksport");
+expect("ingen tags → tom linje", hashtagLine([]), "");
+
+// Tags skal med i teksten, og teksten skal stadig holde 300 tegn.
+const tagged = buildPostText({ ...input, sport: "golf", country: "DK" }, "bluesky");
+expect("bluesky-teksten bærer tags", tagged.includes("#CollegeGolf #dansksport"), true);
+expect("tags er sidst", tagged.trimEnd().endsWith("#dansksport"), true);
+expect("uden sport/land er teksten som før", buildPostText(input, "bluesky"), buildPostText(input, "bluesky"));
+const taggedLong = buildPostText(
+  { ...input, description: "x".repeat(500), sport: "golf", country: "DK" },
+  "bluesky",
+);
+expect("300 tegn holder også med tags", [...taggedLong].length <= 300, true);
+expect("tags overlever afkortningen", taggedLong.includes("#CollegeGolf"), true);
+// Meta-kanalerne får ALDRIG tags — de virker ikke der, og de koster plads.
+expect("facebook får ingen tags", buildPostText({ ...input, sport: "golf", country: "DK" }, "facebook").includes("#"), false);
+expect("instagram får ingen tags", buildPostText({ ...input, sport: "golf", country: "DK" }, "instagram").includes("#College"), false);
+
+// ── Facetter: intervallet er BYTES, ikke tegn ─────────────────────
+// Uden facet er et tag grå tekst. Og med FORKERT facet markerer den et
+// tilfældigt stykke tekst midt i sætningen — værre end ingenting.
+const asciiFacets = tagFacets("Hansen vandt #CollegeGolf");
+expect("ét tag fundet", asciiFacets.length, 1);
+expect("tagget bærer ikke sit havelåg", asciiFacets[0].features[0].tag, "CollegeGolf");
+expect("ascii: byteStart = tegnindeks", asciiFacets[0].index.byteStart, 13);
+expect("ascii: byteEnd", asciiFacets[0].index.byteEnd, 25);
+
+// Den rigtige prøve: tre danske tegn FØR tagget. "Søren flåede bæltet " er 20 tegn
+// men 23 bytes, fordi ø, å og æ fylder to hver.
+const daText = "Søren flåede bæltet #CollegeGolf";
+const daFacets = tagFacets(daText);
+expect("dansk: tegnindeks ville være 20", daText.indexOf("#CollegeGolf"), 20);
+expect("dansk: byteStart er 23, ikke 20", daFacets[0].index.byteStart, 23);
+expect("dansk: byteEnd følger med", daFacets[0].index.byteEnd, 35);
+
+const two = tagFacets("Tekst #CollegeGolf #dansksport");
+expect("to tags, to facetter", two.length, 2);
+expect("andet tag er landet", two[1].features[0].tag, "dansksport");
+// Tegnsætning hører ikke til tagget.
+expect("punktum kommer ikke med", tagFacets("Slut #dansksport.")[0].features[0].tag, "dansksport");
+expect("et nøgent havelåg er ikke et tag", tagFacets("100 % # ikke et tag").length, 0);

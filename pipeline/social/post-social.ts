@@ -147,7 +147,7 @@ function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
   const description = metaDescription({ summary: row.summary, content: row.content });
   return {
     text: buildPostText(
-      { title: row.title, description, url, lang: profile.language },
+      { title: row.title, description, url, lang: profile.language, sport: row.sport, country: row.country },
       channel.name,
     ),
     url,

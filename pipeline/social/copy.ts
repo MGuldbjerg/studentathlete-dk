@@ -11,6 +11,7 @@
 
 import { languagePack } from "../../src/lib/i18n";
 import { CHANNEL_PLATFORM, type ChannelName } from "./types";
+import { hashtagLine, hashtagsFor } from "./hashtags";
 
 /** Klip ved ordgrænse og tilføj ellipse hvis teksten er for lang. */
 export function truncate(text: string, max: number): string {
@@ -31,6 +32,15 @@ export interface PostCopyInput {
    * dansk standardværdi (rettet 2026-09-14).
    */
   lang: string;
+  /**
+   * Atletens sport og artiklens land — udelukkende til hashtags på Bluesky.
+   *
+   * VALGFRIE, modsat `lang`, og det er ikke slendrian: mangler de, udelades
+   * tagget. Standardværdien er «intet tag», ikke et gæt. Den fælde `lang` faldt
+   * i var en FORKERT standardværdi, ikke en manglende.
+   */
+  sport?: string | null;
+  country?: string;
 }
 
 /**
@@ -59,8 +69,16 @@ export function buildPostText(input: PostCopyInput, channel: ChannelName): strin
   // Teksten hører til PLATFORMEN (tegngrænser, hvor linket må stå), ikke til
   // kontoen — den danske og den britiske Bluesky-konto skriver ens.
   switch (CHANNEL_PLATFORM[channel]) {
-    case "bluesky":
-      return withDescription(input.title, input.description, 300);
+    case "bluesky": {
+      // Tags'ene får deres plads FØR teksten fylder resten. Lagt i enden ville
+      // afkortningen spise dem, og et halvt hashtag er hverken tekst eller tag.
+      const line = hashtagLine(hashtagsFor(input.sport, input.country));
+      if (!line) return withDescription(input.title, input.description, 300);
+      const body = withDescription(input.title, input.description, 300 - line.length - 2);
+      return `${body}
+
+${line}`;
+    }
     case "x":
       return `${truncate(input.title, 250)}\n\n${input.url}`;
     case "facebook":
