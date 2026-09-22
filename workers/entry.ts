@@ -72,12 +72,23 @@ const handler = {
     const res = await worker.fetch(req, env, ctx);
     if (!isCacheable(res)) return res;
 
-    // Kopien får kant-TTL'en; originalen returneres uændret til læseren.
-    // `res.body` kan kun læses én gang, derfor clone FØR put.
+    // Kopien får kant-TTL'en. `res.body` kan kun læses én gang, derfor clone.
     const copy = new Response(res.body, res);
     copy.headers.set("cache-control", `public, max-age=0, s-maxage=${EDGE_TTL_SECONDS}`);
-    copy.headers.set("x-sa-cache", "MISS");
+
+    // ⚠️ RÆKKEFØLGEN ER SELVE POINTEN, og den er usynlig hvis man ikke ved det.
+    //
+    // `clone()` kopierer headerne I DET ØJEBLIK den kaldes. Gemmer vi FØRST og
+    // sætter mærkaten BAGEFTER, står mærkaten kun på det svar denne læser får —
+    // som den skal. Byttet om ville «MISS» blive GEMT og derefter serveret ved
+    // hvert eneste hit: et instrument der påstår MISS præcis når svaret kommer
+    // fra cachen. Første udgave gjorde dét, og det stod side om side med
+    // `cf-cache-status: HIT` (målt 22. september).
+    //
+    // Et måleinstrument der lyver, koster mere end ingen måling — det er tredje
+    // gang på en uge dette projekt har brugt tid på et grønt lys uden dækning.
     ctx.waitUntil(cache.put(req, copy.clone()));
+    copy.headers.set("x-sa-cache", "MISS");
     return copy;
   },
 };
