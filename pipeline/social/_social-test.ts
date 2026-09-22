@@ -24,6 +24,14 @@ import {
 import { buildPostText, truncate, withDescription } from "./copy";
 import { bypasses, isCacheable } from "../../src/lib/worker-cache";
 import { CHANNEL_PLATFORM, ChannelAuthError } from "./types";
+import {
+  accountIsConfigured,
+  allAccounts,
+  channelNameFor,
+  envNameFor,
+  legacyEnvNameFor,
+  readAccountEnv,
+} from "./registry";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 
 let passed = 0;
@@ -637,3 +645,48 @@ expect("andet tag er landet", two[1].features[0].tag, "dansksport");
 // Tegnsætning hører ikke til tagget.
 expect("punktum kommer ikke med", tagFacets("Slut #dansksport.")[0].features[0].tag, "dansksport");
 expect("et nøgent havelåg er ikke et tag", tagFacets("100 % # ikke et tag").length, 0);
+// ── Kontoregisteret ─────────────────────────────────────────────
+// DET VIGTIGSTE I HELE FILEN: kanalnavnet er en databaseværdi. Ændres et af de
+// fire nedenfor, mister kanalen sin historik, pacingen tror den aldrig har
+// postet, og hele arkivet lægges i kø igen.
+expect("bluesky DK beholder sit gamle navn", channelNameFor("bluesky", "DK"), "bluesky");
+expect("bluesky UK beholder sit gamle navn", channelNameFor("bluesky", "UK"), "bluesky_uk");
+expect("facebook DK beholder sit gamle navn", channelNameFor("facebook", "DK"), "facebook");
+expect("instagram DK beholder sit gamle navn", channelNameFor("instagram", "DK"), "instagram");
+// Nye konti er symmetriske — ingen af dem findes i databasen endnu.
+expect("nyt marked får symmetrisk navn", channelNameFor("facebook", "UK"), "facebook_uk");
+expect("instagram UK også", channelNameFor("instagram", "UK"), "instagram_uk");
+expect("et land vi ikke har endnu", channelNameFor("bluesky", "DE"), "bluesky_de");
+expect("småt/stort er ligegyldigt", channelNameFor("facebook", "uk"), "facebook_uk");
+
+// Secret-navne: de nye er symmetriske, de gamle lever som reserve.
+expect("nyt navn er symmetrisk", envNameFor("facebook", "UK", "PAGE_ID"), "FB_UK_PAGE_ID");
+expect("bluesky-præfiks", envNameFor("bluesky", "DK", "HANDLE"), "BLUESKY_DK_HANDLE");
+expect("gammelt DK-navn kendes", legacyEnvNameFor("facebook", "DK", "PAGE_ID"), "FB_PAGE_ID");
+expect("gammelt UK-navn kendes", legacyEnvNameFor("bluesky", "UK", "HANDLE"), "BLUESKY_UK_HANDLE");
+expect("nye konti har intet gammelt navn", legacyEnvNameFor("facebook", "UK", "PAGE_ID"), null);
+
+// Ræækkefølgen ER migrationsplanen: nyt navn vinder, gammelt er reserve.
+delete process.env.FB_DK_PAGE_ID;
+process.env.FB_PAGE_ID = "gammel-vaerdi";
+expect("uden nyt navn bruges det gamle", readAccountEnv("facebook", "DK", "PAGE_ID"), "gammel-vaerdi");
+process.env.FB_DK_PAGE_ID = "ny-vaerdi";
+expect("nyt navn vinder over gammelt", readAccountEnv("facebook", "DK", "PAGE_ID"), "ny-vaerdi");
+delete process.env.FB_DK_PAGE_ID;
+delete process.env.FB_PAGE_ID;
+expect("ingen af delene → undefined", readAccountEnv("facebook", "DK", "PAGE_ID"), undefined);
+
+// En konto uden alle sine secrets findes ikke.
+expect("halvt sat op tæller ikke", accountIsConfigured("facebook", "DK"), false);
+process.env.FB_DK_PAGE_ID = "1";
+expect("stadig halvt", accountIsConfigured("facebook", "DK"), false);
+process.env.FB_DK_PAGE_ACCESS_TOKEN = "2";
+expect("begge felter → konfigureret", accountIsConfigured("facebook", "DK"), true);
+delete process.env.FB_DK_PAGE_ID;
+delete process.env.FB_DK_PAGE_ACCESS_TOKEN;
+
+// Landeregistret driver listen: et nyt land giver sine konti gratis.
+const accounts = allAccounts();
+expect("alle lande × alle platforme", accounts.length, 6);
+expect("UK har en facebook-konto i registret", accounts.some((a) => a.channel === "facebook_uk"), true);
+expect("DK's bluesky hedder stadig bluesky", accounts.some((a) => a.channel === "bluesky"), true);

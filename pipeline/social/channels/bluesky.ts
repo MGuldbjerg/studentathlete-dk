@@ -19,6 +19,7 @@
 
 import { countryProfile } from "../../../src/lib/countries";
 import { ChannelAuthError, type ChannelName, type PostContent, type SocialChannel } from "../types";
+import { accountIsConfigured, readAccountEnv } from "../registry";
 
 const PDS = "https://bsky.social";
 const MAX_BLOB_BYTES = 950_000; // Bluesky-grænsen er 1 MB — lidt margen
@@ -157,12 +158,12 @@ function createBlueskyChannel(name: "bluesky" | "bluesky_uk"): SocialChannel {
     cardKind: "share",
 
     isConfigured(): boolean {
-      return Boolean(process.env[account.handleEnv] && process.env[account.passwordEnv]);
+      return accountIsConfigured("bluesky", account.country);
     },
 
     async post(content: PostContent): Promise<{ postUrl: string | null }> {
-      const handle = process.env[account.handleEnv]!;
-      const session = await createSession(handle, process.env[account.passwordEnv]!);
+      const handle = readAccountEnv("bluesky", account.country, "HANDLE")!;
+      const session = await createSession(handle, readAccountEnv("bluesky", account.country, "APP_PASSWORD")!);
       const thumb = await uploadThumb(session, content.imageUrl);
       const record = buildBlueskyRecord(content, account.country, thumb);
 

@@ -26,6 +26,7 @@
  */
 
 import { ChannelAuthError, type PostContent, type SocialChannel } from "../types";
+import { accountIsConfigured, readAccountEnv } from "../registry";
 
 // Samme version som facebook.ts — ét sted at bumpe, når Meta udfaser.
 const GRAPH = "https://graph.facebook.com/v26.0";
@@ -167,12 +168,12 @@ export const instagram: SocialChannel = {
   cardKind: "ig",
 
   isConfigured(): boolean {
-    return Boolean(process.env.IG_USER_ID && process.env.IG_ACCESS_TOKEN);
+    return accountIsConfigured("instagram", "DK");
   },
 
   async post(content: PostContent): Promise<{ postUrl: string | null }> {
-    const igUserId = process.env.IG_USER_ID!;
-    const token = process.env.IG_ACCESS_TOKEN!;
+    const igUserId = readAccountEnv("instagram", "DK", "USER_ID")!;
+    const token = readAccountEnv("instagram", "DK", "ACCESS_TOKEN")!;
 
     // Trin 1: containeren. Her henter Meta billedet — en fejl her er typisk
     // billedet (utilgængeligt, forkert format, forkert formforhold), ikke teksten.

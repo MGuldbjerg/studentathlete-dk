@@ -39,6 +39,8 @@
  */
 
 // Samme version som facebook.ts og instagram.ts — ét sted at bumpe, når Meta udfaser.
+import { readAccountEnv } from "./registry";
+
 const GRAPH = "https://graph.facebook.com/v26.0";
 
 /** Under så mange dage til udløb er et token en opgave, ikke en detalje. */
@@ -294,28 +296,32 @@ async function main(): Promise<void> {
 
   const problems: Problem[] = [];
 
-  if (process.env.FB_PAGE_ID && process.env.FB_PAGE_ACCESS_TOKEN) {
+  const fbPageId = readAccountEnv("facebook", "DK", "PAGE_ID");
+  const fbToken = readAccountEnv("facebook", "DK", "PAGE_ACCESS_TOKEN");
+  if (fbPageId && fbToken) {
     problems.push(
       ...(await checkAccount(
         "Facebook",
-        process.env.FB_PAGE_ID,
-        process.env.FB_PAGE_ACCESS_TOKEN,
+        fbPageId,
+        fbToken,
         "name,category",
         ["pages_manage_posts", "pages_read_engagement"],
         app,
-        process.env.FB_PAGE_ID,
+        fbPageId,
       )),
     );
   } else {
     console.log("Facebook: springes over (FB_PAGE_ID eller FB_PAGE_ACCESS_TOKEN mangler)");
   }
 
-  if (process.env.IG_USER_ID && process.env.IG_ACCESS_TOKEN) {
+  const igUserId = readAccountEnv("instagram", "DK", "USER_ID");
+  const igToken = readAccountEnv("instagram", "DK", "ACCESS_TOKEN");
+  if (igUserId && igToken) {
     problems.push(
       ...(await checkAccount(
         "Instagram",
-        process.env.IG_USER_ID,
-        process.env.IG_ACCESS_TOKEN,
+        igUserId,
+        igToken,
         "id,username",
         ["instagram_basic", "instagram_content_publish"],
         app,
