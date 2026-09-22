@@ -1,8 +1,43 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-22 (sociale konti: tokens skal tilhøre en systembruger — se øverste afsnit)
+**Sidst opdateret**: 2026-09-22 (Facebook slået fra: permanent annonceringsbegrænsning på kontoen — se øverste afsnit)
 
 ---
+
+## ⛔ Facebook kan ikke fikses: permanent annonceringsbegrænsning (2026-09-22)
+
+Metas support bekræftede det, efter en dag hvor tokenet blev mintet tre gange:
+Mikkels konto (id 554928133) har en **permanent, ikke-appellerbar
+annonceringsbegrænsning**. Meta lægger oprettelse af virksomhedsporteføljer
+under annoncerettigheder, så han kan hverken oprette en portefølje eller knytte
+en app til en — altså ingen systembruger og intet PAGE-token.
+
+Kæden, målt trin for trin:
+
+1. Siden ejes af en virksomhedsportefølje; Mikkels adgang går GENNEM den, ikke
+   via en klassisk side-rolle. `/me/accounts` viser kun klassiske roller → tom.
+2. Vejen udenom er en systembruger, som kræver en app ejet af porteføljen.
+3. Porteføljen blev **auto-oprettet af Instagram-identiteten 22. maj 2023** —
+   tom for virksomhedsoplysninger, uverificeret. Den kan ikke eje apps
+   («No businesses available» i app-oprettelsen).
+4. At oprette en RIGTIG portefølje blokeres af annoncerings-begrænsningen.
+
+**Intet af det er vores kode eller opsætning.** Tre korrekt udførte mintninger
+fejlede af den ene grund.
+
+**Gjort i dag:** `SOCIAL_DISABLED_CHANNELS: facebook` i `social-post.yml`. Uden
+den fejlede drænet hver time for evigt — rød kørsel og en Discord-besked i timen
+om noget ingen kan gøre noget ved. Kanariefuglen tjekker tokenet videre, så
+dagen det virker, siger den det; dét er signalet til at fjerne linjen.
+
+**Retningen (ikke gjort):** en selvstændig StudentAthlete-konto opretter
+porteføljen og ejer aktiverne, og Mikkels profil tilføjes som admin bagefter.
+Risikoen står i `PLAN-social-multimarked.md`: Meta tillader én profil pr.
+menneske, og en ekstra profil oprettet for at genvinde en begrænset rettighed
+kan vurderes som omgåelse — med begge konti og deres aktiver i klemme. En
+kollega med egen ubegrænset konto er samme løsning uden den risiko.
+
+De 4 køede Facebook-opslag udløber 23. september ~19:35 UTC og lades udløbe.
 
 ## 🔑 Sociale konti: tokens skal tilhøre en systembruger, ikke Mikkel (2026-09-22)
 
