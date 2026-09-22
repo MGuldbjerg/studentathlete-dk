@@ -19,6 +19,7 @@
  */
 
 import { ChannelAuthError, type PostContent, type SocialChannel } from "../types";
+import { accountIsConfigured, readAccountEnv } from "../registry";
 
 // Meta udgiver ~2 versioner om året og holder hver i ~2 år. v26.0 udkom
 // 29. juli 2026. Bump ved lejlighed — et kald mod en udfaset version fejler
@@ -32,7 +33,8 @@ const GRAPH = "https://graph.facebook.com/v26.0";
  * forudsætning for opslaget.
  */
 export async function refreshLinkPreview(url: string): Promise<boolean> {
-  if (!process.env.FB_PAGE_ACCESS_TOKEN) return false;
+  const token = readAccountEnv("facebook", "DK", "PAGE_ACCESS_TOKEN");
+  if (!token) return false;
   try {
     const res = await fetch(`${GRAPH}/`, {
       method: "POST",
@@ -40,7 +42,7 @@ export async function refreshLinkPreview(url: string): Promise<boolean> {
       body: JSON.stringify({
         id: url,
         scrape: true,
-        access_token: process.env.FB_PAGE_ACCESS_TOKEN,
+        access_token: token,
       }),
     });
     if (!res.ok) {
@@ -68,19 +70,19 @@ export const facebook: SocialChannel = {
   cardKind: "share",
 
   isConfigured(): boolean {
-    return Boolean(process.env.FB_PAGE_ID && process.env.FB_PAGE_ACCESS_TOKEN);
+    return accountIsConfigured("facebook", "DK");
   },
 
   async post(content: PostContent): Promise<{ postUrl: string | null }> {
     await refreshLinkPreview(content.url);
 
-    const res = await fetch(`${GRAPH}/${process.env.FB_PAGE_ID}/feed`, {
+    const res = await fetch(`${GRAPH}/${readAccountEnv("facebook", "DK", "PAGE_ID")}/feed`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: content.text,
         link: content.url,
-        access_token: process.env.FB_PAGE_ACCESS_TOKEN,
+        access_token: readAccountEnv("facebook", "DK", "PAGE_ACCESS_TOKEN"),
       }),
     });
     if (!res.ok) {

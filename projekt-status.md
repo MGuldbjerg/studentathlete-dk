@@ -1,8 +1,48 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-22 (OVERLEVERING nederst i dette afsnit — CPU-loftet er den åbne sag)
+**Sidst opdateret**: 2026-09-22 (sociale konti: tokens skal tilhøre en systembruger — se øverste afsnit)
 
 ---
+
+## 🔑 Sociale konti: tokens skal tilhøre en systembruger, ikke Mikkel (2026-09-22)
+
+Facebook-tokenet blev mintet tre gange og fejlede tre gange. Årsagen var ikke
+tokenet, men **hvem det hang på**. Se `PLAN-social-multimarked.md` for hele
+måludgaven; det målte her:
+
+- Siden **ejes af virksomhedsporteføljen**, og Mikkels adgang går GENNEM
+  porteføljen («Fuld adgang»), ikke gennem en klassisk side-rolle.
+- `/me/accounts` viser kun sider med en **klassisk** rolle. Derfor svarede den
+  `{"data": []}` hver gang, uanset hvor korrekt tokenet blev mintet — appen
+  manglede adgang til porteføljens aktiver.
+- Tokenet i `FB_PAGE_ACCESS_TOKEN` var et **USER**-token. Det bar hver eneste
+  krævede rettighed og kunne alligevel ikke poste SOM siden, og Meta svarede med
+  præcis samme `(#200)` som ved manglende rettigheder. `check-tokens.ts` læser nu
+  `type`, `profile_id` og `granular_scopes.target_ids` og siger det højt.
+- Blokeret nu på at appen kan lægges i porteføljen: Meta afviste handlingen som
+  «midlertidigt udelukket». Sikkerhedscenter og Support-indbakke er begge rene,
+  og der er **ingen anden menneskelig administrator** — den anden «admin» i
+  porteføljen er Instagram-identiteten.
+
+**Bygget i dag: `pipeline/social/registry.ts`.** Ét sted der oversætter
+(platform, land) → kanalnavn og → secret-navn. Alle adaptere, `delete-post.ts` og
+`check-tokens.ts` læser gennem den. **De nye, symmetriske secret-navne virker
+allerede** — sæt `FB_DK_PAGE_ACCESS_TOKEN`, og den vinder over
+`FB_PAGE_ACCESS_TOKEN` uden deploy. De gamle kan dø ét ad gangen.
+
+### 🛑 Kanalnavnet er en databaseværdi, ikke en etiket
+
+`social_posts.channel` gemmer det, og pacingen, kø-dybden, «sidst postet» og
+dubletsikringen slår alle op på det. **Omdøbes en eksisterende kanal, mister den
+sin historik, pacingen tror den aldrig har postet, og hele arkivet lægges i kø
+igen.** Derfor beholder `bluesky`, `bluesky_uk`, `facebook` og `instagram` deres
+gamle navne — også det usymmetriske `bluesky` for den DANSKE konto. Nye konti får
+`<platform>_<land>`. Testen holder fast i præcis det.
+
+**Tilbage til «nyt marked = nul kode»:** `facebook.ts` og `instagram.ts` skal
+blive fabrikker parametriseret på land (som `bluesky.ts` allerede er), og
+`ALL_CHANNELS` genereres fra `allAccounts()`. Det er den eneste kodeopgave
+tilbage.
 
 ## 🔴 OVERLEVERING — læs dette først (22. september 2026)
 

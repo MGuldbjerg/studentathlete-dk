@@ -16,6 +16,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { BLUESKY_ACCOUNTS } from "./channels/bluesky";
 import { CHANNEL_PLATFORM, type ChannelName } from "./types";
+import { readAccountEnv } from "./registry";
 
 const PDS = "https://bsky.social";
 const GRAPH = "https://graph.facebook.com/v26.0";
@@ -42,8 +43,8 @@ function rkeyFromUrl(url: string): string | null {
  */
 async function deleteBluesky(url: string, channel: keyof typeof BLUESKY_ACCOUNTS): Promise<void> {
   const account = BLUESKY_ACCOUNTS[channel];
-  const handle = process.env[account.handleEnv];
-  const password = process.env[account.passwordEnv];
+  const handle = readAccountEnv("bluesky", account.country, "HANDLE");
+  const password = readAccountEnv("bluesky", account.country, "APP_PASSWORD");
   if (!handle || !password) {
     throw new Error(`Mangler ${account.handleEnv} / ${account.passwordEnv}`);
   }
