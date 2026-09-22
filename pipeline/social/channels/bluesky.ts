@@ -87,12 +87,55 @@ async function uploadThumb(session: Session, imageUrl: string): Promise<unknown 
  * Derfor kommer sproget fra landeprofilen og er et PÅKRÆVET argument — ikke en
  * konstant med dansk standardværdi (se feedback-reglen om adskilte sites).
  */
+
+/**
+ * Hashtag-facetter: dét der gør et tag til et tag.
+ * ================================================
+ *
+ * Uden en facet er «#CollegeGolf» grå tekst i opslaget. Den bliver ikke
+ * klikbar, og den indekseres ikke som tag — altså ingen af de to grunde til at
+ * skrive den. AT Proto beder om `app.bsky.richtext.facet#tag` med et interval,
+ * og `tag`-værdien bærer IKKE sit «#».
+ *
+ * ⚠️ **Intervallet tælles i UTF-8-BYTES, ikke i tegn.** Det er ikke en
+ * spidsfindighed her: opslagene er danske. «å», «ø» og «æ» fylder to bytes
+ * hver, så en overskrift med bare ét af dem forskyder tegn-indekset fra
+ * byte-indekset — og en facet der peger forkert, markerer et vilkårligt stykke
+ * tekst midt i sætningen som hashtag. Derfor TextEncoder, ikke `indexOf`.
+ */
+export function tagFacets(text: string) {
+  const encoder = new TextEncoder();
+  const facets: {
+    index: { byteStart: number; byteEnd: number };
+    features: { $type: string; tag: string }[];
+  }[] = [];
+
+  // Tegnklassen er bevidst snæver: bogstaver og tal. Et tag stopper ved
+  // mellemrum, tegnsætning og linjeskift, så «#dansksport.» ikke får punktummet
+  // med ind i tagget.
+  const re = /#([\p{L}\p{N}_]+)/gu;
+  for (const m of text.matchAll(re)) {
+    const start = m.index ?? 0;
+    facets.push({
+      index: {
+        byteStart: encoder.encode(text.slice(0, start)).length,
+        byteEnd: encoder.encode(text.slice(0, start + m[0].length)).length,
+      },
+      features: [{ $type: "app.bsky.richtext.facet#tag", tag: m[1] }],
+    });
+  }
+  return facets;
+}
+
 export function buildBlueskyRecord(content: PostContent, country: string, thumb: unknown | null = null) {
+  const facets = tagFacets(content.text);
   return {
     $type: "app.bsky.feed.post",
     text: content.text,
     createdAt: new Date().toISOString(),
     langs: [countryProfile(country).language],
+    // Tomt felt udelades: en post uden tags skal se ud som før.
+    ...(facets.length > 0 ? { facets } : {}),
     embed: {
       $type: "app.bsky.embed.external",
       external: {
