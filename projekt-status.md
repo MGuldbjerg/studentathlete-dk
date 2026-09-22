@@ -1,6 +1,80 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-17 (sportssiderne udgivet på begge sites; honours på 492 profiler; Bluesky på 55 min)
+**Sidst opdateret**: 2026-09-22 (OVERLEVERING nederst i dette afsnit — CPU-loftet er den åbne sag)
+
+---
+
+## 🔴 OVERLEVERING — læs dette først (22. september 2026)
+
+Sessionen løb mod en ugegrænse. Alt nedenfor er enten **blokeret på Mikkel** eller
+**næste skridt**. Intet af det haster i nat: sitet var sundt ved sidste måling
+(20 af 20 kald svarede 200).
+
+### Venter på Mikkel (kan ikke gøres herfra)
+
+| Hvad | Hvorfor blokeret | Kommando/handling |
+|---|---|---|
+| **Migration 056** (unikt indeks på `stories.url_hash`) | `migrate-live.sh` afvises af harness-klassificeren | `bash scripts/migrate-live.sh migration-056-stories-unique-url.sql` |
+| **HTML-caching = fixet på CPU-fejlene** | Begge CF-tokens får 403 på Page Rules OG Cache Rules | Dashboard, pr. zone: 1) `*/admin/*` → Cache Level: **Bypass** (skal stå først), 2) `<zone>/*` → **Cache Everything**, Edge TTL **5 min**. Gratis-planen giver 3 regler pr. zone |
+| **Facebook-tokenet** (`#200`) | Kræver Mikkels Meta-session | Mint `FB_PAGE_ACCESS_TOKEN` på ny MED `pages_manage_posts` + `pages_read_engagement`. Årsagen er fundet: tokenet blev fornyet 15. sept under Instagram-opsætningen og fik kun `instagram_*`-scopes (commit c172a0c) |
+| **Kladde #342** (Patrick Staszewski) | Mikkel sagde «afvis de high risk», men flaget er en FALSK positiv | Kilden siger ordret «made his season debut after missing the first seven games». Enten udgiv eller afvis — den ligger urørt i køen |
+| **Cloudflare-login** | «Invalid state» ved login | OAuth-state-mismatch; privat vindue eller ryd cookies for dash.cloudflare.com |
+
+### Det vigtigste fund: CPU-loftet, ikke D1
+
+Mailen 21. sept sagde **CPU-grænsen ramt 100+ gange i døgnet**. 7-12% af ALLE
+kald fejlede med **fejl 1102** — også forsiden, også på varme isolates. Det er
+ikke request-loftet (9% af 100.000/døgn) og ikke D1 (67% på det værste døgn).
+
+**Bevist undervejs:** statiske filer får `cf-cache-status: HIT`, HTML får aldrig
+headeren → HTML caches slet ikke. Cloudflare cacher ikke `text/html` uden at få
+besked. `[cache] enabled = true` står i wrangler.toml og gør intet uden den
+regel. **Et cache-hit kører slet ikke workeren og koster ingen CPU** — derfor er
+Page Rule-punktet ovenfor hele fixet, og det koster 0 kr.
+
+Afprøvet og AFKRÆFTET: `compatibility_date` var 2025-01-01 (ældre end funktionen,
+juli 2026). Den er hævet til 2026-09-21 og deployet — ingen regression, men heller
+ingen cache. Rul den gerne tilbage; den købte ingenting.
+
+### Lukkede spor — brug ikke tid på dem igen
+
+- **Statisk pre-rendering er blokeret af arkitekturen.** `siteFromHost()` læser
+  Host-headeren pr. request og falder tilbage til DANSK uden host. En
+  pre-renderet side bages på byggetidspunktet uden request → dansk indhold på
+  det britiske domæne, lydløst. Kræver ét build pr. vært.
+- **Netlify er undersøgt og valgt fra.** Kommerciel brug er tilladt (modsat
+  Vercel Hobby) og 10 sek. timeout ville løse CPU'en — men gratis-planen er
+  kreditbaseret: ~20 produktions-deploys/md (vi lavede 8 på én dag) og
+  **trafikken STOPPER når kreditterne er brugt**. Dertil: `DB` er en D1-binding,
+  som kun findes hos Cloudflare.
+- **Separate Cloudflare-konti pr. site** giver ingen kapacitet: 9% af
+  request-loftet bruges, CPU-loftet er PR. KALD og følger ikke kontoen, og kun
+  én worker findes (fantasychallenge.dk er DNS-only, ligger på Vercel/Turso).
+
+### Værktøj bygget i dag, som næste session bør kende
+
+- **`npx tsx pipeline/report/health-check.ts`** — læser requests, fejl% og
+  D1-rækker direkte hos Cloudflare. Fejlprocenten ER CPU-loftet. Brug den i
+  stedet for at gætte på en alarmmail.
+- **`pipeline/report/generate-sport-sql.ts`** — D1-synk for sportssider
+  genereres fra kilden; gem ALDRIG læservendt tekst i en SQL-fil til senere.
+- **`pipeline/report/export-sport-pages.ts`** — skriver begge sprogudkast ud.
+- **`pipeline/scrape/scrape-honors.ts`** + `honours.yml` (nat 02:35) — kører selv.
+
+### Tilladelser jeg mangler for at kunne arbejde videre uden Mikkel
+
+Ét CF-token der erstatter de to nuværende: Account → Workers Scripts **Edit**,
+D1 **Edit**, Workers Observability **Read**, Browser Rendering **Edit**; Zone
+(begge) → **Cache Rules Edit**, **Cache Purge**, DNS **Edit**, Zone Settings
+**Read**. I dag har API-tokenet D1 men ikke DNS, og EMAIL-tokenet DNS men ikke
+D1 — og ingen af dem kan røre cache-regler.
+
+Dertil: Gmail-connector (`/mcp`) så alarmmails ikke skal indsættes i hånden, og
+en tilladelsesregel til `scripts/migrate-live.sh`, som i forvejen nægter alt
+andet end tilføjelser.
+
+---
+
 
 ## 🏅 Profiles now carry honours — from the page we already fetch (2026-09-17)
 
