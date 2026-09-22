@@ -16,9 +16,12 @@ import {
   minutesUntilExpiry,
   parseUtc,
   postsAllowedNow,
+  postsFittingInRun,
   shouldPostNow,
+  spacingWouldCostPosts,
 } from "./pacing";
 import { buildPostText, truncate, withDescription } from "./copy";
+import { bypasses, isCacheable } from "../../src/lib/worker-cache";
 import { CHANNEL_PLATFORM, ChannelAuthError } from "./types";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 
@@ -548,3 +551,40 @@ expect(
   scopesNotGrantedForTarget(["x"], [{ scope: "x", targetIds: [] }], "111").length,
   0,
 );
+// ── Afstand inden i én kørsel (målt 22. september: median 0 minutter) ────────
+// Indhentningen leverede fire opslag inden for fem sekunder. Gennemsnittet var
+// overholdt, afstanden var ikke.
+expect("ét opslag koster ingen ventetid", postsFittingInRun(1, 30, 50), 1);
+expect("to opslag passer i 50 min med 30 min afstand", postsFittingInRun(2, 30, 50), 2);
+expect("fire gør ikke — budgettet rækker til én ventetid", postsFittingInRun(4, 30, 50), 2);
+expect("intet at sende → intet at sprede", postsFittingInRun(0, 30, 50), 0);
+expect("større budget, flere opslag", postsFittingInRun(4, 30, 90), 4);
+// Afstand 0 betyder «slu00e5 spredning fra», ikke «divider med nul».
+expect("afstand 0 sender alt", postsFittingInRun(4, 0, 50), 4);
+
+// ── …men en deadline slår afstanden, ikke omvendt ────────────────────────
+// Samme regel som computeGapMinutes' deadline-budget: et klumpet opslag er
+// bedre end et tabt. 4. september udløb 6 artikler med attempts = 0.
+expect("ingen deadline → spred endelig", spacingWouldCostPosts(5, null, 30), false);
+expect("god tid → spred", spacingWouldCostPosts(2, 600, 30), false);
+expect("knap tid → drop afstanden", spacingWouldCostPosts(10, 120, 30), true);
+expect("lige præcis tid nok tæller ikke som knap", spacingWouldCostPosts(4, 120, 30), false);
+expect("én mere end der er tid til", spacingWouldCostPosts(5, 120, 30), true);
+
+// ── Kant-cachen: hvad må gemmes, og hvad skal udenom ────────────────────
+// Se worker-entry.ts. RSC-headeren er den vigtige: uden den kunne en prefetch
+// lægge en text/x-component-nyttelast på forsidens plads i cachen.
+const mkRes = (status: number, headers: Record<string, string> = {}) => new Response("", { status, headers });
+expect("almindeligt 200-svar må gemmes", isCacheable(mkRes(200)), true);
+expect("404 gemmes ikke", isCacheable(mkRes(404)), false);
+expect("Set-Cookie gemmes ALDRIG", isCacheable(mkRes(200, { "set-cookie": "sa_country=UK" })), false);
+expect("no-store respekteres", isCacheable(mkRes(200, { "cache-control": "private, no-store" })), false);
+expect("s-maxage-svaret må gemmes", isCacheable(mkRes(200, { "cache-control": "public, s-maxage=300" })), true);
+
+const mkReq = (url: string, init: RequestInit = {}) => new Request(url, init);
+expect("forsiden caches", bypasses(mkReq("https://studentathlete.dk/")), false);
+expect("atletsiden caches", bypasses(mkReq("https://studentathlete.dk/atleter/x")), false);
+expect("RSC-anmodning udenom", bypasses(mkReq("https://studentathlete.dk/", { headers: { rsc: "1" } })), true);
+expect("admin udenom", bypasses(mkReq("https://studentathlete.dk/admin")), true);
+expect("hele /api udenom", bypasses(mkReq("https://studentathlete.dk/api/og?article=1")), true);
+expect("POST udenom", bypasses(mkReq("https://studentathlete.dk/", { method: "POST" })), true);
