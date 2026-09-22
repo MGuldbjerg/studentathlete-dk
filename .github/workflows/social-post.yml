@@ -12,10 +12,19 @@ on:
         required: false
         default: 'false'
 
+# To samtidige dræn ville læse det SAMME «sidst postet» og sende oven i
+# hinanden — altså netop den klumpning spredningen skal fjerne. Kørslen sover nu
+# op til 50 minutter, så overlap er ikke længere teoretisk.
+concurrency:
+  group: social-post
+  cancel-in-progress: false
+
 jobs:
   post:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 50 minutters spredningsbudget + build. Repoet er offentligt, så
+    # Actions-minutter er gratis; ventetiden koster ikke andet end kalendertid.
+    timeout-minutes: 70
 
     steps:
       - uses: actions/checkout@v5

@@ -186,3 +186,63 @@ export function isExpired(
   const ageMin = (now.getTime() - parseUtc(queuedAt).getTime()) / 60_000;
   return ageMin > cfg.expiryMinutes;
 }
+
+/**
+ * AFSTAND INDEN I ÉN KØRSEL (17.-22. september 2026).
+ * ===================================================
+ *
+ * Indhentningen fra `bfd0c29` reddede de tabte opslag, men leverede dem i
+ * klumper: målt på D1 var medianafstanden mellem to britiske Bluesky-opslag
+ * **0 minutter**, og 37 af 54 afstande lå under en time. Fire opslag inden for
+ * fem sekunder, derefter timers stilhed. Gennemsnittet var overholdt — hvert
+ * mellemrum MELLEM kørsler lå over 55 — men det er ikke det læseren ser.
+ *
+ * `minGapMinutes` har altid været et gennemsnit pr. kørsel, aldrig en afstand
+ * mellem to opslag. Her er afstanden selv, og den koster ventetid i jobbet:
+ * repoet er offentligt, så Actions-minutter er gratis, og en kørsel må gerne
+ * sove. Den må bare ikke sove ind i den næste kørsel — derfor budgettet.
+ */
+
+/** Mindste afstand mellem to opslag i samme kørsel. */
+export const IN_RUN_SPACING_MINUTES = 30;
+
+/**
+ * Hvor længe én kørsel må bruge på at sprede sine opslag.
+ *
+ * 50 minutter, ikke 60: cron'en beder om hver time, og to samtidige dræn ville
+ * læse den samme «sidst postet» og sende oven i hinanden — præcis den klumpning
+ * det her skal fjerne.
+ */
+export const RUN_BUDGET_MINUTES = 50;
+
+/**
+ * Hvor mange opslag når vi at sprede inden for budgettet?
+ *
+ * Det første koster ingen ventetid; hvert følgende koster `spacing`.
+ */
+export function postsFittingInRun(
+  allowed: number,
+  spacingMinutes: number = IN_RUN_SPACING_MINUTES,
+  budgetMinutes: number = RUN_BUDGET_MINUTES,
+): number {
+  if (allowed <= 0) return 0;
+  if (spacingMinutes <= 0) return allowed;
+  return Math.min(allowed, 1 + Math.floor(budgetMinutes / spacingMinutes));
+}
+
+/**
+ * Ville afstanden koste os opslag?
+ *
+ * Deadline-budgettet i `computeGapMinutes` må kun stramme, aldrig løsne — og
+ * det samme gælder her, bare omvendt: er der ikke tid til at sprede køen inden
+ * den ældste udløber, er et klumpet opslag stadig bedre end et tabt. Det var
+ * hele lektien fra 4. september, hvor 6 artikler udløb med `attempts = 0`.
+ */
+export function spacingWouldCostPosts(
+  queueDepth: number,
+  minutesUntilExpiry: number | null,
+  spacingMinutes: number = IN_RUN_SPACING_MINUTES,
+): boolean {
+  if (minutesUntilExpiry === null) return false;
+  return queueDepth * spacingMinutes > minutesUntilExpiry;
+}

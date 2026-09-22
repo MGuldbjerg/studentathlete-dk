@@ -29,7 +29,16 @@ import {
 } from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
-import { DEFAULT_PACING, computeGapMinutes, minutesUntilExpiry, pacingFor, postsAllowedNow } from "./pacing";
+import {
+  DEFAULT_PACING,
+  IN_RUN_SPACING_MINUTES,
+  computeGapMinutes,
+  minutesUntilExpiry,
+  pacingFor,
+  postsAllowedNow,
+  postsFittingInRun,
+  spacingWouldCostPosts,
+} from "./pacing";
 import { buildPostText } from "./copy";
 import { ChannelAuthError, type CardKind, type PostContent, type SocialChannel } from "./types";
 import { bluesky, blueskyUk } from "./channels/bluesky";
@@ -334,8 +343,27 @@ async function drainChannel(
     );
   }
 
+  // Afstanden inden i kørslen. `allowed` siger hvor mange vi SKYLDER; her
+  // afgøres hvor mange der kan nå at blive sendt med luft imellem, og om der
+  // overhovedet er tid til luft. Se IN_RUN_SPACING_MINUTES.
+  const rushing = spacingWouldCostPosts(depth, leftMin);
+  const toSend = rushing ? allowed : postsFittingInRun(allowed);
+  if (allowed > 1) {
+    console.log(
+      rushing
+        ? `  ${ch.name}: ingen spredning — køen når ikke at blive tom inden den ældste udløber`
+        : `  ${ch.name}: sender ${toSend} med ${IN_RUN_SPACING_MINUTES} min mellemrum`,
+    );
+  }
+
   let posted = 0;
-  for (let i = 0; i < allowed; i++) {
+  for (let i = 0; i < toSend; i++) {
+    // Vent FØR opslaget, aldrig efter: en ventetid efter det sidste opslag er
+    // ren spildt jobtid, og kørslen skal slutte når der ikke er mere at sende.
+    if (i > 0 && !rushing && !dryRun) {
+      console.log(`  ${ch.name}: venter ${IN_RUN_SPACING_MINUTES} min før næste opslag…`);
+      await new Promise((r) => setTimeout(r, IN_RUN_SPACING_MINUTES * 60_000));
+    }
     const res = await postOne(db, ch, dryRun);
     if (res.posted) posted++;
     if (res.empty || res.fatal) return { posted, error: res.error };
