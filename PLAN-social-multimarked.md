@@ -3,6 +3,49 @@
 _Skrevet 2026-09-22, efter en dag hvor Facebook-tokenet blev mintet tre gange og
 fejlede tre gange. Vedrører `pipeline/social/`._
 
+
+---
+
+## 🛑 LÆS FØRST: måludgaven nedenfor kan IKKE bygges på Mikkels konto (2026-09-22)
+
+Planen herunder anbefaler virksomhedsportefølje + systembrugere. **Det er
+lukket land**, og det skal stå her, så guiden ikke bliver endnu et grønt lys
+uden dækning.
+
+Metas support bekræftede samme dag: Mikkels konto (id 554928133) har en
+**PERMANENT annonceringsbegrænsning**, markeret endelig og uden appelmulighed.
+Meta lægger oprettelse af virksomhedsporteføljer under annoncerettigheder, så:
+
+- han kan ikke oprette en virksomhedsportefølje
+- han kan ikke knytte en app til en portefølje
+- altså ingen systembruger, og intet PAGE-token ad den vej
+
+Den portefølje der findes, blev **auto-oprettet af Instagram-identiteten 22. maj
+2023** — uden juridisk navn, adresse, telefon eller website, uverificeret, uden
+primær side. Den kan holde siden og IG-kontoen, men kan ikke eje apps. Derfor
+svarede app-oprettelsen «No businesses available», og derfor har `/me/accounts`
+været tom hele vejen.
+
+**Det er ikke noget i vores opsætning eller kode.** Tre korrekt udførte
+token-mintninger fejlede af denne ene grund.
+
+### Retningen Mikkel har valgt (22. september, ikke gjort endnu)
+
+Opret en selvstændig **StudentAthlete-konto**, lad DEN oprette porteføljen og
+eje aktiverne, og tilføj Mikkels personlige profil som administrator bagefter.
+
+⚠️ Værd at vide før det gøres: Meta tillader kun én personlig profil pr.
+menneske, og en ekstra profil oprettet for at genvinde en begrænset rettighed
+kan blive vurderet som omgåelse — med risiko for BEGGE konti og de aktiver de
+ejer. En kollega med sin egen, ubegrænsede konto er den samme løsning uden den
+risiko. Valget er Mikkels; risikoen er skrevet ned, ikke skjult.
+
+Indtil da: **Facebook-kanalen er slået fra** i `social-post.yml`
+(`SOCIAL_DISABLED_CHANNELS: facebook`). Instagram, Bluesky DK og Bluesky UK
+kører upåvirket.
+
+---
+
 ## Diagnosen bag planen
 
 Problemet var aldrig Facebook. Det var at **hver eneste legitimation hænger på
