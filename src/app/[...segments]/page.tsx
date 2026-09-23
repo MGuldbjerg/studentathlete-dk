@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         subtitle: sportContent.intro,
         sport: slug,
         type: "sport",
-      });
+      }, site);
       return {
         title: `${t("meta.sport_title", lang, { sport: sportContent.title })} | ${brand}`,
         description: sportContent.metaDescription,
@@ -192,7 +192,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           athlete.profile_summary ??
           t("meta.athlete_description", lang, { name: athlete.name, sport: sportLabel(athlete.sport, lang).toLowerCase(), university: athlete.university, brand });
         const ogImage = athlete.photo_url
-          ?? getOgImageUrl(athleteOgParams(athlete, lang));
+          ?? getOgImageUrl(athleteOgParams(athlete, lang), site);
         // Uden brand-halen: se noten ved artiklernes titel længere nede.
         // Navnet er hele grunden til at siden bliver fundet, så det skal stå
         // først og alene — `siteName` og `Organization`-schemaet siger allerede

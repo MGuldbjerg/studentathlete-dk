@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const g = await resolveGuide(slug);
   if (!g) return { title: "Side ikke fundet" };
   const canonical = `${base}${routePath("guides", site.language)}/${slug}`;
-  const ogImage = getOgImageUrl({ title: g.title, subtitle: site.brand, type: "article" });
+  const ogImage = getOgImageUrl({ title: g.title, subtitle: site.brand, type: "article" }, site);
   return {
     title: `${g.title} | ${site.brand}`,
     description: g.description || undefined,

@@ -247,16 +247,21 @@ export function getGuideUrl(slug: string, lang: string): string {
  */
 export const GENERIC_OG_VERSION = 1;
 
-export function getOgImageUrl(params: {
-  title: string;
-  subtitle?: string;
-  sport?: string | null;
-  type?: "article" | "athlete" | "sport";
-}): string {
+export function getOgImageUrl(
+  params: {
+    title: string;
+    subtitle?: string;
+    sport?: string | null;
+    type?: "article" | "athlete" | "sport";
+  },
+  // Required, not defaulted: until 2026-09-23 this used BASE_URL, so every
+  // British page advertised its preview image on studentathlete.dk.
+  site: CountryProfile,
+): string {
   // Static file, pre-rendered at deploy by pipeline/render/export-og-assets.ts.
   // A miss falls through to /api/og with this same query string.
   const p = { ...params, version: GENERIC_OG_VERSION };
-  const url = new URL(genericAssetPath(p), BASE_URL);
+  const url = new URL(genericAssetPath(p), siteBaseUrl(site));
   url.search = genericQuery(p).toString();
   return url.toString();
 }
