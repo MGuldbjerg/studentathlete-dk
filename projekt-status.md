@@ -117,6 +117,21 @@ crawl is all misses by construction, and the Cache API is per data centre. The
 cache is worth keeping for human readers. The fix for 1102 is still Workers
 Paid ($5/mo).
 
+**OG images are static files (2026-09-23, `b710d19` + `956f998`).** `/api/og`
+was the path with the most 1102 errors. Match cards (from `card_blobs`) and
+athlete-without-photo images are exported to `public/og/` at every deploy
+(`pipeline/render/export-og-assets.ts`, fail-soft, incremental) and served by
+Cloudflare's static layer — verified live: no `x-opennext` header, so the Worker
+never runs. A file missing from the build falls through to `/api/og` via
+`workers/entry.ts`. **Still dynamic:** sport pages and guides (a few dozen URLs).
+Note from the deploy log: `Worker Startup Time: 14 ms` — cold start alone is over
+the 10 ms limit.
+
+**Scanner block rule ready, NOT applied:** `/tmp/claude-1000/waf.py` (blocks
+`/.env`, `/.git`, `.php`, `.yaml`, `/wp-` etc. on both zones; the token now has
+Zone WAF Edit). Claude Code's safety check blocks Claude from running it; Mikkel
+runs it.
+
 ### Lukkede spor — brug ikke tid på dem igen
 
 - **Statisk pre-rendering er blokeret af arkitekturen.** `siteFromHost()` læser
