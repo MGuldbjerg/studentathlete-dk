@@ -90,7 +90,6 @@ Sessionen løb mod en ugegrænse. Alt nedenfor er enten **blokeret på Mikkel** 
 | Hvad | Hvorfor blokeret | Kommando/handling |
 |---|---|---|
 | **Migration 056** (unikt indeks på `stories.url_hash`) | `migrate-live.sh` afvises af harness-klassificeren | `bash scripts/migrate-live.sh migration-056-stories-unique-url.sql` |
-| **HTML-caching = fixet på CPU-fejlene** | Begge CF-tokens får 403 på Page Rules OG Cache Rules | Dashboard, pr. zone: 1) `*/admin/*` → Cache Level: **Bypass** (skal stå først), 2) `<zone>/*` → **Cache Everything**, Edge TTL **5 min**. Gratis-planen giver 3 regler pr. zone |
 | **Facebook-tokenet** (`#200`) | Kræver Mikkels Meta-session | Mint `FB_PAGE_ACCESS_TOKEN` på ny MED `pages_manage_posts` + `pages_read_engagement`. Årsagen er fundet: tokenet blev fornyet 15. sept under Instagram-opsætningen og fik kun `instagram_*`-scopes (commit c172a0c) |
 | **Kladde #342** (Patrick Staszewski) | Mikkel sagde «afvis de high risk», men flaget er en FALSK positiv | Kilden siger ordret «made his season debut after missing the first seven games». Enten udgiv eller afvis — den ligger urørt i køen |
 | **Cloudflare-login** | «Invalid state» ved login | OAuth-state-mismatch; privat vindue eller ryd cookies for dash.cloudflare.com |
@@ -101,15 +100,22 @@ Mailen 21. sept sagde **CPU-grænsen ramt 100+ gange i døgnet**. 7-12% af ALLE
 kald fejlede med **fejl 1102** — også forsiden, også på varme isolates. Det er
 ikke request-loftet (9% af 100.000/døgn) og ikke D1 (67% på det værste døgn).
 
-**Bevist undervejs:** statiske filer får `cf-cache-status: HIT`, HTML får aldrig
-headeren → HTML caches slet ikke. Cloudflare cacher ikke `text/html` uden at få
-besked. `[cache] enabled = true` står i wrangler.toml og gør intet uden den
-regel. **Et cache-hit kører slet ikke workeren og koster ingen CPU** — derfor er
-Page Rule-punktet ovenfor hele fixet, og det koster 0 kr.
+**⚠️ Superseded 2026-09-23 — the paragraph that stood here was wrong.** Zone
+Cache Rules / Page Rules cannot cache a Worker response (the Worker runs before
+the zone cache; tried 22 Sep, no effect, see `5c77fde`). The cache lives in the
+Worker instead, via the Cache API in `workers/entry.ts`.
 
-Afprøvet og AFKRÆFTET: `compatibility_date` var 2025-01-01 (ældre end funktionen,
-juli 2026). Den er hævet til 2026-09-21 og deployet — ingen regression, men heller
-ingen cache. Rul den gerne tilbage; den købte ingenting.
+**Verified live 2026-09-23:** GET → first `x-sa-cache: MISS`, then
+`cf-cache-status: HIT` on `.dk` and `.co.uk`, home page and `/athletes`.
+⚠️ Test with a GET: `curl -I` sends HEAD, which the wrapper passes through by
+design, so it looks as if the cache is missing.
+
+**It did not move the CPU errors:** 9.4-10.6 % before the deploy, 10.4 % in the
+24 h after; median CPU 26 → 20 ms. The failures come in bursts (15-55 % within a
+single hour) from crawlers on distinct URLs at US data centres (IAD/ORD). A
+crawl is all misses by construction, and the Cache API is per data centre. The
+cache is worth keeping for human readers. The fix for 1102 is still Workers
+Paid ($5/mo).
 
 ### Lukkede spor — brug ikke tid på dem igen
 
