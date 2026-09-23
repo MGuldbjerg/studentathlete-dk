@@ -45,6 +45,7 @@
 import worker, { DOQueueHandler, DOShardedTagCache, BucketCachePurge } from "../.open-next/worker.js";
 // Reglerne selv ligger i et modul uden byggeafhængighed, så de kan testes.
 import { EDGE_TTL_SECONDS, bypasses, isCacheable } from "../src/lib/worker-cache";
+import { dynamicFallbackUrl } from "../src/lib/og-static";
 
 // Durable Object-klasserne er en del af den genererede workers offentlige
 // flade. Videreeksporteres de ikke, fejler deployet på manglende bindinger.
@@ -63,6 +64,11 @@ interface WorkerContext {
 
 const handler = {
   async fetch(req: Request, env: unknown, ctx: WorkerContext): Promise<Response> {
+    // `/og/…` only reaches the Worker when the static file is NOT in the build
+    // (see src/lib/og-static.ts) — render it the old way, same query string.
+    const og = dynamicFallbackUrl(new URL(req.url));
+    if (og) return worker.fetch(new Request(og.toString(), req), env, ctx);
+
     if (bypasses(req)) return worker.fetch(req, env, ctx);
 
     const cache = (caches as unknown as { default: Cache }).default;

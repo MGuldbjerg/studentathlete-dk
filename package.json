@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "build:worker": "next build && npx @opennextjs/cloudflare build",
+    "build:worker": "npx tsx pipeline/render/export-og-assets.ts && next build && npx @opennextjs/cloudflare build",
     "deploy": "npm run build:worker && wrangler deploy",
     "preview": "npm run build:worker && wrangler dev",
     "pipeline:seed": "tsx pipeline/seed/seed-athletes.ts",

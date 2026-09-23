@@ -51,3 +51,6 @@ pipeline/catalogue/snapshots/
 
 # Gennemgangs-pakker og svar (regenereres af scripts/review-drafts.sh)
 logs/
+
+# OG images exported at build (pipeline/render/export-og-assets.ts) — generated, never committed
+/public/og/

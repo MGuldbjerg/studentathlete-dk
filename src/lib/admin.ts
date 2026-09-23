@@ -144,7 +144,7 @@ export async function publishArticle(id: number): Promise<void> {
   // bruger altid det genererede 16:9 kampkort (se getArticleCoverUrl).
   const rawCover = article?.cover_image_url ?? null;
   const coverUrl: string | null =
-    rawCover && !rawCover.includes("/api/og") ? rawCover : null;
+    rawCover && !/\/(api\/og|og\/)/.test(rawCover) ? rawCover : null;
 
   await db
     .prepare(

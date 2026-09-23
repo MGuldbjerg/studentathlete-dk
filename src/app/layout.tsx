@@ -99,7 +99,7 @@ export default async function RootLayout({
             billedet i edge-cachen. Skal stå FØR billederne i DOM'en. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var tries=new WeakMap();document.addEventListener("error",function(e){var t=e.target;if(!t||t.tagName!=="IMG"||(t.src||"").indexOf("/api/og")===-1)return;var n=(tries.get(t)||0)+1;if(n>3)return;tries.set(t,n);setTimeout(function(){t.src=t.src;},900*n+Math.random()*500);},true);})();`,
+            __html: `(function(){var tries=new WeakMap();document.addEventListener("error",function(e){var t=e.target;if(!t||t.tagName!=="IMG"||((t.src||"").indexOf("/og/")===-1&&(t.src||"").indexOf("/api/og")===-1))return;var n=(tries.get(t)||0)+1;if(n>3)return;tries.set(t,n);setTimeout(function(){t.src=t.src;},900*n+Math.random()*500);},true);})();`,
           }}
         />
         <Header />

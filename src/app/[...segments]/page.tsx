@@ -20,7 +20,7 @@ import {
 } from "@/lib/db";
 import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
 import { currentLanguage, currentSite, currentBaseUrl, siteRobots } from "@/lib/site-server";
-import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, getArticleCoverUrl, metaDescription } from "@/lib/seo";
+import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, athleteOgParams, getArticleCoverUrl, metaDescription } from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { sportLabel, t, sportKeyFromSlugAnyLanguage, routeSlug } from "@/lib/i18n";
@@ -192,12 +192,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           athlete.profile_summary ??
           t("meta.athlete_description", lang, { name: athlete.name, sport: sportLabel(athlete.sport, lang).toLowerCase(), university: athlete.university, brand });
         const ogImage = athlete.photo_url
-          ?? getOgImageUrl({
-               title: athlete.name,
-               subtitle: `${athlete.university} · ${sportLabel(athlete.sport, lang)}`,
-               sport: athlete.sport,
-               type: "athlete",
-             });
+          ?? getOgImageUrl(athleteOgParams(athlete, lang));
         // Uden brand-halen: se noten ved artiklernes titel længere nede.
         // Navnet er hele grunden til at siden bliver fundet, så det skal stå
         // først og alene — `siteName` og `Organization`-schemaet siger allerede

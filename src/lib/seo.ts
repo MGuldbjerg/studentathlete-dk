@@ -4,6 +4,7 @@ import { countryProfile } from "./countries";
 import type { CountryProfile } from "./countries/types";
 import { siteBaseUrl } from "./site";
 import { sportLabel, t, languagePack, routePath } from "./i18n";
+import { cardAssetPath, genericAssetPath, genericQuery } from "./og-static";
 
 /**
  * Standardsitets base-URL. Værten står ét sted — landeprofilen — så et nyt site
@@ -206,7 +207,9 @@ export function getArticleIgCardUrl(article: Pick<Article, "id">): string {
  * cover_image_url bruges bevidst ikke her.
  */
 export function getArticleCoverUrl(article: Pick<Article, "id">): string {
-  return `/api/og?type=card&article=${article.id}&v=${CARD_VERSION}`;
+  // Static file first (no Worker, no CPU); the query string is what /api/og
+  // needs if the file is not in the build yet. See src/lib/og-static.ts.
+  return `${cardAssetPath(article.id, CARD_VERSION)}?type=card&article=${article.id}&v=${CARD_VERSION}`;
 }
 
 /**
@@ -238,18 +241,42 @@ export function getGuideUrl(slug: string, lang: string): string {
 
 // ─── OG-billeder ─────────────────────────────────────────────────────────────
 
+/**
+ * Bump when the generic OG design in /api/og changes. The version is part of
+ * the static file name, so old files stop being referenced at once.
+ */
+export const GENERIC_OG_VERSION = 1;
+
 export function getOgImageUrl(params: {
   title: string;
   subtitle?: string;
   sport?: string | null;
   type?: "article" | "athlete" | "sport";
 }): string {
-  const url = new URL("/api/og", BASE_URL);
-  url.searchParams.set("title", params.title);
-  if (params.subtitle) url.searchParams.set("subtitle", params.subtitle);
-  if (params.sport) url.searchParams.set("sport", params.sport);
-  if (params.type) url.searchParams.set("type", params.type);
+  // Static file, pre-rendered at deploy by pipeline/render/export-og-assets.ts.
+  // A miss falls through to /api/og with this same query string.
+  const p = { ...params, version: GENERIC_OG_VERSION };
+  const url = new URL(genericAssetPath(p), BASE_URL);
+  url.search = genericQuery(p).toString();
   return url.toString();
+}
+
+/**
+ * The OG parameters for an athlete WITHOUT a photo. One function, because the
+ * deploy-time export must compute the exact same file name as the page does —
+ * a mismatch would not break anything, but every image would silently fall
+ * back to the Worker again.
+ */
+export function athleteOgParams(
+  athlete: Pick<Athlete, "name" | "university" | "sport">,
+  lang: string,
+): Parameters<typeof getOgImageUrl>[0] {
+  return {
+    title: athlete.name,
+    subtitle: `${athlete.university} · ${sportLabel(athlete.sport, lang)}`,
+    sport: athlete.sport,
+    type: "athlete",
+  };
 }
 
 // ─── JSON-LD structured data ─────────────────────────────────────────────────
