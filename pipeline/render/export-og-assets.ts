@@ -9,7 +9,7 @@
  *   public/og/cards/card-<id>-v<N>.webp  ← copied from card_blobs (already rendered
  *                                          by render-cards.ts; nothing is re-rendered)
  *   public/og/g/<hash>.webp              ← generic image for athletes WITHOUT a photo,
- *                                          one per site language, rendered here at
+ *                                          in its own site's language, rendered here at
  *                                          1200×630 with the same design as /api/og
  *
  * Generic files are content-addressed (the name is a hash of what they show),
@@ -87,31 +87,32 @@ async function exportCards(db: ReturnType<typeof createD1Client>, wanted: Set<st
 
 async function exportAthletes(db: ReturnType<typeof createD1Client>, wanted: Set<string>) {
   const assets = loadAssets();
-  const { results } = await db.query<{ name: string; university: string; sport: string }>(
-    `SELECT name, university, sport FROM athletes WHERE photo_url IS NULL OR photo_url = ''`,
+  const { results } = await db.query<{ name: string; university: string; sport: string; home_country: string }>(
+    `SELECT name, university, sport, home_country FROM athletes WHERE photo_url IS NULL OR photo_url = ''`,
   );
-  // An athlete page answers on every site, in that site's language.
-  const langs = [...new Set(activeCountries().map((c) => c.language))];
+  // An athlete page answers only on its own site (getAthleteBySlug filters on
+  // home_country), in that site's language — so one image per athlete.
+  const langByCountry = new Map(activeCountries().map((c) => [c.code.toUpperCase(), c.language]));
   let rendered = 0;
   let kept = 0;
   for (const a of results) {
-    for (const lang of langs) {
-      const params = athleteOgParams(a, lang);
-      const file = diskPath(genericAssetPath({ ...params, version: GENERIC_OG_VERSION }));
-      wanted.add(file);
-      if (existsSync(file)) { kept++; continue; }
-      const element = buildGenericElement(
-        { title: params.title, subtitle: params.subtitle ?? "", sport: params.sport ?? null, type: "athlete" },
-        assets.logoDataUri,
-        1,
-      );
-      const svg = await satori(element as Parameters<typeof satori>[0], { ...GENERIC_OG_SIZE, fonts: assets.fonts });
-      const png = new Resvg(svg, { fitTo: { mode: "width", value: GENERIC_OG_SIZE.width } }).render().asPng();
-      writeFileSync(file, await sharp(Buffer.from(png)).webp({ quality: 82, effort: 5 }).toBuffer());
-      rendered++;
-    }
+    const lang = langByCountry.get((a.home_country ?? "").toUpperCase());
+    if (!lang) continue; // not on any live site: no page, so no image needed
+    const params = athleteOgParams(a, lang);
+    const file = diskPath(genericAssetPath({ ...params, version: GENERIC_OG_VERSION }));
+    wanted.add(file);
+    if (existsSync(file)) { kept++; continue; }
+    const element = buildGenericElement(
+      { title: params.title, subtitle: params.subtitle ?? "", sport: params.sport ?? null, type: "athlete" },
+      assets.logoDataUri,
+      1,
+    );
+    const svg = await satori(element as Parameters<typeof satori>[0], { ...GENERIC_OG_SIZE, fonts: assets.fonts });
+    const png = new Resvg(svg, { fitTo: { mode: "width", value: GENERIC_OG_SIZE.width } }).render().asPng();
+    writeFileSync(file, await sharp(Buffer.from(png)).webp({ quality: 82, effort: 5 }).toBuffer());
+    rendered++;
   }
-  return { athletes: results.length, langs: langs.length, rendered, kept };
+  return { athletes: results.length, rendered, kept };
 }
 
 /** Delete files under public/og/ that nothing references any more. */
@@ -147,7 +148,7 @@ async function main() {
   try {
     const r = await exportAthletes(db, wanted);
     console.log(
-      `og-export: ${r.athletes} athletes without photo × ${r.langs} languages → ${r.rendered} rendered, ${r.kept} already on disk`,
+      `og-export: ${r.athletes} athletes without photo → ${r.rendered} rendered, ${r.kept} already on disk`,
     );
     athletesOk = true;
   } catch (e) {
