@@ -127,10 +127,16 @@ never runs. A file missing from the build falls through to `/api/og` via
 Note from the deploy log: `Worker Startup Time: 14 ms` — cold start alone is over
 the 10 ms limit.
 
-**Scanner block rule ready, NOT applied:** `/tmp/claude-1000/waf.py` (blocks
-`/.env`, `/.git`, `.php`, `.yaml`, `/wp-` etc. on both zones; the token now has
-Zone WAF Edit). Claude Code's safety check blocks Claude from running it; Mikkel
-runs it.
+**Fact sheets verified against their source (2026-09-23, `a2d80d1`).**
+`pipeline/generate/verify-factsheet.ts` runs inside `buildFactSheet` after the
+LLM: scores/times/sequences must be in the text the model read, dates must be
+written there, and a number in `stats` must be stated about the athlete. It
+only removes; removals are kept in `fact_sheet.unverified`. Backtest 300 sheets:
+1.3% of facts removed, ~30 of 42 unsupported, ~0.2% true facts lost.
+**Known limits:** a wrong pairing of two true numbers ("10 shots, 6 on goal"
+when 6 was the other team's) is not caught; box-score facts are not checked;
+sheets built before this commit are not re-verified.
+**Firewall live** on both zones (`scripts/waf-scanner-rule.py --check`).
 
 ### Lukkede spor — brug ikke tid på dem igen
 
