@@ -18,6 +18,7 @@ import { enrichFactSheetWithBoxScore, extractBoxScoreText,
   looksLikeMatchStory,
 } from "./box-score";
 import { isTransientLLMError } from "../lib/llm/errors";
+import { verifyFactSheet, type UnverifiedFact } from "./verify-factsheet";
 
 interface StoryRow {
   id: number;
@@ -47,6 +48,11 @@ export interface FactSheet {
    * fejl: forkert målrækkefølge, forkerte redningstal, opfundne oplæg.
    */
   match?: MatchFacts | null;
+  /**
+   * What verify-factsheet.ts removed because the source does not support it —
+   * kept for /admin and audits, never rendered to the writer.
+   */
+  unverified?: UnverifiedFact[];
 }
 
 /** Minimal interface — accepterer ProviderChain eller en stub i tests. */
@@ -123,19 +129,8 @@ export function normalizeFactSheet(raw: Record<string, unknown>): FactSheet {
   const event = (raw.event && typeof raw.event === "object" ? raw.event : null) as FactSheet["event"];
   const result = (raw.result && typeof raw.result === "object" ? raw.result : null) as FactSheet["result"];
 
-  // has_substance = der findes mindst ét reelt atlet-fakta (tal ELLER kvalitativt).
-  // En stærk kamp uden stats kvalificerer via qualitative[] (jf. [[feedback-article-prose-vs-stats]]).
-  // Modellens eget flag er kun rådgivende — fakta vinder.
-  const has_substance =
-    stats.length > 0 ||
-    qualitative.length > 0 ||
-    quotes.length > 0 ||
-    other_facts.length > 0 ||
-    Boolean(result && (result.final_score || result.outcome || result.placement)) ||
-    Boolean(event && (event.opponent || event.competition || event.type));
-
-  return {
-    has_substance,
+  const fs: FactSheet = {
+    has_substance: false,
     event,
     result,
     stats,
@@ -144,6 +139,25 @@ export function normalizeFactSheet(raw: Record<string, unknown>): FactSheet {
     other_facts,
     box_score_url: typeof raw.box_score_url === "string" ? raw.box_score_url : null,
   };
+  return { ...fs, has_substance: hasSubstance(fs) };
+}
+
+/**
+ * Der findes mindst ét reelt atlet-fakta (tal ELLER kvalitativt). En stærk
+ * kamp uden stats kvalificerer via qualitative[] (jf. [[feedback-article-prose-vs-stats]]).
+ * Modellens eget flag er kun rådgivende — fakta vinder. Regnes igen efter
+ * verify-factsheet.ts, som kan have fjernet fakta.
+ */
+export function hasSubstance(fs: Omit<FactSheet, "has_substance">): boolean {
+  const { stats, qualitative, quotes, other_facts, result, event } = fs;
+  return (
+    stats.length > 0 ||
+    qualitative.length > 0 ||
+    quotes.length > 0 ||
+    other_facts.length > 0 ||
+    Boolean(result && (result.final_score || result.outcome || result.placement)) ||
+    Boolean(event && (event.opponent || event.competition || event.type))
+  );
 }
 
 /**
@@ -314,7 +328,16 @@ export async function buildFactSheet(
     return { factSheet: null, status: "failed" };
   }
 
-  const factSheet = normalizeFactSheet(raw);
+  // The model's sheet is checked against the very text it read — headline AND
+  // the same `source` slice — before anything downstream can trust it: scores,
+  // dates and the athlete's own numbers must be in it. See verify-factsheet.ts.
+  const seen = [story.headline, source].filter(Boolean).join("\n");
+  const { factSheet: verified, unverified } = verifyFactSheet(normalizeFactSheet(raw), seen, story.athlete_name);
+  const factSheet: FactSheet = {
+    ...verified,
+    has_substance: hasSubstance(verified),
+    ...(unverified.length ? { unverified } : {}),
+  };
   return { factSheet, status: factSheet.has_substance ? "built" : "no_substance" };
 }
 
@@ -426,8 +449,9 @@ async function main(): Promise<void> {
     const facts = factSheet
       ? factSheet.stats.length + factSheet.qualitative.length + factSheet.quotes.length
       : 0;
+    const removed = factSheet?.unverified?.length ?? 0;
     console.log(
-      `  [${status}] ${story.id} ${story.headline?.slice(0, 60) ?? ""} (${facts} fakta${boxStats ? `, ${boxStats} box-score` : ""})`,
+      `  [${status}] ${story.id} ${story.headline?.slice(0, 60) ?? ""} (${facts} fakta${boxStats ? `, ${boxStats} box-score` : ""}${removed ? `, ${removed} fjernet — ikke i kilden` : ""})`,
     );
 
     // A model answered, but we could not read the answer. Count the attempt and
