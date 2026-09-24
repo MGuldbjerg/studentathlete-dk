@@ -11,7 +11,7 @@
  * pipelinen bruger til at efterleve ANDRES robots.txt, og som implementerer
  * længste-match-reglen, Google og Meta følger — om en crawler må hente OG-billedet.
  */
-import { robotsRules, renderRobotsTxt, OG_IMAGE_PATH } from "../../src/lib/robots-txt";
+import { robotsRules, renderRobotsTxt, staticRobotsTxt, OG_IMAGE_PATH } from "../../src/lib/robots-txt";
 import { parseRobots } from "./robots";
 
 let passed = 0;
@@ -62,6 +62,14 @@ ok(
   renderRobotsTxt(robotsRules(false)).includes(`Allow: ${OG_IMAGE_PATH}`),
   "OG-stien står som eksplicit Allow",
 );
+
+// The static file served to EVERY host (no Worker): the live rules, nothing
+// host-specific — and none at all while any site is dark launch, because one
+// shared file cannot both close that site and open the others.
+const shared = staticRobotsTxt([{ darkLaunch: false }, {}]);
+ok(shared === renderRobotsTxt(robotsRules(false)) + "\n", "static file = the live rules");
+ok(shared !== null && !/sitemap:/i.test(shared), "static file names no host's sitemap");
+ok(staticRobotsTxt([{ darkLaunch: false }, { darkLaunch: true }]) === null, "one dark site ⇒ no static file");
 
 console.log(`\n${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

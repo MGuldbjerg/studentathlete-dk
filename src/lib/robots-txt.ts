@@ -62,3 +62,26 @@ export function renderRobotsTxt(rules: RobotsRule[]): string {
     )
     .join("\n\n");
 }
+
+/**
+ * robots.txt as ONE static file for every host — or null when that is unsafe.
+ *
+ * WHY. `/robots.txt` started the Worker on every fetch, and a cold Worker is
+ * over the free plan's 10 ms CPU limit before our code runs (startup alone is
+ * 14 ms). On 24-09-2026 Googlebot got ~70 5xx answers on it — and Google slows
+ * or pauses crawling a whole site whose robots.txt answers 5xx. Static assets
+ * never start the Worker (same mechanism as the OG images, src/lib/og-static.ts).
+ *
+ * THE PRICE. The asset layer matches on path only, so every host gets the same
+ * file. Two consequences:
+ *   - No `Sitemap:` line: it must be an absolute URL, and naming the sibling
+ *     site's sitemap would link the sites (they are separate by design). Both
+ *     sitemaps are submitted in Search Console; Bing gets IndexNow.
+ *   - One dark-launch site makes a shared file impossible — it must say
+ *     `Disallow: /` while the others must not. Then this returns null, no
+ *     file is written, and src/app/robots.ts answers per host as before.
+ */
+export function staticRobotsTxt(sites: { darkLaunch?: boolean }[]): string | null {
+  if (sites.some((s) => s.darkLaunch === true)) return null;
+  return renderRobotsTxt(robotsRules(false)) + "\n";
+}
