@@ -15,7 +15,13 @@
  * the IndexNow ping and the athlete_events harvest are Worker-side extras that
  * "must never block a publish", and they are not replayed here.
  *
- *   npx tsx pipeline/fix/apply-draft-decisions.ts <decisions.json> [--dry-run]
+ * Publishes are SPACED OUT: 17–23 minutes (uniform random) between each one.
+ * Mikkel 2026-09-24: a batch going live in the same second looks like spam if
+ * publishing times are ever exposed. Rejections run first and are not spaced.
+ * A long queue therefore takes hours — run it in the background. `--no-spacing`
+ * exists for a single urgent correction, not for batches.
+ *
+ *   npx tsx pipeline/fix/apply-draft-decisions.ts <decisions.json> [--dry-run] [--no-spacing]
  */
 
 import { readFileSync } from "node:fs";
@@ -38,6 +44,13 @@ interface Decision {
 
 const [file, ...flags] = process.argv.slice(2);
 const DRY = flags.includes("--dry-run");
+const NO_SPACING = flags.includes("--no-spacing");
+
+const GAP_MIN_S = 17 * 60;
+const GAP_MAX_S = 23 * 60;
+const randomGapSeconds = () =>
+  GAP_MIN_S + Math.floor(Math.random() * (GAP_MAX_S - GAP_MIN_S + 1));
+const sleep = (s: number) => new Promise((r) => setTimeout(r, s * 1000));
 if (!file) {
   console.error("Usage: apply-draft-decisions.ts <decisions.json> [--dry-run]");
   process.exit(1);
@@ -54,7 +67,14 @@ async function main() {
   let published = 0;
   let rejected = 0;
 
-  for (const d of decisions) {
+  // Rejections first, so the spaced publishing that follows is the only wait.
+  const ordered = [
+    ...decisions.filter((d) => d.action === "reject"),
+    ...decisions.filter((d) => d.action !== "reject"),
+  ];
+  let publishedAny = false;
+
+  for (const d of ordered) {
     const row = (
       await db.query<{
         id: number;
@@ -118,7 +138,15 @@ async function main() {
       params.push(d.content);
     }
 
-    console.log(`  ✓ publishing #${d.id}: ${d.title ?? row.title}`);
+    if (publishedAny && !NO_SPACING) {
+      const gap = randomGapSeconds();
+      const at = new Date(Date.now() + gap * 1000).toLocaleTimeString("da-DK");
+      console.log(`  … waiting ${Math.round(gap / 60)} min (next at ~${at})`);
+      if (!DRY) await sleep(gap);
+    }
+    publishedAny = true;
+
+    console.log(`  ✓ publishing #${d.id}: ${d.title ?? row.title}  [${new Date().toLocaleTimeString("da-DK")}]`);
     if (DRY) continue;
 
     if (sets.length) {
