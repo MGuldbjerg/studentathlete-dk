@@ -127,6 +127,20 @@ never runs. A file missing from the build falls through to `/api/og` via
 Note from the deploy log: `Worker Startup Time: 14 ms` — cold start alone is over
 the 10 ms limit.
 
+**24 Sep: OAI-SearchBot burst, 33% of calls failed (1102).** OpenAI's crawler
+hit `.co.uk` from 8+ IPs (74.7.x, ~650-800 req each, ATL colo) from ~23:00 UTC.
+Worst paths: the sport landing pages (`/baseball`, `/football`, ...) and
+`/athletes`. Googlebot also got ~70 5xx on `/robots.txt` (.dk).
+- **Fixed (`82c8383`, live):** robots.txt is a static asset (written into
+  `.open-next/assets/` after the OpenNext build by `pipeline/render/export-robots.ts`),
+  verified live on both hosts without `x-opennext`. Same file for every host, so no
+  `Sitemap:` line (both sitemaps are in Search Console), and none at all while any
+  site is dark launch.
+- **Not doable for free:** static sport pages — the asset layer ignores Host and
+  `/football` means different sports on .dk and .co.uk; that is lag C1/C4
+  (one Worker per country). A rate-limit rule does not catch it either: the bot
+  spreads ~100 req/hour per IP, far under any per-IP 10-second threshold.
+
 **Fact sheets verified against their source (2026-09-23, `a2d80d1`).**
 `pipeline/generate/verify-factsheet.ts` runs inside `buildFactSheet` after the
 LLM: scores/times/sequences must be in the text the model read, dates must be
