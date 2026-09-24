@@ -34,7 +34,12 @@ jobs:
       - run: npm ci
 
       - name: Tjek Meta-tokens (scopes + udløb)
+        id: tokens
         env:
+          # Same list as social-post.yml — keep them in step. A disabled
+          # channel's token problems are logged, not alarmed on; when its token
+          # starts passing, the step below says so (2026-09-24).
+          SOCIAL_DISABLED_CHANNELS: facebook
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
@@ -46,6 +51,16 @@ jobs:
           FB_APP_ID: ${{ secrets.FB_APP_ID }}
           FB_APP_SECRET: ${{ secrets.FB_APP_SECRET }}
         run: npx tsx pipeline/social/check-tokens.ts
+
+      - name: Discord — a disabled channel works again
+        if: success() && steps.tokens.outputs.recovered != ''
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RECOVERED: ${{ steps.tokens.outputs.recovered }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"🟢 $RECOVERED: tokenet virker nu\",\"description\":\"Kanalen er stadig slået fra. Fjern den fra SOCIAL_DISABLED_CHANNELS i social-post.yml og meta-check.yml, så begynder den at poste.\",\"color\":3066993,\"footer\":{\"text\":\"StudentAthlete.dk social\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
 
       - name: Discord-notifikation ved fejl
         if: failure()

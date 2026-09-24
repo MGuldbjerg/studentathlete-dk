@@ -75,7 +75,7 @@ jobs:
       - name: Enqueue + dræn social-kø
         run: npx tsx pipeline/social/post-social.ts ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
         env:
-          SOCIAL_DISABLED_CHANNELS: facebook
+          SOCIAL_DISABLED_CHANNELS: facebook  # also in meta-check.yml — keep them in step
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}

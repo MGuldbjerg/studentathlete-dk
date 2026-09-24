@@ -39,6 +39,8 @@
  */
 
 // Samme version som facebook.ts og instagram.ts — ét sted at bumpe, når Meta udfaser.
+import { appendFileSync } from "node:fs";
+import { channelIsDisabled } from "./post-social";
 import { readAccountEnv } from "./registry";
 
 const GRAPH = "https://graph.facebook.com/v26.0";
@@ -295,12 +297,27 @@ async function main(): Promise<void> {
   }
 
   const problems: Problem[] = [];
+  // Channels switched off on purpose (SOCIAL_DISABLED_CHANNELS, same variable as
+  // social-post.yml). Mikkel 2026-09-24: "quiet the canary, I know the token is
+  // not set" — Facebook is blocked by Meta's ad restriction on his account, and
+  // a daily red run + Discord ping about it is noise. A disabled channel's
+  // problems are logged but do not fail the run. What still matters is the day
+  // it STARTS working, so a disabled channel with zero problems is announced.
+  const known: Problem[] = [];
+  const recovered: string[] = [];
+  const collect = (channel: string, label: string, found: Problem[]) => {
+    if (!channelIsDisabled(channel)) problems.push(...found);
+    else if (found.length) known.push(...found);
+    else recovered.push(label);
+  };
 
   const fbPageId = readAccountEnv("facebook", "DK", "PAGE_ID");
   const fbToken = readAccountEnv("facebook", "DK", "PAGE_ACCESS_TOKEN");
   if (fbPageId && fbToken) {
-    problems.push(
-      ...(await checkAccount(
+    collect(
+      "facebook",
+      "Facebook",
+      (await checkAccount(
         "Facebook",
         fbPageId,
         fbToken,
@@ -317,8 +334,10 @@ async function main(): Promise<void> {
   const igUserId = readAccountEnv("instagram", "DK", "USER_ID");
   const igToken = readAccountEnv("instagram", "DK", "ACCESS_TOKEN");
   if (igUserId && igToken) {
-    problems.push(
-      ...(await checkAccount(
+    collect(
+      "instagram",
+      "Instagram",
+      (await checkAccount(
         "Instagram",
         igUserId,
         igToken,
@@ -329,6 +348,15 @@ async function main(): Promise<void> {
     );
   } else {
     console.log("Instagram: springes over (IG_USER_ID eller IG_ACCESS_TOKEN mangler)");
+  }
+
+  for (const p of known) console.log(`\n· known, channel disabled: ${p.label}`);
+  if (recovered.length) {
+    console.log(
+      `\n🟢 ${recovered.join(", ")}: the token now passes every check, but the channel is still in ` +
+        "SOCIAL_DISABLED_CHANNELS — remove it from social-post.yml and meta-check.yml.",
+    );
+    if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `recovered=${recovered.join(", ")}\n`);
   }
 
   if (problems.length === 0) {
