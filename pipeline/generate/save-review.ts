@@ -78,9 +78,13 @@ async function main(): Promise<void> {
     ],
   );
 
-  console.log(
-    `  #${id}: ${String(review.verdict)} — ${String(review.summary ?? "").slice(0, 120)} (${findings.length} fund)`,
-  );
+  // The repo is public, and so are its Actions logs. A summary of a draft we
+  // may reject can repeat exactly the wrong claim about a named athlete, so the
+  // cloud run logs the verdict only; the summary lives in D1 and /admin.
+  const summary = process.env.REVIEW_PUBLIC_LOG === "1"
+    ? ""
+    : ` — ${String(review.summary ?? "").slice(0, 120)}`;
+  console.log(`  #${id}: ${String(review.verdict)}${summary} (${findings.length} fund)`);
 }
 
 if (process.argv[1] && /save-review\.ts$/.test(process.argv[1])) {

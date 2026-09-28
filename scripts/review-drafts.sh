@@ -30,7 +30,7 @@
 # Rettelsen ændrer indholdet, så næste kørsel gennemgår den rettede tekst — men
 # retter den ikke igen. Er den stadig gal, er fundene dine.
 #
-Dagens kørsler er læse-kørsler: du skal kunne åbne /admin midt på dagen og se
+# Dagens kørsler er læse-kørsler: du skal kunne åbne /admin midt på dagen og se
 # den kladde du så i morges. MED ÉN UNDTAGELSE — se indhentningen nedenfor.
 #
 # --------------------------------------------------------------------------
@@ -84,13 +84,23 @@ fi
 
 DRY_RUN=0
 DO_FIX=0
+REVIEW_ONLY=0
 for arg in "$@"; do
   case "$arg" in
-    --dry-run) DRY_RUN=1 ;;
-    --fix)     DO_FIX=1 ;;
-    *) echo "! ukendt argument: $arg (brug --fix og/eller --dry-run)"; exit 1 ;;
+    --dry-run)     DRY_RUN=1 ;;
+    --fix)         DO_FIX=1 ;;
+    --review-only) REVIEW_ONLY=1 ;;
+    *) echo "! ukendt argument: $arg (brug --fix, --review-only og/eller --dry-run)"; exit 1 ;;
   esac
 done
+
+# --review-only (2026-09-28, the cloud run): judge drafts, never correct or
+# reject them. Mikkel wanted the cloud to qualify which drafts need his eyes
+# first, nothing more. It also switches off the catch-up below — a runner has
+# no stamp file, so without this every cloud run would turn into a fix run.
+if [ "$REVIEW_ONLY" = "1" ] && [ "$DO_FIX" = "1" ]; then
+  echo "! --review-only og --fix udelukker hinanden"; exit 1
+fi
 
 mkdir -p logs/review
 
@@ -100,7 +110,7 @@ STAMP="logs/review/.sidste-rettelse"
 STALE_HOURS=20
 CATCHUP=0
 
-if [ "$DO_FIX" = "0" ]; then
+if [ "$DO_FIX" = "0" ] && [ "$REVIEW_ONLY" = "0" ]; then
   if [ ! -f "$STAMP" ]; then
     SINCE=""
   else

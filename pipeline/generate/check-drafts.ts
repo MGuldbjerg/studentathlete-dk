@@ -161,7 +161,10 @@ async function main(): Promise<void> {
     checked++;
     const severity = severityOf(r.findings);
     const line = summarise(r.findings);
-    console.log(`  #${row.id} [${severity}] ${row.title}\n      ${line}`);
+    // Public Actions logs get the id and severity only (see save-review.ts).
+    console.log(process.env.REVIEW_PUBLIC_LOG === "1"
+      ? `  #${row.id} [${severity}]`
+      : `  #${row.id} [${severity}] ${row.title}\n      ${line}`);
     if (r.findings.length > 0) {
       const c = row.country ?? "DK";
       const list = perCountry.get(c) ?? [];

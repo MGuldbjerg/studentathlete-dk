@@ -1,0 +1,69 @@
+name: Claude-gennemgang af kladder
+
+# Claude's review of each draft, moved off Mikkel's PC (2026-09-28). The local
+# run depended on the machine being on and skipped whole nights; this one
+# doesn't. It uses Mikkel's Claude subscription through a long-lived token
+# (`claude setup-token` → secret CLAUDE_CODE_OAUTH_TOKEN), not an API key, so
+# the $0 principle holds.
+#
+# REVIEW ONLY: verdicts go to D1 (/admin) and Discord. The run never corrects,
+# rejects or publishes — scripts/review-drafts.sh --review-only enforces it.
+#
+# The repo is public, so this log is public. Draft text, packs and Claude's
+# answers stay in the runner's temp files, which die with the runner; nothing is
+# uploaded as an artifact, and REVIEW_PUBLIC_LOG=1 keeps titles and summaries
+# out of stdout. Never add an upload-artifact step here.
+#
+# Every 3 hours, 20 minutes after the mechanical check (check-drafts.yml, :20).
+
+on:
+  schedule:
+    - cron: '40 */3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Vis kun hvad der ville blive gennemgået'
+        type: boolean
+        default: false
+
+concurrency:
+  group: review-drafts
+  cancel-in-progress: false
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm install -g @anthropic-ai/claude-code
+
+      - name: Gennemgå kladder (kun dom)
+        run: |
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "! CLAUDE_CODE_OAUTH_TOKEN mangler — kør 'claude setup-token' og læg den som repo-secret"; exit 1
+          fi
+          ARGS="--review-only"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          ./scripts/review-drafts.sh $ARGS
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          REVIEW_PUBLIC_LOG: '1'
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Discord ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Claude-gennemgang af kladder fejlede\",\"description\":\"[Se loggen]($RUN_URL).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
