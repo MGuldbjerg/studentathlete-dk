@@ -15,11 +15,15 @@
   are looked up in the source (green in source, blue our DB, amber number not
   verbatim, red name not in source); findings sit under their sentence. Desktop
   two panes, phone sentence-by-sentence. Linked from the queue and Discord pings.
-- ⚠️ **Open bug found by the check view:** the review pack (`draft-dossier.ts`)
-  joins only `articles.athlete_id`, not `article_athletes` (migration 058). A
-  companion athlete's DB facts are invisible to Claude, so it calls them
-  invented — #409: Carter Ford's "London" (DB: London, England) flagged as made up.
-  The 01:00 `--fix` run will act on such findings.
+- ✅ **Fixed same day: the review pack now includes every athlete on the article.**
+  `draft-dossier.ts` joined only `articles.athlete_id`, so a companion's DB facts
+  (migration 058) looked invented to Claude: all four multi-athlete drafts in the
+  queue (#405 Leeds, #408 Liverpool, #409 London, #419 Newcastle) had a false
+  "invented hometown" finding. Companions now come as extra tables before the
+  source; single-athlete packs are byte-identical (verified on 14 of 18 live
+  drafts, and in `_draft-pack-test.ts`). No text was lost — all four still
+  have their hometowns. Their old reviews still show the false finding until
+  re-reviewed.
 
 : permanent annonceringsbegrænsning (2026-09-22)
 

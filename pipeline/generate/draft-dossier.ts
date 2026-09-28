@@ -38,6 +38,20 @@ export interface DossierRow {
   university: string | null;
   hometown: string | null;
   previous_school: string | null;
+  /** JSON array of the article's OTHER athletes (article_athletes), "[]" if none. */
+  companions?: string | null;
+}
+
+interface Companion {
+  name: string | null;
+  gender: string | null;
+  class_year: string | null;
+  expected_graduation: number | null;
+  sport: string | null;
+  position: string | null;
+  university: string | null;
+  hometown: string | null;
+  previous_school: string | null;
 }
 
 /**
@@ -47,7 +61,14 @@ export interface DossierRow {
 const DOSSIER_COLUMNS = `a.id, a.title, a.content, a.country, a.article_type, s.source_url,
          s.fact_sheet, s.content_raw, s.summary,
          ath.name AS athlete_name, ath.gender, ath.class_year, ath.expected_graduation,
-         ath.sport, ath.position, ath.university, ath.hometown, ath.previous_school`;
+         ath.sport, ath.position, ath.university, ath.hometown, ath.previous_school,
+         (SELECT json_group_array(json_object(
+                   'name', c.name, 'gender', c.gender, 'class_year', c.class_year,
+                   'expected_graduation', c.expected_graduation, 'sport', c.sport,
+                   'position', c.position, 'university', c.university,
+                   'hometown', c.hometown, 'previous_school', c.previous_school))
+          FROM article_athletes aa JOIN athletes c ON c.id = aa.athlete_id
+          WHERE aa.article_id = a.id AND aa.athlete_id != COALESCE(a.athlete_id, -1)) AS companions`;
 
 const DOSSIER_FROM = `FROM articles a
   LEFT JOIN stories s ON s.id = a.story_id
@@ -118,6 +139,22 @@ export function cleanSource(raw: string | null, summary: string | null): string 
  * på rigtige kladder må ikke skifte ordlyd, fordi koden bag den bliver ryddet op.
  */
 export function dossier(r: DossierRow): string {
+  return `${athleteTable(r)}${companionTables(r.companions)}
+## Kilden (${r.source_url ?? "ukendt URL"})
+
+\`\`\`
+${cleanSource(r.content_raw, r.summary)}
+\`\`\`
+
+## Faktaarket (det ENESTE kladden må hvile på)
+
+\`\`\`json
+${pretty(r.fact_sheet)}
+\`\`\`
+`;
+}
+
+function athleteTable(r: Omit<Companion, "name"> & { athlete_name: string | null }): string {
   return `## Atleten, som basen kender hende/ham
 
 | Felt | Værdi |
@@ -131,17 +168,36 @@ export function dossier(r: DossierRow): string {
 | Universitet | ${r.university ?? "?"} |
 | Hjemby | ${r.hometown ?? "?"} |
 | Forrige skole | ${r.previous_school ?? "ingen registreret (siger IKKE at der ikke er en)"} |
-
-## Kilden (${r.source_url ?? "ukendt URL"})
-
-\`\`\`
-${cleanSource(r.content_raw, r.summary)}
-\`\`\`
-
-## Faktaarket (det ENESTE kladden må hvile på)
-
-\`\`\`json
-${pretty(r.fact_sheet)}
-\`\`\`
 `;
+}
+
+/**
+ * The article's other athletes (migration 058, 2026-09-28). Without them a
+ * companion's hometown from our own records looked invented to the reviewer —
+ * #409: Carter Ford "from London" was flagged as made up, and the base says
+ * London, England. Empty for single-athlete articles, so their packs stay byte
+ * for byte what the prompts were tuned on.
+ */
+function companionTables(json: string | null | undefined): string {
+  let list: Companion[] = [];
+  try {
+    const parsed = JSON.parse(json ?? "[]");
+    if (Array.isArray(parsed)) list = parsed;
+  } catch {
+    return "";
+  }
+  if (!list.length) return "";
+  const tables = list
+    .map((c) => athleteTable({ ...c, athlete_name: c.name }).replace(
+      "## Atleten, som basen kender hende/ham",
+      `### ${c.name ?? "(uden navn)"}`,
+    ))
+    .join("\n");
+  return `
+## Flere atleter i artiklen, som basen kender dem
+
+Artiklen handler også om disse. Deres felter er basens viden på samme måde som
+hovedatletens — en hjemby eller position herfra er IKKE opdigtet.
+
+${tables}`;
 }
