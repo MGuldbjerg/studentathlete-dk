@@ -83,5 +83,6 @@ export function rejectLogParams(id: number, row: RejectableDraft): unknown[] {
 export const REJECT_DELETE_SQL = [
   "DELETE FROM draft_reviews WHERE article_id = ?",
   "DELETE FROM social_posts WHERE article_id = ?",
+  "DELETE FROM article_athletes WHERE article_id = ?",
   "DELETE FROM articles WHERE id = ?",
 ] as const;

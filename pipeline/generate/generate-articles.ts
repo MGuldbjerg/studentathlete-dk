@@ -385,7 +385,39 @@ async function main(): Promise<void> {
     [MIN_RELEVANCE_GENERATE, maxAgeDays, MAX_ARTICLES_PER_RUN],
   );
 
-  const stories = result.results;
+  // Grouping below only sees ONE run. A second British player from the same
+  // match report, found by a later discovery, used to get an article of his
+  // own (2026-09-27: Lopez/Ford, Gill/Christie, Hulme/Baxter — all merged by
+  // hand). A story whose (source, site) already has an article is attached to
+  // that article instead of written again.
+  const stories: StoryWithAthlete[] = [];
+  for (const st of result.results) {
+    const existing = (
+      await db.query<{ id: number; published: number }>(
+        `SELECT id, published FROM articles
+          WHERE source_url = ? AND UPPER(COALESCE(country, ?)) = ?
+          ORDER BY id LIMIT 1`,
+        [st.source_url, DEFAULT_COUNTRY, siteFor(st).country],
+      )
+    ).results[0];
+    if (!existing) {
+      stories.push(st);
+      continue;
+    }
+    console.log(
+      `  ↪ Story ${st.id} (${st.athlete_name}): same report as article #${existing.id}` +
+        `${existing.published ? " (published)" : ""} — attached, not rewritten. Add a line about them by hand.`,
+    );
+    if (dryRun) continue;
+    await db.execute(
+      `INSERT OR IGNORE INTO article_athletes (article_id, athlete_id, role) VALUES (?, ?, 'featured')`,
+      [existing.id, st.athlete_id],
+    );
+    await db.execute(
+      'UPDATE stories SET status = ?, processed_at = datetime("now") WHERE id = ?',
+      ["drafted", st.id],
+    );
+  }
 
   // Én artikel pr. (kilde, land) — se group-stories.ts for hvorfor landet er
   // skillelinjen og ikke atleten.
@@ -864,6 +896,22 @@ async function main(): Promise<void> {
         console.log(
           `    + dækker også ${mates.map((m) => m.athlete_name).join(", ")}`,
         );
+      }
+
+      // Every athlete the article covers, so the Instagram collab step can
+      // invite each of them — not just the one in articles.athlete_id.
+      const newArticleId = (inserted.meta as { last_row_id?: number } | undefined)?.last_row_id;
+      if (newArticleId) {
+        await db.execute(
+          `INSERT OR IGNORE INTO article_athletes (article_id, athlete_id, role) VALUES (?, ?, 'primary')`,
+          [newArticleId, story.athlete_id],
+        );
+        for (const mate of mates) {
+          await db.execute(
+            `INSERT OR IGNORE INTO article_athletes (article_id, athlete_id, role) VALUES (?, ?, 'featured')`,
+            [newArticleId, mate.athlete_id],
+          );
+        }
       }
 
       generated++;
