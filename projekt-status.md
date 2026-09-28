@@ -1,10 +1,27 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-22 (Facebook slået fra: permanent annonceringsbegrænsning på kontoen — se øverste afsnit)
+**Sidst opdateret**: 2026-09-28 (cloud review + check view — see top section)
 
 ---
 
-## ⛔ Facebook kan ikke fikses: permanent annonceringsbegrænsning (2026-09-22)
+## ☁️ Claude's review in the cloud + the check view (2026-09-28)
+
+- **`review-drafts.yml`**: Claude reviews every draft every 3 hours in GitHub
+  Actions on Mikkel's subscription token — **review only**, no fixing, rejecting
+  or publishing. Verified live: the login check passed and the first run pinged 6
+  UK drafts. The PC's 01:00 `--fix` task still runs alongside it (Mikkel's call
+  whether to switch it off).
+- **`/admin/tjek/<id>`**: draft and FULL source as plain text. Numbers and names
+  are looked up in the source (green in source, blue our DB, amber number not
+  verbatim, red name not in source); findings sit under their sentence. Desktop
+  two panes, phone sentence-by-sentence. Linked from the queue and Discord pings.
+- ⚠️ **Open bug found by the check view:** the review pack (`draft-dossier.ts`)
+  joins only `articles.athlete_id`, not `article_athletes` (migration 058). A
+  companion athlete's DB facts are invisible to Claude, so it calls them
+  invented — #409: Carter Ford's "London" (DB: London, England) flagged as made up.
+  The 01:00 `--fix` run will act on such findings.
+
+: permanent annonceringsbegrænsning (2026-09-22)
 
 Metas support bekræftede det, efter en dag hvor tokenet blev mintet tre gange:
 Mikkels konto (id 554928133) har en **permanent, ikke-appellerbar

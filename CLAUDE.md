@@ -164,3 +164,15 @@ den flytter ikke grænsen for andre D1-skrivninger, og den må ikke udvides til 
 gøre mere. Slukkes den med:
 
     Unregister-ScheduledTask -TaskName StudentAthlete-kladderettelse
+
+### The cloud review (2026-09-28): review only
+
+`.github/workflows/review-drafts.yml` runs `scripts/review-drafts.sh --review-only`
+every 3 hours on Mikkel's subscription token (`CLAUDE_CODE_OAUTH_TOKEN`). It writes
+verdicts to `draft_reviews` and pings Discord — it never corrects, rejects or
+publishes, and `--review-only` refuses `--fix`. The repo is public, so its logs
+are too: `REVIEW_PUBLIC_LOG=1` keeps draft titles and summaries out, and the
+workflow must never upload an artifact. An expired token fails the login step.
+
+Mikkel checks drafts in `/admin/tjek/<id>`: draft and full source as plain text,
+side by side on desktop, sentence by sentence on the phone.
