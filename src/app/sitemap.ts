@@ -7,7 +7,8 @@ import { getPublishedGuides } from "@/lib/admin";
 import { archivePath } from "@/lib/routes";
 import { routePath } from "@/lib/i18n";
 import { alphabetFor, countByLetter, getAthleteLetterUrl, letterOf } from "@/lib/athlete-letters";
-import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
+import { currentLanguage, currentBaseUrl, currentSite } from "@/lib/site-server";
+import { NATIONS } from "@/lib/home-nation";
 
 /**
  * Aldrig prærenderet. To grunde, og den anden er den vigtigste:
@@ -28,6 +29,7 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = await currentBaseUrl();
   const lang = await currentLanguage();
+  const site = await currentSite();
   const [articles, athletes, schools] = await Promise.all([
     getAllArticleSlugs(),
     getAllAthleteSlugs(),
@@ -65,6 +67,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    {
+      url: `${base}${routePath("stats", lang)}`,
+      changeFrequency: "daily",
+      priority: 0.6,
+    },
+    // The UK site splits the stats by home nation (/statistics/scotland …).
+    ...(site.code === "UK"
+      ? NATIONS.map((n) => ({
+          url: `${base}${routePath("stats", lang)}/${n}`,
+          changeFrequency: "daily" as const,
+          priority: 0.5,
+        }))
+      : []),
     ...["om", "kontakt", "ai-brug", "presseetik", "cookies"].map((slug) => ({
       url: `${base}/${slug}`,
       changeFrequency: "yearly" as const,

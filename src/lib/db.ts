@@ -927,3 +927,27 @@ export async function getAllSchoolSlugs(country?: string): Promise<{ slug: strin
     return (r.results ?? []) as { slug: string }[];
   } catch (err) { rethrowDbError(err, "skole-slugs til sitemap"); }
 }
+
+// ─── Stats page (/statistik · /statistics) ──────────────────────────────────
+
+/**
+ * The day's numbers for one site, computed by pipeline/report/build-stats.ts
+ * into site_stats (migration 059). Null until the first run — or before the
+ * migration — and the page says so instead of failing.
+ */
+export async function getSiteStats(
+  country: string,
+): Promise<{ stats: import("./athlete-stats").SiteStats; computedAt: string } | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const row = (await db
+      .prepare("SELECT data, computed_at FROM site_stats WHERE country = ?")
+      .bind(country)
+      .first()) as { data: string; computed_at: string } | null;
+    if (!row) return null;
+    return { stats: JSON.parse(row.data), computedAt: row.computed_at };
+  } catch {
+    return null;
+  }
+}

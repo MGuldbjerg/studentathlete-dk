@@ -55,6 +55,7 @@ jobs:
             pipeline/catalogue/_catalogue-test.ts \
             pipeline/checks/_platform-limits-test.ts \
             pipeline/checks/_check-view-test.ts \
+            pipeline/checks/_athlete-stats-test.ts \
             pipeline/checks/_false-transfers-test.ts \
             pipeline/checks/_draft-numbers-test.ts \
             pipeline/checks/_danish-names-test.ts \

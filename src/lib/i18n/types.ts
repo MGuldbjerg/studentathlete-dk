@@ -6,7 +6,7 @@
 import type { SportKey } from "../sports";
 
 /** Sektioner med egen sti. Nøglen er sprogfri; sluggen står i sprogpakken. */
-export type RouteKey = "athletes" | "schools" | "guides" | "archive";
+export type RouteKey = "athletes" | "schools" | "guides" | "archive" | "stats";
 
 /** Læservendte query-parametre. */
 export type ParamKey = "page" | "source";
@@ -213,6 +213,30 @@ export type UiKey =
   | "schools.intro_link"
   | "schools.counts"
   | "schools.none"
+  | "footer.stats"
+  | "stats.crumb"
+  | "stats.meta_title"
+  | "stats.nation_meta_title"
+  | "stats.meta_description"
+  | "stats.disclaimer"
+  | "stats.updated"
+  | "stats.pending"
+  | "stats.total"
+  | "stats.women"
+  | "stats.men"
+  | "stats.unknown"
+  | "stats.total_col"
+  | "stats.by_sport"
+  | "stats.by_division"
+  | "stats.sport"
+  | "stats.division"
+  | "stats.gender_note"
+  | "stats.all_uk"
+  | "stats.nation.england"
+  | "stats.nation.scotland"
+  | "stats.nation.wales"
+  | "stats.nation.northern-ireland"
+  | "stats.nation_note"
   | "schools.athlete_count_title"
   // Viden-hubben
   | "guides.meta_title"

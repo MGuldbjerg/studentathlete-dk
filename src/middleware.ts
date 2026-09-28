@@ -92,6 +92,12 @@ function localizedRoute(req: NextRequest, lang: string): NextResponse | null {
  */
 const READER_EDGE_TTL = 300;
 
+/**
+ * The stats pages change once a day (stats-daily.yml, 05:40 UTC) and are the
+ * kind of page that gets shared, so they may sit at the edge for six hours.
+ */
+const STATS_EDGE_TTL = 21600;
+
 function guardCache(req: NextRequest, res: NextResponse): NextResponse {
   if (res.status >= 300 && res.status < 400) return res;
   if (isAdminPath(req.nextUrl.pathname)) {
@@ -102,9 +108,11 @@ function guardCache(req: NextRequest, res: NextResponse): NextResponse {
   // `s-maxage` giver kanten lov. Det er den samme opdeling som før — det er
   // bare vendt om, nu hvor vinduet kan sættes eksplicit i stedet for at være
   // Workers Cache' to timer.
+  const first = req.nextUrl.pathname.split("/").filter(Boolean)[0] ?? "";
+  const ttl = routeKeyFromSlug(first) === "stats" ? STATS_EDGE_TTL : READER_EDGE_TTL;
   res.headers.set(
     "Cache-Control",
-    `public, max-age=0, s-maxage=${READER_EDGE_TTL}, stale-while-revalidate=60`,
+    `public, max-age=0, s-maxage=${ttl}, stale-while-revalidate=60`,
   );
   return res;
 }
