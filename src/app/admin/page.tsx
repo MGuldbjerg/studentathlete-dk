@@ -206,9 +206,15 @@ export default async function AdminDashboard() {
                   : null}
                 <div className="flex gap-3 mt-3">
                   <Link
-                    href={`/admin/rediger/${draft.id}`}
-                    className="text-sm font-medium hover:underline"
+                    href={`/admin/tjek/${draft.id}`}
+                    className="text-sm font-semibold hover:underline"
                     style={{ color: "#00205B" }}
+                  >
+                    Tjek mod kilden
+                  </Link>
+                  <Link
+                    href={`/admin/rediger/${draft.id}`}
+                    className="text-sm font-medium text-muted hover:underline"
                   >
                     Rediger
                   </Link>

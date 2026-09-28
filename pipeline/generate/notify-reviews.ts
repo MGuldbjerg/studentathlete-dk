@@ -55,7 +55,7 @@ async function main(): Promise<void> {
             return 0;
           }
         })();
-        return `**#${i.article_id}** ${i.title}\n${i.verdict.toUpperCase()} · ${n} fund — ${i.summary ?? ""}`;
+        return `**[#${i.article_id}](${adminLink(country, `/admin/tjek/${i.article_id}`)})** ${i.title}\n${i.verdict.toUpperCase()} · ${n} fund — ${i.summary ?? ""}`;
       })
       .join("\n\n")
       .slice(0, 3600);

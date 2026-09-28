@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 
 export function AdminActions({
   articleId,
+  afterHref = "/admin",
 }: {
   articleId: number;
+  /** Where to go once decided — the check view moves on to the next draft. */
+  afterHref?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState<"publish" | "reject" | null>(null);
@@ -29,7 +32,7 @@ export function AdminActions({
         setLoading(null);
         return;
       }
-      router.push(`/admin`);
+      router.push(afterHref);
       router.refresh();
     } catch {
       alert("Netværksfejl — prøv igen");

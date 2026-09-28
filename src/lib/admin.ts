@@ -1738,3 +1738,84 @@ export async function getCatalogueCounts(): Promise<CatalogueCounts | null> {
     return null;
   }
 }
+
+// ─── Check view (/admin/tjek/<id>) ──────────────────────────────────────────
+
+export interface CheckData {
+  id: number;
+  title: string;
+  content: string;
+  published: number;
+  country: string | null;
+  source_url: string | null;
+  source_raw: string | null;
+  sensitive: string | null;
+  review: { verdict: string; summary: string | null; findings: string | null } | null;
+  mechanical: string | null;
+  /** Names, hometowns, schools, positions of every athlete the article covers. */
+  db_facts: string[];
+  next_id: number | null;
+}
+
+/**
+ * Everything the check view needs in one place: the draft, the FULL source
+ * (`stories.content_raw`, not the 6,000-character cut the draft pack sees),
+ * the latest Claude and mechanical reviews, and what our own records know about
+ * the athletes — so a hometown from the database isn't marked as invented.
+ */
+export async function getCheckData(id: number): Promise<CheckData | null> {
+  const db = await getDB();
+  if (!db) return null;
+  const art = (await db
+    .prepare(
+      `SELECT a.id, a.title, a.content, a.published, a.country, a.source_url,
+              s.content_raw AS source_raw, s.sensitive
+       FROM articles a
+       LEFT JOIN stories s ON s.id = a.story_id
+       WHERE a.id = ?`,
+    )
+    .bind(id)
+    .first()) as Omit<CheckData, "review" | "mechanical" | "db_facts" | "next_id"> | null;
+  if (!art) return null;
+
+  const [review, mechanical, athletes] = await Promise.all([
+    db
+      .prepare(
+        `SELECT verdict, summary, findings FROM draft_reviews
+         WHERE article_id = ? AND reviewer = 'claude' ORDER BY id DESC LIMIT 1`,
+      )
+      .bind(id)
+      .first() as Promise<{ verdict: string; summary: string | null; findings: string | null } | null>,
+    db
+      .prepare(
+        `SELECT findings FROM draft_reviews
+         WHERE article_id = ? AND reviewer = 'mechanical' ORDER BY id DESC LIMIT 1`,
+      )
+      .bind(id)
+      .first() as Promise<{ findings: string | null } | null>,
+    db
+      .prepare(
+        `SELECT ath.name, ath.hometown, ath.university, ath.previous_school, ath.position,
+                ath.class_year, ath.sport
+         FROM athletes ath
+         WHERE ath.id IN (
+           SELECT athlete_id FROM article_athletes WHERE article_id = ?
+           UNION SELECT athlete_id FROM articles WHERE id = ?
+         )`,
+      )
+      .bind(id, id)
+      .all() as Promise<{ results?: Record<string, string | null>[] }>,
+  ]);
+
+  const drafts = art.published ? [] : await getDraftArticles();
+  const pos = drafts.findIndex((d) => d.id === id);
+  const next = pos >= 0 ? drafts[pos + 1] ?? drafts[0] : drafts[0];
+
+  return {
+    ...art,
+    review: review ?? null,
+    mechanical: mechanical?.findings ?? null,
+    db_facts: (athletes.results ?? []).flatMap((a) => Object.values(a).filter((v): v is string => !!v)),
+    next_id: next && next.id !== id ? next.id : null,
+  };
+}
