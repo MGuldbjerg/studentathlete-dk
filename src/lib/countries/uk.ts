@@ -163,5 +163,13 @@ export const uk: CountryProfile = {
     /\b(ontario|quebec|québec|alberta|manitoba|saskatchewan|nova\s+scotia|new\s+brunswick|newfoundland|british\s+columbia|yukon|nunavut)\b/i,
     // US-skoler opkaldt efter nationerne ("Scotland High School").
     /\b(england|scotland|wales)\s+(hs|high|h\.s\.|academy|school|prep)\b/i,
+    // Found 2026-09-28 in the live UK set (15 non-British athletes): English
+    // town names elsewhere. Province abbreviations ("Grimsby, Ont.", "Woking,
+    // Alta."), Australia and its states — misspelt too ("Victoria, Austraila") —
+    // New Zealand and Canada itself ("Grimsby, Canada").
+    /,\s*(ont|alta|b\.?c|que|sask|n\.?s)\.?\s*$/i,
+    /\b(australia|austraila|aus|queensland|tasmania|nsw|new\s+zealand|canada)\b/i,
+    // North Oldham High School, Kentucky — "Oldham" is on the city list.
+    /\bnorth\s+oldham\b/i,
   ],
 };

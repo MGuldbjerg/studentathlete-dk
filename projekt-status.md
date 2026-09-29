@@ -19,12 +19,16 @@
 - **Home nation** (`src/lib/home-nation.ts`): stated nation → short Scottish/Welsh/NI
   town lists → learned from our own "Town, England" rows. 126 UK athletes stay
   "nation unknown" (shown, not guessed).
-- ⚠️ **15 UK athletes are not British** and are excluded from the counts, but still
-  listed as British on the site: Torquay/Doncaster (Australia) ×6, Grimsby/Woking
-  (Canada) ×3, North Oldham (Kentucky) ×2 (#3716, #4231 — also broken names),
-  Wales, Mass. ×4 (#2184, #2257, #3408, #2765). Plus #2881 (name "SR/SR",
-  hometown "Distance" — column shift). Fixing them is a D1 write: awaiting Mikkel.
-- Gender unknown: 173 UK / 35 DK. Filled only for single-gender NCAA sports.
+- ✅ **Non-British athletes removed 2026-09-29** (Mikkel said yes): 16 set to
+  `active = 0` via `cleanup-false-positives.ts --apply` — Torquay/Doncaster/Fisherman
+  Bay (Australia) ×7, Grimsby/Woking (Canada) ×3, North Oldham (Kentucky) ×2,
+  Wales, Mass. ×4 — plus the broken row #2881 ("SR/SR | Distance", hometown
+  "Loughborough University": likely a real Florida runner, needs a rescrape).
+  Root cause fixed in the classifier: "mass" in the US-state list; UK
+  `falsePositivePatterns` now reject province abbreviations, Canada, Australia
+  (+ misspelling), New Zealand and "North Oldham". Reversible via `active = 1`.
+  Still excluded from the stats but active: "Dunfermline, Norway" (probably a Scot).
+- Gender unknown: 170 UK / 35 DK. Filled only for single-gender NCAA sports.
 
 
 ## ☁️ Claude's review in the cloud + the check view (2026-09-28)

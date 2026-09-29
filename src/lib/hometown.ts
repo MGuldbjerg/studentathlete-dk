@@ -23,7 +23,8 @@ const US_STATE_IDENTIFIERS = new Set([
   "nm","ny","nc","nd","oh","ok","or","pa","ri","sc","sd","tn","tx","ut","vt",
   "va","wa","wv","wi","wy","dc",
   // Uformelle forkortelser (roster-data bruger ofte disse)
-  "ala","ariz","ark","calif","colo","conn","del","fla","ill","ind","kan",
+  // "mass" 2026-09-28: four Americans from "Wales, Mass." were filed as Welsh.
+  "ala","ariz","ark","calif","colo","conn","del","fla","ill","ind","kan","mass",
   "ky","mich","minn","miss","mont","neb","nev","mex","dak","okla","ore",
   "penn","tenn","tex","vir","wash","wis","wisc","wyo",
   // Fulde statsnavne (mellemrum fjernet) — fanger rosters der staver staten ud,

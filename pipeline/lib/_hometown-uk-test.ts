@@ -124,5 +124,20 @@ expectCode("Denmark, SC", null, "US-by ved navn Denmark");
 expectCode("Scotland, PA", null, "US-by ved navn Scotland");
 expectCode(null, null, "null");
 
+// The 15 non-British athletes found in the live UK set, 2026-09-28:
+expectCode("Torquay, Australia", null, "Torquay, Australia");
+expectCode("Torquay, Victoria, AUS", null, "Torquay, Victoria, AUS");
+expectCode("Doncaster East, Victoria, Austraila", null, "misspelt Australia");
+expectCode("Grimsby, Ont.", null, "province abbreviation Ont.");
+expectCode("Grimsby, Canada", null, "Grimsby, Canada");
+expectCode("Woking, Alta.", null, "province abbreviation Alta.");
+expectCode("Wales, Mass.", null, "Wales, Massachusetts");
+expectCode("North Oldham", null, "North Oldham High School, Kentucky");
+// …and the look-alikes that must stay British:
+expectCode("Oldham, England", "UK", "Oldham itself");
+expectCode("Oldham", "UK", "Oldham without a country");
+expectCode("Omagh, Ireland", "UK", "Omagh is Northern Ireland");
+expectCode("Victoria, London, England", "UK", "Victoria in London is not Australia");
+
 console.log(`\nisUkHometown: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);
