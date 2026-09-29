@@ -28,7 +28,7 @@ import {
   spacingWouldCostPosts,
 } from "./pacing";
 import { buildPostText, truncate, withDescription } from "./copy";
-import { bypasses, isCacheable } from "../../src/lib/worker-cache";
+import { bypasses, edgeTtl, isCacheable } from "../../src/lib/worker-cache";
 import { CHANNEL_PLATFORM, ChannelAuthError } from "./types";
 import {
   accountIsConfigured,
@@ -595,6 +595,10 @@ expect("404 gemmes ikke", isCacheable(mkRes(404)), false);
 expect("Set-Cookie gemmes ALDRIG", isCacheable(mkRes(200, { "set-cookie": "sa_country=UK" })), false);
 expect("no-store respekteres", isCacheable(mkRes(200, { "cache-control": "private, no-store" })), false);
 expect("s-maxage-svaret må gemmes", isCacheable(mkRes(200, { "cache-control": "public, s-maxage=300" })), true);
+expect("edge TTL: default 300 without s-maxage", edgeTtl(mkRes(200)), 300);
+expect("edge TTL: stats page's 6 hours wins", edgeTtl(mkRes(200, { "cache-control": "public, max-age=0, s-maxage=21600" })), 21600);
+expect("edge TTL: never shorter than the default", edgeTtl(mkRes(200, { "cache-control": "public, s-maxage=10" })), 300);
+expect("edge TTL: capped at a day", edgeTtl(mkRes(200, { "cache-control": "public, s-maxage=9999999" })), 86400);
 
 const mkReq = (url: string, init: RequestInit = {}) => new Request(url, init);
 expect("forsiden caches", bypasses(mkReq("https://studentathlete.dk/")), false);

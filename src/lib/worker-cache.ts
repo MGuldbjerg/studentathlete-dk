@@ -14,6 +14,19 @@
 export const EDGE_TTL_SECONDS = 300;
 
 /**
+ * The edge TTL for one response. The entry used to stamp EDGE_TTL_SECONDS on
+ * everything, which silently overrode the middleware's longer window for the
+ * stats pages (2026-09-29: /statistics came back `s-maxage=300`, not 21600).
+ * Now the page's own `s-maxage` wins when it asks for longer — never shorter
+ * than the default, and never more than a day.
+ */
+export function edgeTtl(res: Response): number {
+  const m = /s-maxage=(\d+)/i.exec(res.headers.get("cache-control") ?? "");
+  const asked = m ? parseInt(m[1], 10) : 0;
+  return Math.min(Math.max(asked, EDGE_TTL_SECONDS), 86400);
+}
+
+/**
  * Stier der ALDRIG må caches.
  *
  * `/api/` er med som helhed, ikke stykvis: `/api/og` klarer sig fint på

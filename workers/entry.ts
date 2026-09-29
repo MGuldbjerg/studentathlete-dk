@@ -44,7 +44,7 @@
 // skal generere bagefter. Målt: exit 1 på første forsøg.
 import worker, { DOQueueHandler, DOShardedTagCache, BucketCachePurge } from "../.open-next/worker.js";
 // Reglerne selv ligger i et modul uden byggeafhængighed, så de kan testes.
-import { EDGE_TTL_SECONDS, bypasses, isCacheable } from "../src/lib/worker-cache";
+import { bypasses, edgeTtl, isCacheable } from "../src/lib/worker-cache";
 import { dynamicFallbackUrl } from "../src/lib/og-static";
 
 // Durable Object-klasserne er en del af den genererede workers offentlige
@@ -80,7 +80,7 @@ const handler = {
 
     // Kopien får kant-TTL'en. `res.body` kan kun læses én gang, derfor clone.
     const copy = new Response(res.body, res);
-    copy.headers.set("cache-control", `public, max-age=0, s-maxage=${EDGE_TTL_SECONDS}`);
+    copy.headers.set("cache-control", `public, max-age=0, s-maxage=${edgeTtl(res)}`);
 
     // ⚠️ RÆKKEFØLGEN ER SELVE POINTEN, og den er usynlig hvis man ikke ved det.
     //
