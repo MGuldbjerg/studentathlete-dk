@@ -1,8 +1,31 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-28 (cloud review + check view — see top section)
+**Sidst opdateret**: 2026-09-29 (stats page; cloud review + check view — see top sections)
 
 ---
+
+## 📊 Stats page (2026-09-28/29)
+
+- **`/statistik` (DK) and `/statistics` (UK, plus `/statistics/england|scotland|wales|northern-ireland`)**:
+  active athletes by gender, sport and division, with a disclaimer that it is our
+  own database. Linked in the footer and the sitemap. Verified live 2026-09-29
+  (Scotland 205 = 80 f / 110 m / 15 unknown; DK nation URLs 404).
+- **Numbers are computed daily** by `pipeline/report/build-stats.ts`
+  (`stats-daily.yml`, 05:40 UTC) into `site_stats` (migration 059, run). Counting
+  in the page cost 15 ms CPU cold — over the 10 ms ceiling.
+- **6-hour edge cache** on the stats routes, verified live. The first deploy
+  served 300 s: `workers/entry.ts` stamped a fixed TTL over the middleware's
+  header. Now `edgeTtl()` lets a page's own longer `s-maxage` win (max a day).
+- **Home nation** (`src/lib/home-nation.ts`): stated nation → short Scottish/Welsh/NI
+  town lists → learned from our own "Town, England" rows. 126 UK athletes stay
+  "nation unknown" (shown, not guessed).
+- ⚠️ **15 UK athletes are not British** and are excluded from the counts, but still
+  listed as British on the site: Torquay/Doncaster (Australia) ×6, Grimsby/Woking
+  (Canada) ×3, North Oldham (Kentucky) ×2 (#3716, #4231 — also broken names),
+  Wales, Mass. ×4 (#2184, #2257, #3408, #2765). Plus #2881 (name "SR/SR",
+  hometown "Distance" — column shift). Fixing them is a D1 write: awaiting Mikkel.
+- Gender unknown: 173 UK / 35 DK. Filled only for single-gender NCAA sports.
+
 
 ## ☁️ Claude's review in the cloud + the check view (2026-09-28)
 
