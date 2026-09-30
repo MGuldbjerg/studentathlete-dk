@@ -11,9 +11,8 @@
 --      code can enforce it. Replaced by removal on request.
 --
 -- Stored under the Danish storage slug 'privatliv'; served at /privacy by the
--- middleware (RouteKey "privacy"). Seeded UNPUBLISHED: the controller line needs
--- Mikkel. To publish: fill it in (admin → Sider on the UK host, or edit here and
--- re-run), set published = 1, and set hasPrivacyPage: true in countries/uk.ts.
+-- middleware (RouteKey "privacy"). Published 2026-09-30 with Mikkel's name as
+-- controller ("use my info"); no postal address given.
 --
 -- Run: wrangler d1 execute studentathlete-dk --remote --file=db/seed-privacy-uk.sql
 
@@ -85,10 +84,11 @@ You can ask what we hold about you, ask us to correct a mistake, object to the p
 
 If you are unhappy with our answer, you can complain to the Information Commissioner''s Office ([ico.org.uk](https://ico.org.uk)). If your complaint is about the content of an article, write to us first; we handle it editorially and correct it if we got it wrong.
 
-**Controller:** [NAME AND ADDRESS — TO FILL IN] · **Contact:** info@student-athlete.co.uk · **Last updated:** 30 September 2026',
+**Controller:** Mikkel Guldbjerg Jensen, Denmark, who runs Student-Athlete.co.uk · **Contact:** info@student-athlete.co.uk · **Last updated:** 30 September 2026',
 'How Student-Athlete.co.uk handles information about athletes and readers, how advertising cookies work on the site, and what you can ask us to do.',
-0, 'page', datetime('now'))
+1, 'page', datetime('now'))
 ON CONFLICT(slug, country) DO UPDATE SET
+  published = excluded.published,
   title = excluded.title,
   content = excluded.content,
   meta_description = excluded.meta_description,

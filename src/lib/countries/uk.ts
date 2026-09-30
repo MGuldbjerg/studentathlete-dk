@@ -137,8 +137,8 @@ export const uk: CountryProfile = {
   // væk er UK også tilladt i social-køen — der er blot ingen britisk konto
   // endnu, og kanalerne poster kun deres eget lands artikler.
   darkLaunch: false,
-  // Flip to true once the staged privacy page (pages: privatliv/UK) is published.
-  hasPrivacyPage: false,
+  // The privacy page (pages: privatliv/UK) is published — /privacy, footer, sitemap.
+  hasPrivacyPage: true,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
   demonym: "British",
