@@ -1,8 +1,27 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-30 (AdSense prep; stats page; cloud review — see top sections)
+**Sidst opdateret**: 2026-09-30 (Workers Paid; AdSense prep; stats page — see top sections)
 
 ---
+
+## 💳 Workers Paid ($5/month, from 2026-09-30)
+
+- **Limits now:** 30 s CPU/request (ours capped at **5 s**, `[limits] cpu_ms` in
+  wrangler.toml — measured p99 ~0.6 s, max 1.5 s), D1 25B reads / 50M writes a
+  month, 10M requests + 30M CPU-ms a month included, Browser Rendering 10 h/month
+  then $0.09/h. Error 1102 should stop; the first whole paid day is 2026-10-01.
+- **Monitoring:** `platform-limits.ts` (daily workflow; `health-check.ts` now just
+  runs it) projects month-to-date usage to month end and prices overage. At
+  switch-over: D1 reads 1 %, requests 3 %, **CPU 67 %** of allowance — the one
+  to watch now that heavy pages aren't killed at 10 ms.
+- **Browser budget:** `pipeline/lib/browser-budget.ts` reads Cloudflare's own
+  browser-time figure; 900 min/month (max $0.45 over), paced per day, **max 60
+  min/day**, enforced in `renderPage` for all six callers. Nightly honours +
+  JS-roster runs get `BROWSER_RUN_SHARE=0.5` so box scores still render. Usage
+  had been pinned at the free 10 min/day since 09-18. Raise with
+  `BROWSER_MONTHLY_MINUTES`.
+- Kept on purpose: edge cache, pre-rendered cards, daily stats precompute —
+  they make the site faster and cheaper, not just free-plan-safe.
 
 ## 🧾 AdSense prep on .co.uk + an open promise problem (2026-09-30)
 
