@@ -18,10 +18,11 @@
   Workers Paid, publishing on instruction with spacing, public-log rule, false
   matches, browser budget, monitoring). `PLAN-autonomi-uk.md` opens with what
   reality overtook. UK page seed aligned with the live "usually read" wording.
-- **Open decisions for Mikkel:** (1) .dk still promises human reading of every
-  article; (2) keep or switch off the PC's 01:00 `--fix` run now that the cloud
-  review exists; (3) privacy-page controller line; (4) whether to re-review the
-  four drafts with stale companion-bug findings (moot once published).
+- **Decided by Mikkel (2026-09-30):** .dk keeps its wording (promises human
+  reading); the PC's 01:00 `--fix` run stays; the UK privacy page is published
+  with him as controller (no postal address) — `/privacy`, footer, sitemap; the
+  nine false companion-bug Claude reviews on #405/#408/#409/#419 are deleted
+  (all four were already published on 09-29, so there is nothing to re-review).
 - **Latent risk, not fixed:** `site_content` defaults are Danish only; every key
   has a UK row today, but a deleted UK row would show Danish on .co.uk.
 
