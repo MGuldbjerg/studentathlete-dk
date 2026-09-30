@@ -1,8 +1,9 @@
 /**
- * Prompt-skabelon for korte nyheder (300-400 ord).
+ * Prompt-skabelon for korte nyheder (længde efter fakta, jf. regel 2).
  * Bruges med Haiku-modellen for omkostningseffektivitet.
  */
 
+import { CLOSING_RULES_DA } from "./system";
 import { pronounHint } from "../../../src/lib/gender";
 import { countryProfile } from "../../../src/lib/countries";
 
@@ -101,7 +102,7 @@ export function athleteFactsBlock(context: ArticleContext): string {
 }
 
 export function newsPrompt(context: ArticleContext): string {
-  return `Skriv en kort nyhedsartikel (300-400 ord) baseret på følgende:
+  return `Skriv en kort nyhedsartikel baseret på følgende:
 
 ${athleteFactsBlock(context)}
 KILDE: ${context.sourceUrl}
@@ -110,11 +111,11 @@ KILDEINDHOLD (brug KUN fakta herfra — tilføj intet der ikke fremgår):
 ${context.content || "[Kun overskriften er kendt — ingen yderligere kildetekst.]"}
 
 Artiklen skal:
-- Have en passende længde: 300-400 ord hvis kilden har substans; ellers 150-250 ord — fyld ikke op med opdigtet indhold
+- Følg regel 2 for længden: 80-200 ord for et resultat eller en kåring; 300-400 kun når kilden har et egentligt kampforløb
 - Have en fængende overskrift (maks 80 tegn)
 - Starte med en kort ingress (1-2 sætninger der opsummerer historien)
 - Forklare begivenheden med den danske atlet i centrum
 - Nævne øvrige relevante holdkammerater/modstandere hvor det giver kontekst
 - Inkludere statistikker KUN hvis de fremgår af kilden — opfind dem aldrig; udelad hvis de mangler
-- Væve kildehenvisning naturligt ind (fx "skriver universitetets hjemmeside")`;
+- Væve kildehenvisning naturligt ind (fx "skriver universitetets hjemmeside")${CLOSING_RULES_DA}`;
 }

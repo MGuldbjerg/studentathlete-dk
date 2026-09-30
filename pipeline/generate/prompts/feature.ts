@@ -4,6 +4,7 @@
  */
 
 import { athleteFactsBlock, type ArticleContext } from "./news";
+import { CLOSING_RULES_DA } from "./system";
 
 export function featurePrompt(context: ArticleContext): string {
   return `Skriv en feature-artikel (800-1200 ord) baseret på følgende:
@@ -23,5 +24,5 @@ Artiklen skal:
 - Bruge ## underoverskrifter til at strukturere artiklen
 - Sætte præstationerne i kontekst (hvad betyder det i sporten?) — uden at opfinde fakta
 - Inkludere statistikker KUN hvis de fremgår af kilden — opfind aldrig tal eller kampdetaljer
-- Væve kildehenvisning naturligt ind (fx "skriver universitetets hjemmeside")`;
+- Væve kildehenvisning naturligt ind (fx "skriver universitetets hjemmeside")${CLOSING_RULES_DA}`;
 }

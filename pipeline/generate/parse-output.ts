@@ -214,3 +214,20 @@ function stripHeadingMarkup(s: string): string {
   if (wrapped) out = wrapped[1].trim();
   return out.replace(/^["'“”‘’]+|["'“”‘’]+$/g, "").trim();
 }
+
+/**
+ * Subheadings belong in long articles only (prompt rule 10). Gemini ignored the
+ * rule in two of eight trial drafts on 2026-09-30 (three "##" in 241 words), so
+ * it is enforced here instead of asked for: below the threshold, heading lines
+ * are dropped and the paragraphs join up.
+ */
+export function stripShortArticleHeadings(content: string, minWords = 350): string {
+  const words = (content.match(/\S+/g) ?? []).length;
+  if (words >= minWords) return content;
+  return content
+    .split("\n")
+    .filter((line) => !/^\s{0,3}#{2,6}\s/.test(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}

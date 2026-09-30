@@ -12,7 +12,7 @@ import { ProviderChain } from "../lib/llm/provider-chain";
 import type { StyleCorrectionEntry } from "./prompts/system";
 import { promptsFor, promptForType, type PromptSet } from "./prompts";
 import { countryProfile, DEFAULT_COUNTRY } from "../../src/lib/countries";
-import { parseArticleOutputSmart, type ParsedArticle, salvageTruncatedJson } from "./parse-output";
+import { parseArticleOutputSmart, type ParsedArticle, salvageTruncatedJson, stripShortArticleHeadings } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
@@ -25,7 +25,7 @@ import { numbersIn, unsupportedNumbers, unstableNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
 
-interface StoryWithAthlete extends Story {
+export interface StoryWithAthlete extends Story {
   athlete_name: string;
   preferred_name: string | null;
   sport: string;
@@ -71,7 +71,7 @@ function siteFor(story: StoryWithAthlete): { country: string; prompts: PromptSet
   return { country, prompts: promptsFor(countryProfile(country).language) };
 }
 
-function selectArticleType(story: StoryWithAthlete): string {
+export function selectArticleType(story: StoryWithAthlete): string {
   const headline = (story.headline ?? "").toLowerCase();
   const content = (story.content_raw ?? "").toLowerCase();
   const text = `${headline} ${content}`;
@@ -175,7 +175,7 @@ function repairNumbersPrompt(
       ].join(String.fromCharCode(10));
   return [head, "", "FAKTAARK:", factsBlock, "", "TITEL:", title, "", "TEKST:", content].join(String.fromCharCode(10));
 }
-function buildPrompt(
+export function buildPrompt(
   story: StoryWithAthlete,
   articleType: string,
   prompts: PromptSet,
@@ -813,6 +813,9 @@ async function main(): Promise<void> {
         await recordTechnicalFailure(story, "ubrugelig overskrift");
         continue;
       }
+
+      // Rule 10 enforced, not asked for: no subheadings in short articles.
+      parsed = { ...parsed, content: stripShortArticleHeadings(parsed.content) };
 
       // Gem som kladde (published = 0) — original_content gemmer LLM-output inden redigering
       const inserted = await db.execute(

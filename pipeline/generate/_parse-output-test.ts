@@ -4,6 +4,7 @@
  * Kør: npx tsx pipeline/generate/_parse-output-test.ts
  */
 import {
+  stripShortArticleHeadings,
   looksLikeJson,
   parseArticleJson,
   parseArticleOutput,
@@ -151,6 +152,17 @@ check("tom streng → null", parseArticleJson("") === null);
   // Hel JSON skal ikke "reddes" — den normale parser klarer den.
   check("redning: komplet JSON røres ikke", salvageTruncatedJson(faerdig + '"}') === null);
   check("redning: tom streng giver null", salvageTruncatedJson("") === null);
+}
+
+// ── subheadings only in long articles (2026-09-30) ──
+{
+  const short = "Intro paragraph.\n\n## Final round\n\nHe shot 69.\n\n### Team\n\nLamar tied for fourth.";
+  const out = stripShortArticleHeadings(short);
+  check("short article: ## and ### lines dropped", !/^#/m.test(out), out);
+  check("short article: paragraphs kept, one blank line apart", out === "Intro paragraph.\n\nHe shot 69.\n\nLamar tied for fourth.", JSON.stringify(out));
+  const long = ("word ".repeat(360) + "\n\n## Heading\n\nMore.").trim();
+  check("long article: headings kept", stripShortArticleHeadings(long).includes("## Heading"));
+  check("a '#' inside a sentence is not a heading", stripShortArticleHeadings("Ranked #2 in the nation.") === "Ranked #2 in the nation.");
 }
 
 console.log(`\nparse-output: ${passed} passed, ${failed} failed`);
