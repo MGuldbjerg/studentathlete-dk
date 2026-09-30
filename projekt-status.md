@@ -1,8 +1,29 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-30 (Workers Paid; AdSense prep; stats page — see top sections)
+**Sidst opdateret**: 2026-09-30 (rule audit; Workers Paid; AdSense prep — see top sections)
 
 ---
+
+## 🧭 Rule audit + writing prompts (2026-09-30)
+
+- **Writing prompts tightened** (Gemini writes ~80 % of articles): length follows
+  the facts, filler ban, new rules EN 28-30 / DA 30-32 repeated at the end of every
+  template, subheadings under 350 words stripped in code. Trial on 8 stories:
+  ~300 → ~170 words, filler 45 → 4. Still leaking: weekday fixtures copied from
+  the fact sheet (the review catches them).
+- **Fact-check step ("NVIDIA judge")** isn't broken: it's a fallback that only
+  runs when the mechanical check leaves `fabrication_risk` NULL — 0 drafts in 12
+  runs, by design. The cloud Claude review is the real judge.
+- **CLAUDE.md rewritten in English** and brought up to date (sites separate,
+  Workers Paid, publishing on instruction with spacing, public-log rule, false
+  matches, browser budget, monitoring). `PLAN-autonomi-uk.md` opens with what
+  reality overtook. UK page seed aligned with the live "usually read" wording.
+- **Open decisions for Mikkel:** (1) .dk still promises human reading of every
+  article; (2) keep or switch off the PC's 01:00 `--fix` run now that the cloud
+  review exists; (3) privacy-page controller line; (4) whether to re-review the
+  four drafts with stale companion-bug findings (moot once published).
+- **Latent risk, not fixed:** `site_content` defaults are Danish only; every key
+  has a UK row today, but a deleted UK row would show Danish on .co.uk.
 
 ## 💳 Workers Paid ($5/month, from 2026-09-30)
 

@@ -1,5 +1,8 @@
 -- Engelske statiske sider til student-athlete.co.uk (country = 'UK').
 --
+-- 2026-09-30: the human-review wording now says "usually read by a person"
+-- (Mikkel), matching live D1. Keep the two in step if you re-run this.
+--
 -- Oversat fra de danske originaler, men IKKE ord for ord: "danske atleter" er
 -- britiske, domænet og e-mailadressen er UK'ens, og selvpåstande om antal er
 -- udeladt (den danske /om siger "over 100 aktive" — UK-tallet flytter sig
@@ -34,7 +37,7 @@ Would you like to help run the site as a volunteer? [Get in touch](/kontakt).
 
 ## How we make the content
 
-Our articles are built from official sources — the universities'' own athletics sites, match reports and box scores. We use AI tools in the research and writing process, and every article is reviewed by an editor before publication. Read more on [How we use AI](/ai-brug).
+Our articles are built from official sources — the universities'' own athletics sites, match reports and box scores. We use AI tools in the research and writing process, and every article is checked against its sources before publication, and usually read by an editor as well. Read more on [How we use AI](/ai-brug).
 
 Have a correction, a tip about a British athlete we do not know about, or a question? Write to us via the [contact page](/kontakt).',
 'Student-Athlete.co.uk covers British college athletes in the United States — news, profiles and results from the NCAA, gathered in one place.',
@@ -51,15 +54,15 @@ Student-Athlete.co.uk uses artificial intelligence as a tool in the research and
 2. **Fact sheet**: a structured fact sheet is extracted from the source — results, statistics, observations and quotes, each with its reference. Only facts the source states explicitly make it through.
 3. **Writing**: an AI model drafts the article **solely from that fact sheet**. It may not add, guess or embellish. Numbers are cross-checked against the official box score where one exists.
 4. **Verification**: a separate checking step compares the draft against the fact sheet and flags any claim without support.
-5. **The editor**: a person reads, edits and approves every article before it is published. Nothing is published automatically.
+5. **The editor**: every article is checked against its source before it is published, and a person usually reads and edits it as well.
 
 The point of working this way is to free up time for real people. The ambition is for volunteers to run the site, focusing on the enjoyable journalism — features, portraits, interviews, analysis.
 
-Very few people, if any, find it exciting to write routine quote-based match reports, and that is the part of the process we have tried to automate. But it is a first principle that nothing is published unless a human has read it.
+Very few people, if any, find it exciting to write routine quote-based match reports, and that is the part of the process we have tried to automate. But every article is checked against its source before publication, and most are also read by a person.
 
 ## Mistakes can happen
 
-Despite the sourcing requirements, the cross-checks and the human approval, errors can still occur. If you find one, [write to us](/kontakt) — we correct as quickly as we can, and we are grateful for every tip.
+Despite the sourcing requirements, the cross-checks and the editing, errors can still occur. If you find one, [write to us](/kontakt) — we correct as quickly as we can, and we are grateful for every tip.
 
 ## Photos and graphics
 
@@ -84,7 +87,7 @@ You can ask for an article, or information about you, to be removed or de-indexe
 
 ## How we work
 
-Our articles are written with the help of artificial intelligence from public sources, and read by a person before publication. Read more about [how we use AI](/ai-brug).
+Our articles are written with the help of artificial intelligence from public sources, checked against those sources before publication, and usually read by a person as well. Read more about [how we use AI](/ai-brug).
 
 ## Contact
 
