@@ -41,14 +41,17 @@ const PATTERNS: Pattern[] = [
   // Academic All-America er en ANDEN pris end All-America og skal stå først;
   // den generelle form nedenfor ser bevidst bort fra den.
   {
-    re: /\bacademic\s+all[-\s]?americ(a|an)\b/i,
+    // "All-America Scholar(s)" (golf, swimming, …) is academic too: Lamar's
+    // "six golf All-America Scholars" became an athletic All-American for
+    // Nathan Woodham, and a draft repeated it (2026-09-30).
+    re: /\bacademic\s+all[-\s]?americ(a|an)\b|\ball[-\s]?america(n)?\s+scholars?\b|\bscholar[-\s]all[-\s]?americ(a|an)\b/i,
     kind: "award",
     award: "Academic All-American",
     significance: "honor",
   },
   // «All-America Second Team» er den almindelige skrivemåde — uden n.
   {
-    re: /(?<!academic\s)\ball[-\s]?americ(a|an)\b/i,
+    re: /(?<!academic\s)(?<!scholar[-\s])\ball[-\s]?americ(a|an)\b(?!\s+scholars?\b)/i,
     kind: "award",
     award: "All-American",
     significance: "honor",
@@ -109,6 +112,26 @@ export function extractEvents(text: string): ExtractedEvent[] {
 }
 
 /** Akademisk sæson (US college, aug–jul) fra en ISO-dato (eller nu). */
+/**
+ * The season an event belongs to. Season-level honours (All-American,
+ * All-Conference, Player of the Year) are announced in June-August for the
+ * season just ended; dating them by announcement put Woodham's summer honours
+ * in 2026-27 before a ball was struck. Weekly awards and results stay on the
+ * date's own season.
+ */
+export function seasonForEvent(iso: string | null, significance: string): string {
+  const d = iso ? new Date(iso) : new Date();
+  const m = d.getUTCMonth() + 1;
+  if (significance === "honor" && m >= 6 && m <= 8) {
+    // Date it to May of the same year: the season that has just ended.
+    return seasonFromDate(new Date(Date.UTC(d.getUTCFullYear(), 4, 1)).toISOString());
+  }
+  return seasonFromDate(iso);
+}
+
+/** Awards that recur within a season: one row per article, not per season. */
+export const WEEKLY_AWARDS = ["Player of the Week", "Rookie of the Week/Month", "Ugens spiller"];
+
 export function seasonFromDate(iso: string | null): string {
   const d = iso ? new Date(iso) : new Date();
   const y = d.getUTCFullYear();
@@ -164,4 +187,41 @@ export function awardLabel(awardName: string | null, lang: string): string {
   const entry = AWARD_LABELS[awardName];
   if (!entry) return awardName;
   return lang === "da" ? entry.da : entry.en;
+}
+
+// ─── Harvest from a published article (one place, three callers) ───────────
+
+/**
+ * The row insert every harvester uses. Dedup is the unique index from
+ * migration 060: one row per athlete + award + season, except weekly awards,
+ * which get one row per article so "twice this season" can be counted.
+ */
+export const HARVEST_INSERT_SQL = `INSERT OR IGNORE INTO athlete_events
+  (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, article_id, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`;
+
+export interface HarvestInput {
+  athleteId: number;
+  articleId: number;
+  sourceUrl: string | null;
+  /** When the article went live (ISO); null = now. */
+  publishedAt: string | null;
+  title: string;
+  summary: string | null;
+}
+
+/**
+ * Parameter rows for HARVEST_INSERT_SQL. Reads the HEADLINE and STANDFIRST only
+ * (2026-09-30): they are always about the athlete, while the body and fact sheet
+ * mention team-mates' awards too, and every harvested row may end up as a
+ * claim about a named person ("his second Rookie of the Week this season").
+ * Used by publishArticle (admin), apply-draft-decisions and backfill-events.
+ */
+export function harvestRows(a: HarvestInput): unknown[][] {
+  const text = [a.title, a.summary].filter(Boolean).join("\n");
+  const occurred = (a.publishedAt ?? new Date().toISOString()).slice(0, 10);
+  return extractEvents(text).map((e) => [
+    a.athleteId, occurred, seasonForEvent(a.publishedAt, e.significance), e.kind,
+    e.award_name, e.summary, e.significance, a.sourceUrl, a.articleId,
+  ]);
 }

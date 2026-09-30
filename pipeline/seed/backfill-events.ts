@@ -4,7 +4,7 @@
  * Kør: npx tsx pipeline/seed/backfill-events.ts
  */
 import { createD1Client } from "../lib/d1-client";
-import { extractEvents, seasonFromDate } from "../../src/lib/athlete-events";
+import { HARVEST_INSERT_SQL, harvestRows } from "../../src/lib/athlete-events";
 
 async function main() {
   const db = createD1Client();
@@ -29,22 +29,15 @@ async function main() {
   for (const a of res.results) {
     if (!a.athlete_id) continue;
     scanned++;
-    const text = [a.title, a.summary, a.content, a.fact_sheet].filter(Boolean).join("\n");
-    const events = extractEvents(text);
-    if (!events.length) continue;
-    const season = seasonFromDate(a.published_at);
-    const occurred = (a.published_at ?? new Date().toISOString()).slice(0, 10);
-    for (const e of events) {
-      await db.execute(
-        `INSERT OR IGNORE INTO athlete_events
-           (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, article_id, created_at)
-         VALUES (?,?,?,?,?,?,?,?,?,datetime('now'))`,
-        [a.athlete_id, occurred, season, e.kind, e.award_name, e.summary, e.significance, a.source_url ?? null, a.id],
-      );
-      inserted++;
+    for (const r of harvestRows({
+      athleteId: a.athlete_id, articleId: a.id, sourceUrl: a.source_url,
+      publishedAt: a.published_at, title: a.title, summary: a.summary,
+    })) {
+      const res2 = await db.execute(HARVEST_INSERT_SQL, r);
+      inserted += (res2 as { meta?: { changes?: number } }).meta?.changes ?? 0;
     }
   }
-  console.log(`Backfill færdig: ${scanned} publicerede artikler scannet, op til ${inserted} begivenheder indsat (dedup).`);
+  console.log(`Scanned ${scanned} published articles, inserted ${inserted} events.`);
 }
 
 // Kør kun når filen ER kommandoen. Uden den her kører `main()` også når en

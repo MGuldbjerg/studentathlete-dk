@@ -32,6 +32,7 @@ import {
   REJECT_LOG_SQL,
   rejectLogParams,
 } from "../../src/lib/review-snapshot";
+import { HARVEST_INSERT_SQL, harvestRows } from "../../src/lib/athlete-events";
 
 interface Decision {
   id: number;
@@ -167,6 +168,22 @@ async function main() {
         WHERE id = ?`,
       [cover, d.id],
     );
+
+    // Career timeline, as publishArticle does in the Worker — this script
+    // skipped it until 2026-09-30, so 47 batch-published articles added no
+    // awards to anyone's timeline.
+    if (row.athlete_id) {
+      try {
+        const art = (await db.query<{ title: string; summary: string | null; source_url: string | null }>(
+          "SELECT title, summary, source_url FROM articles WHERE id = ?", [d.id])).results[0];
+        for (const r of harvestRows({
+          athleteId: row.athlete_id, articleId: d.id, sourceUrl: art?.source_url ?? null,
+          publishedAt: null, title: art?.title ?? row.title, summary: art?.summary ?? null,
+        })) await db.execute(HARVEST_INSERT_SQL, r);
+      } catch (err) {
+        console.log(`  ! timeline harvest failed for #${d.id}: ${err instanceof Error ? err.message : err}`);
+      }
+    }
 
     if (row.original_content) {
       const finalContent = d.content ?? row.content;

@@ -13,7 +13,7 @@ import {
 import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS, settingScope, GLOBAL_SCOPE } from "./site-content";
 import { contentCountry } from "./site-server";
-import { extractEvents, seasonFromDate } from "./athlete-events";
+import { HARVEST_INSERT_SQL, harvestRows } from "./athlete-events";
 
 // ─── DB-queries til admin ───────────────────────────────────────────────────
 
@@ -193,27 +193,19 @@ export async function publishArticle(id: number): Promise<void> {
     }
   }
 
-  // Karriere-tidslinje: høst kildebelagte priser/begivenheder fra artiklen
-  // (dedup på athlete_id+award_name+season). Må aldrig blokere udgivelsen.
+  // Career timeline: harvest sourced awards from the headline and standfirst
+  // (harvestRows in athlete-events.ts). Must never block the publication.
   if (article?.athlete_id) {
     try {
-      const text = [article.title, article.summary, article.content, article.fact_sheet]
-        .filter(Boolean)
-        .join("\n");
-      const events = extractEvents(text);
-      if (events.length) {
-        const season = seasonFromDate(null);
-        const occurred = new Date().toISOString().slice(0, 10);
-        for (const e of events) {
-          await db
-            .prepare(
-              `INSERT OR IGNORE INTO athlete_events
-                 (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, article_id, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-            )
-            .bind(article.athlete_id, occurred, season, e.kind, e.award_name, e.summary, e.significance, article.source_url ?? null, id)
-            .run();
-        }
+      for (const row of harvestRows({
+        athleteId: article.athlete_id,
+        articleId: id,
+        sourceUrl: article.source_url ?? null,
+        publishedAt: null,
+        title: article.title,
+        summary: article.summary ?? null,
+      })) {
+        await db.prepare(HARVEST_INSERT_SQL).bind(...row).run();
       }
     } catch {
       /* høst-fejl må aldrig vælte udgivelsen */
