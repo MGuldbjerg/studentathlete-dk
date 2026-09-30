@@ -24,8 +24,19 @@ export function currentSeasonStart(): number {
   return d.getUTCMonth() + 1 >= 7 ? d.getUTCFullYear() : d.getUTCFullYear() - 1;
 }
 
-/** Kompakte kontekst-linjer (æresbevisninger m. streak + denne sæsons notable). */
-export function timelineForGeneration(events: AthleteEvent[], curStart: number): string[] {
+const LABELS = {
+  da: { streak: (n: number) => `${n}. år i træk`, thisSeason: (n: number) => n > 1 ? `${n} gange i denne sæson, før denne historie` : "én gang i denne sæson, før denne historie" },
+  en: { streak: (n: number) => `${n} years running`, thisSeason: (n: number) => n > 1 ? `${n} times so far this season, before this story` : "once so far this season, before this story" },
+} as const;
+
+/**
+ * Compact context lines for the writer: honours with streaks, and this
+ * season's weekly awards WITH COUNTS (2026-09-30 — the count is what makes
+ * "her third Rookie of the Week award this season" possible; it used to be
+ * deduplicated to one line per award). Labels follow the SITE's language.
+ */
+export function timelineForGeneration(events: AthleteEvent[], curStart: number, lang: "da" | "en"): string[] {
+  const L = LABELS[lang];
   const lines: string[] = [];
 
   const honors = events.filter((e) => e.significance === "honor" && e.award_name);
@@ -37,27 +48,22 @@ export function timelineForGeneration(events: AthleteEvent[], curStart: number):
   }
   for (const [award, raw] of byAward) {
     const years = [...new Set(raw)].sort((a, b) => b - a);
-    if (curStart - years[0] > 2) continue; // for gammelt til en naturlig callback
+    if (curStart - years[0] > 2) continue; // too old for a natural callback
     let streak = 1;
     for (let i = 1; i < years.length; i++) {
       if (years[i] === years[i - 1] - 1) streak++;
       else break;
     }
     const seasons = years.slice(0, streak).reverse().map(seasonLabel).join(", ");
-    lines.push(streak >= 2 ? `${award} (${streak}. år i træk: ${seasons})` : `${award} (${seasons})`);
+    lines.push(streak >= 2 ? `${award} (${L.streak(streak)}: ${seasons})` : `${award} (${seasons})`);
   }
 
-  const seenN = new Set<string>();
+  const counts = new Map<string, number>();
   for (const e of events) {
-    if (
-      e.significance === "notable" &&
-      e.award_name &&
-      startYear(e.season) === curStart &&
-      !seenN.has(e.award_name)
-    ) {
-      seenN.add(e.award_name);
-      lines.push(`${e.award_name} (denne sæson)`);
+    if (e.significance === "notable" && e.award_name && startYear(e.season) === curStart) {
+      counts.set(e.award_name, (counts.get(e.award_name) ?? 0) + 1);
     }
   }
+  for (const [award, n] of counts) lines.push(`${award} (${L.thisSeason(n)})`);
   return lines;
 }

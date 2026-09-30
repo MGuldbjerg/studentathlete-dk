@@ -551,7 +551,10 @@ async function main(): Promise<void> {
         "SELECT season, award_name, significance, summary FROM athlete_events WHERE athlete_id = ?",
         [story.athlete_id],
       );
-      const lines = timelineForGeneration(evRes.results ?? [], currentSeasonStart());
+      const lines = timelineForGeneration(
+        evRes.results ?? [], currentSeasonStart(),
+        siteFor(story).prompts.language === "en" ? "en" : "da",
+      );
       if (lines.length) timeline = lines.join("\n");
     } catch {
       /* tidslinje må aldrig blokere generering */

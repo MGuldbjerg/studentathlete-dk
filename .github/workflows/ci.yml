@@ -42,6 +42,7 @@ jobs:
             pipeline/generate/_verify-factsheet-test.ts \
             pipeline/generate/_identity-guard-test.ts \
             pipeline/generate/_event-timing-test.ts \
+            pipeline/generate/_timeline-test.ts \
             pipeline/generate/_forward-looking-test.ts \
             pipeline/generate/_fact-numbers-test.ts \
             pipeline/generate/_number-roles-test.ts \

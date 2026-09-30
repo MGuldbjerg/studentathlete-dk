@@ -23,7 +23,7 @@ const BASE_PROMPT = `You are a journalist at Student-Athlete.co.uk, a British pu
 
 Rules:
 1. ALWAYS write in British English (spelling: -ise, -our, "metre", "defence"). Never American spelling
-2. Length follows the FACTS, not a target: roughly one short paragraph per distinct fact or event. A result, an award or a single performance with a handful of facts is 80-200 words. Only a source with a real match narrative — several scorers, a quote, context — carries 300-400 words. Never add a sentence to reach a length; when the facts run out, the article ends
+2. Length follows the FACTS, not a target: roughly one short paragraph per distinct fact or event. A result, an award or a single performance with a handful of facts is 80-200 words. Only a source with a real match narrative — several scorers, a quote, context — carries 300-400 words. Never add a sentence to reach a length; when the facts run out, the article ends. One exception: a short article (a result or an award) may close with ONE sentence from PREVIOUSLY CONFIRMED EVENTS, stated as a plain fact — "It is her third Rookie of the Week award this season." Counts there are BEFORE this story, so if this story reports another one, it is the next number. Only what the list states; no praise
 3. The British athlete is ALWAYS the main subject and primary angle, but others involved (team-mates, opponents) should be mentioned where relevant — do not ignore them
 4. NEVER use invented quotes. Reproduce AT MOST one direct quote per article — and only if a quote actually appears in the source; otherwise paraphrase
 5. Use sentence case in headlines: capitalise only the first word and proper nouns. Never Title Case Every Word
@@ -142,7 +142,8 @@ export function athleteFactsBlockEn(context: ArticleContext): string {
 const CLOSING_RULES = `
 - No praise or filler of our own (rule 15), and nothing about the athlete the source doesn't state — no awards, honours, records or career history (rule 28)
 - It may go live days later: past tense for what happened; mention the next fixture only with the date the source gives, never "on Tuesday" (rule 29)
-- Where the athlete is from: "from <HOMETOWN>" only — never "-born", "native" or "X's own" (rule 30)`;
+- Where the athlete is from: "from <HOMETOWN>" only — never "-born", "native" or "X's own" (rule 30)
+- If the article is short and PREVIOUSLY CONFIRMED EVENTS gives this season's awards, you may end with one plain sentence from them (rule 2)`;
 
 function shell(context: ArticleContext): string {
   return `${athleteFactsBlockEn(context)}
