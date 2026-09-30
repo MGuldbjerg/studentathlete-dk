@@ -11,7 +11,7 @@ import { generateSlug } from "../../src/lib/slug";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import type { StyleCorrectionEntry } from "./prompts/system";
 import { promptsFor, promptForType, type PromptSet } from "./prompts";
-import { countryProfile, DEFAULT_COUNTRY } from "../../src/lib/countries";
+import { countryProfile, DEFAULT_COUNTRY, siteCountrySql } from "../../src/lib/countries";
 import { parseArticleOutputSmart, type ParsedArticle, salvageTruncatedJson, stripShortArticleHeadings } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
@@ -370,6 +370,9 @@ async function main(): Promise<void> {
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
      AND s.fact_status = 'built'
+     -- Only countries with a site. siteFor() falls back to DK for any other
+     -- code, so a collected Australian would get a Danish draft.
+     AND ${siteCountrySql()}
      -- Et efternavns-match (35) er nok til at OVERVÅGE en historie, men ikke
      -- til at skrive om et navngivent menneske. Se MIN_RELEVANCE_GENERATE.
      AND s.relevance_score >= ?

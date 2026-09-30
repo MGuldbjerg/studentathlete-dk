@@ -28,6 +28,7 @@
 import * as cheerio from "cheerio";
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { pipelineUserAgent } from "../../src/lib/site";
+import { siteCountrySql } from "../../src/lib/countries";
 
 interface AthleteRow {
   id: number;
@@ -337,6 +338,7 @@ async function main(): Promise<void> {
        AND a.bio_url IS NOT NULL AND a.bio_url <> ''
        AND a.instagram_handle IS NULL
        AND a.instagram_status = 'pending'
+       AND ${siteCountrySql()}
        ${country ? "AND a.home_country = ?" : ""}
      ORDER BY a.instagram_checked_at ASC NULLS FIRST, a.name
      LIMIT ?`,

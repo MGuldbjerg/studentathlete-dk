@@ -9,7 +9,7 @@
  * US-stat-listen bliver derimod HER: alle rosters er amerikanske, så
  * "afvis amerikanske adresser" er fælles for ethvert land vi indsamler for.
  */
-import type { CountryProfile } from "./countries/types";
+import type { CountryProfile, HometownProfile } from "./countries/types";
 
 /**
  * US-stat-identifikatorer — bruges til at afvise US-adresser. Hver streng er
@@ -57,9 +57,9 @@ function containsWholeWord(lowerHaystack: string, lowerNeedle: string): boolean 
 }
 
 /** Byliste pr. profil, kun bygget én gang. */
-const cityCache = new WeakMap<CountryProfile, string[]>();
+const cityCache = new WeakMap<HometownProfile, string[]>();
 
-function lowerCities(profile: CountryProfile): string[] {
+function lowerCities(profile: HometownProfile): string[] {
   let cached = cityCache.get(profile);
   if (!cached) {
     cached = profile.cities.map((c) => c.toLowerCase());
@@ -79,7 +79,7 @@ function lowerCities(profile: CountryProfile): string[] {
  *   "Lake Elsinore, CA / Centennial HS" → segment "ca"
  *   "Denmark, Wis. / Denmark"           → segment "wis"
  */
-export function matchesCountry(hometown: string | null, profile: CountryProfile): boolean {
+export function matchesCountry(hometown: string | null, profile: HometownProfile): boolean {
   if (!hometown) return false;
   const lower = hometown.toLowerCase().trim();
 
@@ -149,7 +149,7 @@ export function localizeHometown(
  */
 export function classifyHometown(
   hometown: string | null,
-  profiles: CountryProfile[],
+  profiles: HometownProfile[],
 ): string | null {
   for (const profile of profiles) {
     if (matchesCountry(hometown, profile)) return profile.code;

@@ -121,3 +121,44 @@ kommercielt lag begynder at bruge atletdata, eller (c) vi registreres hos Presse
 A og C helt over i medieansvarsregi).
 
 **Udarbejdet:** [dato] · **Ansvarlig:** [navn] · **Næste gennemgang:** [dato + 12 mdr.]
+
+---
+
+## D. Collecting countries (DRAFT ADDITION 2026-09-30 — for Mikkel to approve)
+
+**Processing.** For Australia, Germany, Sweden and Spain (`src/lib/countries/collecting.ts`), the
+same roster scrape as in A now also classifies these nationalities, so their athletes are stored in
+`athletes` (not only in the catalogue in B). Discovery attaches public news items from the schools'
+own sites (`stories`), and the honours scraper records awards from the schools' athlete pages
+(`athlete_events`). Nothing is published: there is no domain, no article, no profile text, no social
+post and no LLM processing for these countries.
+
+**1. Purpose.** To have a sourced history (awards, results, news during the season) in place when an
+edition launches, so that its first articles can place an athlete's news in context. This goes beyond
+B's purpose ("which countries could support an edition"), which is why it needs its own assessment.
+Career honours stay on the schools' athlete pages and can be fetched at launch; what is lost without
+collecting ahead is the dated in-season news.
+
+**2. Necessity.** Only public, official sources (the schools' rosters, athlete pages and news), the
+same fields as A. No social media, no purchased data, no contact with the athletes. Less intrusive
+alternatives: collecting only at launch (loses the in-season history), or keeping only the catalogue
+(no history at all).
+
+**3. Balancing.** The information is published by the athletes' own universities for the public;
+athletes expect sports coverage of their college careers. The intrusion is low: nothing is shown
+to anyone, no profile is built beyond what the school publishes, no special category data is stored
+(health and discipline stay out of structured fields, as in A). The risk is purpose creep and keeping
+data for an edition that never comes.
+
+**Safeguards (proposed):**
+- **12-month limit:** a collecting country that has not launched within 12 months of its first
+  collected row is deleted from `athletes`, `stories` and `athlete_events` (catalogue rows in B follow
+  B's own retention).
+- Objections and erasure requests are honoured without a reason, as for the catalogue.
+- No LLM, no published text, no photos queued, no Instagram lookup until launch (enforced in code by
+  `siteCountrySql()`).
+- The privacy pages' description of the internal catalogue is extended to mention pre-launch
+  collection when this addition is approved.
+
+**Decision needed from Mikkel:** approve, amend, or stop collecting (remove the countries from
+`COLLECTING` and delete their rows).

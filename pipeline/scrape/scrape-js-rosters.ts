@@ -11,7 +11,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { parseRoster } from "./parsers";
 import { classifyHometown } from "../../src/lib/hometown";
-import { activeCountries } from "../../src/lib/countries";
+import { classifierCountries } from "../../src/lib/countries";
 import { sportKeyFromSource } from "../../src/lib/sports";
 import { generateSlug } from "../../src/lib/slug";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
@@ -143,7 +143,9 @@ async function main(): Promise<void> {
     }
 
     const roster = parseRoster(html);
-    const countries = activeCountries();
+    // Sites AND collecting countries (countries/collecting.ts): collected athletes
+    // get their home_country too, so their history builds before launch.
+    const countries = classifierCountries();
     const matchedAthletes = roster
       .map((entry) => ({ entry, country: classifyHometown(entry.hometown, countries) }))
       .filter((x): x is { entry: typeof x.entry; country: string } => x.country !== null);

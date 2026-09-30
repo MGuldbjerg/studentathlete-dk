@@ -18,7 +18,7 @@
  */
 import { createD1Client } from "../lib/d1-client";
 import { classifyHometown } from "../../src/lib/hometown";
-import { activeCountries } from "../../src/lib/countries";
+import { classifierCountries } from "../../src/lib/countries";
 
 interface AthleteRow {
   id: number;
@@ -50,7 +50,9 @@ async function main() {
       nullCount++;
       continue;
     }
-    if (!classifyHometown(a.hometown, activeCountries())) falsePositives.push(a);
+    // classifierCountries(), not activeCountries(): a collected Australian is not a
+    // false positive just because Australia has no site yet.
+    if (!classifyHometown(a.hometown, classifierCountries())) falsePositives.push(a);
   }
 
   console.log(`${nullCount} atleter med tom hometown sprunget over (antaget legitime).\n`);

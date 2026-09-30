@@ -10,7 +10,7 @@
  */
 import { matchesCountry, classifyHometown } from "../../src/lib/hometown";
 import { uk } from "../../src/lib/countries/uk";
-import { activeCountries } from "../../src/lib/countries";
+import { activeCountries , classifierCountries } from "../../src/lib/countries";
 
 const isUkHometown = (h: string | null) => matchesCountry(h, uk);
 
@@ -138,6 +138,21 @@ expectCode("Oldham, England", "UK", "Oldham itself");
 expectCode("Oldham", "UK", "Oldham without a country");
 expectCode("Omagh, Ireland", "UK", "Omagh is Northern Ireland");
 expectCode("Victoria, London, England", "UK", "Victoria in London is not Australia");
+
+// ── Collecting countries (2026-09-30): classified, but they have no site ──
+const collect = (h: string) => classifyHometown(h, classifierCountries());
+for (const [h, want] of [
+  ["Munich, Germany", "DE"], ["Berlin", "DE"], ["Sydney, Australia", "AU"], ["Torquay, Victoria, AUS", "AU"],
+  ["Doncaster, Australia", "AU"], ["Brisbane, Queensland", "AU"], ["Stockholm, Sweden", "SE"], ["Göteborg", "SE"],
+  ["Madrid, Spain", "ES"], ["Barcelona", "ES"],
+  ["London, England", "UK"], ["Aarhus, Denmark", "DK"],
+  ["Berlin, N.H.", null], ["Hamburg, N.Y.", null], ["Valencia, Venezuela", null], ["New Berlin, Wis.", null],
+] as [string, string | null][]) {
+  const got = collect(h);
+  if (got === want) passed++;
+  else { failed++; console.log(`  ✗ collecting: classifyHometown("${h}") = ${got}, forventede ${want}`); }
+}
+if (activeCountries().some((c) => ["AU", "DE", "SE", "ES"].includes(c.code))) { failed++; console.log("  ✗ a collecting country leaked into the site list"); } else passed++;
 
 console.log(`\nisUkHometown: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

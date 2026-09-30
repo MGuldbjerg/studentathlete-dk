@@ -14,6 +14,7 @@ import * as cheerio from "cheerio";
 import { createD1Client } from "../lib/d1-client";
 
 import { pipelineUserAgent } from "../../src/lib/site";
+import { siteCountrySql } from "../../src/lib/countries";
 interface AthleteRow {
   id: number;
   name: string;
@@ -151,6 +152,7 @@ async function main(): Promise<void> {
      WHERE a.active = 1
        AND a.bio_url IS NOT NULL
        AND (a.photo_url IS NULL OR a.photo_url = '')
+       AND ${siteCountrySql()}
        AND NOT EXISTS (
          SELECT 1 FROM photo_suggestions ps
          WHERE ps.athlete_id = a.id AND ps.status IN ('pending', 'approved')

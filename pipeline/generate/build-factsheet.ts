@@ -19,6 +19,7 @@ import { enrichFactSheetWithBoxScore, extractBoxScoreText,
 } from "./box-score";
 import { isTransientLLMError } from "../lib/llm/errors";
 import { verifyFactSheet, type UnverifiedFact } from "./verify-factsheet";
+import { siteCountrySql } from "../../src/lib/countries";
 
 interface StoryRow {
   id: number;
@@ -360,6 +361,8 @@ async function main(): Promise<void> {
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
        AND s.fact_status IS NULL
+       -- Collecting countries have no site: their stories wait, no LLM spent.
+       AND ${siteCountrySql()}
        AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
      ORDER BY (s.content_raw IS NOT NULL) DESC, s.fact_attempts ASC, s.relevance_score DESC
      LIMIT ?`,

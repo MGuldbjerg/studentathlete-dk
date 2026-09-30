@@ -61,3 +61,9 @@ export interface CountryProfile {
    */
   hasPrivacyPage: boolean;
 }
+
+/**
+ * What hometown classification needs — a site profile has it, and so does a
+ * COLLECTING country (countries/collecting.ts), which has no domain yet.
+ */
+export type HometownProfile = Pick<CountryProfile, "code" | "cities" | "countryMarkers" | "falsePositivePatterns">;

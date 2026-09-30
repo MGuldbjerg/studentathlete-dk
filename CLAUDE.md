@@ -27,6 +27,16 @@ belongs to the site. Only discovery, scraping and the core are shared.
   `RouteKey`s: the middleware rewrites the site's own slug to the physical
   (Danish) route or `pages` storage slug, and 308s the other language's slug.
 
+## Collecting countries (2026-09-30)
+
+Australia, Germany, Sweden and Spain are **collecting**: `src/lib/countries/collecting.ts`, no
+domain, no site. Their athletes are classified by the roster scrapers (`classifierCountries()`),
+their stories attached by discovery, their awards recorded by the honours scraper — so the history
+exists at launch. Anything that writes for readers or spends the LLM chain (fact sheets, article
+generation, profile drafts, Instagram and photo queues) filters on `siteCountrySql()`. They are not
+in `COUNTRIES`, so no host, sitemap, stats or social exists. The legal basis is a draft addition to
+`UDKAST-LIA-interesseafvejning.md` (section D) awaiting Mikkel.
+
 ## Tech stack
 
 - Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4 (`@theme` in

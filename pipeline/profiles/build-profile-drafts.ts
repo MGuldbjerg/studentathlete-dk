@@ -27,7 +27,7 @@ import { createD1Client, D1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import { type BaselineAthlete } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
-import { countryProfile } from "../../src/lib/countries";
+import { countryProfile, siteCountrySql } from "../../src/lib/countries";
 
 /**
  * Sproget følger ATLETEN, ikke processen. Kørslen er landeagnostisk (samme
@@ -210,7 +210,7 @@ async function runBaseline(db: D1Client, dryRun: boolean, onlyAthlete: number | 
   // draft_at IS NULL = aldrig afvist; baseline genforeslår ikke afviste udkast.
   const where = onlyAthlete
     ? `a.id = ${onlyAthlete}`
-    : "a.active = 1 AND a.profile_summary IS NULL AND a.profile_draft IS NULL AND a.profile_draft_at IS NULL";
+    : `a.active = 1 AND a.profile_summary IS NULL AND a.profile_draft IS NULL AND a.profile_draft_at IS NULL AND ${siteCountrySql()}`;
   const r = await db.query<AthleteRow>(`SELECT ${ATHLETE_COLS} FROM athletes a LEFT JOIN schools s ON s.name = a.university WHERE ${where}`);
   const rows = r.results ?? [];
   let queued = 0;
@@ -248,7 +248,7 @@ async function runExpand(
      FROM athletes a
      JOIN athlete_events e ON e.athlete_id = a.id
      LEFT JOIN schools s ON s.name = a.university
-     WHERE a.profile_draft IS NULL ${where}
+     WHERE a.profile_draft IS NULL AND ${siteCountrySql()} ${where}
      GROUP BY a.id ORDER BY event_count DESC LIMIT ?`,
     [limit],
   );

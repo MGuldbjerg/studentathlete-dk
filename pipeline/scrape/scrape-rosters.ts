@@ -16,7 +16,7 @@ import {
   BrowserRenderError,
 } from "../lib/browser-render";
 import { classifyHometown } from "../../src/lib/hometown";
-import { activeCountries, countryProfile } from "../../src/lib/countries";
+import { classifierCountries, countryProfile } from "../../src/lib/countries";
 import { divisionPattern } from "../lib/divisions";
 import { transferSentence } from "../../src/lib/i18n/profile-builders";
 import { pipelineUserAgent } from "../../src/lib/site";
@@ -531,7 +531,9 @@ async function main(): Promise<void> {
 
       // Nationalitet bliver DATA: klassificér mod de aktive landeprofiler og gem
       // koden på rækken, i stedet for at lade "rækken findes" betyde "dansk".
-      const countries = activeCountries();
+      // Sites AND collecting countries (countries/collecting.ts): collected athletes
+    // get their home_country too, so their history builds before launch.
+    const countries = classifierCountries();
       const matchedAthletes = roster
         .map((entry) => ({ entry, country: classifyHometown(entry.hometown, countries) }))
         .filter((x): x is { entry: typeof x.entry; country: string } => x.country !== null);
