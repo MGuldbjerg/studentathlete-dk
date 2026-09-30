@@ -23,7 +23,7 @@ import { currentLanguage, currentSite, currentBaseUrl, siteRobots } from "@/lib/
 import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, athleteOgParams, getArticleCoverUrl, metaDescription } from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
-import { sportLabel, t, sportKeyFromSlugAnyLanguage, routeSlug } from "@/lib/i18n";
+import { sportLabel, t, sportKeyFromSlugAnyLanguage, routeSlug, routeKeyFromSlug } from "@/lib/i18n";
 import { AthleteProfilePage } from "@/components/profiles/AthleteProfilePage";
 import { AthleteLetterPage } from "@/components/athletes/AthleteLetterPage";
 import {
@@ -47,6 +47,12 @@ import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminEditButton } from "@/components/AdminEditButton";
 
 type Params = Promise<{ segments: string[] }>;
+
+/** A fixed page's address on this site: storage slug "om" → "/about" on .co.uk. */
+function fixedPagePath(slug: string, lang: string): string {
+  const key = routeKeyFromSlug(slug);
+  return key ? routePath(key, lang) : `/${slug}`;
+}
 type Search = Promise<{ sort?: string }>;
 
 // Sport-landingsindhold: D1-override (redigerbar i admin) over kode-default.
@@ -115,7 +121,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       return {
         title: `${page.title} | ${brand}`,
         description: page.meta_description ?? undefined,
-        alternates: { canonical: `${base}/${slug}` },
+        // The middleware rewrote /about → /om, so `slug` is the storage key;
+        // the canonical must be the site's own address.
+        alternates: { canonical: `${base}${fixedPagePath(slug, lang)}` },
         robots: await siteRobots(),
       };
     }

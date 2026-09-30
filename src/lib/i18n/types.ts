@@ -5,8 +5,16 @@
  */
 import type { SportKey } from "../sports";
 
-/** Sektioner med egen sti. Nøglen er sprogfri; sluggen står i sprogpakken. */
-export type RouteKey = "athletes" | "schools" | "guides" | "archive" | "stats";
+/**
+ * Sections with their own path, plus the fixed pages (2026-09-30). The fixed
+ * pages were Danish slugs on every site (/om, /kontakt on .co.uk) — AdSense
+ * reviewers look for /about, /contact and /privacy. The pages table keeps the
+ * Danish slug as its storage key; the middleware rewrites the site's own slug
+ * to it, exactly as it does for /athletes → /atleter.
+ */
+export type RouteKey =
+  | "athletes" | "schools" | "guides" | "archive" | "stats"
+  | "about" | "contact" | "aiUse" | "editorial" | "cookiePolicy" | "privacy";
 
 /** Læservendte query-parametre. */
 export type ParamKey = "page" | "source";
@@ -88,6 +96,7 @@ export type UiKey =
   | "footer.ai_use"
   | "footer.press_ethics"
   | "footer.cookies"
+  | "footer.privacy"
   | "footer.cookie_settings"
   // Forsidens bånd
   | "home.h1"

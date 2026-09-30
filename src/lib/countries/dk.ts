@@ -177,4 +177,6 @@ export const dk: CountryProfile = {
     /denmark\s+(hs|high|h\.s\.|academy|school|prep)/i,
     /\b(ga|sc|wi|me)\b.*denmark/i,
   ],
+  // No Danish privacy page yet (draft: UDKAST-persondata-dk.md).
+  hasPrivacyPage: false,
 };

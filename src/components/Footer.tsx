@@ -84,30 +84,38 @@ export async function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/om" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("about", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.about_site", lang)}
               </Link>
             </li>
             <li>
-              <Link href="/kontakt" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("contact", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.contact", lang)}
               </Link>
             </li>
             <li>
-              <Link href="/ai-brug" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("aiUse", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.ai_use", lang)}
               </Link>
             </li>
             <li>
-              <Link href="/presseetik" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("editorial", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.press_ethics", lang)}
               </Link>
             </li>
             <li>
-              <Link href="/cookies" className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link href={routePath("cookiePolicy", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.cookies", lang)}
               </Link>
             </li>
+            {/* Only where the site has published its privacy page (profile flag). */}
+            {site.hasPrivacyPage && (
+              <li>
+                <Link href={routePath("privacy", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+                  {t("footer.privacy", lang)}
+                </Link>
+              </li>
+            )}
             {/* Leverer selv sit <li> — vises kun når Googles CMP er indlæst. */}
             <ConsentSettingsLink enabled={settings["adsense.enabled"] === "true"} />
           </ul>

@@ -362,6 +362,7 @@ const ui: LanguagePack["ui"] = {
   "footer.ai_use": "Sådan bruger vi AI",
   "footer.press_ethics": "Presseetik & henvendelser",
   "footer.cookies": "Cookies",
+  "footer.privacy": "Privatlivspolitik",
   "footer.cookie_settings": "Cookieindstillinger",
 
   "home.h1": "Danske student athletes i USA",
@@ -604,7 +605,8 @@ export const da: LanguagePack = {
   locale: "da-DK",
   sportLabel,
   sportSlug,
-  routes: { athletes: "atleter", schools: "skoler", guides: "viden", archive: "artikler", stats: "statistik" },
+  routes: { athletes: "atleter", schools: "skoler", guides: "viden", archive: "artikler", stats: "statistik",
+    about: "om", contact: "kontakt", aiUse: "ai-brug", editorial: "presseetik", cookiePolicy: "cookies", privacy: "privatliv" },
   subroutes: { athletesAll: "alle" },
   params: { page: "side", source: "kilde" },
   articleTypeLabel,

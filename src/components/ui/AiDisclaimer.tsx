@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/admin";
-import { t } from "@/lib/i18n";
+import { routePath, t } from "@/lib/i18n";
 import { currentLanguage } from "@/lib/site-server";
 
 /**
@@ -16,7 +16,7 @@ export async function AiDisclaimer() {
     >
       {settings["disclaimer.ai"]}{" "}
       <Link
-        href="/ai-brug"
+        href={routePath("aiUse", lang)}
         className="text-ink hover:underline decoration-flag-red"
       >
         {t("footer.ai_use", lang)}

@@ -80,8 +80,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.5,
         }))
       : []),
-    ...["om", "kontakt", "ai-brug", "presseetik", "cookies"].map((slug) => ({
-      url: `${base}/${slug}`,
+    ...(["about", "contact", "aiUse", "editorial", "cookiePolicy", ...(site.hasPrivacyPage ? ["privacy" as const] : [])] as const).map((key) => ({
+      url: `${base}${routePath(key, lang)}`,
       changeFrequency: "yearly" as const,
       priority: 0.3,
     })),

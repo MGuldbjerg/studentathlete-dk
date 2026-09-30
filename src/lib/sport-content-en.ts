@@ -1518,7 +1518,7 @@ The NCAA sponsors championships in far more sports than the ones with their own 
 
 British athletes turn up across that whole range, sometimes in ones and twos. This section collects them until a sport has enough British representation to deserve a section of its own.
 
-Know a British athlete at an American university who we are not covering? [Tell us](/kontakt) — the name, the university and the sport is enough.
+Know a British athlete at an American university who we are not covering? [Tell us](/contact) — the name, the university and the sport is enough.
 
 ### The season
 

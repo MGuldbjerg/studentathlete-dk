@@ -54,4 +54,10 @@ export interface CountryProfile {
    * Slå fra når sitet har sit eget indhold; det er ét ord og et deploy.
    */
   darkLaunch?: boolean;
+  /**
+   * Whether the site has published its privacy page (`pages` row with the
+   * storage slug `privatliv`). Required, not defaulted: the footer links to it
+   * only where this is true, and a new country must decide, not inherit.
+   */
+  hasPrivacyPage: boolean;
 }

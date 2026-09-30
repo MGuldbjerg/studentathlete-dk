@@ -352,6 +352,7 @@ const ui: LanguagePack["ui"] = {
   "footer.ai_use": "How we use AI",
   "footer.press_ethics": "Editorial standards & complaints",
   "footer.cookies": "Cookies",
+  "footer.privacy": "Privacy",
   "footer.cookie_settings": "Cookie settings",
 
   "home.h1": "British student athletes in the United States",
@@ -593,7 +594,8 @@ export const en: LanguagePack = {
   locale: "en-GB",
   sportLabel,
   sportSlug,
-  routes: { athletes: "athletes", schools: "schools", guides: "guides", archive: "articles", stats: "statistics" },
+  routes: { athletes: "athletes", schools: "schools", guides: "guides", archive: "articles", stats: "statistics",
+    about: "about", contact: "contact", aiUse: "how-we-use-ai", editorial: "editorial-standards", cookiePolicy: "cookies", privacy: "privacy" },
   subroutes: { athletesAll: "all" },
   params: { page: "page", source: "source" },
   articleTypeLabel,
