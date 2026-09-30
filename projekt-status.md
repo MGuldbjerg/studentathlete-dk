@@ -1,8 +1,32 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-29 (stats page; cloud review + check view — see top sections)
+**Sidst opdateret**: 2026-09-30 (AdSense prep; stats page; cloud review — see top sections)
 
 ---
+
+## 🧾 AdSense prep on .co.uk + an open promise problem (2026-09-30)
+
+- **Fixed pages have English URLs** on .co.uk: /about, /contact, /how-we-use-ai,
+  /editorial-standards, /cookies (and /privacy when published). They are RouteKeys,
+  so the middleware rewrites to the pages table's Danish storage slug and 308s the
+  old /om, /kontakt, /ai-brug, /presseetik. Footer, sitemap, canonical, AI
+  disclaimer all use routePath(). Verified live.
+- **Privacy page staged, unpublished** (`db/seed-privacy-uk.sql`, pages
+  privatliv/UK): UDKAST text + AdSense ad-cookie disclosure and opt-out links.
+  **Blocked on Mikkel: the controller name/address.** Then publish it and set
+  `hasPrivacyPage: true` in countries/uk.ts.
+- **UK cookie page** got the opt-out links (Google Ad Settings, aboutads,
+  youronlinechoices) and /contact.
+- **False matches are now really off the sites**: `active = 0` only made them
+  "Former athlete". 23 athletes (17 UK from 09-29 + 6 US on .dk since long) now
+  also have `home_country = NULL`; `cleanup-false-positives.ts` does both.
+  "Tidligere atlet" was hard-coded Danish on English pages → `status.former`.
+- ⚠️ **Promise vs practice:** /how-we-use-ai ("nothing is published unless a human
+  has read it"), /editorial-standards and /about promise human reading of every
+  article. The 09-29 (27) and 09-30 (20) batches were approved by Claude on
+  Mikkel's instruction, not read by him. Either the pages change or the
+  workflow does — Mikkel's call. The privacy page already says only "checked
+  against its source, and a person decides what is published".
 
 ## 📊 Stats page (2026-09-28/29)
 
