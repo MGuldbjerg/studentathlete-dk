@@ -47,11 +47,29 @@ const MISTRAL_CANDIDATES = [
  *     facts where ministral-3b found 94. A 60-story run would take 85 minutes.
  *
  * The free rung we already have on the Mistral key beats all three.
+ *
+ * Re-run 2026-09-30 on the six models new since then (log:
+ * logs/bakeoff/2026-09-30.log). Again none earned the rung; the Mistral models
+ * built 6/6 with zero unsourced numbers:
+ *
+ *   inkling / inkling-small:free   403 — "only available on agentic harnesses";
+ *     the plain API is refused, so they cannot be used here at all.
+ *   qwen3.8-27b:free               0/6, 429 "temporarily rate-limited upstream"
+ *     — the shared free pool again, as gemma was.
+ *   dots-3-note-preview:free       0/6, ~19 s/story. Reasoning model: fine on a
+ *     toy prompt, the reasoning eats the budget on a real source.
+ *   nemotron-3-ultra-550b:free     1/6, ~32 s/story, same failure.
+ *   stealth/space-bunny-alpha      3/6, 10 facts, 1 unsourced number. Stealth
+ *     models are temporary and log prompts.
  */
 const OPENROUTER_CANDIDATES = [
-  "nvidia/nemotron-3-super-120b-a12b:free",
-  "google/gemma-4-31b-it:free",
-  "nex-agi/nex-n2.5-pro:free",
+  // New free models since the 2026-09-10 run (checked 2026-09-30).
+  "qwen/qwen3.8-27b:free",
+  "dots-studio/dots-3-note-preview:free",
+  "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "thinkingmachines/inkling:free",
+  "thinkingmachines/inkling-small:free",
+  "stealth/space-bunny-alpha",
 ];
 
 interface Row {
