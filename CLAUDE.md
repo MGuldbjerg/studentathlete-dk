@@ -1,178 +1,178 @@
-# StudentAthlete.dk — Claude Code-retningslinjer
+# StudentAthlete — Claude Code guidelines
 
-## Sprog
-- Alt brugersynlig tekst (UI, meta, alt-tekst) skal være på **dansk** med æ, ø, å
-- Kun stort begyndelsesbogstav i overskrifter (dansk konvention)
-- Kodekommentarer og variabelnavne på engelsk
+Two sites, one engine: **studentathlete.dk** (Danish athletes, Danish) and
+**student-athlete.co.uk** (British athletes, English). Current state and open
+items: `projekt-status.md` (newest sections at the top). Audited 2026-09-30.
+
+## Language
+
+- **Code, comments, commit messages, docs and status files: English.** Older files
+  are in Danish; new text is English, and a file being Danish is not a reason to
+  continue in Danish.
+- **Reader-facing text belongs to the SITE**: Danish on .dk, British English on
+  .co.uk, through the language packs (`src/lib/i18n/da.ts`, `en.ts`). Sentence
+  case in headlines on both.
+- **Admin is Danish on purpose** (`ADMIN_LANG`), not by fallback.
+
+## Sites are separate, only the engine is shared (Mikkel, 2026-08-21)
+
+Everything a reader sees — text, URLs, dates, metadata, share cards, feeds —
+belongs to the site. Only discovery, scraping and the core are shared.
+- Language is a **required** parameter, never `lang?`: a forgotten argument must
+  be a type error. `src/lib/_no-danish-default-test.ts` enforces it.
+- Site differences are fields on the country profile (`src/lib/countries/`), and
+  new fields are **required**, so a new country must decide rather than inherit
+  (e.g. `hasPrivacyPage`, `darkLaunch`).
+- Section paths and the fixed pages (/about, /contact, /privacy …) are
+  `RouteKey`s: the middleware rewrites the site's own slug to the physical
+  (Danish) route or `pages` storage slug, and 308s the other language's slug.
 
 ## Tech stack
-- **Next.js 16** (App Router) + **React 19** + **TypeScript**
-- **Tailwind CSS v4** med `@theme`-blok i `globals.css`
-- **Cloudflare Workers** via `@opennextjs/cloudflare`
-- **D1 database** (SQLite) — binding `DB`
-- Fonts importeret i `layout.tsx` via `next/font/google`
 
-## Designsystem
+- Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4 (`@theme` in
+  `globals.css`); design system in **DESIGN.md**.
+- Cloudflare Workers via `@opennextjs/cloudflare`, entry `workers/entry.ts`
+  (an edge cache in front of OpenNext; a page's own `s-maxage` wins if longer).
+- **Workers Paid since 2026-09-30** ($5/month): 30 s CPU per request (ours
+  capped at **5 s**, `[limits] cpu_ms` in `wrangler.toml`), D1 25B reads / 50M
+  writes a month, 10M requests + 30M CPU-ms a month, Browser Rendering 10 h/month
+  then $0.09/h. Overage is billed, not blocked. R2 is still not enabled.
+- D1 (SQLite), binding `DB`. The schema is the migrations in `db/`
+  (`migration-NNN-*.sql`); do not trust any table list in a doc.
 
-Se **DESIGN.md** for farver, typografi, komponenter, layout-regler og artikel-templates.
+## Sports
 
-## Sportsgrene (til navigation og kategorisering)
-**Listen står i koden, ikke her**: `SPORT_KEYS` i `src/lib/sports.ts` (32 sportsgrene
-+ `other` pr. 2026-08-20). Denne fil stod med ti sportsgrene længe efter at der var
-flere — derfor peger den nu på kilden i stedet for at gentage den.
+The list lives in code: `SPORT_KEYS` in `src/lib/sports.ts`. A new sport needs a
+key in every place — name and slug in both language packs, colour/emoji/icon in
+`sports.ts`, icon path in `CategoryNav.tsx`, position codes in `positions.ts`,
+pillar text in `sport-content.ts` + `sport-content-en.ts`. The type system fails
+if one is missing.
 
-En ny sportsgren kræver en nøgle ALLE steder: navn og URL-slug i `src/lib/i18n/da.ts`
-og `en.ts`, farve/emoji/ikon i `sports.ts`, ikonsti i `CategoryNav.tsx`,
-positionskoder i `positions.ts` og pillartekst i `sport-content.ts` +
-`sport-content-en.ts`. Typesystemet fejler, hvis én mangler.
+## Claude's boundary towards live (agreed with Mikkel 2026-08-25, updated 2026-09-30)
 
-## Claude Desktop
+Claude already holds everything needed to change the live sites
+(`CLOUDFLARE_API_TOKEN` in `~/.bashrc`, a `gh` login with `repo` and `workflow`).
+The boundary is agreed, not technical, and written here so a new session
+inherits it instead of rediscovering the keys.
 
-Skal Desktop-Claude arbejde på projektet (typisk artikeltekst, strategi, jura),
-så byg kontekstpakken og læg den i Desktop under "Projektviden":
+**Without asking — code:**
+- change code, run typecheck and tests, commit and push to `main`
+- deploy with `bash scripts/deploy-live.sh` — and only through that script
+- `bash scripts/migrate-live.sh <file>` for **additive** migrations (it refuses
+  anything else)
 
-    ./scripts/build-desktop-pack.sh     (eller byg-desktop-pakke.bat fra Windows)
-    → desktop-pakke/StudentAthlete-til-Claude-Desktop.md
+**Ask first — anything that touches data or readers:**
+- other D1 writes (`wrangler d1 execute --remote`, seeds, data fixes)
+- `gh workflow run` — several workflows generate and post by themselves
+- `pages` and `site_content`: there is NO draft state; an edit is public the
+  moment it is saved
+- anything that publishes: draft → `published`, social posts, sends
 
-Prosaen redigeres i `desktop-pakke/_brief-skabelon.md`; sportsnøgler, tabeller,
-kladdekø og status hentes fra koden og D1, så pakken ikke kan stå og lyve.
-Afleveringsformatet tilbage fra Desktop står i pakkens afsnit 8.
+The line is not big vs. small but **what can be undone**. A code deploy rolls
+back with another deploy; a publication cannot — it has been read, and the
+sites write about named people.
 
-## Database-tabeller
-- `athletes` — atletprofiler
-- `schools` — universiteter
-- `articles` — artikler med `article_type`, `slug`, `sport`
-- `sources` — URL-kilder per atlet/skole
-- `stories` — fundne historier (pipeline)
-- `pipeline_runs` — pipeline-kørselspor
+**Publishing on instruction (practice since 2026-09-29):** when Mikkel says so
+("publish the good ones, reject the bad ones"), Claude checks each draft against
+its FULL source, corrects what the source supports, and publishes through
+`pipeline/fix/apply-draft-decisions.ts` — which spaces publishes **17–23 minutes**
+apart (Mikkel, 2026-09-24: a batch going live at once looks spammy). Run it
+detached, give the expected end time, and never publish without that instruction.
 
-## Seed-data
-Atletdata tilføjes i `pipeline/seed/seed-data.json` og indsættes med `bash scripts/seed.sh`.
+### The standing exception: the 01:00 correction run (agreed 2026-09-10)
 
-## Scripts
-| Script | Formål |
-|--------|--------|
-| `scripts/migrate.sh` | Kør D1 database-migrering |
-| `scripts/seed.sh` | Indsæt atletdata fra seed-data.json |
-| `npm run dev` | Start lokal dev-server |
-| `npm run deploy` | Deploy til Cloudflare |
-
-## SEO: plan først, indhold bestemmer (Mikkels regler, 2026-08-21)
-
-1. **Aldrig SEO-arbejde uden en plan, Mikkel har set og udtrykkeligt godkendt.**
-2. Er planen godkendt: små ændringer må laves selvstændigt — **store aldrig**.
-3. **Indholdet er rammen.** Giver et nøgleord mening teknisk, men ikke for
-   sidens faktiske indhold, så vinder indholdet. Eksemplet er Mikkels egen:
-   for **Temple University** peger relaterede søgeord på templer i USA og
-   religiøse templer — men siden handler om universitetet, og så er det dét,
-   den skal handle om.
-
-**Grænsen mod drift**: tekniske fejl er ikke «SEO-arbejde» og må rettes uden
-plan — 404'er, døde sitemaps, forkerte canonicals, manglende hreflang, sprog-
-og landelækager. Det er ændringer i TEKST og STRUKTUR med et søgeformål
-(titler, meta-beskrivelser, overskrifter, intern linkning, URL-struktur, nye
-sider mod et søgeord) der kræver en godkendt plan.
-
-Tallene hentes med `./scripts/search-console.sh` (se `SETUP-search-console.md`).
-Fund afleveres som forslag med begrundelse, ikke som en ændring.
-
-## Roster-scraping: spørg skolen, gæt ikke (VIGTIGST)
-
-**Inden du ændrer roster- eller discovery-logik**: holdlisten er DATA, ikke et gæt.
-
-| Opgave | Brug dette | Hvorfor |
-|--------|-----------|---------|
-| Find skolens hold | `pipeline/scrape/sport-inventory.ts` (årlig) | Sitemap/menu/API giver de RIGTIGE holdnavne — inkl. kvindeholdene og lacrosse/water polo/softball |
-| Hold skolen ikke har | `roster_checks.sponsored = 0`, status `not_sponsored` | Det negative register. Spørg aldrig igen; inventaret åbner rækken hvis holdet dukker op |
-| Roster på ny Sidearm (Nuxt) | `parsers/roster-api.ts` → `/api/v2/rosters?sportId=N` | 42% af D1. HTML'en er tom for spillere; JSON'en er rigere (køn, forrige skole, årgang i ord) |
-| Roster i HTML | `parsers/` som før | Gratis og hurtigt |
-| Ny sportsgren fra en skole | `SOURCE_ALIASES` i `src/lib/sports.ts` | Ukendt slug → `other`. Giv ALDRIG en forkert etiket (softball ≠ baseball) |
-| Hentning | `robotsAllows()` fra `pipeline/lib/robots.ts` | robots.txt er en betingelse i interesseafvejningen og i DSM art. 4 |
-
-**Fejl er ikke ét begreb**: `not_found`/`robots_denied` er permanente; 429/403/5xx/timeout
-er forbigående og SKAL prøves igen (ellers gør ét 429 et hold usynligt for altid).
-
-Se `projekt-status.md` (afsnittet «Scraperen ser nu ALLE hold») for hele diagnosen.
-
-## Pipeline-scraping: Cloudflare Browser Rendering (VIGTIG)
-
-**Inden du ændrer scraping- eller discovery-logik**, overvej Cloudflare Browser Rendering API:
-
-| Opgave | Brug dette | Hvorfor |
-|--------|-----------|---------|
-| Crawl skolers nyhedssektioner | **CF /crawl** med `render: false`, `formats: ["markdown"]` | Gratis under beta, følger links automatisk, finder flere historier end enkelt-URL-fetch |
-| Roster-sider der returnerer tom HTML | **CF /scrape** med `render: true` | Headless browser renderer JS — løser SPA-problemet |
-| Roster-sider med data i HTML | Behold `fetch()` + Cheerio | Gratis og hurtigt |
-| Struktureret data-udtræk | **UNDGÅ** CF JSON-format | Bruger Workers AI-tokens — brug markdown + Cheerio i stedet |
-
-**API**: `https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering/crawl`
-**Token**: Kræver "Browser Rendering - Edit" permission i CF dashboard.
-**Gratis plan**: 10 min browser-tid/dag (kun `render: true`). `render: false` er gratis under beta.
-**Begrænsninger**: Fast User-Agent (`CloudflareBrowserRenderingCrawler/1.0`), respekterer robots.txt.
-**Fuld reference**: `memory/reference-cf-browser-rendering.md`
-
-Relevante filer: `pipeline/scrape/scrape-rosters.ts`, `pipeline/discover/check-sources.ts`, `pipeline/lib/auto-sources.ts`
-
-## Workflow for designændringer
-1. Start dev-serveren
-2. Lav ændringer i koden
-3. Brug Playwright MCP til at tage screenshot og verificere visuelt
-4. Justér baseret på hvad du ser
-5. Gentag indtil resultatet er rigtigt
-
-## Claudes grænse mod live (aftalt med Mikkel 2026-08-25)
-
-Claude har i forvejen alt, der skal til for at ændre det levende site:
-`CLOUDFLARE_API_TOKEN` + konto-id i `~/.bashrc` og et `gh`-login med `repo` og
-`workflow`. Grænsen er derfor ikke teknisk — den er aftalt. Den står her, så en
-ny session arver den i stedet for at genopdage nøglerne og antage frit spil.
-
-**Uden at spørge — kode:**
-- rette kode, køre typecheck og tests, committe og pushe til `main`
-- deploye med `bash scripts/deploy-live.sh` — og kun via det script
-
-**Spørg først — alt der rører data eller læsere:**
-- skrivninger i D1: `wrangler d1 execute --remote`, `scripts/migrate.sh`, seed
-- `gh workflow run` / `workflow_dispatch` — flere workflows genererer og poster selv
-- `pages` og `site_content`: der er INGEN kladdetilstand, så en rettelse er
-  offentlig i samme sekund den gemmes
-- alt der udgiver: kladde til `published`, social-post, udsendelser
-
-Skellet er ikke «stort vs. småt», men **hvad der kan fortrydes**. Et kodedeploy
-kan rulles tilbage med et nyt deploy, og CI har set koden. En udgivelse kan ikke
-rulles tilbage — den er læst, og sitet skriver om navngivne mennesker.
-
-### Én stående undtagelse: natkørslen kl. 01:00 (aftalt 2026-09-10)
-
-Windows-opgaven `StudentAthlete-kladderettelse` kører
-`scripts/review-drafts.sh --fix` hver nat kl. 01:00 og skriver i D1 **uden at
-spørge**. Fra 2026-09-14 gør dagens cron-kørsler det samme, men KUN som
-indhentning: er der gået over 20 timer siden sidste rettelses-kørsel (stemplet
-`logs/review/.sidste-rettelse`), retter den kørsel i stedet. Natten kl. 01:00
-kørte 2 af sine 4 første nætter — maskinen var slukket, og `StartWhenAvailable`
-hentede den ikke. Mikkel bad om den: «check and correct each unchecked draft … so I only
-need to focus on what works». Den må præcis to ting, og intet andet:
-
-- dom `fix` → skrive den rettede tekst i en **upubliceret** kladde
-  (`articles.content` + `claude_fixed_content`; `published` og `original_content`
-  røres aldrig)
-- dom `reject` → gemme kladden i `review_log` og slette artiklen
-
-Den **udgiver ikke**, og den rører ikke `pages` eller `site_content`. Udgivelse er
-stadig et menneske (beslutning 2026-07-02). Undtagelsen gælder kun dette script —
-den flytter ikke grænsen for andre D1-skrivninger, og den må ikke udvides til at
-gøre mere. Slukkes den med:
-
-    Unregister-ScheduledTask -TaskName StudentAthlete-kladderettelse
+The Windows task `StudentAthlete-kladderettelse` runs
+`scripts/review-drafts.sh --fix` nightly and writes to D1 **without asking**:
+verdict `fix` → corrected text into an **unpublished** draft
+(`articles.content` + `claude_fixed_content`; never `published` or
+`original_content`); verdict `reject` → save to `review_log` and delete. It does
+not publish and does not touch `pages`/`site_content`. Daytime runs catch up if
+more than 20 h have passed (`logs/review/.sidste-rettelse`). Switch off with
+`Unregister-ScheduledTask -TaskName StudentAthlete-kladderettelse`.
 
 ### The cloud review (2026-09-28): review only
 
-`.github/workflows/review-drafts.yml` runs `scripts/review-drafts.sh --review-only`
-every 3 hours on Mikkel's subscription token (`CLAUDE_CODE_OAUTH_TOKEN`). It writes
-verdicts to `draft_reviews` and pings Discord — it never corrects, rejects or
-publishes, and `--review-only` refuses `--fix`. The repo is public, so its logs
-are too: `REVIEW_PUBLIC_LOG=1` keeps draft titles and summaries out, and the
-workflow must never upload an artifact. An expired token fails the login step.
+`.github/workflows/review-drafts.yml` runs `review-drafts.sh --review-only` every
+3 hours on Mikkel's subscription token (`CLAUDE_CODE_OAUTH_TOKEN`), writes
+verdicts to `draft_reviews` and pings Discord. It never corrects, rejects or
+publishes. **The repo is public, so its Actions logs are too**:
+`REVIEW_PUBLIC_LOG=1` keeps draft titles and summaries out, and no workflow may
+upload draft text as an artifact.
 
-Mikkel checks drafts in `/admin/tjek/<id>`: draft and full source as plain text,
-side by side on desktop, sentence by sentence on the phone.
+Mikkel checks drafts in **`/admin/tjek/<id>`**: draft and full source as plain
+text, numbers and names looked up in the source (green in source, blue our DB,
+amber number not verbatim, red name not in source).
+
+## Editorial rules
+
+- **What the sites promise** (public pages, 2026-09-30): on .co.uk every article is
+  checked against its source and *usually* read by a person; the per-article AI
+  disclaimer says "checked against its sources before publication". **The .dk
+  pages still promise that a person reads every article** — keep practice and
+  promise aligned, or change the promise.
+- **Writing prompts** (`pipeline/generate/prompts/`): `en.ts` and `system.ts` (DA)
+  are one contract in two languages — change a rule in both. Length follows the
+  facts (80–200 words for a result or award), no evaluative filler, nothing about
+  the person beyond the source, the article may go live days later, hometown is
+  not a birthplace. Gemini 2.5 Flash writes the articles; Mistral does fact
+  sheets and checks. Subheadings under 350 words are stripped in code.
+- **Hometowns and classes from our own records are house practice**; a review
+  finding that only objects to a DB hometown is not an error.
+- **Scripts before LLMs**: a rule a model keeps breaking is enforced in code
+  (e.g. `stripShortArticleHeadings`), not repeated louder in a prompt.
+
+## Data rules
+
+- **Removing a false match** (not our nationality, broken row): `active = 0` is
+  NOT removal — inactive athletes show as "Former athlete". Clear `home_country`
+  too; `pipeline/report/cleanup-false-positives.ts --apply` does both. Then fix
+  the classifier (`src/lib/hometown.ts`, the country profile's
+  `falsePositivePatterns`) so the match can't return.
+- **Roster scraping: ask the school, don't guess.** The team list is data:
+  `pipeline/scrape/sport-inventory.ts` finds a school's real teams;
+  `roster_checks.sponsored = 0` is the negative register; new Sidearm (Nuxt)
+  rosters come from `/api/v2/rosters`; unknown sport slugs go to `other` via
+  `SOURCE_ALIASES`, never a wrong label; every fetch goes through
+  `robotsAllows()`. `not_found`/`robots_denied` are permanent; 429/403/5xx/
+  timeouts are transient and MUST be retried.
+- **Browser Rendering** (JS-rendered rosters, box scores): every render goes
+  through `renderPage` in `pipeline/lib/browser-render.ts`, which enforces the
+  shared budget in `pipeline/lib/browser-budget.ts` — 900 min/month read from
+  Cloudflare's own usage, paced per day, max 60 min/day. Nightly scrapers set
+  `BROWSER_RUN_SHARE=0.5`. Avoid the CF JSON format (it spends Workers AI).
+
+## SEO: plan first, content decides (Mikkel, 2026-08-21)
+
+1. **Never SEO work without a plan Mikkel has seen and explicitly approved.**
+2. With an approved plan, small changes may be made independently — large ones never.
+3. **Content is the frame**: a keyword that makes technical sense but not for the
+   page's actual content loses (Temple University is not about temples).
+
+Technical faults are not SEO work and may be fixed without a plan: 404s, dead
+sitemaps, wrong canonicals, missing hreflang, language/country leaks. Text and
+structure changes with a search purpose (titles, meta descriptions, headings,
+internal linking, URL structure, new pages aimed at a keyword) need the plan.
+Numbers: `./scripts/search-console.sh`. Deliver findings as proposals.
+
+## Monitoring
+
+- `pipeline/checks/platform-limits.ts` (daily workflow; `health-check.ts` runs
+  it): month-to-date usage projected to month end, overage priced, 1102 share.
+- `pipeline/checks/quality-sweep.ts` (Mondays): run it FIRST when asked what to
+  work on.
+- Stats page numbers: `pipeline/report/build-stats.ts` (daily) → `site_stats`.
+
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `bash scripts/deploy-live.sh` | The only way to deploy (main, clean tree, pushed, typecheck) |
+| `bash scripts/migrate-live.sh <file>` | Additive migrations only |
+| `npm run dev` | Local dev server |
+| `./scripts/build-desktop-pack.sh` | Context pack for Claude Desktop (`desktop-pakke/`) |
+
+## Design changes
+
+Start the dev server, change the code, screenshot at desktop and 390 px width
+(Playwright MCP, or headless Edge from WSL when Linux Chromium lacks libraries),
+adjust, repeat.

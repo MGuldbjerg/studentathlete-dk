@@ -1,3 +1,17 @@
+> **Status 2026-09-30 — partly overtaken by events. Read this first.**
+> - *"No auto-publishing, ever"* and *"every article human-approved"*: the UK site
+>   launched without a country editor. Drafts are now checked against their full
+>   source by Claude (cloud review every 3 h, the 01:00 correction run) and
+>   published in spaced batches **on Mikkel's instruction**. The public UK pages
+>   say articles are *usually* read by a person. Sourced table facts
+>   (`athlete_events`) publish directly since 2026-09-17.
+> - *"UK launch gate = a recruited UK editor"*: not how it happened; the gate is
+>   open and the site is indexed.
+> - *"Denmark runs on $0"*: Workers Paid ($5/month) since 2026-09-30, plus at most
+>   $0.45/month of browser time. The LLM chain is still free.
+> - Still valid: the source policy, sensitive-story safeguards, Canada
+>   deprioritised, leads over ads. Current rules: `CLAUDE.md`.
+
 # Plan: autonom pipeline → menneskelig godkendelse → UK
 
 **Oprettet**: 2026-06-10. **Omskrevet 2026-07-03** efter Mikkels strategi-beslutninger 2026-07-02.
