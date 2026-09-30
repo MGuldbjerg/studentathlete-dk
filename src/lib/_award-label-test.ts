@@ -6,7 +6,7 @@
  * britiske profiler (student-athlete.co.uk/athletes/timi-esan, 17. september
  * 2026). Sproget hører til sitet — derfor oversættes der ved visning.
  */
-import { awardLabel, extractEvents, seasonForEvent } from "./athlete-events";
+import { awardLabel, extractEvents, harvestRows, seasonForEvent } from "./athlete-events";
 
 let passed = 0;
 let failed = 0;
@@ -35,6 +35,26 @@ eq(seasonForEvent("2026-08-05", "honor"), "2025-26", "an honour announced in Aug
 eq(seasonForEvent("2026-06-10", "honor"), "2025-26", "June honour: season just ended");
 eq(seasonForEvent("2026-09-28", "notable"), "2026-27", "a weekly award in September is this season");
 eq(seasonForEvent("2026-08-05", "notable"), "2026-27", "non-honours keep the date's season");
+
+// ── things that look like awards but are not (the 2026-27 rows, 2026-09-30) ──
+eq(awards("Henry Jefferson to play singles main draw at ITA All-American Championships"), "", "ITA All-American Championships is a tournament");
+eq(awards("Jasmine Conway wins three matches to reach ITA All-American qualifying draw"), "", "a qualifying draw is not an award");
+eq(awards("Sophia Fullbrook earns preseason All-America honours at Florida State"), "", "preseason All-America is a forecast");
+eq(awards("Eloise Penty named to America East preseason all-conference team"), "", "preseason all-conference is a forecast");
+eq(awards("Alfred Mikkelsen kåret til Preseason Goalkeeper of the Year i American Conference"), "", "preseason player of the year is a forecast");
+eq(awards("Amy Wall named to All-Sun Belt Community Service Team"), "", "a community service team is not athletic");
+eq(awards("Lasse Bjørn Jensen satte personlig rekord ved John McNichols Invitational"), "", "a personal best is not a record");
+eq(awards("Sam Wraith named NE10 Rookie of the Week"), "Rookie of the Week/Month", "a real weekly award still counts");
+eq(awards("Marianna MacLean named Patriot League Rookie of the Week for third straight week"), "Rookie of the Week/Month", "and again");
+eq(awards("Sets school record in the 800m"), "Rekord", "a school record still counts");
+
+// ── harvestRows: counting weekly awards once ──
+const rowsFor = (title: string, summary: string | null) =>
+  harvestRows({ athleteId: 1, articleId: 2, sourceUrl: null, publishedAt: "2026-09-28", title, summary }).map((r) => r[4]).join(",");
+eq(rowsFor("Cameron Keay's winner keeps UNCW undefeated in CAA play", "The two-time CAA Rookie of the Week headed the winner."), "", "a recap of earlier weekly awards is not a new one");
+eq(rowsFor("Cameron Keay named CAA Rookie of the Week for second straight week", null), "Rookie of the Week/Month", "a headline about the award counts");
+eq(rowsFor("Marie Eline Madsen udtaget til Golfweeks preseason-hold", "All-American-kandidat"), "", "a preseason headline yields nothing");
+eq(rowsFor("Flora Johnson reaches ITA All-American final, secures NCAA bid", null), "", "an ITA All-American final is a tournament");
 
 console.log(`\n${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

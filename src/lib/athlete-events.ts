@@ -93,9 +93,30 @@ const PATTERNS: Pattern[] = [
     award: "Mesterskab",
     significance: "honor",
   },
-  { re: /\b(school|national|conference|meet|ncaa)\s+record\b|\brekord\b/i, kind: "record", award: "Rekord", significance: "notable" },
+  // "personlig rekord" is a personal best, not a record (2026-09-30).
+  { re: /\b(school|national|conference|meet|ncaa)\s+record\b|(?<!personlig\s)\brekord\b/i, kind: "record", award: "Rekord", significance: "notable" },
   { re: /\bdrafted\b|\bdraftet\b|\bdraft pick\b/i, kind: "transfer", award: "Draftet", significance: "honor" },
 ];
+
+/**
+ * Words around an award name that make it something else (2026-09-30, from the
+ * 2026-27 rows): a forecast ("preseason All-America", "watch list"), a
+ * tournament ("ITA All-American Championships", "… qualifying draw"), or a
+ * non-athletic team ("All-Sun Belt Community Service Team").
+ */
+const NOT_AN_AWARD_BEFORE = /\bpre-?season\b[^.]{0,40}$/i;
+/** A forecast anywhere in a short text (a headline) — Danish compounds too ("preseason-hold"). */
+const FORECAST = /\bpre-?season|\bwatch list\b/i;
+const NOT_AN_AWARD_AFTER = /^[^.]{0,30}\b(championships?|qualifying|pre-qualifying|main draw|final|watch list|community service|sportsmanship)\b/i;
+
+function isRealAward(p: Pattern, text: string): boolean {
+  const m = p.re.exec(text);
+  if (!m) return false;
+  if (p.kind !== "award") return true;
+  const before = text.slice(Math.max(0, m.index - 60), m.index);
+  const after = text.slice(m.index + m[0].length, m.index + m[0].length + 60);
+  return !NOT_AN_AWARD_BEFORE.test(before) && !NOT_AN_AWARD_AFTER.test(after);
+}
 
 /** Udtræk distinkte begivenheder (max én pr. award_name) fra fritekst. */
 export function extractEvents(text: string): ExtractedEvent[] {
@@ -103,7 +124,7 @@ export function extractEvents(text: string): ExtractedEvent[] {
   const seen = new Set<string>();
   const out: ExtractedEvent[] = [];
   for (const p of PATTERNS) {
-    if (p.re.test(text) && !seen.has(p.award)) {
+    if (isRealAward(p, text) && !seen.has(p.award)) {
       seen.add(p.award);
       out.push({ kind: p.kind, award_name: p.award, significance: p.significance, summary: p.award });
     }
@@ -218,9 +239,17 @@ export interface HarvestInput {
  * Used by publishArticle (admin), apply-draft-decisions and backfill-events.
  */
 export function harvestRows(a: HarvestInput): unknown[][] {
+  // A headline about a forecast (preseason team, watch list) is not an event.
+  if (FORECAST.test(a.title)) return [];
   const text = [a.title, a.summary].filter(Boolean).join("\n");
   const occurred = (a.publishedAt ?? new Date().toISOString()).slice(0, 10);
-  return extractEvents(text).map((e) => [
+  // Weekly awards count only when the HEADLINE is about one: a standfirst saying
+  // "twice CAA Rookie of the Week" recaps old awards, and counting it would make
+  // Cameron Keay's two into three (2026-09-30).
+  const inHeadline = new Set(extractEvents(a.title).map((e) => e.award_name));
+  return extractEvents(text)
+    .filter((e) => !WEEKLY_AWARDS.includes(e.award_name) || inHeadline.has(e.award_name))
+    .map((e) => [
     a.athleteId, occurred, seasonForEvent(a.publishedAt, e.significance), e.kind,
     e.award_name, e.summary, e.significance, a.sourceUrl, a.articleId,
   ]);
