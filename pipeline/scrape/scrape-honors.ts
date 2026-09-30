@@ -203,9 +203,8 @@ function parseArgs(): {
   const args = process.argv.slice(2);
   let limit = 600;
   let country: string | null = null;
-  // Browser Rendering koster browser-tid (gratis plan ~10 min/døgn ≈ 75 sider).
-  // Derfor et loft pr. kørsel frem for "så mange som muligt": resten roterer
-  // videre i køen og kommer med i morgen.
+  // Browser time is budgeted centrally (lib/browser-budget.ts); this cap is a
+  // backstop. What isn't rendered rotates on in the queue and comes tomorrow.
   let renderBudget = 0;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) {

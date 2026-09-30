@@ -78,3 +78,12 @@ enabled = true
 binding = "DB"
 database_name = "studentathlete-dk"
 database_id = "5332ad3b-d908-4e39-b863-22a2cf0e82a0"
+# Per-request CPU cap (Workers Paid, since 2026-09-30). Paid allows 30 s by
+# default. Measured 2026-09-27..30 on successful requests: median ~30 ms, p99
+# ~0.6 s, p99.9 ~1.2 s, max 1.5 s — and that was on the free plan, which killed
+# the heaviest ones. 5 s clears all of it with room, and still stops a runaway
+# render long before it can run up the bill.
+# pipeline/checks/platform-limits.ts (CPU_CAP_MS) mirrors this number.
+# Kept LAST on purpose: anything after a [table] header belongs to it.
+[limits]
+cpu_ms = 5000

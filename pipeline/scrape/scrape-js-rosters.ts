@@ -4,8 +4,8 @@
  *
  * Kør med: npx tsx pipeline/scrape/scrape-js-rosters.ts [--limit 50]
  *
- * Budget: maks ~8 min browser-tid pr. dag (gratis plan: 10 min/dag).
- * Hver side tager ~5-10 sek → ~50 sider/dag.
+ * Budget: the shared browser budget (lib/browser-budget.ts) ends the run, not
+ * --limit — the workflow sets BROWSER_RUN_SHARE=0.5. Each page takes ~5-10 s.
  */
 
 import { createD1Client } from "../lib/d1-client";

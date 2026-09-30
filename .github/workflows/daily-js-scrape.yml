@@ -25,11 +25,12 @@ jobs:
         # Prioriterer rosters på skoler med danske atleter uden bio_url; checked_at
         # ASC roterer gennem dem over flere dage → udfylder bio_url i bidder inden
         # for den gratis browser-kvote (~10 min/dag).
-        run: npx tsx pipeline/scrape/scrape-js-rosters.ts --limit 50
+        run: npx tsx pipeline/scrape/scrape-js-rosters.ts --limit 200
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          BROWSER_RUN_SHARE: '0.5'
 
       - name: Foreslå profilbilleder fra nye bio-links
         # Plain fetch (ingen browser-kvote) → henter og:image-headshot fra de bio-sider

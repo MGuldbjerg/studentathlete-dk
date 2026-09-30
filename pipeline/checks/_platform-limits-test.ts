@@ -3,8 +3,8 @@
  * Run: npx tsx pipeline/checks/_platform-limits-test.ts
  */
 import {
-  evaluate, completeDays, pct, FREE_LIMITS, THRESHOLDS,
-  type DayRow, type WorkerRow,
+  evaluate, completeDays, pct, monthUsage, project, PAID_PLAN, THRESHOLDS, CPU_CAP_MS,
+  type DayRow, type WorkerRow, type Usage,
 } from "./platform-limits";
 
 let passed = 0;
@@ -22,59 +22,75 @@ function eq<T>(actual: T, expected: T, msg: string): void {
 const YESTERDAY = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
 const TODAY = new Date().toISOString().slice(0, 10);
 
-const keys = (d1: DayRow[], w: WorkerRow[]) => evaluate(d1, w).map((f) => f.key).sort();
-const day = (date: string, rowsRead: number, rowsWritten = 1000): DayRow => ({ date, rowsRead, rowsWritten });
-const w = (date: string, status: string, requests: number): WorkerRow => ({ date, status, requests });
+/** A 30-day month, 10 whole days counted: projection = total × 3. */
+const usage = (over: Partial<Usage> = {}): Usage => ({
+  rowsRead: 0, rowsWritten: 0, requests: 0, cpuMs: 0, daysCounted: 10, daysInMonth: 30, ...over,
+});
+const keys = (u: Usage, w: WorkerRow[] = [], storage = 0) => evaluate(u, w, storage).map((f) => f.key).sort();
+const w = (date: string, status: string, requests: number, cpuTimeUs = 0): WorkerRow => ({ date, status, requests, cpuTimeUs });
 
 // ── today is never judged ──────────────────────────────────────────────
-// A partial day always looks fine; judging it would mean the check is quiet
-// exactly on the morning of a bad day.
 eq(completeDays([{ date: TODAY }, { date: YESTERDAY }]).length, 1, "today is excluded");
 eq(completeDays([{ date: TODAY }]).length, 0, "a run with only today has nothing to judge");
-eq(keys([day(TODAY, 99_000_000)], []).length, 0, "a catastrophic TODAY raises nothing");
 
-// ── D1 quota ───────────────────────────────────────────────────────────
-eq(keys([day(YESTERDAY, 5_122_094)], []).join(), "d1-quota-exceeded", "over the limit → exceeded");
-eq(keys([day(YESTERDAY, 4_000_000)], []).join(), "d1-quota-close", "80 % of the limit → close");
-eq(keys([day(YESTERDAY, 2_100_000)], []).length, 0, "42 % (the level after the 09-04 fix) is silent");
-// Exceeded and close are the same axis — never both.
-assert(!keys([day(YESTERDAY, 9_000_000)], []).includes("d1-quota-close"), "exceeded does not also report close");
-eq(keys([day(YESTERDAY, 1000, 80_000)], []).join(), "d1-write-quota", "write quota is its own finding");
+// ── month-to-date usage ────────────────────────────────────────────────
+const d1: DayRow[] = [
+  { date: "2026-08-31", rowsRead: 999, rowsWritten: 999 },
+  { date: "2026-09-01", rowsRead: 100, rowsWritten: 10 },
+  { date: "2026-09-02", rowsRead: 200, rowsWritten: 20 },
+];
+const wr = [w("2026-09-01", "success", 50, 2_000_000), w("2026-09-01", "exceededResources", 5, 500_000), w("2026-09-02", "success", 70, 1_500_000)];
+const u = monthUsage(d1, wr, "2026-09");
+eq(u.rowsRead, 300, "only the month's own days are summed");
+eq(u.requests, 125, "requests summed across statuses");
+eq(u.cpuMs, 4000, "CPU microseconds become milliseconds");
+eq(u.daysCounted, 2, "two whole days counted");
+eq(u.daysInMonth, 30, "September has 30 days");
+eq(project(300, u), 4500, "straight-line projection to month end");
+eq(project(300, { ...u, daysCounted: 0 }), 0, "no whole day → no projection, no division by zero");
 
-// The NEWEST whole day decides — an old bad day must not keep shouting.
-eq(keys([day("2026-09-01", 179_000_000), day(YESTERDAY, 1_000_000)], []).length, 0,
-  "yesterday is fine → the disaster three days ago is history, not a finding");
+// ── allowances ─────────────────────────────────────────────────────────
+// Real September level: ~18M CPU-ms/month → 62 % of 30M, silent.
+eq(keys(usage({ cpuMs: 6_200_000 })).length, 0, "62 % of the CPU allowance is silent");
+eq(keys(usage({ cpuMs: 8_000_000 })).join(), "workerCpuMs-close", "80 % projected → close");
+eq(keys(usage({ cpuMs: 12_000_000 })).join(), "workerCpuMs-overage", "120 % projected → overage");
+assert(!keys(usage({ cpuMs: 12_000_000 })).includes("workerCpuMs-close"), "overage does not also report close");
+const over = evaluate(usage({ rowsWritten: 20_000_000 }), []).find((f) => f.key === "d1RowsWritten-overage");
+assert(!!over && over.detail.includes("$10.00"), "overage is priced: 60M projected − 50M included at $1/M = $10.00");
+eq(keys(usage({ rowsRead: 1_000_000_000 })).length, 0, "a billion rows read is 12 % of the read allowance");
 
-// ── Workers ────────────────────────────────────────────────────────────
-eq(keys([], [w(YESTERDAY, "success", 8_436), w(YESTERDAY, "exceededResources", 700)]).join(),
-  "worker-cpu-limit", "7.7 % on the resource limit → finding");
-// The threshold is set so 17 August (4.2 %) would have been caught.
-eq(keys([], [w(YESTERDAY, "success", 5_779), w(YESTERDAY, "exceededResources", 259)]).join(),
-  "worker-cpu-limit", "4.2 % — the day the failure class appeared — is caught");
-eq(keys([], [w(YESTERDAY, "success", 1000), w(YESTERDAY, "exceededResources", 10)]).length, 0,
+// ── storage ────────────────────────────────────────────────────────────
+eq(keys(usage(), [], 95_000_000).length, 0, "95 MB of 5 GB is silent");
+eq(keys(usage(), [], 4_000_000_000).join(), "d1-storage", "4 GB is close");
+
+// ── Workers failures (newest whole day decides) ────────────────────────
+eq(keys(usage(), [w(YESTERDAY, "success", 8_436), w(YESTERDAY, "exceededResources", 700)]).join(),
+  "worker-resource-limit", "7.7 % on the resource limit → finding");
+eq(keys(usage(), [w(YESTERDAY, "success", 5_779), w(YESTERDAY, "exceededResources", 259)]).join(),
+  "worker-resource-limit", "4.2 % — the day the failure class appeared — is caught");
+eq(keys(usage(), [w(YESTERDAY, "success", 1000), w(YESTERDAY, "exceededResources", 10)]).length, 0,
   "1 % stays under the threshold");
-eq(keys([], [w(YESTERDAY, "success", 1000), w(YESTERDAY, "scriptThrewException", 100)]).join(),
-  "worker-exceptions", "uncaught exceptions are a separate finding from the CPU limit");
-// clientDisconnected counts in the denominator but is not a failure of ours.
-eq(keys([], [w(YESTERDAY, "success", 900), w(YESTERDAY, "clientDisconnected", 100)]).length, 0,
+eq(keys(usage(), [w(YESTERDAY, "success", 1000), w(YESTERDAY, "scriptThrewException", 100)]).join(),
+  "worker-exceptions", "uncaught exceptions are a separate finding");
+eq(keys(usage(), [w(YESTERDAY, "success", 900), w(YESTERDAY, "clientDisconnected", 100)]).length, 0,
   "client disconnects alone raise nothing");
-eq(keys([], [w(YESTERDAY, "success", 80_000)]).join(),
-  "worker-request-quota", "80 % of the request quota → finding");
-
-// ── both sources at once ───────────────────────────────────────────────
-eq(keys([day(YESTERDAY, 5_122_094)], [w(YESTERDAY, "success", 8_436), w(YESTERDAY, "exceededResources", 700)]).join(),
-  "d1-quota-exceeded,worker-cpu-limit", "2026-09-03 as it actually was → both findings");
+eq(keys(usage(), [w("2026-09-01", "exceededResources", 900), w(YESTERDAY, "success", 1000)]).length, 0,
+  "an old bad day is history, not a finding");
+eq(keys(usage(), [w(TODAY, "exceededResources", 900)]).length, 0, "a bad TODAY raises nothing");
+const cap = evaluate(usage(), [w(YESTERDAY, "success", 100), w(YESTERDAY, "exceededResources", 10)])[0];
+assert(cap.fix.includes(`${CPU_CAP_MS} ms`), "the fix names our own CPU cap");
 
 // ── empty input must not crash ─────────────────────────────────────────
-eq(keys([], []).length, 0, "no data → no findings");
-eq(keys([], [w(YESTERDAY, "success", 0)]).length, 0, "zero requests → no division by zero");
+eq(keys(usage({ daysCounted: 0 })).length, 0, "no data → no findings");
+eq(keys(usage(), [w(YESTERDAY, "success", 0)]).length, 0, "zero requests → no division by zero");
 
 // ── formatting ─────────────────────────────────────────────────────────
 eq(pct(700, 9136), "7.7 %", "percentage is rounded to one decimal");
 eq(pct(1, 0), "–", "division by zero becomes a dash, not NaN");
 
 // ── the constants are the contract ─────────────────────────────────────
-eq(FREE_LIMITS.d1RowsRead, 5_000_000, "D1 free limit is 5M rows read");
+eq(PAID_PLAN.d1RowsRead.included, 25_000_000_000, "D1 Paid includes 25B rows read a month");
+eq(PAID_PLAN.workerCpuMs.included, 30_000_000, "Workers Paid includes 30M CPU-ms a month");
 eq(THRESHOLDS.failureShare, 0.02, "2 % failure share is the threshold");
 
 console.log(`\n${passed} passed, ${failed} failed`);

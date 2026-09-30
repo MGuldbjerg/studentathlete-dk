@@ -6,9 +6,11 @@ name: Udmærkelser
 #
 # Rendering er det der flytter dækningen: den nye Sidearm sender en tom skal og
 # henter bioen med JavaScript, og de sider kan en almindelig fetch aldrig læse.
-# Gratis-planen tillader ~3 browsere i minuttet, så renderingen kører i ÉN bane
-# med luft imellem og med et loft pr. kørsel. 40 sider pr. nat er ~15 minutter
-# og tømmer de ~800 skal-sider på omkring tre uger.
+# Rendering runs in ONE lane with gaps. Since Workers Paid (2026-09-30) the
+# ceiling is the shared browser budget (pipeline/lib/browser-budget.ts):
+# BROWSER_RUN_SHARE=0.5 lets this run use at most half of what is left of
+# today's share, so box scores for the day's articles still get rendered. The
+# page cap is high on purpose — the budget, not the count, ends the run.
 on:
   schedule:
     - cron: '35 2 * * *'
@@ -21,7 +23,7 @@ on:
       render:
         description: "Loft over antal renderinger (0 = ingen)"
         required: false
-        default: '40'
+        default: '200'
 
 jobs:
   harvest:
@@ -40,11 +42,12 @@ jobs:
         run: |
           npx tsx pipeline/scrape/scrape-honors.ts \
             --limit ${{ inputs.limit || '3000' }} \
-            --render ${{ inputs.render || '40' }}
+            --render ${{ inputs.render || '200' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          BROWSER_RUN_SHARE: '0.5'
 
       # Kun ved fejl. Fundene står på profilerne og taler for sig selv.
       - name: Discord-notifikation ved fejl

@@ -4,14 +4,43 @@
  * eksisterende Cheerio-parsere kan læse dem.
  *
  * Bruges KUN som fallback når plain fetch + Cheerio ikke finder data — render=true
- * koster browser-tid (gratis plan: ~10 min/dag). Kaldere bør respektere
- * BrowserRenderError.quotaExhausted og stoppe render resten af kørslen.
+ * koster browser-tid. Since Workers Paid (2026-09-30) the ceiling is ours, not
+ * Cloudflare's: a monthly budget paced per day (lib/browser-budget.ts), checked
+ * here before every render. When today's share is spent, renderPage throws
+ * BrowserRenderError with quotaExhausted = true — the same signal the free
+ * plan's 429 gave — so every caller stops rendering for the rest of its run.
  *
  * Docs: https://developers.cloudflare.com/browser-rendering/rest-api/content-endpoint/
  */
 
+import { FALLBACK_RUN_MINUTES, fetchUsage, minutesLeftToday } from "./browser-budget";
+
 const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+
+/** This process's allowance in ms (looked up once), and what it has spent. */
+let allowanceMs: number | null = null;
+let spentMs = 0;
+
+async function budgetAllowsRender(): Promise<boolean> {
+  if (allowanceMs === null) {
+    try {
+      const usage = await fetchUsage(ACCOUNT_ID!, API_TOKEN!);
+      // Background scrapers set BROWSER_RUN_SHARE (e.g. 0.5) so a nightly run
+      // can't spend the whole day and starve the box scores that articles need.
+      const share = Math.min(1, Math.max(0, Number(process.env.BROWSER_RUN_SHARE ?? 1)));
+      allowanceMs = minutesLeftToday(usage) * share * 60000;
+      console.log(
+        `  Browser budget: ${usage.usedBeforeToday.toFixed(0)} min used this month before today, ` +
+          `${usage.usedToday.toFixed(1)} today → ${(allowanceMs / 60000).toFixed(1)} min left today`,
+      );
+    } catch (err) {
+      allowanceMs = FALLBACK_RUN_MINUTES * 60000;
+      console.warn(`  Browser budget lookup failed (${err instanceof Error ? err.message : err}) — capping this run at ${FALLBACK_RUN_MINUTES} min`);
+    }
+  }
+  return spentMs < allowanceMs;
+}
 
 export class BrowserRenderError extends Error {
   constructor(
@@ -55,6 +84,9 @@ export async function renderPage(
   opts: RenderOptions = {},
 ): Promise<string | null> {
   if (!isBrowserRenderAvailable()) return null;
+  if (!(await budgetAllowsRender())) {
+    throw new BrowserRenderError(0, "today's browser budget is spent (lib/browser-budget.ts)", true);
+  }
 
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/browser-rendering/content`;
   const timeoutMs = opts.timeoutMs ?? 45000;
@@ -79,6 +111,8 @@ export async function renderPage(
 
   for (let attempt = 0; ; attempt++) {
     let res: Response;
+    // Wall time is an upper bound on the browser time Cloudflare bills.
+    const started = Date.now();
     try {
       res = await fetch(endpoint, {
         method: "POST",
@@ -90,8 +124,10 @@ export async function renderPage(
         signal: AbortSignal.timeout(timeoutMs + 15000),
       });
     } catch {
+      spentMs += Date.now() - started;
       return null; // netværk/timeout — behandl som "kunne ikke rendere denne URL"
     }
+    spentMs += Date.now() - started;
 
     if (res.ok) {
       // /content returnerer enten rå HTML eller en CF-API-konvolut {success,result,errors}.
