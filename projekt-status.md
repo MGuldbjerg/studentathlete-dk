@@ -21,12 +21,12 @@
   "Former athlete". 23 athletes (17 UK from 09-29 + 6 US on .dk since long) now
   also have `home_country = NULL`; `cleanup-false-positives.ts` does both.
   "Tidligere atlet" was hard-coded Danish on English pages → `status.former`.
-- ⚠️ **Promise vs practice:** /how-we-use-ai ("nothing is published unless a human
-  has read it"), /editorial-standards and /about promise human reading of every
-  article. The 09-29 (27) and 09-30 (20) batches were approved by Claude on
-  Mikkel's instruction, not read by him. Either the pages change or the
-  workflow does — Mikkel's call. The privacy page already says only "checked
-  against its source, and a person decides what is published".
+- ✅ **Promise vs practice, resolved for .co.uk:** Mikkel skims, so the UK pages
+  now promise what happens: every article checked against its source, *usually*
+  read by a person (/how-we-use-ai, /about, /editorial-standards). The per-article
+  AI disclaimer (site_content disclaimer.ai/UK) says "checked against its sources
+  before publication" — no human claim, since it speaks for that one article.
+  **The Danish site still promises human reading** (disclaimer + pages): not changed.
 
 ## 📊 Stats page (2026-09-28/29)
 
