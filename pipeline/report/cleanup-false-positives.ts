@@ -1,6 +1,12 @@
 /**
- * Tjek alle atleter i databasen mod den opdaterede isDanishHometown() og deaktivér
- * false positives (sætter active=0 — reversibelt; de forsvinder fra sitet men slettes ikke).
+ * Tjek alle atleter i databasen mod den opdaterede isDanishHometown() og fjern
+ * false positives fra sitet (reversibelt; rækken slettes ikke).
+ *
+ * `active = 0` alone does NOT remove an athlete: inactive athletes are shown as
+ * "Former athlete". Found 2026-09-30, when 17 non-British athletes were still on
+ * .co.uk the day after their "deactivation", and six Americans from Denmark,
+ * Wis. had been on .dk as former Danish athletes for months. So `home_country`
+ * is cleared too — every site filters on it.
  *
  * Atleter med NULL hometown springes over — de er sandsynligvis manuelt tilføjet
  * og er legitime danske atleter uden hometown-data.
@@ -29,8 +35,9 @@ async function main() {
   const hardDelete = args.includes("--hard-delete");
 
   const db = createD1Client();
+  // Rows already taken off every site (home_country NULL) are done.
   const r = await db.query<AthleteRow>(
-    "SELECT id, name, hometown, university, sport, active FROM athletes",
+    "SELECT id, name, hometown, university, sport, active FROM athletes WHERE home_country IS NOT NULL",
   );
 
   console.log(`Tjekker ${r.results.length} atleter${apply ? "" : " (DRY-RUN — ingen ændringer)"}...\n`);
@@ -60,7 +67,7 @@ async function main() {
   }
 
   if (!apply) {
-    console.log("\nDRY-RUN: kør med --apply for at deaktivere (active=0), eller --apply --hard-delete for permanent sletning.");
+    console.log("\nDRY-RUN: run with --apply to remove from the sites (active=0, home_country=NULL), or --apply --hard-delete to delete permanently.");
     return;
   }
 
@@ -85,9 +92,9 @@ async function main() {
     console.log(`\nSlettet permanent: ${ids.length} atlet(er).`);
   } else {
     await db.execute(
-      `UPDATE athletes SET active = 0, updated_at = datetime('now') WHERE id IN (${idList})`,
+      `UPDATE athletes SET active = 0, home_country = NULL, updated_at = datetime('now') WHERE id IN (${idList})`,
     );
-    console.log(`\nDeaktiveret (active=0): ${ids.length} atlet(er). Reversibelt via active=1.`);
+    console.log(`\nRemoved from the sites (active=0, home_country=NULL): ${ids.length} athlete(s). Reversible: set home_country again.`);
   }
 }
 

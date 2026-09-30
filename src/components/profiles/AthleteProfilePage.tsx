@@ -118,7 +118,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 </span>
               ) : !athlete.active ? (
                 <span className="text-[10px] tracking-[0.15em] uppercase text-white/40">
-                  Tidligere atlet
+                  {t("status.former", lang)}
                 </span>
               ) : null}
             </div>

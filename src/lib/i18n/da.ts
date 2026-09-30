@@ -574,6 +574,7 @@ const ui: LanguagePack["ui"] = {
   "status.active": "Aktiv",
   "status.alumni": "Tidligere atlet",
   "status.graduated": "Færdiguddannet {year}",
+  "status.former": "Tidligere atlet",
 
   "profile.no_articles": "Ingen artikler endnu.",
   "school.athletes": "Danske atleter",

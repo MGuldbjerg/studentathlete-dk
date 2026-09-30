@@ -295,6 +295,7 @@ export type UiKey =
   | "status.active"
   | "status.alumni"
   | "status.graduated"
+  | "status.former"
   // Profilsider
   | "profile.no_articles"
   | "school.athletes"

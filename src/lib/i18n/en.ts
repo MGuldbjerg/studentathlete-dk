@@ -566,6 +566,7 @@ const ui: LanguagePack["ui"] = {
   "status.active": "Active",
   "status.alumni": "Former athlete",
   "status.graduated": "Graduated {year}",
+  "status.former": "Former athlete",
 
   "profile.no_articles": "No articles yet.",
   "school.athletes": "Athletes",
