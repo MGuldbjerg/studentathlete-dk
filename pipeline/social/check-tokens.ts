@@ -41,7 +41,7 @@
 // Samme version som facebook.ts og instagram.ts — ét sted at bumpe, når Meta udfaser.
 import { appendFileSync } from "node:fs";
 import { channelIsDisabled } from "./post-social";
-import { readAccountEnv } from "./registry";
+import { allAccounts, envNameFor, readAccountEnv } from "./registry";
 
 const GRAPH = "https://graph.facebook.com/v26.0";
 
@@ -311,43 +311,32 @@ async function main(): Promise<void> {
     else recovered.push(label);
   };
 
-  const fbPageId = readAccountEnv("facebook", "DK", "PAGE_ID");
-  const fbToken = readAccountEnv("facebook", "DK", "PAGE_ACCESS_TOKEN");
-  if (fbPageId && fbToken) {
-    collect(
-      "facebook",
-      "Facebook",
-      (await checkAccount(
-        "Facebook",
-        fbPageId,
-        fbToken,
-        "name,category",
-        ["pages_manage_posts", "pages_read_engagement"],
-        app,
-        fbPageId,
-      )),
-    );
-  } else {
-    console.log("Facebook: springes over (FB_PAGE_ID eller FB_PAGE_ACCESS_TOKEN mangler)");
-  }
+  // Every Meta account the registry knows, in every country. An account
+  // without secrets is skipped, so a market can be added before its tokens.
+  const META_CHECKS = {
+    facebook: { label: "Facebook", id: "PAGE_ID", token: "PAGE_ACCESS_TOKEN", fields: "name,category",
+      scopes: ["pages_manage_posts", "pages_read_engagement"], pageScoped: true },
+    instagram: { label: "Instagram", id: "USER_ID", token: "ACCESS_TOKEN", fields: "id,username",
+      scopes: ["instagram_basic", "instagram_content_publish"], pageScoped: false },
+  } as const;
 
-  const igUserId = readAccountEnv("instagram", "DK", "USER_ID");
-  const igToken = readAccountEnv("instagram", "DK", "ACCESS_TOKEN");
-  if (igUserId && igToken) {
+  for (const account of allAccounts(["facebook", "instagram"])) {
+    const spec = META_CHECKS[account.platform as keyof typeof META_CHECKS];
+    const label = `${spec.label} ${account.country}`;
+    const id = readAccountEnv(account.platform, account.country, spec.id);
+    const token = readAccountEnv(account.platform, account.country, spec.token);
+    if (!id || !token) {
+      console.log(
+        `${label}: springes over (${envNameFor(account.platform, account.country, spec.id)} eller ` +
+          `${envNameFor(account.platform, account.country, spec.token)} mangler)`,
+      );
+      continue;
+    }
     collect(
-      "instagram",
-      "Instagram",
-      (await checkAccount(
-        "Instagram",
-        igUserId,
-        igToken,
-        "id,username",
-        ["instagram_basic", "instagram_content_publish"],
-        app,
-      )),
+      account.channel,
+      label,
+      await checkAccount(label, id, token, spec.fields, [...spec.scopes], app, spec.pageScoped ? id : undefined),
     );
-  } else {
-    console.log("Instagram: springes over (IG_USER_ID eller IG_ACCESS_TOKEN mangler)");
   }
 
   for (const p of known) console.log(`\n· known, channel disabled: ${p.label}`);

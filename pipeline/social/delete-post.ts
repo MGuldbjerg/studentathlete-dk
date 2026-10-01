@@ -14,9 +14,7 @@
  * hvornår det blev fjernet, er selv en del af dokumentationen.
  */
 import { createD1Client } from "../lib/d1-client";
-import { BLUESKY_ACCOUNTS } from "./channels/bluesky";
-import { CHANNEL_PLATFORM, type ChannelName } from "./types";
-import { readAccountEnv } from "./registry";
+import { channelAccount, envNameFor, readAccountEnv } from "./registry";
 
 const PDS = "https://bsky.social";
 const GRAPH = "https://graph.facebook.com/v26.0";
@@ -41,12 +39,11 @@ function rkeyFromUrl(url: string): string | null {
  * den danske konto og får "record not found" på et opslag der ligger i et
  * andet repo.
  */
-async function deleteBluesky(url: string, channel: keyof typeof BLUESKY_ACCOUNTS): Promise<void> {
-  const account = BLUESKY_ACCOUNTS[channel];
-  const handle = readAccountEnv("bluesky", account.country, "HANDLE");
-  const password = readAccountEnv("bluesky", account.country, "APP_PASSWORD");
+async function deleteBluesky(url: string, country: string): Promise<void> {
+  const handle = readAccountEnv("bluesky", country, "HANDLE");
+  const password = readAccountEnv("bluesky", country, "APP_PASSWORD");
   if (!handle || !password) {
-    throw new Error(`Mangler ${account.handleEnv} / ${account.passwordEnv}`);
+    throw new Error(`Mangler ${envNameFor("bluesky", country, "HANDLE")} / ${envNameFor("bluesky", country, "APP_PASSWORD")}`);
   }
   const rkey = rkeyFromUrl(url);
   if (!rkey) throw new Error(`Kunne ikke læse rkey ud af ${url}`);
@@ -74,9 +71,9 @@ async function deleteBluesky(url: string, channel: keyof typeof BLUESKY_ACCOUNTS
   if (!res.ok) throw new Error(`Bluesky sletning fejlede (${res.status}): ${await res.text()}`);
 }
 
-async function deleteFacebook(url: string): Promise<void> {
-  const token = process.env.FB_PAGE_ACCESS_TOKEN;
-  if (!token) throw new Error("Mangler FB_PAGE_ACCESS_TOKEN");
+async function deleteFacebook(url: string, country: string): Promise<void> {
+  const token = readAccountEnv("facebook", country, "PAGE_ACCESS_TOKEN");
+  if (!token) throw new Error(`Mangler ${envNameFor("facebook", country, "PAGE_ACCESS_TOKEN")}`);
   // post_url: https://www.facebook.com/<pageId>_<postId>
   const id = url.split("/").pop();
   if (!id) throw new Error(`Kunne ikke læse opslags-id ud af ${url}`);
@@ -92,8 +89,8 @@ async function deleteFacebook(url: string): Promise<void> {
  * både når objektet ikke findes, og når tokenet mangler rettigheder — så det
  * spørgsmål skal stilles direkte i stedet for at gætte.
  */
-async function diagnoseFacebook(postUrl: string | null): Promise<void> {
-  const token = process.env.FB_PAGE_ACCESS_TOKEN;
+async function diagnoseFacebook(postUrl: string | null, country: string): Promise<void> {
+  const token = readAccountEnv("facebook", country, "PAGE_ACCESS_TOKEN");
   if (!token) return console.log("  FB: intet token i miljøet");
   const t = encodeURIComponent(token);
 
@@ -140,8 +137,9 @@ async function main() {
   }
 
   if (diagnose) {
-    const fb = rows.results.find((r) => r.channel === "facebook");
-    await diagnoseFacebook(fb?.post_url ?? null);
+    const fbRow = rows.results.find((r) => channelAccount(r.channel)?.platform === "facebook");
+    const fb = fbRow ? channelAccount(fbRow.channel) : null;
+    await diagnoseFacebook(fbRow?.post_url ?? null, fb?.country ?? "DK");
     return;
   }
 
@@ -156,10 +154,11 @@ async function main() {
       continue;
     }
     try {
-      const platform = CHANNEL_PLATFORM[row.channel as ChannelName];
-      if (platform === "bluesky") {
-        await deleteBluesky(row.post_url, row.channel as keyof typeof BLUESKY_ACCOUNTS);
-      } else if (platform === "facebook") await deleteFacebook(row.post_url);
+      // The account comes from the queue row's channel, not the article's
+      // country: the post must be removed with the credentials that made it.
+      const account = channelAccount(row.channel);
+      if (account?.platform === "bluesky") await deleteBluesky(row.post_url, account.country);
+      else if (account?.platform === "facebook") await deleteFacebook(row.post_url, account.country);
       else {
         console.log(`  ⊘ ${label} — kanalen har ingen sletning implementeret`);
         continue;

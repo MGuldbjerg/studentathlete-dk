@@ -44,6 +44,11 @@ jobs:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          # British Meta accounts (2026-10-01). Unset secrets → the channel is skipped.
+          FB_UK_PAGE_ID: ${{ secrets.FB_UK_PAGE_ID }}
+          FB_UK_PAGE_ACCESS_TOKEN: ${{ secrets.FB_UK_PAGE_ACCESS_TOKEN }}
+          IG_UK_USER_ID: ${{ secrets.IG_UK_USER_ID }}
+          IG_UK_ACCESS_TOKEN: ${{ secrets.IG_UK_ACCESS_TOKEN }}
           # Uden disse to kan scopes og udløb ikke aflæses, og tjekket falder
           # tilbage til det gamle «kan siden læses?». De er app-legitimation,
           # ikke bruger-legitimation: de står på app'ens side i Meta for

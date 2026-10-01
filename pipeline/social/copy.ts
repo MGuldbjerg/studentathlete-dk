@@ -10,7 +10,7 @@
  */
 
 import { languagePack } from "../../src/lib/i18n";
-import { CHANNEL_PLATFORM, type ChannelName } from "./types";
+import type { Platform } from "./types";
 import { hashtagLine, hashtagsFor } from "./hashtags";
 
 /** Klip ved ordgrænse og tilføj ellipse hvis teksten er for lang. */
@@ -65,10 +65,10 @@ export function withDescription(title: string, description: string | null, max: 
  * Instagram: captions gør IKKE links klikbare — derfor ingen URL i teksten, men
  *   en henvisning til bio-linket. Grænsen er 2.200 tegn.
  */
-export function buildPostText(input: PostCopyInput, channel: ChannelName): string {
+export function buildPostText(input: PostCopyInput, platform: Platform): string {
   // Teksten hører til PLATFORMEN (tegngrænser, hvor linket må stå), ikke til
   // kontoen — den danske og den britiske Bluesky-konto skriver ens.
-  switch (CHANNEL_PLATFORM[channel]) {
+  switch (platform) {
     case "bluesky": {
       // Tags'ene får deres plads FØR teksten fylder resten. Lagt i enden ville
       // afkortningen spise dem, og et halvt hashtag er hverken tekst eller tag.

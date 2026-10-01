@@ -56,3 +56,8 @@ jobs:
           BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          # A post is deleted with the account that made it, so every account is here.
+          BLUESKY_UK_HANDLE: ${{ secrets.BLUESKY_UK_HANDLE }}
+          BLUESKY_UK_APP_PASSWORD: ${{ secrets.BLUESKY_UK_APP_PASSWORD }}
+          FB_UK_PAGE_ID: ${{ secrets.FB_UK_PAGE_ID }}
+          FB_UK_PAGE_ACCESS_TOKEN: ${{ secrets.FB_UK_PAGE_ACCESS_TOKEN }}

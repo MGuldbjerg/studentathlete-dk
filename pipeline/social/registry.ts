@@ -136,3 +136,14 @@ export function allAccounts(platforms: Platform[] = SOCIAL_PLATFORMS): SocialAcc
   }
   return accounts;
 }
+
+/**
+ * Which account posted on this channel? Read from `social_posts.channel`, so
+ * deletion and diagnostics use the credentials that made the post — a British
+ * post deleted with the Danish token gets "not found", not a deletion.
+ *
+ * X is included although it is not in SOCIAL_PLATFORMS: its rows still exist.
+ */
+export function channelAccount(channel: string): SocialAccount | null {
+  return allAccounts([...SOCIAL_PLATFORMS, "x"]).find((a) => a.channel === channel) ?? null;
+}

@@ -1,6 +1,7 @@
 /**
- * Instagram-adapter (Graph API, Content Publishing).
- * Secrets: IG_USER_ID, IG_ACCESS_TOKEN.
+ * Instagram-adapter (Graph API, Content Publishing). One factory, one account per country.
+ * Secrets (registry.ts): IG_<CC>_USER_ID + IG_<CC>_ACCESS_TOKEN; Denmark still
+ * falls back to the old IG_USER_ID / IG_ACCESS_TOKEN.
  *
  * TRE TRIN, ikke ét: først oprettes en mediecontainer (`POST /<ig-id>/media`),
  * så VENTES der til den er `FINISHED`, og først derefter udgives den
@@ -26,7 +27,7 @@
  */
 
 import { ChannelAuthError, type PostContent, type SocialChannel } from "../types";
-import { accountIsConfigured, readAccountEnv } from "../registry";
+import { accountIsConfigured, channelNameFor, readAccountEnv } from "../registry";
 
 // Samme version som facebook.ts — ét sted at bumpe, når Meta udfaser.
 const GRAPH = "https://graph.facebook.com/v26.0";
@@ -159,58 +160,63 @@ async function publishWithRetry(igUserId: string, creationId: string, token: str
   return null;
 }
 
-export const instagram: SocialChannel = {
-  name: "instagram",
-  // Kontoen er dansk: @studentathlete.dk. En britisk konto bliver en EGEN
-  // kanal med egne secrets — koblingen konto↔side er 1:1 hos Meta, så UK
-  // kræver både sin egen Facebook-side og sin egen Instagram-konto.
-  country: "DK",
-  cardKind: "ig",
+/**
+ * One country's account. Each is its own channel with its own secrets — Meta
+ * links an Instagram account 1:1 to a Facebook page, so the UK needs both its
+ * own page and its own Instagram account.
+ */
+export function createInstagramChannel(country: string): SocialChannel {
+  return {
+    name: channelNameFor("instagram", country),
+    platform: "instagram",
+    country,
+    cardKind: "ig",
 
-  isConfigured(): boolean {
-    return accountIsConfigured("instagram", "DK");
-  },
+    isConfigured(): boolean {
+      return accountIsConfigured("instagram", country);
+    },
 
-  async post(content: PostContent): Promise<{ postUrl: string | null }> {
-    const igUserId = readAccountEnv("instagram", "DK", "USER_ID")!;
-    const token = readAccountEnv("instagram", "DK", "ACCESS_TOKEN")!;
+    async post(content: PostContent): Promise<{ postUrl: string | null }> {
+      const igUserId = readAccountEnv("instagram", country, "USER_ID")!;
+      const token = readAccountEnv("instagram", country, "ACCESS_TOKEN")!;
 
-    // Trin 1: containeren. Her henter Meta billedet — en fejl her er typisk
-    // billedet (utilgængeligt, forkert format, forkert formforhold), ikke teksten.
-    const createRes = await fetch(`${GRAPH}/${igUserId}/media`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image_url: content.imageUrl,
-        caption: content.text,
-        access_token: token,
-      }),
-    });
-    if (!createRes.ok) {
-      const body = await createRes.text();
-      if (authFailed(createRes.status)) {
-        throw new ChannelAuthError(`Instagram afviste tokenet ved containeren (${createRes.status}): ${body}`);
+      // Trin 1: containeren. Her henter Meta billedet — en fejl her er typisk
+      // billedet (utilgængeligt, forkert format, forkert formforhold), ikke teksten.
+      const createRes = await fetch(`${GRAPH}/${igUserId}/media`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image_url: content.imageUrl,
+          caption: content.text,
+          access_token: token,
+        }),
+      });
+      if (!createRes.ok) {
+        const body = await createRes.text();
+        if (authFailed(createRes.status)) {
+          throw new ChannelAuthError(`Instagram afviste tokenet ved containeren (${createRes.status}): ${body}`);
+        }
+        throw new Error(`Instagram-container fejlede (${createRes.status}): ${body} [image_url: ${content.imageUrl}]`);
       }
-      throw new Error(`Instagram-container fejlede (${createRes.status}): ${body} [image_url: ${content.imageUrl}]`);
-    }
-    const { id: creationId } = (await createRes.json()) as { id?: string };
-    if (!creationId) throw new Error("Instagram-container uden id i svaret");
+      const { id: creationId } = (await createRes.json()) as { id?: string };
+      if (!creationId) throw new Error("Instagram-container uden id i svaret");
 
-    // Trin 2: VENT til containeren er færdig. Her stod før at «billeder er klar
-    // med det samme, og er de ikke, prøver næste kørsel igen». Begge led var
-    // forkerte, og artikel 275 betalte prisen 16. september: tre forsøg, tre
-    // gange `9007/2207027 Media ID is not available`, og så `failed` for altid.
-    // Næste kørsel prøver nemlig ikke det samme igen — den bygger en HELT NY
-    // container og taber det samme kapløb. Et forsøg brugt på en race er et
-    // forsøg brugt på ingenting. Ventetiden hører til her, i kørslen.
-    await waitForContainer(creationId, token);
+      // Trin 2: VENT til containeren er færdig. Her stod før at «billeder er klar
+      // med det samme, og er de ikke, prøver næste kørsel igen». Begge led var
+      // forkerte, og artikel 275 betalte prisen 16. september: tre forsøg, tre
+      // gange `9007/2207027 Media ID is not available`, og så `failed` for altid.
+      // Næste kørsel prøver nemlig ikke det samme igen — den bygger en HELT NY
+      // container og taber det samme kapløb. Et forsøg brugt på en race er et
+      // forsøg brugt på ingenting. Ventetiden hører til her, i kørslen.
+      await waitForContainer(creationId, token);
 
-    // Trin 3: udgivelsen. Selv en FÆRDIG container kan svare 9007 et øjeblik
-    // endnu — media-id'et er ikke slået igennem. Det er sekunder, ikke minutter,
-    // så vi prøver igen her frem for at bruge et kø-forsøg på det.
-    const mediaId = await publishWithRetry(igUserId, creationId, token);
-    if (!mediaId) return { postUrl: null };
+      // Trin 3: udgivelsen. Selv en FÆRDIG container kan svare 9007 et øjeblik
+      // endnu — media-id'et er ikke slået igennem. Det er sekunder, ikke minutter,
+      // så vi prøver igen her frem for at bruge et kø-forsøg på det.
+      const mediaId = await publishWithRetry(igUserId, creationId, token);
+      if (!mediaId) return { postUrl: null };
 
-    return { postUrl: await fetchPermalink(mediaId, token) };
-  },
-};
+      return { postUrl: await fetchPermalink(mediaId, token) };
+    },
+  };
+}

@@ -29,7 +29,7 @@ import path from "node:path";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
-import { createD1Client } from "../lib/d1-client";
+import { createD1Client, type D1Client } from "../lib/d1-client";
 import { CARD_FORMATS, buildMatchCardElement, type CardData, type CardFormat } from "../../src/lib/og-card";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 import { ALL_CHANNELS } from "../social/post-social";
@@ -166,9 +166,23 @@ interface CardRow extends CardData {
  * sat i netop denne kørsel. Ellers ville en manglende secret stille og roligt
  * holde op med at rendere kort, og fejlen ville først vise sig som en kø der
  * venter på et billede der aldrig kommer.
+ *
+ * Since 2026-10-01 the channel list is generated for every country × platform,
+ * so "the channel is in the list" no longer means "the account exists". The
+ * test is now the queue: an IG channel exists once it has ever had a
+ * `social_posts` row. That still does not ask `isConfigured()` (the render step
+ * has no Meta secrets), and a new market costs one run's delay on its very
+ * first post — the drain holds the row until the card is there.
  */
-function portraitCountries(): Set<string> {
-  return new Set(ALL_CHANNELS.filter((c) => c.cardKind === "ig").map((c) => c.country));
+async function portraitCountries(db: D1Client): Promise<Set<string>> {
+  const igChannels = ALL_CHANNELS.filter((c) => c.cardKind === "ig");
+  if (igChannels.length === 0) return new Set();
+  const used = await db.query<{ channel: string }>(
+    `SELECT DISTINCT channel FROM social_posts WHERE channel IN (${igChannels.map(() => "?").join(",")})`,
+    igChannels.map((c) => c.name),
+  );
+  const live = new Set(used.results.map((r) => r.channel));
+  return new Set(igChannels.filter((c) => live.has(c.name)).map((c) => c.country));
 }
 
 async function main(): Promise<void> {
@@ -191,7 +205,7 @@ async function main(): Promise<void> {
     article ? [article] : [],
   );
 
-  const igCountries = portraitCountries();
+  const igCountries = await portraitCountries(db);
   if (formats.includes("portrait")) {
     console.log(`Portræt-kort renderes for: ${[...igCountries].join(", ") || "(ingen lande — ingen IG-kanal)"}`);
   }

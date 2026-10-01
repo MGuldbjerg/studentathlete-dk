@@ -136,11 +136,16 @@ Testen holder præcis dét fast; den er ikke pedanteri.
 
 ## Det der mangler
 
-1. **`facebook.ts` og `instagram.ts` skal blive fabrikker** parametriseret på
-   land, som `bluesky.ts` allerede er, og `ALL_CHANNELS` skal genereres fra
-   `allAccounts()`. Så er et nyt marked: opret konti, mint ét token, sæt
-   secrets. Ingen kodeændring, intet deploy. **Det er hele gevinsten**, og det
-   er den eneste kodeopgave tilbage.
+1. ~~**`facebook.ts` og `instagram.ts` skal blive fabrikker**~~ **Done 2026-10-01.**
+   All three adapters are `create<Platform>Channel(country)`, and `ALL_CHANNELS`
+   is generated from `allAccounts()`. The four old queue names are unchanged
+   (verified against `social_posts`). The UK Meta secrets (`FB_UK_*`, `IG_UK_*`)
+   are already wired into the workflows, so **the UK needs only accounts +
+   GitHub secrets**. A third market still needs its four secret lines in
+   `social-post.yml` / `meta-check.yml`, because Actions only hands a step the
+   secrets it names. Portrait (IG) cards now render for a country once its IG
+   channel has a queue row, not when it is in the list, so a new market's first
+   IG post waits one run for its card.
 2. **Systembruger for DK** — blokeret på at appen kan lægges i porteføljen
    (Meta afviste handlingen 22. september som «midlertidigt udelukket»).
 3. **UK-side + UK-IG-konto** → `sa-publisher-uk`.

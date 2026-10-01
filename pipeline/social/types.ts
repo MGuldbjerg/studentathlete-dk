@@ -5,21 +5,12 @@ export type Platform = "bluesky" | "x" | "facebook" | "instagram";
  * En KANAL er en konto, ikke en platform. Derfor har hvert land sit eget navn:
  * pacing, kø-dybde og "hvornår postede vi sidst" slås alle op på kanalnavnet,
  * så to konti med samme navn ville stå i vejen for hinanden i køen.
+ *
+ * A plain string since 2026-10-01: names come from the account registry
+ * (`channelNameFor` in registry.ts), so a new market adds channels without a
+ * type change. Channel → platform is `channelAccount()`, not a table here.
  */
-export type ChannelName = "bluesky" | "bluesky_uk" | "x" | "facebook" | "instagram";
-
-/**
- * Kanal → platform. Eksplicit tabel frem for navne-gætteri: en ny kanal uden
- * platform er en typefejl, og hverken opslagsteksten eller sletningen kan
- * komme til at gætte forkert på hvilket API der skal bruges.
- */
-export const CHANNEL_PLATFORM: Record<ChannelName, Platform> = {
-  bluesky: "bluesky",
-  bluesky_uk: "bluesky",
-  x: "x",
-  facebook: "facebook",
-  instagram: "instagram",
-};
+export type ChannelName = string;
 
 /**
  * Hvilket kort skal kanalen bruge?
@@ -46,6 +37,8 @@ export interface PostContent {
 
 export interface SocialChannel {
   name: ChannelName;
+  /** The API. Decides the post text (limits, where the link goes), not the account. */
+  platform: Platform;
   /** Hvilket pre-rendret kort kanalen kræver. Se CardKind. */
   cardKind: CardKind;
   /**

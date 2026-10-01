@@ -9,10 +9,11 @@ import {
   distributionAllowed,
   profileAllowsDistribution,
 } from "./post-social";
-import { bluesky, blueskyUk, buildBlueskyRecord, tagFacets } from "./channels/bluesky";
+import { buildBlueskyRecord, createBlueskyChannel, tagFacets } from "./channels/bluesky";
 import { hashtagLine, hashtagsFor } from "./hashtags";
-import { facebook } from "./channels/facebook";
-import { instagram, interpretContainerStatus, isContainerNotReadyError } from "./channels/instagram";
+import { createFacebookChannel } from "./channels/facebook";
+import { createInstagramChannel, interpretContainerStatus, isContainerNotReadyError } from "./channels/instagram";
+import { countryForUrl } from "./rescrape-facebook";
 import { scopesNotGrantedForTarget } from "./check-tokens";
 import {
   DEFAULT_PACING,
@@ -29,15 +30,21 @@ import {
 } from "./pacing";
 import { buildPostText, truncate, withDescription } from "./copy";
 import { bypasses, edgeTtl, isCacheable } from "../../src/lib/worker-cache";
-import { CHANNEL_PLATFORM, ChannelAuthError } from "./types";
+import { ChannelAuthError } from "./types";
 import {
   accountIsConfigured,
   allAccounts,
+  channelAccount,
   channelNameFor,
   envNameFor,
   legacyEnvNameFor,
   readAccountEnv,
 } from "./registry";
+
+const bluesky = createBlueskyChannel("DK");
+const blueskyUk = createBlueskyChannel("UK");
+const facebook = createFacebookChannel("DK");
+const instagram = createInstagramChannel("DK");
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 
 let passed = 0;
@@ -336,11 +343,11 @@ expect("distribution: ukendt land falder tilbage på standardsitet", distributio
 expect("kanal: bluesky_uk er en britisk konto", blueskyUk.country, "UK");
 expect("kanal: bluesky_uk har sit eget kø-navn", blueskyUk.name, "bluesky_uk");
 expect("kanal: kø-navne er unikke", new Set(ALL_CHANNELS.map((c) => c.name)).size, ALL_CHANNELS.length);
-expect("kanal: bluesky_uk kører på bluesky-platformen", CHANNEL_PLATFORM["bluesky_uk"], "bluesky");
+expect("kanal: bluesky_uk kører på bluesky-platformen", blueskyUk.platform, "bluesky");
 expect(
   "copy: bluesky_uk skriver som bluesky (platformen, ikke kontoen)",
-  buildPostText(input, "bluesky_uk"),
-  buildPostText(input, "bluesky"),
+  buildPostText(input, blueskyUk.platform),
+  buildPostText(input, bluesky.platform),
 );
 
 // Sproget følger landeprofilen. Et engelsk opslag mærket "da" skjules af
@@ -713,3 +720,47 @@ expect("mellemrum taeller ikke med", channelIsDisabled("instagram", "facebook, i
 expect("tomme led springes over", channelIsDisabled("bluesky", "facebook,,"), false);
 // Delnavne maa ikke ramme: «facebook» slaar ikke «facebook_uk» fra.
 expect("delnavn rammer ikke", channelIsDisabled("facebook_uk", "facebook"), false);
+
+// ── Meta adapters per country (2026-10-01) ────────────────────────────────
+// A new market is accounts + secrets, no code: ALL_CHANNELS comes from the
+// registry, and the four channels from before keep their database names.
+const names = ALL_CHANNELS.map((c) => c.name);
+for (const legacy of ["bluesky", "bluesky_uk", "facebook", "instagram"]) {
+  expect(`legacy channel ${legacy} keeps its queue name`, names.includes(legacy), true);
+}
+const fbUk = ALL_CHANNELS.find((c) => c.name === "facebook_uk");
+const igUk = ALL_CHANNELS.find((c) => c.name === "instagram_uk");
+expect("facebook_uk exists", fbUk?.country, "UK");
+expect("facebook_uk is a facebook channel", fbUk?.platform, "facebook");
+expect("instagram_uk exists", igUk?.country, "UK");
+expect("instagram_uk uses the IG card", igUk?.cardKind, "ig");
+expect("every channel's platform matches the registry", ALL_CHANNELS.every((c) => channelAccount(c.name)?.platform === c.platform), true);
+
+// Danish secrets must not configure the British accounts.
+const savedMeta = { id: process.env.IG_USER_ID, tok: process.env.IG_ACCESS_TOKEN };
+process.env.IG_USER_ID = "1";
+process.env.IG_ACCESS_TOKEN = "2";
+expect("IG DK configured by the old names", instagram.isConfigured(), true);
+expect("IG UK does not inherit the Danish secrets", igUk?.isConfigured(), false);
+process.env.IG_UK_USER_ID = "3";
+process.env.IG_UK_ACCESS_TOKEN = "4";
+expect("IG UK configured by its own secrets", igUk?.isConfigured(), true);
+delete process.env.IG_UK_USER_ID;
+delete process.env.IG_UK_ACCESS_TOKEN;
+for (const [k, v] of Object.entries({ IG_USER_ID: savedMeta.id, IG_ACCESS_TOKEN: savedMeta.tok })) {
+  if (v === undefined) delete process.env[k];
+  else process.env[k] = v;
+}
+
+// Deletion finds the account from the queue row's channel.
+expect("channelAccount: bluesky_uk is British", channelAccount("bluesky_uk")?.country, "UK");
+expect("channelAccount: facebook is Danish", channelAccount("facebook")?.country, "DK");
+expect("channelAccount: facebook_uk is British", channelAccount("facebook_uk")?.country, "UK");
+expect("channelAccount: x rows still resolve", channelAccount("x")?.platform, "x");
+expect("channelAccount: unknown → null", channelAccount("myspace"), null);
+
+// Rescrape uses the page of the site the URL belongs to.
+expect("rescrape: .dk → DK", countryForUrl("https://studentathlete.dk/fodbold/x"), "DK");
+expect("rescrape: .co.uk → UK", countryForUrl("https://www.student-athlete.co.uk/football/x"), "UK");
+expect("rescrape: other host → null", countryForUrl("https://example.com/x"), null);
+

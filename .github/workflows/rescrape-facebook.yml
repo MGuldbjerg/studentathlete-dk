@@ -46,6 +46,8 @@ jobs:
           npx tsx pipeline/social/rescrape-facebook.ts $ARGS
         env:
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          # British articles are rescraped with the British page's token.
+          FB_UK_PAGE_ACCESS_TOKEN: ${{ secrets.FB_UK_PAGE_ACCESS_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}

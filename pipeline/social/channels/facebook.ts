@@ -1,6 +1,7 @@
 /**
- * Facebook Page-adapter (Graph API).
- * Secrets: FB_PAGE_ID, FB_PAGE_ACCESS_TOKEN.
+ * Facebook Page-adapter (Graph API). One factory, one page per country.
+ * Secrets (registry.ts): FB_<CC>_PAGE_ID + FB_<CC>_PAGE_ACCESS_TOKEN; Denmark
+ * still falls back to the old FB_PAGE_ID / FB_PAGE_ACCESS_TOKEN.
  *
  * Token-noter: brug et page access token afledt af en long-lived user token
  * (60 dage) — eller bedst: hent det via /me/accounts med en long-lived user
@@ -19,7 +20,7 @@
  */
 
 import { ChannelAuthError, type PostContent, type SocialChannel } from "../types";
-import { accountIsConfigured, readAccountEnv } from "../registry";
+import { accountIsConfigured, channelNameFor, readAccountEnv } from "../registry";
 
 // Meta udgiver ~2 versioner om året og holder hver i ~2 år. v26.0 udkom
 // 29. juli 2026. Bump ved lejlighed — et kald mod en udfaset version fejler
@@ -31,9 +32,12 @@ const GRAPH = "https://graph.facebook.com/v26.0";
  *
  * Fejl sluges med vilje (og logges): kaldet er en forbedring af kortet, ikke en
  * forudsætning for opslaget.
+ *
+ * `country` is required: the scrape runs on the token of the page that will
+ * share the URL, and a default would quietly be Denmark's.
  */
-export async function refreshLinkPreview(url: string): Promise<boolean> {
-  const token = readAccountEnv("facebook", "DK", "PAGE_ACCESS_TOKEN");
+export async function refreshLinkPreview(url: string, country: string): Promise<boolean> {
+  const token = readAccountEnv("facebook", country, "PAGE_ACCESS_TOKEN");
   if (!token) return false;
   try {
     const res = await fetch(`${GRAPH}/`, {
@@ -63,40 +67,46 @@ export async function refreshLinkPreview(url: string): Promise<boolean> {
   }
 }
 
-export const facebook: SocialChannel = {
-  name: "facebook",
-  // Kontoen er dansk: @studentathlete.dk / den danske side.
-  country: "DK",
-  cardKind: "share",
+/**
+ * One country's page. Meta links a page 1:1 to an Instagram account, so each
+ * market has its own page, token and queue name.
+ */
+export function createFacebookChannel(country: string): SocialChannel {
+  return {
+    name: channelNameFor("facebook", country),
+    platform: "facebook",
+    country,
+    cardKind: "share",
 
-  isConfigured(): boolean {
-    return accountIsConfigured("facebook", "DK");
-  },
+    isConfigured(): boolean {
+      return accountIsConfigured("facebook", country);
+    },
 
-  async post(content: PostContent): Promise<{ postUrl: string | null }> {
-    await refreshLinkPreview(content.url);
+    async post(content: PostContent): Promise<{ postUrl: string | null }> {
+      await refreshLinkPreview(content.url, country);
 
-    const res = await fetch(`${GRAPH}/${readAccountEnv("facebook", "DK", "PAGE_ID")}/feed`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: content.text,
-        link: content.url,
-        access_token: readAccountEnv("facebook", "DK", "PAGE_ACCESS_TOKEN"),
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      // Et udløbet eller inddraget page-token er kontoens problem, ikke
-      // artiklens — samme skelnen som Blueskys login (se ChannelAuthError).
-      if (res.status === 401 || res.status === 403) {
-        throw new ChannelAuthError(`Facebook afviste tokenet (${res.status}): ${body}`);
+      const res = await fetch(`${GRAPH}/${readAccountEnv("facebook", country, "PAGE_ID")}/feed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: content.text,
+          link: content.url,
+          access_token: readAccountEnv("facebook", country, "PAGE_ACCESS_TOKEN"),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        // Et udløbet eller inddraget page-token er kontoens problem, ikke
+        // artiklens — samme skelnen som Blueskys login (se ChannelAuthError).
+        if (res.status === 401 || res.status === 403) {
+          throw new ChannelAuthError(`Facebook afviste tokenet (${res.status}): ${body}`);
+        }
+        throw new Error(`Facebook post fejlede (${res.status}): ${body}`);
       }
-      throw new Error(`Facebook post fejlede (${res.status}): ${body}`);
-    }
 
-    const data = (await res.json()) as { id?: string };
-    // id-format: "<pageId>_<postId>" — kan linkes direkte
-    return { postUrl: data.id ? `https://www.facebook.com/${data.id}` : null };
-  },
-};
+      const data = (await res.json()) as { id?: string };
+      // id-format: "<pageId>_<postId>" — kan linkes direkte
+      return { postUrl: data.id ? `https://www.facebook.com/${data.id}` : null };
+    },
+  };
+}

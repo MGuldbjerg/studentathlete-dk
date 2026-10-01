@@ -41,19 +41,35 @@ import {
 } from "./pacing";
 import { buildPostText } from "./copy";
 import { ChannelAuthError, type CardKind, type PostContent, type SocialChannel } from "./types";
-import { bluesky, blueskyUk } from "./channels/bluesky";
+import { createBlueskyChannel } from "./channels/bluesky";
 // X droppet 2026-06-15: X fjernede sit gratis API-tier (nu pay-per-use, ~$0,01/opslag).
 // Adapter + secrets bevares — for at gen-aktivere: gendan importen og føj `x` til
 // ALL_CHANNELS igen (kræver pay-per-use-kredit på X-kontoen).
 // import { x } from "./channels/x";
-import { facebook } from "./channels/facebook";
-import { instagram } from "./channels/instagram";
+import { createFacebookChannel } from "./channels/facebook";
+import { createInstagramChannel } from "./channels/instagram";
+import { allAccounts } from "./registry";
+import type { Platform } from "./types";
+
+/** One factory per platform in SOCIAL_PLATFORMS; each builds one country's account. */
+const CHANNEL_FACTORIES: Partial<Record<Platform, (country: string) => SocialChannel>> = {
+  bluesky: createBlueskyChannel,
+  facebook: createFacebookChannel,
+  instagram: createInstagramChannel,
+};
 
 /**
  * Alle kendte konti. Ukonfigurerede springes over i main(), så en konto kan
  * stå her længe før dens secrets findes — det er sådan UK-kontoen kom til.
+ *
+ * Generated from the registry (countries × platforms) since 2026-10-01, so a
+ * new market is: create the accounts, set the secrets. No code.
  */
-export const ALL_CHANNELS: SocialChannel[] = [bluesky, blueskyUk, facebook, instagram];
+export const ALL_CHANNELS: SocialChannel[] = allAccounts().map((a) => {
+  const factory = CHANNEL_FACTORIES[a.platform];
+  if (!factory) throw new Error(`No channel factory for platform ${a.platform}`);
+  return factory(a.country);
+});
 
 /**
  * Må dette lands artikler distribueres overhovedet?
@@ -179,7 +195,7 @@ function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
   return {
     text: buildPostText(
       { title: row.title, description, url, lang: profile.language, sport: row.sport, country: row.country },
-      channel.name,
+      channel.platform,
     ),
     url,
     title: row.title,

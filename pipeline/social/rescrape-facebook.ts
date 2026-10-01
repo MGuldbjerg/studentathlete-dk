@@ -23,7 +23,8 @@
 import { createD1Client } from "../lib/d1-client";
 import { refreshLinkPreview } from "./channels/facebook";
 import { getArticleUrl } from "../../src/lib/seo";
-import { countryProfile } from "../../src/lib/countries";
+import { COUNTRIES, countryProfile } from "../../src/lib/countries";
+import { readAccountEnv } from "./registry";
 
 interface Args { urls: string[]; recent: number; dryRun: boolean }
 
@@ -39,6 +40,20 @@ function parseArgs(argv: string[]): Args {
 }
 
 interface Row { slug: string; sport: string | null; country: string | null }
+
+/**
+ * Which country's page shares this URL? Read from the host, so a British
+ * article is rescraped with the British page's token. Unknown host → null.
+ */
+export function countryForUrl(url: string): string | null {
+  let host: string;
+  try {
+    host = new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+  return Object.entries(COUNTRIES).find(([, p]) => p.host.replace(/^www\./, "") === host)?.[0] ?? null;
+}
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
@@ -68,22 +83,33 @@ async function main(): Promise<void> {
     console.log("Ingen URL'er. Brug --url <adresse> eller --recent <n>.");
     return;
   }
-  // Dry-run skal virke uden token: den er til at kontrollere URL-listen.
-  if (!args.dryRun && !process.env.FB_PAGE_ACCESS_TOKEN) {
-    console.error("FB_PAGE_ACCESS_TOKEN mangler — kør workflowet «Genscrape Facebook-kort».");
-    process.exit(1);
-  }
-
   let withImage = 0;
+  let noToken = 0;
   for (const url of urls) {
-    if (args.dryRun) {
-      console.log(`  [dry-run] ville bede Facebook scrape ${url}`);
+    const country = countryForUrl(url);
+    if (!country) {
+      console.log(`  ⊘ ukendt site, springes over: ${url}`);
       continue;
     }
-    const ok = await refreshLinkPreview(url);
+    if (args.dryRun) {
+      console.log(`  [dry-run] ville bede Facebook (${country}) scrape ${url}`);
+      continue;
+    }
+    // Dry-run skal virke uden token: den er til at kontrollere URL-listen.
+    if (!readAccountEnv("facebook", country, "PAGE_ACCESS_TOKEN")) {
+      console.log(`  ⊘ ingen Facebook-side for ${country}, springes over: ${url}`);
+      noToken++;
+      continue;
+    }
+    const ok = await refreshLinkPreview(url, country);
     console.log(`  ${ok ? "✓ billede fundet" : "✗ intet billede"}: ${url}`);
     if (ok) withImage++;
     await new Promise((r) => setTimeout(r, 800));
+  }
+
+  if (!args.dryRun && noToken === urls.length) {
+    console.error("Intet Facebook-token for nogen af URL'erne — kør workflowet «Genscrape Facebook-kort».");
+    process.exit(1);
   }
 
   if (!args.dryRun) {

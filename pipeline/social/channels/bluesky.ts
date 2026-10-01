@@ -7,8 +7,8 @@
  * delte variabelnavn med den danske, ville et glemt secret i GitHub ikke give
  * en fejl, men et opslag fra den forkerte konto (præcis hændelsen 2026-08-05).
  *
- * Secrets:
- *   DK: BLUESKY_HANDLE (fx studentathlete.dk)   + BLUESKY_APP_PASSWORD
+ * Secrets (registry.ts; the symmetric name wins, the old one is a fallback):
+ *   DK: BLUESKY_DK_HANDLE / BLUESKY_HANDLE       + …_APP_PASSWORD
  *   UK: BLUESKY_UK_HANDLE                        + BLUESKY_UK_APP_PASSWORD
  * App-password laves i Settings → Privacy and Security → App Passwords —
  * IKKE kontoens login-kodeord.
@@ -18,26 +18,11 @@
  */
 
 import { countryProfile } from "../../../src/lib/countries";
-import { ChannelAuthError, type ChannelName, type PostContent, type SocialChannel } from "../types";
-import { accountIsConfigured, readAccountEnv } from "../registry";
+import { ChannelAuthError, type PostContent, type SocialChannel } from "../types";
+import { accountIsConfigured, channelNameFor, readAccountEnv } from "../registry";
 
 const PDS = "https://bsky.social";
 const MAX_BLOB_BYTES = 950_000; // Bluesky-grænsen er 1 MB — lidt margen
-
-interface BlueskyAccount {
-  country: string;
-  handleEnv: string;
-  passwordEnv: string;
-}
-
-/**
- * Kontoregisteret. Sletningsværktøjet slår op her af samme grund som
- * posteringen gør: et opslag skal fjernes med de credentials der lagde det op.
- */
-export const BLUESKY_ACCOUNTS: Record<"bluesky" | "bluesky_uk", BlueskyAccount> = {
-  bluesky: { country: "DK", handleEnv: "BLUESKY_HANDLE", passwordEnv: "BLUESKY_APP_PASSWORD" },
-  bluesky_uk: { country: "UK", handleEnv: "BLUESKY_UK_HANDLE", passwordEnv: "BLUESKY_UK_APP_PASSWORD" },
-};
 
 interface Session {
   accessJwt: string;
@@ -149,23 +134,23 @@ export function buildBlueskyRecord(content: PostContent, country: string, thumb:
   };
 }
 
-function createBlueskyChannel(name: "bluesky" | "bluesky_uk"): SocialChannel {
-  const account = BLUESKY_ACCOUNTS[name];
-
+/** One country's account. The channel name comes from the registry. */
+export function createBlueskyChannel(country: string): SocialChannel {
   return {
-    name: name as ChannelName,
-    country: account.country,
+    name: channelNameFor("bluesky", country),
+    platform: "bluesky",
+    country,
     cardKind: "share",
 
     isConfigured(): boolean {
-      return accountIsConfigured("bluesky", account.country);
+      return accountIsConfigured("bluesky", country);
     },
 
     async post(content: PostContent): Promise<{ postUrl: string | null }> {
-      const handle = readAccountEnv("bluesky", account.country, "HANDLE")!;
-      const session = await createSession(handle, readAccountEnv("bluesky", account.country, "APP_PASSWORD")!);
+      const handle = readAccountEnv("bluesky", country, "HANDLE")!;
+      const session = await createSession(handle, readAccountEnv("bluesky", country, "APP_PASSWORD")!);
       const thumb = await uploadThumb(session, content.imageUrl);
-      const record = buildBlueskyRecord(content, account.country, thumb);
+      const record = buildBlueskyRecord(content, country, thumb);
 
       const res = await fetch(`${PDS}/xrpc/com.atproto.repo.createRecord`, {
         method: "POST",
@@ -188,9 +173,3 @@ function createBlueskyChannel(name: "bluesky" | "bluesky_uk"): SocialChannel {
     },
   };
 }
-
-/** Dansk konto: @studentathlete.dk */
-export const bluesky = createBlueskyChannel("bluesky");
-
-/** Britisk konto: student-athlete.co.uk */
-export const blueskyUk = createBlueskyChannel("bluesky_uk");
