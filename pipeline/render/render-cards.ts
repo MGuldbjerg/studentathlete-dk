@@ -32,7 +32,7 @@ import sharp from "sharp";
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { CARD_FORMATS, buildMatchCardElement, type CardData, type CardFormat } from "../../src/lib/og-card";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
-import { ALL_CHANNELS } from "../social/post-social";
+import { ALL_CHANNELS, withinQueueWindow } from "../social/post-social";
 
 // Scripts køres fra repo-roden (som alle pipeline-scripts/workflows gør)
 const ROOT = process.cwd();
@@ -151,6 +151,7 @@ function blobSpec(format: CardFormat, articleId: number) {
 
 interface CardRow extends CardData {
   id: number;
+  published_at: string | null;
 }
 
 /**
@@ -173,16 +174,19 @@ interface CardRow extends CardData {
  * `social_posts` row. That still does not ask `isConfigured()` (the render step
  * has no Meta secrets), and a new market costs one run's delay on its very
  * first post — the drain holds the row until the card is there.
+ *
+ * Returns country → IG channel name, so the caller can also ask whether an
+ * article is new enough for that channel's queue (see `withinQueueWindow`).
  */
-async function portraitCountries(db: D1Client): Promise<Set<string>> {
+async function portraitCountries(db: D1Client): Promise<Map<string, string>> {
   const igChannels = ALL_CHANNELS.filter((c) => c.cardKind === "ig");
-  if (igChannels.length === 0) return new Set();
+  if (igChannels.length === 0) return new Map();
   const used = await db.query<{ channel: string }>(
     `SELECT DISTINCT channel FROM social_posts WHERE channel IN (${igChannels.map(() => "?").join(",")})`,
     igChannels.map((c) => c.name),
   );
   const live = new Set(used.results.map((r) => r.channel));
-  return new Set(igChannels.filter((c) => live.has(c.name)).map((c) => c.country));
+  return new Map(igChannels.filter((c) => live.has(c.name)).map((c) => [c.country, c.name]));
 }
 
 async function main(): Promise<void> {
@@ -194,7 +198,7 @@ async function main(): Promise<void> {
 
   // Samme joins som /api/og getCardData — kun publicerede artikler pre-renderes
   const rows = await db.query<CardRow>(
-    `SELECT a.id, a.title, a.created_at, a.country, at.name as athlete_name, at.sport, at.university,
+    `SELECT a.id, a.title, a.created_at, a.published_at, a.country, at.name as athlete_name, at.sport, at.university,
             sc.primary_color, s.fact_sheet
      FROM articles a
      LEFT JOIN athletes at ON a.athlete_id = at.id
@@ -207,7 +211,7 @@ async function main(): Promise<void> {
 
   const igCountries = await portraitCountries(db);
   if (formats.includes("portrait")) {
-    console.log(`Portræt-kort renderes for: ${[...igCountries].join(", ") || "(ingen lande — ingen IG-kanal)"}`);
+    console.log(`Portræt-kort renderes for: ${[...igCountries.keys()].join(", ") || "(ingen lande — ingen IG-kanal)"}`);
   }
 
   let rendered = 0;
@@ -216,8 +220,13 @@ async function main(): Promise<void> {
     for (const format of formats) {
       // Et portræt-kort til et land uden Instagram-konto er spildt arbejde og
       // spildt plads. Springes stille over — det er ikke en fejl.
-      if (format === "portrait" && !igCountries.has(row.country ?? "")) {
-        continue;
+      if (format === "portrait") {
+        const igChannel = igCountries.get(row.country ?? "");
+        if (!igChannel) continue;
+        // Only articles the IG queue can still take. The queue never picks up
+        // older ones, so their cards would only fill D1. `--article` is a
+        // deliberate request and is always honoured.
+        if (!article && !withinQueueWindow(row.published_at, igChannel)) continue;
       }
       const { key, width, height } = blobSpec(format, row.id);
 

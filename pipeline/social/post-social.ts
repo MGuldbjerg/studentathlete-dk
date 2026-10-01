@@ -35,6 +35,7 @@ import {
   computeGapMinutes,
   minutesUntilExpiry,
   pacingFor,
+  parseUtc,
   postsAllowedNow,
   postsFittingInRun,
   spacingWouldCostPosts,
@@ -70,6 +71,18 @@ export const ALL_CHANNELS: SocialChannel[] = allAccounts().map((a) => {
   if (!factory) throw new Error(`No channel factory for platform ${a.platform}`);
   return factory(a.country);
 });
+
+/**
+ * Is this article still new enough for the channel to queue it?
+ *
+ * The same window as the enqueue below (`expiryMinutes`), as a pure function so
+ * render-cards can ask it too: a card for an article the queue will never take
+ * is wasted space in D1 (222 old British IG cards, 2026-10-01).
+ */
+export function withinQueueWindow(publishedAt: string | null, channel: string, now: Date = new Date()): boolean {
+  if (!publishedAt) return false;
+  return now.getTime() - parseUtc(publishedAt).getTime() <= pacingFor(channel).expiryMinutes * 60_000;
+}
 
 /**
  * Må dette lands artikler distribueres overhovedet?

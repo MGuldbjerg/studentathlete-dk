@@ -56,6 +56,7 @@ function buildOAuthHeader(): string {
 
 export const x: SocialChannel = {
   name: "x",
+  platform: "x",
   // Kontoen er dansk (@StudAthleteDK). Adapteren er i dvale — se post-social.ts.
   country: "DK",
   cardKind: "share",

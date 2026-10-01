@@ -4,6 +4,7 @@
  */
 import {
   ALL_CHANNELS,
+  withinQueueWindow,
   cardReadyClause,
   channelIsDisabled,
   distributionAllowed,
@@ -783,4 +784,14 @@ const fixedNow = new Date("2026-10-01T00:00:00Z");
 expect("PAT: header parsed", patDaysLeft("2026-10-22 00:00:00 UTC", fixedNow), 21);
 expect("PAT: no header = no expiry", patDaysLeft(null, fixedNow), null);
 expect("PAT: garbage = unknown", patDaysLeft("soon", fixedNow), null);
+
+// ── Portrait cards only inside the queue window (2026-10-01) ──────────────
+// 222 IG cards were rendered for old British articles the queue never takes.
+const winNow = new Date("2026-10-01T12:00:00Z");
+const igExpiry = pacingFor("instagram_uk").expiryMinutes;
+const isoMinus = (min: number) => new Date(winNow.getTime() - min * 60_000).toISOString().replace("T", " ").slice(0, 19);
+expect("window: fresh article is in", withinQueueWindow(isoMinus(60), "instagram_uk", winNow), true);
+expect("window: at the edge is in", withinQueueWindow(isoMinus(igExpiry), "instagram_uk", winNow), true);
+expect("window: older than expiry is out", withinQueueWindow(isoMinus(igExpiry + 1), "instagram_uk", winNow), false);
+expect("window: unpublished is out", withinQueueWindow(null, "instagram_uk", winNow), false);
 
