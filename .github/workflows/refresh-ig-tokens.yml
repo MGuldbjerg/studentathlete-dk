@@ -1,0 +1,46 @@
+name: Forny Instagram-login-tokens
+
+on:
+  # Weekly. Instagram-login tokens live 60 days, and a refresh is refused for a
+  # token under 24 hours old, so weekly has margin on both ends.
+  schedule:
+    - cron: '20 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry-run (forny intet)'
+        required: false
+        default: 'false'
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Forny tokens og skriv dem tilbage som secrets
+        run: npx tsx pipeline/social/refresh-ig-tokens.ts ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+        env:
+          # A fine-grained PAT with Secrets: write on this repo only. The
+          # workflow's own GITHUB_TOKEN cannot write secrets.
+          GH_TOKEN: ${{ secrets.GH_SECRETS_PAT }}
+          # Same list as social-post.yml — keep them in step.
+          IG_UK_LOGIN: instagram
+          IG_UK_ACCESS_TOKEN: ${{ secrets.IG_UK_ACCESS_TOKEN }}
+
+      - name: Discord-notifikation ved fejl
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Instagram-token blev ikke fornyet\",\"description\":\"Tokenet udløber efter 60 dage uden fornyelse, og så stopper Instagram for det marked. Tjek [GitHub Actions](https://github.com/MGuldbjerg/studentathlete-dk/actions/workflows/refresh-ig-tokens.yml).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

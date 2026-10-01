@@ -42,6 +42,7 @@
 import { appendFileSync } from "node:fs";
 import { channelIsDisabled } from "./post-social";
 import { allAccounts, envNameFor, readAccountEnv } from "./registry";
+import { IG_LOGIN_GRAPH, usesInstagramLogin } from "./channels/instagram";
 
 const GRAPH = "https://graph.facebook.com/v26.0";
 
@@ -281,6 +282,36 @@ async function checkAccount(
   return problems;
 }
 
+/**
+ * An Instagram-login account (no Facebook page). `debug_token` belongs to the
+ * Facebook app secret and cannot read these tokens, so the check is the API
+ * itself: does `/me` answer, and is it the account we post as?
+ *
+ * Prints the account's id and username — neither is secret, and it is how the
+ * USER_ID secret is found in the first place.
+ */
+export async function checkInstagramLogin(label: string, userId: string | undefined, token: string): Promise<Problem[]> {
+  console.log(`${label} (Instagram login):`);
+  const res = await fetch(`${IG_LOGIN_GRAPH}/me?fields=user_id,username&access_token=${encodeURIComponent(token)}`);
+  if (!res.ok) {
+    return [{ label: `${label}: tokenet afvises (${res.status})`, detail: (await res.text()).slice(0, 300) }];
+  }
+  const me = (await res.json()) as { user_id?: string | number; username?: string };
+  const actualId = me.user_id === undefined ? "" : String(me.user_id);
+  console.log(`  kontoen kan læses ✓ — @${me.username ?? "?"}, user_id ${actualId}`);
+  if (!userId) {
+    return [{ label: `${label}: USER_ID mangler`, detail: `Sæt den til ${actualId} (@${me.username ?? "?"}).` }];
+  }
+  if (userId !== actualId) {
+    return [{
+      label: `${label}: tokenet tilhører en anden konto`,
+      detail: `USER_ID er ${userId}, men tokenet er @${me.username ?? "?"} (${actualId}).`,
+    }];
+  }
+  console.log(`  ${label}: USER_ID matcher tokenet ✓`);
+  return [];
+}
+
 async function main(): Promise<void> {
   const warnOnly = process.argv.includes("--warn-only");
   const appId = process.env.FB_APP_ID;
@@ -325,6 +356,10 @@ async function main(): Promise<void> {
     const label = `${spec.label} ${account.country}`;
     const id = readAccountEnv(account.platform, account.country, spec.id);
     const token = readAccountEnv(account.platform, account.country, spec.token);
+    if (account.platform === "instagram" && usesInstagramLogin(account.country) && token) {
+      collect(account.channel, label, await checkInstagramLogin(label, id, token));
+      continue;
+    }
     if (!id || !token) {
       console.log(
         `${label}: springes over (${envNameFor(account.platform, account.country, spec.id)} eller ` +

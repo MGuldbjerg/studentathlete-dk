@@ -32,6 +32,31 @@ import { accountIsConfigured, channelNameFor, readAccountEnv } from "../registry
 // Samme version som facebook.ts — ét sted at bumpe, når Meta udfaser.
 const GRAPH = "https://graph.facebook.com/v26.0";
 
+/**
+ * Instagram API with Instagram Login (2026-10-01, the UK account).
+ * ===============================================================
+ *
+ * The UK account could not be linked to its Facebook page: Mikkel's account
+ * is restricted, and the link is refused with "Din konto er begrænset". This
+ * API needs no page at all — the account logs in as itself. The publishing
+ * flow is the same three steps with the same fields; only the host differs.
+ *
+ * Which login an account uses is `IG_<CC>_LOGIN` ("instagram" or unset =
+ * Facebook login). It is set in the workflow, not guessed from the token.
+ *
+ * ⚠️ These tokens live 60 days. `refresh-ig-tokens.ts` renews them weekly.
+ */
+export const IG_LOGIN_GRAPH = "https://graph.instagram.com/v26.0";
+
+/** Instagram login or Facebook login? Explicit per account, never inferred. */
+export function usesInstagramLogin(country: string): boolean {
+  return readAccountEnv("instagram", country, "LOGIN") === "instagram";
+}
+
+export function graphFor(country: string): string {
+  return usesInstagramLogin(country) ? IG_LOGIN_GRAPH : GRAPH;
+}
+
 function authFailed(status: number): boolean {
   return status === 401 || status === 403;
 }
@@ -40,9 +65,9 @@ function authFailed(status: number): boolean {
  * Permalinket til opslaget. Fail-soft: kender vi det ikke, har vi stadig
  * postet — men `delete-post.ts` får sværere ved at rydde op, så vi prøver.
  */
-async function fetchPermalink(mediaId: string, token: string): Promise<string | null> {
+async function fetchPermalink(graph: string, mediaId: string, token: string): Promise<string | null> {
   try {
-    const res = await fetch(`${GRAPH}/${mediaId}?fields=permalink&access_token=${encodeURIComponent(token)}`);
+    const res = await fetch(`${graph}/${mediaId}?fields=permalink&access_token=${encodeURIComponent(token)}`);
     if (!res.ok) return null;
     const data = (await res.json()) as { permalink?: string };
     return data.permalink ?? null;
@@ -92,13 +117,13 @@ const CONTAINER_POLL_MS = 3_000;
  * ERROR og EXPIRED kastes som almindelige fejl, ikke som ChannelAuthError:
  * dét ER opslagets problem (billedet), og så skal forsøget tælle.
  */
-async function waitForContainer(creationId: string, token: string): Promise<void> {
+async function waitForContainer(graph: string, creationId: string, token: string): Promise<void> {
   const deadline = Date.now() + CONTAINER_TIMEOUT_MS;
   let lastStatus = "ukendt";
 
   while (Date.now() < deadline) {
     const res = await fetch(
-      `${GRAPH}/${creationId}?fields=status_code,status&access_token=${encodeURIComponent(token)}`,
+      `${graph}/${creationId}?fields=status_code,status&access_token=${encodeURIComponent(token)}`,
     );
     if (!res.ok) {
       const body = await res.text();
@@ -132,13 +157,13 @@ async function waitForContainer(creationId: string, token: string): Promise<void
  *
  * Kun 9007 prøves igen — enhver anden fejl er ægte og skal koste et forsøg.
  */
-async function publishWithRetry(igUserId: string, creationId: string, token: string): Promise<string | null> {
+async function publishWithRetry(graph: string, igUserId: string, creationId: string, token: string): Promise<string | null> {
   const delays = [0, 3_000, 6_000, 12_000];
 
   for (let i = 0; i < delays.length; i++) {
     if (delays[i] > 0) await sleep(delays[i]);
 
-    const res = await fetch(`${GRAPH}/${igUserId}/media_publish`, {
+    const res = await fetch(`${graph}/${igUserId}/media_publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ creation_id: creationId, access_token: token }),
@@ -179,10 +204,11 @@ export function createInstagramChannel(country: string): SocialChannel {
     async post(content: PostContent): Promise<{ postUrl: string | null }> {
       const igUserId = readAccountEnv("instagram", country, "USER_ID")!;
       const token = readAccountEnv("instagram", country, "ACCESS_TOKEN")!;
+      const graph = graphFor(country);
 
       // Trin 1: containeren. Her henter Meta billedet — en fejl her er typisk
       // billedet (utilgængeligt, forkert format, forkert formforhold), ikke teksten.
-      const createRes = await fetch(`${GRAPH}/${igUserId}/media`, {
+      const createRes = await fetch(`${graph}/${igUserId}/media`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -208,15 +234,15 @@ export function createInstagramChannel(country: string): SocialChannel {
       // Næste kørsel prøver nemlig ikke det samme igen — den bygger en HELT NY
       // container og taber det samme kapløb. Et forsøg brugt på en race er et
       // forsøg brugt på ingenting. Ventetiden hører til her, i kørslen.
-      await waitForContainer(creationId, token);
+      await waitForContainer(graph, creationId, token);
 
       // Trin 3: udgivelsen. Selv en FÆRDIG container kan svare 9007 et øjeblik
       // endnu — media-id'et er ikke slået igennem. Det er sekunder, ikke minutter,
       // så vi prøver igen her frem for at bruge et kø-forsøg på det.
-      const mediaId = await publishWithRetry(igUserId, creationId, token);
+      const mediaId = await publishWithRetry(graph, igUserId, creationId, token);
       if (!mediaId) return { postUrl: null };
 
-      return { postUrl: await fetchPermalink(mediaId, token) };
+      return { postUrl: await fetchPermalink(graph, mediaId, token) };
     },
   };
 }

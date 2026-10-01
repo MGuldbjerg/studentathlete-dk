@@ -12,7 +12,13 @@ import {
 import { buildBlueskyRecord, createBlueskyChannel, tagFacets } from "./channels/bluesky";
 import { hashtagLine, hashtagsFor } from "./hashtags";
 import { createFacebookChannel } from "./channels/facebook";
-import { createInstagramChannel, interpretContainerStatus, isContainerNotReadyError } from "./channels/instagram";
+import {
+  createInstagramChannel,
+  graphFor,
+  interpretContainerStatus,
+  isContainerNotReadyError,
+} from "./channels/instagram";
+import { patDaysLeft } from "./refresh-ig-tokens";
 import { countryForUrl } from "./rescrape-facebook";
 import { scopesNotGrantedForTarget } from "./check-tokens";
 import {
@@ -763,4 +769,18 @@ expect("channelAccount: unknown → null", channelAccount("myspace"), null);
 expect("rescrape: .dk → DK", countryForUrl("https://studentathlete.dk/fodbold/x"), "DK");
 expect("rescrape: .co.uk → UK", countryForUrl("https://www.student-athlete.co.uk/football/x"), "UK");
 expect("rescrape: other host → null", countryForUrl("https://example.com/x"), null);
+
+// ── Instagram login (UK, 2026-10-01) ──────────────────────────────────────
+// The login is set explicitly per account, never guessed from the token.
+delete process.env.IG_UK_LOGIN;
+expect("IG UK defaults to the Facebook-login host", graphFor("UK").startsWith("https://graph.facebook.com/"), true);
+process.env.IG_UK_LOGIN = "instagram";
+expect("IG_UK_LOGIN=instagram → graph.instagram.com", graphFor("UK").startsWith("https://graph.instagram.com/"), true);
+expect("DK is unaffected by the UK setting", graphFor("DK").startsWith("https://graph.facebook.com/"), true);
+delete process.env.IG_UK_LOGIN;
+
+const fixedNow = new Date("2026-10-01T00:00:00Z");
+expect("PAT: header parsed", patDaysLeft("2026-10-22 00:00:00 UTC", fixedNow), 21);
+expect("PAT: no header = no expiry", patDaysLeft(null, fixedNow), null);
+expect("PAT: garbage = unknown", patDaysLeft("soon", fixedNow), null);
 

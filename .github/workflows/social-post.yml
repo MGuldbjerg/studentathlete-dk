@@ -66,6 +66,8 @@ jobs:
           FB_UK_PAGE_ID: ${{ secrets.FB_UK_PAGE_ID }}
           FB_UK_PAGE_ACCESS_TOKEN: ${{ secrets.FB_UK_PAGE_ACCESS_TOKEN }}
           IG_UK_USER_ID: ${{ secrets.IG_UK_USER_ID }}
+          # The UK account posts via Instagram login (no Facebook page link possible).
+          IG_UK_LOGIN: instagram
           IG_UK_ACCESS_TOKEN: ${{ secrets.IG_UK_ACCESS_TOKEN }}
           FB_APP_ID: ${{ secrets.FB_APP_ID }}
           FB_APP_SECRET: ${{ secrets.FB_APP_SECRET }}
@@ -106,6 +108,8 @@ jobs:
           FB_UK_PAGE_ID: ${{ secrets.FB_UK_PAGE_ID }}
           FB_UK_PAGE_ACCESS_TOKEN: ${{ secrets.FB_UK_PAGE_ACCESS_TOKEN }}
           IG_UK_USER_ID: ${{ secrets.IG_UK_USER_ID }}
+          # The UK account posts via Instagram login (no Facebook page link possible).
+          IG_UK_LOGIN: instagram
           IG_UK_ACCESS_TOKEN: ${{ secrets.IG_UK_ACCESS_TOKEN }}
 
       # Kun ved fejl — vellykkede opslag er synlige på kanalerne selv
