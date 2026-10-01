@@ -1,8 +1,44 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-09-30 (rule audit; Workers Paid; AdSense prep — see top sections)
+**Sidst opdateret**: 2026-10-01 (where we are — read this section first)
 
 ---
+
+## 📍 Where we are (2026-10-01)
+
+**Waiting on Mikkel:**
+1. **Claude as article writer** — proposal: Sonnet 5 writes drafts (≈ $4-6/month at
+   ~13 drafts/day), fact sheets stay on free Mistral, review stays on the
+   subscription. Needs an Anthropic API key (console.anthropic.com, set a spend
+   cap) as repo secret `ANTHROPIC_API_KEY`. Then: fix the model id in
+   `pipeline/lib/llm/provider-anthropic.ts` (`claude-haiku-4-5-20241022` does not
+   exist — any call today would fail and fall back to Gemini) → `claude-sonnet-5`,
+   add prompt caching, rerun the 8-story trial against Gemini before going live.
+   Ends the $0 principle for the LLM chain — his decision.
+2. **Legal basis for collecting countries** — `UDKAST-LIA-interesseafvejning.md`
+   section D (draft, incl. a proposed 12-month deletion limit). Collecting already
+   runs.
+
+**Done 2026-09-30, verify soon:**
+- **Collecting: AU, DE, SE, ES** (`src/lib/countries/collecting.ts`) — first athletes
+  arrive with the next roster scrapes. Check: `SELECT home_country, COUNT(*) FROM
+  athletes GROUP BY 1` should show AU/DE/SE/ES rows; none may appear on the sites,
+  and no fact sheets/drafts may exist for them.
+- **Timeline repaired** (migration 060): 5,729 → ~930 rows; academic honours,
+  tournaments, preseason forecasts and recaps no longer count as awards; one
+  harvest (`harvestRows`, headline + standfirst) for admin, batch publishing and
+  backfill. Short articles may end with one sourced "this season" sentence.
+- **Writing prompts** tightened (length follows facts, filler ban, rules EN 28-30 /
+  DA 30-32). Watch the next drafts: still leaking weekday fixtures from fact sheets.
+- **Workers Paid**: first full paid day 2026-10-01 — `platform-limits.ts` should
+  stop reporting error 1102; CPU was 67 % of the monthly allowance. Browser budget
+  29 min/day from October.
+- **UK privacy page** live (`/privacy`, Mikkel as controller); English URLs for the
+  fixed pages; AdSense review pending at Google (nothing to speed it up).
+
+**Standing decisions:** .dk keeps promising human reading; the PC's 01:00 `--fix`
+run stays; publish only on Mikkel's instruction, spaced 17-23 min.
+
 
 ## 🧭 Rule audit + writing prompts (2026-09-30)
 
