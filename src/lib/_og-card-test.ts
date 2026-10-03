@@ -14,6 +14,7 @@ import {
   buildMatchCardElement,
   localizedEventDate,
   localizedOutcome,
+  parseCardFacts,
   type CardData,
   type CardFormat,
   type OgElement,
@@ -117,6 +118,24 @@ expect(
     JSON.stringify(buildMatchCardElement(base, "data:,", 1, "landscape")),
   true,
 );
+
+// ── Fact-sheet fields that are not text (2026-10-03, #462) ─────────────────
+// A tournament fact sheet listed `opponent` as rounds: [{round, team}, …]. The
+// card printed "[object Object]" for each. Only plain text reaches the card.
+const rounds = parseCardFacts(JSON.stringify({
+  event: { opponent: [{ round: "R32", team: "Virginia" }, { round: "R16", team: "LSU" }], competition: "ITA All-American Championships" },
+  result: { final_score: "6-7 (4-7), 3-6", outcome: "Lost" },
+}));
+expect("facts: an opponent list is not text → no opponent", rounds.opponent, null);
+expect("facts: competition still shown", rounds.competition, "ITA All-American Championships");
+expect("facts: score still shown", rounds.finalScore, "6-7 (4-7), 3-6");
+const odd = parseCardFacts(JSON.stringify({ event: { opponent: { team: "Duke" }, date: 20260930 }, result: { outcome: ["W"], final_score: 3 } }));
+expect("facts: an object opponent → null", odd.opponent, null);
+expect("facts: a number date becomes text", odd.date, "20260930");
+expect("facts: a list outcome → null (was «raw.trim is not a function»)", odd.outcome, null);
+expect("facts: a number score becomes text", odd.finalScore, "3");
+expect("facts: blank text → null", parseCardFacts(JSON.stringify({ event: { opponent: "  " } })).opponent, null);
+expect("facts: plain text unchanged", parseCardFacts(JSON.stringify({ event: { opponent: "Duke" } })).opponent, "Duke");
 
 console.log(`\nog-card: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

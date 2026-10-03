@@ -49,20 +49,36 @@ export interface CardFacts {
   outcome: string | null;
 }
 
+/**
+ * A fact-sheet field as card text, or null.
+ *
+ * The fact sheet is model output, and its shape is not guaranteed: a
+ * tournament listed `opponent` as rounds — [{round, team}, …] — and the card
+ * printed "[object Object]" for each (#462, 2026-10-03). A non-string outcome
+ * was also behind the «raw.trim is not a function» render failures. Only plain
+ * text (or a number, as text) reaches the card; anything else is left out.
+ */
+function cardText(value: unknown): string | null {
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  if (typeof value !== "string") return null;
+  const t = value.trim();
+  return t ? t : null;
+}
+
 export function parseCardFacts(factSheetJson: string | null): CardFacts {
   const empty: CardFacts = { opponent: null, competition: null, date: null, finalScore: null, outcome: null };
   if (!factSheetJson) return empty;
   try {
     const fs = JSON.parse(factSheetJson) as {
-      event?: { opponent?: string | null; competition?: string | null; date?: string | null } | null;
-      result?: { final_score?: string | null; outcome?: string | null } | null;
-    };
+      event?: { opponent?: unknown; competition?: unknown; date?: unknown } | null;
+      result?: { final_score?: unknown; outcome?: unknown } | null;
+    } | null;
     return {
-      opponent: fs.event?.opponent ?? null,
-      competition: fs.event?.competition ?? null,
-      date: fs.event?.date ?? null,
-      finalScore: fs.result?.final_score ?? null,
-      outcome: fs.result?.outcome ?? null,
+      opponent: cardText(fs?.event?.opponent),
+      competition: cardText(fs?.event?.competition),
+      date: cardText(fs?.event?.date),
+      finalScore: cardText(fs?.result?.final_score),
+      outcome: cardText(fs?.result?.outcome),
     };
   } catch {
     return empty;
