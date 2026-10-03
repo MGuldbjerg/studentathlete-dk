@@ -4,6 +4,23 @@
 
 ---
 
+## 🖼 Fixing a published card takes three steps, in this order (2026-10-03)
+
+#462's card showed "[object Object]" five times: the fact sheet stored `event.opponent`
+as a list of rounds. `parseCardFacts` now keeps only plain text (commit 69bb4c0); 18
+British articles were affected, 7 of which had never rendered at all.
+
+A corrected card does NOT reach readers by re-rendering alone. The URL is versioned
+(`/og/cards/card-<id>-v9.webp`), so it never changes:
+
+1. `render-cards.ts --article N --force` (both formats, if an `ig-` card exists)
+2. `bash scripts/deploy-live.sh` — the deploy copies `card_blobs` to static files;
+   a deploy BEFORE step 1 ships the old card
+3. purge the URLs in Cloudflare (zone purge, by URL, with and without the query
+   string) — the edge answered `cf-cache-status: HIT` with the old file after step 2
+
+Posts already on Bluesky/Facebook/Instagram keep the old image.
+
 ## 📍 Where we are (2026-10-01)
 
 **Waiting on Mikkel:**
