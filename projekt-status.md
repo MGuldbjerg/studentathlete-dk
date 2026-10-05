@@ -1,6 +1,29 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-10-01 (where we are — read this section first)
+**Sidst opdateret**: 2026-10-05 (where we are — read this section first)
+
+---
+
+## 📈 Threads + statistics dashboard (2026-10-05)
+
+**Threads** (c5c534e): `channels/threads.ts`, queues `threads_dk`/`threads_uk`, TEXT +
+`link_attachment` + country tag as `topic_tag`. Inert until Mikkel creates the Threads
+profiles + the app's Threads use case, then runs `setup-threads.bat` per market (scopes
+`threads_basic`, `threads_content_publish`, `threads_manage_insights`). Renewal rides on
+`refresh-ig-tokens.yml`. Unverified: whether the ad restriction blocks the Threads use case.
+
+**Dashboard** (0a44856, fdef118), all three NOT live yet:
+1. `bash scripts/migrate-live.sh migration-061-social-stats.sql` — was blocked by the
+   permission classifier in-session; needs Mikkel's go. **Run it BEFORE deploying.**
+   (The track route falls back without `site` if deployed first, so no visits are lost.)
+2. `bash scripts/deploy-live.sh`.
+3. `npx tsx pipeline/report/backfill-event-site.ts` (dry run) → `--apply` is an UPDATE on
+   live data: ask first.
+- Social links now carry `?kilde=`/`?source=<channel>` (live with the next social run —
+  the pipeline runs from main, not from the deploy). Reason: 30 days, dozens of UK
+  Bluesky posts, **zero** bsky.app referrers — app clicks carry none.
+- `follower-counts.yml` runs 05:50 UTC daily; it fails (Discord) until migration 061 runs.
+- Baseline 2026-10-05: Bluesky DK 3 followers, Bluesky UK 10.
 
 ---
 
