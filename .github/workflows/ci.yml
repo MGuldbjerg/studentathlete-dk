@@ -85,6 +85,7 @@ jobs:
             pipeline/report/_indexnow-backfill-test.ts \
             pipeline/profiles/_profile-drafts-test.ts \
             src/lib/_analytics-test.ts \
+            src/lib/_social-stats-test.ts \
             src/lib/_site-family-test.ts \
             src/lib/_db-errors-test.ts \
             src/lib/_article-url-test.ts \

@@ -51,6 +51,7 @@ import { createFacebookChannel } from "./channels/facebook";
 import { createInstagramChannel } from "./channels/instagram";
 import { createThreadsChannel } from "./channels/threads";
 import { allAccounts } from "./registry";
+import { sourceParam } from "../../src/lib/routes";
 import type { Platform } from "./types";
 
 /** One factory per platform in SOCIAL_PLATFORMS; each builds one country's account. */
@@ -190,13 +191,31 @@ async function expireStale(db: D1Client): Promise<number> {
   return res.meta.changes;
 }
 
+/**
+ * The article link as the CHANNEL posts it: `?kilde=bluesky_uk` on .dk,
+ * `?source=…` on .co.uk (the site's own parameter name).
+ *
+ * Without it the dashboard could not tell which post sent a visit: app clicks
+ * often carry no referrer — 30 days to 2026-10-05 had dozens of British
+ * Bluesky posts and zero bsky.app referrers. The channel name is the
+ * social_posts.channel value, so visits join straight onto posts.
+ */
+export function taggedArticleUrl(url: string, channel: string, lang: string): string {
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}${sourceParam(lang)}=${encodeURIComponent(channel)}`;
+}
+
 function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
   // Artiklens EGET site — ikke modul-konstanten. Den britiske artikel blev
   // postet med et .dk-link, som ikke engang findes på det site.
   const profile = countryProfile(row.country);
   const base = siteBaseUrl(profile);
   // Sproget skal med: sport-sluggen i adressen er sitets, ikke standardsitets.
-  const url = base + getArticleUrl({ slug: row.slug, sport: row.sport }, profile.language);
+  const url = taggedArticleUrl(
+    base + getArticleUrl({ slug: row.slug, sport: row.sport }, profile.language),
+    channel.name,
+    profile.language,
+  );
   // Kanalens eget kort: Instagram kan kun bruge 1080×1350-JPEG'et, resten
   // bruger delekortet. Se CardKind.
   const imageUrl =

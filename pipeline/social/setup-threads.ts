@@ -4,7 +4,10 @@
  *   npx tsx pipeline/social/setup-threads.ts --country UK      (or: setup-threads.bat)
  *
  * Paste the token from the app dashboard (Threads use case → "User Token
- * Generator", logged in as the market's Threads profile). The script:
+ * Generator", logged in as the market's Threads profile). Grant
+ * `threads_basic`, `threads_content_publish` AND `threads_manage_insights` —
+ * the last one is what collect-followers.ts reads the follower count with.
+ * The script:
  *   1. upgrades it to a 60-day token if it is short-lived (needs THREADS_APP_SECRET
  *      in the environment; a token from the generator is usually long-lived already),
  *   2. asks /me who it belongs to and prints the username — check it is the

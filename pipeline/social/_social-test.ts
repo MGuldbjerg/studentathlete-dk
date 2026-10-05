@@ -9,6 +9,7 @@ import {
   channelIsDisabled,
   distributionAllowed,
   profileAllowsDistribution,
+  taggedArticleUrl,
 } from "./post-social";
 import { buildBlueskyRecord, createBlueskyChannel, tagFacets } from "./channels/bluesky";
 import { hashtagLine, hashtagsFor } from "./hashtags";
@@ -20,6 +21,9 @@ import {
   isContainerNotReadyError,
 } from "./channels/instagram";
 import { patDaysLeft, refreshRequestFor } from "./refresh-ig-tokens";
+import { followerRequest } from "./collect-followers";
+import { dashboardChannels } from "../../src/lib/social-stats";
+import { COUNTRIES } from "../../src/lib/countries";
 import { createThreadsChannel, threadsContainerParams, threadsTopicTag } from "./channels/threads";
 import { countryForUrl } from "./rescrape-facebook";
 import { scopesNotGrantedForTarget } from "./check-tokens";
@@ -849,3 +853,52 @@ expect("IG refresh grant", igReq.includes("grant_type=ig_refresh_token"), true);
 const thReq = refreshRequestFor("threads", "abc");
 expect("Threads refresh host", thReq.startsWith("https://graph.threads.net/refresh_access_token?"), true);
 expect("Threads refresh grant", thReq.includes("grant_type=th_refresh_token"), true);
+
+// ── Social links carry their channel (2026-10-05) ─────────────────────────
+// Zero bsky.app referrers in 30 days: app clicks carry none. The tag is the
+// only way the dashboard can join a visit to the post that sent it.
+expect("DK link uses ?kilde=", taggedArticleUrl("https://studentathlete.dk/fodbold/x", "bluesky", "da"), "https://studentathlete.dk/fodbold/x?kilde=bluesky");
+expect("UK link uses ?source=", taggedArticleUrl("https://www.student-athlete.co.uk/football/x", "threads_uk", "en"), "https://www.student-athlete.co.uk/football/x?source=threads_uk");
+expect("existing query → &", taggedArticleUrl("https://a.dk/x?p=2", "instagram", "da"), "https://a.dk/x?p=2&kilde=instagram");
+
+// ── Follower counts (2026-10-05) ──────────────────────────────────────────
+const acct = (platform: "bluesky" | "instagram" | "facebook" | "threads", country: string) =>
+  ({ platform, country, channel: channelNameFor(platform, country) });
+delete process.env.BLUESKY_UK_HANDLE;
+expect("followers: no handle → no request", followerRequest(acct("bluesky", "UK")), null);
+process.env.BLUESKY_UK_HANDLE = "student-athlete.co.uk";
+const bsReq = followerRequest(acct("bluesky", "UK"))!;
+expect("followers: bluesky asks the public AppView", bsReq.url.startsWith("https://public.api.bsky.app/"), true);
+expect("followers: bluesky needs no password", bsReq.url.includes("student-athlete.co.uk"), true);
+expect("followers: bluesky count", bsReq.pick({ followersCount: 10 }), 10);
+expect("followers: missing count → null", bsReq.pick({}), null);
+delete process.env.BLUESKY_UK_HANDLE;
+
+expect("followers: unconfigured IG → null", followerRequest(acct("instagram", "UK")), null);
+process.env.IG_UK_USER_ID = "17841";
+process.env.IG_UK_ACCESS_TOKEN = "t";
+process.env.IG_UK_LOGIN = "instagram";
+const igFollow = followerRequest(acct("instagram", "UK"))!;
+expect("followers: IG UK on the Instagram-login host", igFollow.url.startsWith("https://graph.instagram.com/"), true);
+expect("followers: IG count", igFollow.pick({ followers_count: 42, id: "1" }), 42);
+delete process.env.IG_UK_USER_ID;
+delete process.env.IG_UK_ACCESS_TOKEN;
+delete process.env.IG_UK_LOGIN;
+
+process.env.THREADS_UK_USER_ID = "9";
+process.env.THREADS_UK_ACCESS_TOKEN = "t";
+const thFollow = followerRequest(acct("threads", "UK"))!;
+expect("followers: threads uses insights", thFollow.url.includes("/threads_insights?metric=followers_count"), true);
+expect("followers: threads count from total_value",
+  thFollow.pick({ data: [{ name: "followers_count", total_value: { value: 7 } }] }), 7);
+expect("followers: threads without the metric → null", thFollow.pick({ data: [] }), null);
+delete process.env.THREADS_UK_USER_ID;
+delete process.env.THREADS_UK_ACCESS_TOKEN;
+
+// The dashboard keeps its own copy of the channel names (pipeline/ is outside
+// the Next build). A drift would silently show a channel with zero posts.
+expect(
+  "dashboard channel names = registry channel names",
+  JSON.stringify(dashboardChannels(Object.keys(COUNTRIES)).map((c) => c.channel).sort()),
+  JSON.stringify(allAccounts().map((a) => a.channel).sort()),
+);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentLanguage } from "@/lib/site-server";
+import { currentLanguage, currentSite } from "@/lib/site-server";
 import type { NextRequest } from "next/server";
 import { isbot } from "isbot";
 import { getDB, getEnv } from "@/lib/db";
@@ -57,6 +57,9 @@ export async function POST(req: NextRequest) {
     // på det site kaldet kom FRA: sport-sluggen i stien er sitets, ikke
     // standardsitets.
     const { pageType, sport } = classify(path, await currentLanguage());
+    // Which site the visit landed on. `country` below is the VISITOR's
+    // country, not the site's (migration 061).
+    const site = (await currentSite()).code;
     const country = req.headers.get("cf-ipcountry");
     const device = deviceFromUA(ua);
     const ip = req.headers.get("cf-connecting-ip") ?? "0.0.0.0";
@@ -99,10 +102,10 @@ export async function POST(req: NextRequest) {
     await db
       .prepare(
         `INSERT INTO events
-           (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+           (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source, site)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .bind(type, path, pageType, sport, referrer, country, device, visitorHash, clickKind, clickTarget, source)
+      .bind(type, path, pageType, sport, referrer, country, device, visitorHash, clickKind, clickTarget, source, site)
       .run();
 
     return ack();
