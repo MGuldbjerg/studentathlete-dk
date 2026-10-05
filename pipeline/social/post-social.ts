@@ -452,6 +452,32 @@ async function drainChannel(
   return { posted, error: null };
 }
 
+/**
+ * Drain every channel AT THE SAME TIME.
+ *
+ * The in-run spacing (RUN_BUDGET_MINUTES) is a budget per CHANNEL, but the
+ * channels used to run one after another, so their waits added up: three
+ * British channels with two posts each = 90 minutes of sleeping against the
+ * job's 70-minute timeout. 5 of 8 runs from 3-5 October were killed that way,
+ * always before the channels at the end of the list — and Threads is last.
+ * In parallel, a run lasts as long as its slowest channel.
+ *
+ * A channel that throws is recorded as that channel's error; it never stops
+ * the others (they post to different accounts and different queue rows).
+ */
+export async function drainAll<C extends { name: string }>(
+  channels: C[],
+  drain: (ch: C) => Promise<{ posted: number; error: string | null }>,
+): Promise<{ posted: number; errors: string[] }> {
+  const results = await Promise.all(
+    channels.map((ch) =>
+      drain(ch).catch((err: unknown) => ({ posted: 0, error: err instanceof Error ? err.message : String(err) })),
+    ),
+  );
+  const errors = results.flatMap((r, i) => (r.error ? [`${channels[i].name}: ${r.error}`] : []));
+  return { posted: results.reduce((s, r) => s + r.posted, 0), errors };
+}
+
 async function main(): Promise<void> {
   const dryRun = process.argv.includes("--dry-run");
   const disabled = ALL_CHANNELS.filter((c) => channelIsDisabled(c.name));
@@ -485,13 +511,7 @@ async function main(): Promise<void> {
   const expired = await expireStale(db);
   if (expired > 0) console.log(`Markerede ${expired} forældede kø-rækker som expired.`);
 
-  const errors: string[] = [];
-  let postedTotal = 0;
-  for (const ch of channels) {
-    const { posted, error } = await drainChannel(db, ch, dryRun);
-    postedTotal += posted;
-    if (error) errors.push(`${ch.name}: ${error}`);
-  }
+  const { posted: postedTotal, errors } = await drainAll(channels, (ch) => drainChannel(db, ch, dryRun));
   console.log(`I alt postet: ${postedTotal}`);
 
   if (errors.length > 0) {

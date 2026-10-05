@@ -10,6 +10,7 @@ import {
   distributionAllowed,
   profileAllowsDistribution,
   taggedArticleUrl,
+  drainAll,
 } from "./post-social";
 import { buildBlueskyRecord, createBlueskyChannel, tagFacets } from "./channels/bluesky";
 import { hashtagLine, hashtagsFor } from "./hashtags";
@@ -477,6 +478,21 @@ void (async () => {
   globalThis.fetch = realFetch;
   delete process.env.BLUESKY_UK_HANDLE;
   delete process.env.BLUESKY_UK_APP_PASSWORD;
+
+  // ── Channels drain in parallel (2026-10-05: 5 of 8 runs hit the timeout) ──
+  {
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const t0 = Date.now();
+    const out = await drainAll([{ name: "a" }, { name: "b" }, { name: "c" }], async (ch) => {
+      await wait(150); // stands in for the 30-minute in-run spacing
+      if (ch.name === "b") throw new Error("boom");
+      return { posted: 2, error: null };
+    });
+    const took = Date.now() - t0;
+    expect("drainAll: waits overlap (≈ one wait, not three)", took < 300, true);
+    expect("drainAll: posts are summed", out.posted, 4);
+    expect("drainAll: a throwing channel becomes its own error", out.errors.join("|"), "b: boom");
+  }
 
   console.log(`\n${passed} bestået, ${failed} fejlet`);
   if (failed > 0) process.exit(1);
