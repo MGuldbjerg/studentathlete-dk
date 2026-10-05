@@ -14,6 +14,9 @@
  *   Facebook  målt: 1 tag ≈ 593 interaktioner, 3-5 ≈ 416, 6-10 ≈ 307. Flere
  *             tags koster.
  *
+ *   Threads   one `topic_tag` per post, sent as an API field, not in the text.
+ *             It reuses COUNTRY_TAGS below (channels/threads.ts).
+ *
  * Derfor får kun Bluesky tags. De andre kanaler ville betale i plads og
  * troværdighed for noget der ikke virker.
  *

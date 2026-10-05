@@ -24,14 +24,15 @@
 import { COUNTRIES } from "../../src/lib/countries";
 import type { Platform } from "./types";
 
-/** Platformene med en adapter. Threads hører til her, når den bygges. */
-export const SOCIAL_PLATFORMS: Platform[] = ["bluesky", "facebook", "instagram"];
+/** Platformene med en adapter. */
+export const SOCIAL_PLATFORMS: Platform[] = ["bluesky", "facebook", "instagram", "threads"];
 
 /** Præfikset i secret-navne. `FB`/`IG` er de navne der allerede står i GitHub. */
 const ENV_PREFIX: Record<Platform, string> = {
   bluesky: "BLUESKY",
   facebook: "FB",
   instagram: "IG",
+  threads: "THREADS",
   x: "X",
 };
 
@@ -40,6 +41,7 @@ export const PLATFORM_FIELDS: Record<Platform, string[]> = {
   bluesky: ["HANDLE", "APP_PASSWORD"],
   facebook: ["PAGE_ID", "PAGE_ACCESS_TOKEN"],
   instagram: ["USER_ID", "ACCESS_TOKEN"],
+  threads: ["USER_ID", "ACCESS_TOKEN"],
   x: ["API_KEY", "API_SECRET", "ACCESS_TOKEN", "ACCESS_TOKEN_SECRET"],
 };
 

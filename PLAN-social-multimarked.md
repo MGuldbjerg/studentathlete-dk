@@ -100,8 +100,8 @@ Bluesky er den nemme: app-passwords, ingen OAuth, ingen portefølje.
 Symmetriske navne uden et implicit standardmarked:
 
 ```
-BLUESKY_DK_HANDLE      FB_DK_PAGE_ID            IG_DK_USER_ID        THREADS_DK_TOKEN
-BLUESKY_UK_HANDLE      FB_UK_PAGE_ID            IG_UK_USER_ID        THREADS_UK_TOKEN
+BLUESKY_DK_HANDLE      FB_DK_PAGE_ID            IG_DK_USER_ID        THREADS_DK_USER_ID + THREADS_DK_ACCESS_TOKEN
+BLUESKY_UK_HANDLE      FB_UK_PAGE_ID            IG_UK_USER_ID        THREADS_UK_USER_ID + THREADS_UK_ACCESS_TOKEN
 ```
 
 At `BLUESKY_HANDLE` er dansk og `BLUESKY_UK_HANDLE` britisk er den samme
@@ -149,7 +149,11 @@ Testen holder præcis dét fast; den er ikke pedanteri.
 2. **Systembruger for DK** — blokeret på at appen kan lægges i porteføljen
    (Meta afviste handlingen 22. september som «midlertidigt udelukket»).
 3. **UK-side + UK-IG-konto** → `sa-publisher-uk`.
-4. **Threads** pr. marked, med et fornyelsesjob til 60-dages-tokenet.
+4. **Threads** — adapter built 2026-10-05 (`channels/threads.ts`, queues
+   `threads_dk` / `threads_uk`). TEXT post + `link_attachment` (clickable
+   preview) + one `topic_tag` (the country tag). Weekly renewal rides on
+   `refresh-ig-tokens.yml`. Remaining: Mikkel creates the Threads profiles and
+   the app's Threads use case, then runs `setup-threads.bat` per market.
 
 ## Arbejdsdelingen med Claude
 

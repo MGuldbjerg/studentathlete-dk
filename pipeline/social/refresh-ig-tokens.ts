@@ -1,5 +1,8 @@
 /**
- * Renew Instagram-login tokens before they die (weekly, refresh-ig-tokens.yml).
+ * Renew Instagram-login and Threads tokens before they die (weekly, refresh-ig-tokens.yml).
+ *
+ * Both are 60-day long-lived tokens with the same refresh rules; they differ
+ * only in host and grant type (`refreshRequestFor`). Threads joined 2026-10-05.
  *
  *   npx tsx pipeline/social/refresh-ig-tokens.ts [--dry-run]
  *
@@ -18,10 +21,17 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { allAccounts, envNameFor, readAccountEnv } from "./registry";
+import { allAccounts, envNameFor, readAccountEnv, type SocialAccount } from "./registry";
 import { usesInstagramLogin } from "./channels/instagram";
 
-const REFRESH_URL = "https://graph.instagram.com/refresh_access_token";
+/** The refresh request for one token. Mixing the two up gives a 400 every week. */
+export function refreshRequestFor(platform: "instagram" | "threads", token: string): string {
+  const [host, grant] =
+    platform === "threads"
+      ? ["https://graph.threads.net/refresh_access_token", "th_refresh_token"]
+      : ["https://graph.instagram.com/refresh_access_token", "ig_refresh_token"];
+  return `${host}?grant_type=${grant}&access_token=${encodeURIComponent(token)}`;
+}
 
 /** Warn this many days before the PAT that writes the secrets expires. */
 const PAT_WARNING_DAYS = 21;
@@ -41,8 +51,8 @@ function patExpiryHeader(repo: string): string | null {
   return line ? line.split(":").slice(1).join(":").trim() : null;
 }
 
-async function refresh(token: string): Promise<{ token: string; days: number }> {
-  const res = await fetch(`${REFRESH_URL}?grant_type=ig_refresh_token&access_token=${encodeURIComponent(token)}`);
+async function refresh(platform: "instagram" | "threads", token: string): Promise<{ token: string; days: number }> {
+  const res = await fetch(refreshRequestFor(platform, token));
   if (!res.ok) throw new Error(`refresh fejlede (${res.status}): ${(await res.text()).slice(0, 300)}`);
   const data = (await res.json()) as { access_token?: string; expires_in?: number };
   if (!data.access_token) throw new Error("refresh-svaret havde intet access_token");
@@ -63,12 +73,17 @@ async function main(): Promise<void> {
   }
 
   let failed = false;
-  const accounts = allAccounts(["instagram"]).filter((a) => usesInstagramLogin(a.country));
-  if (accounts.length === 0) console.log("Ingen konti på Instagram login — intet at forny.");
+  // Instagram only on Instagram login (Facebook-login tokens are page tokens
+  // that do not expire); Threads always.
+  const accounts: SocialAccount[] = [
+    ...allAccounts(["instagram"]).filter((a) => usesInstagramLogin(a.country)),
+    ...allAccounts(["threads"]),
+  ];
 
   for (const a of accounts) {
-    const name = envNameFor("instagram", a.country, "ACCESS_TOKEN");
-    const token = readAccountEnv("instagram", a.country, "ACCESS_TOKEN");
+    const platform = a.platform as "instagram" | "threads";
+    const name = envNameFor(platform, a.country, "ACCESS_TOKEN");
+    const token = readAccountEnv(platform, a.country, "ACCESS_TOKEN");
     if (!token) {
       console.log(`${a.channel}: ${name} mangler — springes over`);
       continue;
@@ -78,7 +93,7 @@ async function main(): Promise<void> {
       continue;
     }
     try {
-      const fresh = await refresh(token);
+      const fresh = await refresh(platform, token);
       // Mask before anything could echo it; GitHub hides the value from then on.
       console.log(`::add-mask::${fresh.token}`);
       writeSecret(name, fresh.token, repo!);

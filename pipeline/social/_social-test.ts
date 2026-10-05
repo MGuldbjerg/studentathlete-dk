@@ -19,7 +19,8 @@ import {
   interpretContainerStatus,
   isContainerNotReadyError,
 } from "./channels/instagram";
-import { patDaysLeft } from "./refresh-ig-tokens";
+import { patDaysLeft, refreshRequestFor } from "./refresh-ig-tokens";
+import { createThreadsChannel, threadsContainerParams, threadsTopicTag } from "./channels/threads";
 import { countryForUrl } from "./rescrape-facebook";
 import { scopesNotGrantedForTarget } from "./check-tokens";
 import {
@@ -711,7 +712,7 @@ delete process.env.FB_DK_PAGE_ACCESS_TOKEN;
 
 // Landeregistret driver listen: et nyt land giver sine konti gratis.
 const accounts = allAccounts();
-expect("alle lande × alle platforme", accounts.length, 6);
+expect("alle lande × alle platforme", accounts.length, 8);
 expect("UK har en facebook-konto i registret", accounts.some((a) => a.channel === "facebook_uk"), true);
 expect("DK's bluesky hedder stadig bluesky", accounts.some((a) => a.channel === "bluesky"), true);
 
@@ -795,3 +796,56 @@ expect("window: at the edge is in", withinQueueWindow(isoMinus(igExpiry), "insta
 expect("window: older than expiry is out", withinQueueWindow(isoMinus(igExpiry + 1), "instagram_uk", winNow), false);
 expect("window: unpublished is out", withinQueueWindow(null, "instagram_uk", winNow), false);
 
+
+// ── Threads (2026-10-05) ──────────────────────────────────────────────────
+// New accounts, so symmetric names on both the queue and the secrets.
+expect("threads DK queue name", channelNameFor("threads", "DK"), "threads_dk");
+expect("threads UK queue name", channelNameFor("threads", "UK"), "threads_uk");
+expect("threads secret name", envNameFor("threads", "UK", "ACCESS_TOKEN"), "THREADS_UK_ACCESS_TOKEN");
+expect("threads has no legacy secret", legacyEnvNameFor("threads", "DK", "ACCESS_TOKEN"), null);
+const thUk = ALL_CHANNELS.find((c) => c.name === "threads_uk");
+expect("threads_uk is in ALL_CHANNELS", thUk?.platform, "threads");
+expect("threads_uk is British", thUk?.country, "UK");
+// Threads draws its preview from the article's og:image, so the share card.
+expect("threads uses the share card", thUk?.cardKind, "share");
+expect("threads unconfigured without secrets", createThreadsChannel("UK").isConfigured(), false);
+process.env.THREADS_UK_USER_ID = "1";
+expect("threads half-configured is not configured", createThreadsChannel("UK").isConfigured(), false);
+process.env.THREADS_UK_ACCESS_TOKEN = "2";
+expect("threads configured with both", createThreadsChannel("UK").isConfigured(), true);
+expect("Danish Threads does not inherit British secrets", createThreadsChannel("DK").isConfigured(), false);
+delete process.env.THREADS_UK_USER_ID;
+delete process.env.THREADS_UK_ACCESS_TOKEN;
+
+// Copy: 500 characters, and the link travels as link_attachment, not in text.
+const thText = buildPostText({ ...input, description: "x".repeat(900), sport: "golf", country: "DK" }, "threads");
+expect("threads text holds 500", [...thText].length <= 500, true);
+expect("threads text carries no URL", thText.includes("http"), false);
+expect("threads text carries no hashtags (topic_tag does that)", thText.includes("#"), false);
+expect("threads = title + description", buildPostText(input, "threads"), `${input.title}\n\n${input.description}`);
+
+// Topic tag: ONE per post, the niche (country), never the sport ocean.
+expect("topic tag DK", threadsTopicTag("DK"), "dansksport");
+expect("topic tag UK", threadsTopicTag("UK"), "BritsAbroad");
+expect("unknown country → no topic", threadsTopicTag("XX"), null);
+
+const thParams = threadsContainerParams(
+  { text: "Hej", url: "https://studentathlete.dk/a", title: "t", summary: null, imageUrl: "https://x/c.png" },
+  "DK",
+  "tok",
+);
+expect("container is a TEXT post", thParams.get("media_type"), "TEXT");
+expect("container carries the link as attachment", thParams.get("link_attachment"), "https://studentathlete.dk/a");
+expect("container carries the topic", thParams.get("topic_tag"), "dansksport");
+expect("container carries the text", thParams.get("text"), "Hej");
+expect("no topic param when the country has none", threadsContainerParams(
+  { text: "x", url: "u", title: "t", summary: null, imageUrl: "i" }, "XX", "tok").has("topic_tag"), false);
+
+// Token renewal: same job, two APIs. Instagram login and Threads differ only in
+// host and grant type — mixing them up gives a 400 every week.
+const igReq = refreshRequestFor("instagram", "abc");
+expect("IG refresh host", igReq.startsWith("https://graph.instagram.com/refresh_access_token?"), true);
+expect("IG refresh grant", igReq.includes("grant_type=ig_refresh_token"), true);
+const thReq = refreshRequestFor("threads", "abc");
+expect("Threads refresh host", thReq.startsWith("https://graph.threads.net/refresh_access_token?"), true);
+expect("Threads refresh grant", thReq.includes("grant_type=th_refresh_token"), true);

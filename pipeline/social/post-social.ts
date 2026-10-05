@@ -49,6 +49,7 @@ import { createBlueskyChannel } from "./channels/bluesky";
 // import { x } from "./channels/x";
 import { createFacebookChannel } from "./channels/facebook";
 import { createInstagramChannel } from "./channels/instagram";
+import { createThreadsChannel } from "./channels/threads";
 import { allAccounts } from "./registry";
 import type { Platform } from "./types";
 
@@ -57,6 +58,7 @@ const CHANNEL_FACTORIES: Partial<Record<Platform, (country: string) => SocialCha
   bluesky: createBlueskyChannel,
   facebook: createFacebookChannel,
   instagram: createInstagramChannel,
+  threads: createThreadsChannel,
 };
 
 /**

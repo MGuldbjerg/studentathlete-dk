@@ -1,5 +1,5 @@
 /** Platformen — altså API'et. Flere kanaler kan dele én. */
-export type Platform = "bluesky" | "x" | "facebook" | "instagram";
+export type Platform = "bluesky" | "x" | "facebook" | "instagram" | "threads";
 
 /**
  * En KANAL er en konto, ikke en platform. Derfor har hvert land sit eget navn:

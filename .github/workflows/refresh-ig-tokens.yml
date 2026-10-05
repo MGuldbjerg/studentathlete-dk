@@ -1,4 +1,4 @@
-name: Forny Instagram-login-tokens
+name: Forny Instagram-login- og Threads-tokens
 
 on:
   # Weekly. Instagram-login tokens live 60 days, and a refresh is refused for a
@@ -35,6 +35,8 @@ jobs:
           # Same list as social-post.yml — keep them in step.
           IG_UK_LOGIN: instagram
           IG_UK_ACCESS_TOKEN: ${{ secrets.IG_UK_ACCESS_TOKEN }}
+          THREADS_DK_ACCESS_TOKEN: ${{ secrets.THREADS_DK_ACCESS_TOKEN }}
+          THREADS_UK_ACCESS_TOKEN: ${{ secrets.THREADS_UK_ACCESS_TOKEN }}
 
       - name: Discord-notifikation ved fejl
         if: failure()
@@ -43,4 +45,4 @@ jobs:
         run: |
           curl -s -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Instagram-token blev ikke fornyet\",\"description\":\"Tokenet udløber efter 60 dage uden fornyelse, og så stopper Instagram for det marked. Tjek [GitHub Actions](https://github.com/MGuldbjerg/studentathlete-dk/actions/workflows/refresh-ig-tokens.yml).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+            -d "{\"embeds\":[{\"title\":\"❌ Instagram/Threads-token blev ikke fornyet\",\"description\":\"Tokenet udløber efter 60 dage uden fornyelse, og så stopper Instagram for det marked. Tjek [GitHub Actions](https://github.com/MGuldbjerg/studentathlete-dk/actions/workflows/refresh-ig-tokens.yml).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

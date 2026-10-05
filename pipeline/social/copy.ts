@@ -64,6 +64,8 @@ export function withDescription(title: string, description: string | null, max: 
  * Facebook: message + link sendes som separate felter; rigelig plads til ingress.
  * Instagram: captions gør IKKE links klikbare — derfor ingen URL i teksten, men
  *   en henvisning til bio-linket. Grænsen er 2.200 tegn.
+ * Threads: 500 characters; the link travels as `link_attachment` (a preview
+ *   card), and the one topic tag as `topic_tag` — neither belongs in the text.
  */
 export function buildPostText(input: PostCopyInput, platform: Platform): string {
   // Teksten hører til PLATFORMEN (tegngrænser, hvor linket må stå), ikke til
@@ -91,5 +93,7 @@ ${line}`;
       const body = withDescription(input.title, input.description, 2200 - bio.length - 2);
       return `${body}\n\n${bio}`;
     }
+    case "threads":
+      return withDescription(input.title, input.description, 500);
   }
 }

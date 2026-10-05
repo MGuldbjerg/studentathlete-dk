@@ -111,6 +111,11 @@ jobs:
           # The UK account posts via Instagram login (no Facebook page link possible).
           IG_UK_LOGIN: instagram
           IG_UK_ACCESS_TOKEN: ${{ secrets.IG_UK_ACCESS_TOKEN }}
+          # Threads (2026-10-05): own host, own 60-day token. Unset → skipped.
+          THREADS_DK_USER_ID: ${{ secrets.THREADS_DK_USER_ID }}
+          THREADS_DK_ACCESS_TOKEN: ${{ secrets.THREADS_DK_ACCESS_TOKEN }}
+          THREADS_UK_USER_ID: ${{ secrets.THREADS_UK_USER_ID }}
+          THREADS_UK_ACCESS_TOKEN: ${{ secrets.THREADS_UK_ACCESS_TOKEN }}
 
       # Kun ved fejl — vellykkede opslag er synlige på kanalerne selv
       # (samme princip som discover-daily: ingen "postede N"-støj).
