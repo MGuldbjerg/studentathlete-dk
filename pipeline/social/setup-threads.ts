@@ -8,8 +8,8 @@
  * `threads_basic`, `threads_content_publish` AND `threads_manage_insights` —
  * the last one is what collect-followers.ts reads the follower count with.
  * The script:
- *   1. upgrades it to a 60-day token if it is short-lived (needs THREADS_APP_SECRET
- *      in the environment; a token from the generator is usually long-lived already),
+ *   1. upgrades it to a 60-day token if it is short-lived (asks for the Threads
+ *      app secret, or reads THREADS_APP_SECRET),
  *   2. asks /me who it belongs to and prints the username — check it is the
  *      right market's profile before anything is written,
  *   3. writes THREADS_<CC>_USER_ID + THREADS_<CC>_ACCESS_TOKEN with `gh secret set`.
@@ -50,8 +50,12 @@ async function main(): Promise<void> {
   if (!token) throw new Error("no token given");
 
   // Short-lived tokens last an hour; the exchange gives 60 days. A long-lived
-  // token is refused by the exchange, so it is only tried with a secret at hand.
-  const secret = process.env.THREADS_APP_SECRET;
+  // token is refused by the exchange, which is harmless — so ask for the
+  // secret rather than require it in the environment (a double-clicked .bat
+  // has none).
+  const secret =
+    process.env.THREADS_APP_SECRET ||
+    (await rl.question("Threads app secret (Enter to skip if the token is already long-lived): ")).trim();
   if (secret) {
     try {
       const ex = await getJson(
