@@ -44,11 +44,11 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
     slug: "what-is-the-ncaa",
     category: "system",
     title: "What is the NCAA?",
-    metaTitle: "What is the NCAA? A British guide to American college sport",
+    metaTitle: "What is the NCAA? A UK guide to American college sport",
     description:
-      "The NCAA governs university sport in the United States. Here is what it is, how it is organised, and why British athletes end up there.",
+      "The NCAA governs university sport in the United States. Here is what it is, how it is organised, and why UK athletes end up there.",
     intro:
-      "The National Collegiate Athletic Association is the body that organises competitive sport at American universities. For a British reader the closest comparison is BUCS — but the scale is so different that the comparison breaks down quickly.",
+      "The National Collegiate Athletic Association is the body that organises competitive sport at American universities. For a UK reader the closest comparison is BUCS — but the scale is so different that the comparison breaks down quickly.",
     sections: [
       {
         heading: "What the NCAA actually is",
@@ -58,16 +58,16 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         ],
       },
       {
-        heading: "Why the scale surprises British readers",
+        heading: "Why the scale surprises UK readers",
         body: [
           "American university sport is a mass spectator business. The largest American football stadiums hold more than 100,000 people for a fixture between two universities, and the national basketball tournament is one of the biggest events in American sport.",
           "British university sport, by contrast, is played almost entirely for participation. BUCS fixtures are rarely broadcast and rarely ticketed. The NCAA operates in a different economic universe, which is why a scholarship there can be worth a great deal of money.",
         ],
       },
       {
-        heading: "What it means for a British athlete",
+        heading: "What it means for a UK athlete",
         body: [
-          "For a British athlete, the NCAA offers something the domestic system generally does not: full-time coaching, facilities and competition, alongside a degree, funded in whole or in part.",
+          "For a UK athlete, the NCAA offers something the domestic system generally does not: full-time coaching, facilities and competition, alongside a degree, funded in whole or in part.",
           "The trade is that you are bound by NCAA rules on eligibility, amateurism and academic progress for the whole of your time there.",
         ],
       },
@@ -100,11 +100,11 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
     slug: "ncaa-divisions",
     category: "system",
     title: "Divisions in the NCAA: I, II and III",
-    metaTitle: "NCAA Division I, II and III explained — for British athletes",
+    metaTitle: "NCAA Division I, II and III explained — for UK athletes",
     description:
       "The three NCAA divisions differ in funding, time commitment and standard. Which one suits you is not simply a question of how good you are.",
     intro:
-      "The NCAA is split into three divisions. The obvious difference is standard, but the more consequential differences are money and time — and those cut in directions British athletes do not always expect.",
+      "The NCAA is split into three divisions. The obvious difference is standard, but the more consequential differences are money and time — and those cut in directions UK athletes do not always expect.",
     sections: [
       {
         heading: "Division I",
@@ -116,7 +116,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         heading: "Division II",
         body: [
           "A genuine middle ground. Athletic scholarships exist but are usually partial, and are often combined with academic awards. The competitive standard in many sports is high, while the time demands are lighter than in Division I.",
-          "For British athletes this is frequently the most realistic target, and in several sports it is where the largest number of Britons actually end up.",
+          "For UK athletes this is frequently the most realistic target, and in several sports it is where the largest number of UK athletes actually end up.",
         ],
       },
       {
@@ -201,11 +201,11 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
     slug: "ncaa-naia-njcaa",
     category: "system",
     title: "NCAA, NAIA and NJCAA: what is the difference?",
-    metaTitle: "NCAA vs NAIA vs NJCAA — which route suits a British athlete?",
+    metaTitle: "NCAA vs NAIA vs NJCAA — which route suits a UK athlete?",
     description:
       "Three separate organisations run American college sport. They have different rules, different standards and different entry requirements.",
     intro:
-      "Most British athletes have heard of the NCAA and nothing else. In practice there are three organisations, and for some athletes the other two are the better route — or the only realistic one.",
+      "Most UK athletes have heard of the NCAA and nothing else. In practice there are three organisations, and for some athletes the other two are the better route — or the only realistic one.",
     sections: [
       {
         heading: "NCAA",
@@ -217,7 +217,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         heading: "NAIA",
         body: [
           "A separate association of smaller universities, with its own championships and its own eligibility system. The academic entry requirements are generally more flexible than the NCAA's, and scholarships are available.",
-          "For a British athlete whose qualifications do not map cleanly onto the NCAA's core-course rules, the NAIA is often worth investigating rather than treating as a consolation prize.",
+          "For a UK athlete whose qualifications do not map cleanly onto the NCAA's core-course rules, the NAIA is often worth investigating rather than treating as a consolation prize.",
         ],
       },
       {
@@ -264,7 +264,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       {
         heading: "You choose your subject later",
         body: [
-          "British students apply to read a specific subject and start it immediately. American students take broad courses across several fields for the first year or two and declare a major later.",
+          "UK students apply to read a specific subject and start it immediately. American students take broad courses across several fields for the first year or two and declare a major later.",
           "For an athlete this is genuinely useful: it spreads the academic load and lets you change direction without starting again.",
         ],
       },
@@ -357,11 +357,11 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
     slug: "academic-requirements",
     category: "begreber",
     title: "Academic requirements & eligibility — what British qualifications need to show",
-    metaTitle: "NCAA academic requirements for British students — GCSEs, A-levels and eligibility",
+    metaTitle: "NCAA academic requirements for UK students — GCSEs, A-levels and eligibility",
     description:
       "The NCAA sets its own academic entry standard, and it maps onto GCSEs and A-levels in a specific way. Here is what British qualifications must cover.",
     intro:
-      "This is the guide that differs most for a British reader, because the NCAA judges your school record against its own rules rather than against UCAS points. Getting it wrong is the most common reason a capable athlete never makes it across.",
+      "This is the guide that differs most for a UK reader, because the NCAA judges your school record against its own rules rather than against UCAS points. Getting it wrong is the most common reason a capable athlete never makes it across.",
     sections: [
       {
         heading: "What the NCAA requires of everyone",
@@ -380,7 +380,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       {
         heading: "Subjects that do not count",
         body: [
-          "This is where British applicants are most often caught out. The following do not satisfy NCAA core requirements: GCSE PE, media studies, ICT, design and technology, music and art, along with applied science, applied maths and any short-course GCSE.",
+          "This is where UK applicants are most often caught out. The following do not satisfy NCAA core requirements: GCSE PE, media studies, ICT, design and technology, music and art, along with applied science, applied maths and any short-course GCSE.",
           "A student with excellent grades in a timetable weighted towards those subjects can fail the NCAA standard while comfortably meeting UCAS requirements. If you are still choosing options, choose with this in mind.",
         ],
       },
@@ -394,7 +394,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       {
         heading: "Registering",
         body: [
-          "You register with the NCAA Eligibility Center and arrange for your school to send an official transcript covering year nine upwards. British applicants have one clear advantage here: no certified translation is required, and no English language test is needed.",
+          "You register with the NCAA Eligibility Center and arrange for your school to send an official transcript covering year nine upwards. UK applicants have one clear advantage here: no certified translation is required, and no English language test is needed.",
           "Register early. Certification takes time, and offers can depend on it.",
         ],
       },
@@ -497,7 +497,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         heading: "What redshirting is",
         body: [
           "A redshirt year is one in which an athlete trains fully with the squad but does not compete, so no season of eligibility is used. It is common for athletes who arrive needing physical development, or who are behind an established player in their position.",
-          "For British athletes arriving in an unfamiliar sport or a much stronger competitive environment, a redshirt year can be the difference between adapting and drowning.",
+          "For UK athletes arriving in an unfamiliar sport or a much stronger competitive environment, a redshirt year can be the difference between adapting and drowning.",
         ],
       },
       {
@@ -595,7 +595,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       {
         heading: "What it means for a player",
         body: [
-          "Three weeks of national television can change a career. For a British player in a smaller programme, a tournament run is the single most likely route to being widely noticed.",
+          "Three weeks of national television can change a career. For a UK player in a smaller programme, a tournament run is the single most likely route to being widely noticed.",
         ],
       },
     ],

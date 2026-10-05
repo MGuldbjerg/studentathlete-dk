@@ -141,7 +141,7 @@ export const uk: CountryProfile = {
   hasPrivacyPage: true,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
-  demonym: "British",
+  demonym: "UK",
   contactEmail: "info@student-athlete.co.uk",
   cities,
   countryMarkers: [

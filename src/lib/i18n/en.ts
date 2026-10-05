@@ -355,7 +355,7 @@ const ui: LanguagePack["ui"] = {
   "footer.privacy": "Privacy",
   "footer.cookie_settings": "Cookie settings",
 
-  "home.h1": "British student athletes in the United States",
+  "home.h1": "UK student athletes in the United States",
   "home.latest": "Latest articles",
   "home.see_all": "See all",
   "home.see_all_articles": "See all articles",
@@ -377,7 +377,7 @@ const ui: LanguagePack["ui"] = {
   "archive.meta_title_sport": "{sport} — all articles",
   "archive.meta_page": "page {page}",
   "archive.meta_description":
-    "Every article from Student-Athlete.co.uk — British college athletes in the United States, newest first.",
+    "Every article from Student-Athlete.co.uk — UK college athletes in the United States, newest first.",
   "archive.showing": "Showing {from}–{to} of {total} articles. Newest first.",
   "archive.page_missing": "Page {page} does not exist — there are {total} articles in total.",
   "archive.none_yet": "No articles yet.",
@@ -409,7 +409,7 @@ const ui: LanguagePack["ui"] = {
   "carousel.next": "Next article",
   "carousel.go_to": "Go to article {n}",
   "carousel.empty_kicker": "Student-Athlete.co.uk",
-  "carousel.empty_title": "British student athletes in the United States",
+  "carousel.empty_title": "UK student athletes in the United States",
   "carousel.empty_body": "Articles are on the way — check back soon.",
 
   "crumb.home": "Home",
@@ -423,8 +423,8 @@ const ui: LanguagePack["ui"] = {
 
   "athletes.meta_title": "All athletes",
   "athletes.meta_description":
-    "Every British student athlete we cover at American universities. Browse by sport, university or name and follow their careers.",
-  "athletes.h1": "British athletes in the United States",
+    "Every UK student athlete we cover at American universities. Browse by sport, university or name and follow their careers.",
+  "athletes.h1": "UK athletes in the United States",
   "athletes.active_count": "{n} active",
   "athletes.alumni_count": "{n} alumni",
   "athletes.none": "No athletes on the site yet.",
@@ -447,7 +447,7 @@ const ui: LanguagePack["ui"] = {
   "error.body": "The page could not be loaded. Try reloading.",
   "error.retry": "Try again",
   "profile.career_highlights": "Career highlights",
-  "profile.schoolmates": "Other British athletes at {school}",
+  "profile.schoolmates": "Other UK athletes at {school}",
   "profile.honour": "Honour",
   "profile.season": "Season",
   "profile.source": "Source",
@@ -463,36 +463,36 @@ const ui: LanguagePack["ui"] = {
     "Every athlete has their own page with their university, sport and any articles we have written about them. If the list runs long, jump in at an initial.",
   "athletes.letter_nav_label": "Browse by initial",
   "athletes.letter_all": "All",
-  "athletes.letter_h1": "British athletes whose name begins with {letter}",
-  "athletes.letter_meta_title": "British athletes — {letter}",
+  "athletes.letter_h1": "UK athletes whose name begins with {letter}",
+  "athletes.letter_meta_title": "UK athletes — {letter}",
   "athletes.letter_meta_description":
-    "British student athletes at American universities whose name begins with {letter}. University, sport and articles for each athlete.",
+    "UK student athletes at American universities whose name begins with {letter}. University, sport and articles for each athlete.",
   "athletes.letter_intro":
-    "Every British athlete we follow whose name begins with {letter}. Open an athlete for their university, sport and the articles we have written.",
+    "Every UK athlete we follow whose name begins with {letter}. Open an athlete for their university, sport and the articles we have written.",
   "athletes.letter_count": "{n} athletes",
   "athletes.letter_back": "Athlete overview",
   "athletes.all_link": "See the full list",
-  "athletes.all_h1": "All British athletes",
-  "athletes.all_meta_title": "All British athletes",
+  "athletes.all_h1": "All UK athletes",
+  "athletes.all_meta_title": "All UK athletes",
   "athletes.all_meta_description":
-    "The full list of British student athletes at American universities — sort by sport, name or university.",
+    "The full list of UK student athletes at American universities — sort by sport, name or university.",
   "athletes.all_intro":
     "The full list on one page. Sort by sport, name or university, or go back and jump in at an initial.",
 
-  "schools.meta_title": "Universities with British athletes",
+  "schools.meta_title": "Universities with UK athletes",
   "schools.meta_description":
-    "The American universities where the British student athletes we cover study — grouped by NCAA division, with conference and headcount.",
+    "The American universities where the UK student athletes we cover study — grouped by NCAA division, with conference and headcount.",
   "schools.crumb": "Universities",
   "schools.intro_before":
-    "The American universities where we follow British student athletes — grouped by NCAA division. Read more about the differences in our guide to ",
+    "The American universities where we follow UK student athletes — grouped by NCAA division. Read more about the differences in our guide to ",
   "schools.intro_link": "the NCAA divisions",
-  "schools.counts": "{schools} universities · {athletes} British athletes",
+  "schools.counts": "{schools} universities · {athletes} UK athletes",
   "schools.none": "No universities to show yet.",
   "footer.stats": "Statistics",
   "stats.crumb": "Statistics",
-  "stats.meta_title": "British athletes in US college sport, in numbers",
+  "stats.meta_title": "UK athletes in US college sport, in numbers",
   "stats.nation_meta_title": "{nation}: athletes in US college sport, in numbers",
-  "stats.meta_description": "How many British student athletes are at US universities? By gender, sport and division, and by home nation — counted in our own database, updated daily.",
+  "stats.meta_description": "How many UK student athletes are at US universities? By gender, sport and division, and by home nation — counted in our own database, updated daily.",
   "stats.disclaimer": "These numbers are counted in our own database of the rosters we follow. They are not an official count: we don't cover every school, and an athlete can be missing or listed wrongly. Treat them as a good estimate — and tell us if you spot a mistake.",
   "stats.updated": "Updated {date}",
   "stats.pending": "The numbers are being calculated. Check back tomorrow.",
@@ -512,29 +512,29 @@ const ui: LanguagePack["ui"] = {
   "stats.nation.wales": "Wales",
   "stats.nation.northern-ireland": "Northern Ireland",
   "stats.nation_note": "{unknown} athletes have a hometown that only says “UK”, so they count towards the UK total but not towards one of the four nations.",
-  "schools.athlete_count_title": "{n} British athletes",
+  "schools.athlete_count_title": "{n} UK athletes",
 
   "guides.meta_title": "Guides to the NCAA and college sport",
   "guides.meta_description":
-    "What British student athletes and their families need to know about the NCAA and college sport: divisions, conferences, eligibility, the transfer portal and more.",
+    "What UK student athletes and their families need to know about the NCAA and college sport: divisions, conferences, eligibility, the transfer portal and more.",
   "guides.crumb": "Guides",
   "guides.intro":
-    "Understand how American college sport works, and follow the British athletes competing in the NCAA. This is where we collect the background — from divisions and conferences to eligibility, the transfer portal and the championships that matter.",
+    "Understand how American college sport works, and follow the UK athletes competing in the NCAA. This is where we collect the background — from divisions and conferences to eligibility, the transfer portal and the championships that matter.",
   "guides.read_more": "Read more →",
   "guides.lookup_heading": "Look up",
-  "guides.schools_card_title": "Universities with British athletes",
+  "guides.schools_card_title": "Universities with UK athletes",
   "guides.schools_card_body":
-    "The American universities where the British student athletes we cover study — sorted by division.",
-  "guides.athletes_card_title": "All British athletes",
+    "The American universities where the UK student athletes we cover study — sorted by division.",
+  "guides.athletes_card_title": "All UK athletes",
   "guides.athletes_card_body":
-    "Find and follow the British athletes we cover, across every sport.",
+    "Find and follow the UK athletes we cover, across every sport.",
   "guides.sports_heading": "NCAA sports",
   "guides.divisions_slug": "ncaa-divisions",
 
   "sport.empty_note": "Athletes and news are added as we find them.",
   "sport.active_athletes_label": "current athletes",
   "sport.articles_label": "articles",
-  "sport.athletes_heading": "British {sport} athletes in the United States",
+  "sport.athletes_heading": "UK {sport} athletes in the United States",
   "sport.see_all_athletes": "See all athletes →",
   "sport.no_content": "We do not cover {sport} yet.",
   "tpl.news_plural": "News",
@@ -571,10 +571,10 @@ const ui: LanguagePack["ui"] = {
   "profile.no_articles": "No articles yet.",
   "school.athletes": "Athletes",
   "school.no_athletes": "No athletes registered yet.",
-  "meta.sport_title": "{sport} – British athletes in the NCAA",
+  "meta.sport_title": "{sport} – UK athletes in the NCAA",
   "meta.athlete_description":
-    "{name} plays {sport} for {university}. Follow the British student athlete on {brand}.",
-  "meta.school_description": "British student athletes at {school}.",
+    "{name} plays {sport} for {university}. Follow the UK student athlete on {brand}.",
+  "meta.school_description": "UK student athletes at {school}.",
   "meta.article_description": "Read about {who} on {brand}",
 };
 

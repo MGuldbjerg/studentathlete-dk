@@ -23,12 +23,12 @@ export const SPORT_CONTENT_EN: Record<string, SportContent> = {
   "american-football": {
     title: "American Football",
     intro:
-      "British players in college football. A small but growing pathway, driven largely by the NFL Academy in London.",
+      "UK players in college football. A small but growing pathway, driven largely by the NFL Academy in London.",
     metaDescription:
-      "British players in NCAA American football — news, profiles and results from college football in the United States.",
-    pillar: `## British players in college football
+      "UK players in NCAA American football — news, profiles and results from college football in the United States.",
+    pillar: `## UK players in college football
 
-American football is the newest of the British routes into the NCAA, and the one that has changed fastest. Very few British teenagers grow up playing the sport, so almost everyone arrives late — often from the NFL Academy in London, which was set up expressly to move British and European players into American college programmes.
+American football is the newest of the UK routes into the NCAA, and the one that has changed fastest. Very few UK teenagers grow up playing the sport, so almost everyone arrives late — often from the NFL Academy in London, which was set up expressly to move UK and European players into American college programmes.
 
 That late start is less of a handicap than it sounds. Programmes recruit specific physical profiles, and a tall, fast athlete converted from rugby, basketball or athletics can develop quickly in positions such as tight end, offensive line or edge rusher.
 
@@ -38,7 +38,7 @@ The college football season is short and intense. The regular season runs from l
 
 ### The format
 
-Four quarters of 15 minutes, though the clock stops so often that a game comfortably runs past three hours. A team has four attempts to move the ball ten yards; succeed and it gets four more. A touchdown is worth six points plus an attempt at one or two more, a field goal three. What matters most to a British reader is that a team is really three teams: offence, defence and special teams, the last of which only takes the field for kicks. That is where kickers and punters belong — a specialist role with few competitors for the place, and for that reason the most realistic entry point for a European who starts late.
+Four quarters of 15 minutes, though the clock stops so often that a game comfortably runs past three hours. A team has four attempts to move the ball ten yards; succeed and it gets four more. A touchdown is worth six points plus an attempt at one or two more, a field goal three. What matters most to a UK reader is that a team is really three teams: offence, defence and special teams, the last of which only takes the field for kicks. That is where kickers and punters belong — a specialist role with few competitors for the place, and for that reason the most realistic entry point for a European who starts late.
 
 ### Scholarships and squad size
 
@@ -54,13 +54,13 @@ Conference membership has moved dramatically in recent years, as television deal
 
 ### The road to pro
 
-The NFL draft has seven rounds, and the great majority of college players are never called. Many instead sign as undrafted free agents and have to make the team through training camp. For British players the specialist positions — kicker and punter — are the most realistic route, and the International Player Pathway programme has opened another.
+The NFL draft has seven rounds, and the great majority of college players are never called. Many instead sign as undrafted free agents and have to make the team through training camp. For UK players the specialist positions — kicker and punter — are the most realistic route, and the International Player Pathway programme has opened another.
 
 It is worth keeping the proportions straight: for almost everyone, college football is four years of the sport and a degree, not a waiting room for the NFL.
 
 ### Worth knowing
 
-Crowds are unlike anything in British sport: the largest college stadiums hold more than 100,000 people for a fixture between two universities. For a British player, the adjustment is as much cultural as athletic.
+Crowds are unlike anything in British sport: the largest college stadiums hold more than 100,000 people for a fixture between two universities. For a UK player, the adjustment is as much cultural as athletic.
 
 Moving between schools happens through the [transfer portal](/guides/transfer-portal), which has changed recruiting in football more than in any other sport.
 
@@ -74,12 +74,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   basketball: {
     title: "Basketball",
     intro:
-      "British basketball players in the NCAA. College is the established route for British talent aiming at the professional game.",
+      "UK basketball players in the NCAA. College is the established route for UK talent aiming at the professional game.",
     metaDescription:
-      "British basketball players in the NCAA — news, profiles and results from college basketball in the United States.",
-    pillar: `## British basketball in the NCAA
+      "UK basketball players in the NCAA — news, profiles and results from college basketball in the United States.",
+    pillar: `## UK basketball in the NCAA
 
-Basketball has one of the clearest British pathways into American college sport. The domestic professional league is small, so ambitious British players have long looked to the United States, and a spell in the NCAA is now a normal step rather than an exotic one.
+Basketball has one of the clearest UK pathways into American college sport. The domestic professional league is small, so ambitious UK players have long looked to the United States, and a spell in the NCAA is now a normal step rather than an exotic one.
 
 ### The season
 
@@ -93,21 +93,21 @@ The national tournament is a straight knockout played in weekend blocks over thr
 
 Basketball was historically a **headcount sport**: any scholarship counted as a whole one regardless of its size, so coaches in practice awarded only full scholarships — 13 on the men's side, 15 on the women's. After the House settlement in 2025 that system is gone at the Division I schools that opted in, replaced by a **squad limit of 15 players** for both, within which the school may distribute support freely, including in partial shares.
 
-The practical consequence for a British player is that the squad is small and every place is expensive. Fifteen places means a programme does not take anyone on to see how it goes — you are recruited into a role. Outside the settlement schools and in Division II the old rules continue, and Division II deserves to be taken seriously here: the standard is high, partial awards can be combined with academic aid, and a good number of British players are there. Division III offers no athletic scholarships. See [the divisions](/guides/ncaa-divisions).
+The practical consequence for a UK player is that the squad is small and every place is expensive. Fifteen places means a programme does not take anyone on to see how it goes — you are recruited into a role. Outside the settlement schools and in Division II the old rules continue, and Division II deserves to be taken seriously here: the standard is high, partial awards can be combined with academic aid, and a good number of UK players are there. Division III offers no athletic scholarships. See [the divisions](/guides/ncaa-divisions).
 
 ### Conferences and independents
 
 Basketball is the sport where the conference matters most to what a season is worth. Each conference runs its own tournament in March, and **the winner takes an automatic place in the NCAA tournament regardless of the rest of the season** — which is why a school from a small conference can play its way in by winning three games in four days. The remaining places are handed out by a selection committee on the strength of a team's schedule, and there a strong conference counts heavily: teams from the biggest conferences get in on a good season, teams from the smallest generally have to win the tournament.
 
-Independents are now rare in basketball, precisely because a team without a conference has neither an automatic place nor a regular schedule to be judged on. So when a British player weighs two offers, the question of conference strength is not about prestige — it is direct access to March.
+Independents are now rare in basketball, precisely because a team without a conference has neither an automatic place nor a regular schedule to be judged on. So when a UK player weighs two offers, the question of conference strength is not about prestige — it is direct access to March.
 
 ### The road to pro
 
-The NBA draft has only two rounds, and the large majority of college players are never drafted. For British and European players the realistic route is usually different: a professional contract in Europe after graduating, possibly via the NBA G League. That makes the college route something other than it is for Americans, for whom the draft is the target — here it is four years of elite competition and a degree that still counts if the basketball does not carry all the way.
+The NBA draft has only two rounds, and the large majority of college players are never drafted. For UK and European players the realistic route is usually different: a professional contract in Europe after graduating, possibly via the NBA G League. That makes the college route something other than it is for Americans, for whom the draft is the target — here it is four years of elite competition and a degree that still counts if the basketball does not carry all the way.
 
 ### Worth knowing
 
-Luol Deng spent the 2003-04 season at Duke, averaging 15.1 points a game across 37 appearances and reaching the Final Four, before going seventh overall in the 2004 NBA draft. He became a British citizen in 2006 and went on to represent Great Britain — so his Duke season came before his British career rather than after it, but the route he took is the one many British players now follow. March Madness is among the biggest events in American sport: a single tournament run can turn an unknown player into a national name inside three weeks.
+Luol Deng spent the 2003-04 season at Duke, averaging 15.1 points a game across 37 appearances and reaching the Final Four, before going seventh overall in the 2004 NBA draft. He became a British citizen in 2006 and went on to represent Great Britain — so his Duke season came before his British career rather than after it, but the route he took is the one many UK players now follow. March Madness is among the biggest events in American sport: a single tournament run can turn an unknown player into a national name inside three weeks.
 
 Moving between schools happens through the [transfer portal](/guides/transfer-portal); see also [redshirt and eligibility](/guides/redshirt-and-eligibility).
 
@@ -121,12 +121,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   baseball: {
     title: "Baseball",
     intro:
-      "British players in college baseball. A rare route, but one that exists for players from Britain's small domestic baseball scene.",
+      "UK players in college baseball. A rare route, but one that exists for players from Britain's small domestic baseball scene.",
     metaDescription:
-      "British players in NCAA baseball — news, profiles and results from college baseball in the United States.",
-    pillar: `## British players in college baseball
+      "UK players in NCAA baseball — news, profiles and results from college baseball in the United States.",
+    pillar: `## UK players in college baseball
 
-Baseball is one of the thinnest British pathways into the NCAA. The domestic game is small, and most British players who reach American college baseball have spent time in the United States already, or come through Great Britain's national youth programme.
+Baseball is one of the thinnest UK pathways into the NCAA. The domestic game is small, and most UK players who reach American college baseball have spent time in the United States already, or come through Great Britain's national youth programme.
 
 ### The season
 
@@ -150,7 +150,7 @@ A handful of schools play baseball as independents, without a conference, and mu
 
 ### The road to pro
 
-Baseball has the deepest professional pipeline of any college sport. The **MLB draft** runs to 20 rounds and is held in July, and American college baseball is its single largest source of players — with the minor league system below it absorbing many more. For a British player the realistic ambition is usually the college experience itself rather than the draft, but the route exists and is unusually well trodden compared with other sports.
+Baseball has the deepest professional pipeline of any college sport. The **MLB draft** runs to 20 rounds and is held in July, and American college baseball is its single largest source of players — with the minor league system below it absorbing many more. For a UK player the realistic ambition is usually the college experience itself rather than the draft, but the route exists and is unusually well trodden compared with other sports.
 
 ### Worth knowing
 
@@ -168,14 +168,14 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   football: {
     title: "Football",
     intro:
-      "British footballers in the NCAA. For players released by an academy, American college football is one of the few routes that keeps both the sport and the education open.",
+      "UK footballers in the NCAA. For players released by an academy, American college football is one of the few routes that keeps both the sport and the education open.",
     metaDescription:
-      "British footballers in NCAA soccer — news, profiles and results from college soccer in the United States.",
-    pillar: `## British footballers in the NCAA
+      "UK footballers in NCAA soccer — news, profiles and results from college soccer in the United States.",
+    pillar: `## UK footballers in the NCAA
 
-Football is the largest British pathway into American college sport, and the reason is specific to Britain: the academy system releases a great many players at sixteen and eighteen. For a released player, the choice at home is often between non-league football and giving up. American college soccer offers a third option — a scholarship, four more years of competitive football, and a degree at the end of it.
+Football is the largest UK pathway into American college sport, and the reason is specific to Britain: the academy system releases a great many players at sixteen and eighteen. For a released player, the choice at home is often between non-league football and giving up. American college soccer offers a third option — a scholarship, four more years of competitive football, and a degree at the end of it.
 
-That makes the British cohort in college soccer different in character from, say, the Scandinavian one. Many arrive having already been full-time footballers in a professional environment, and the standard of the top college programmes suits them.
+That makes the UK cohort in college soccer different in character from, say, the Scandinavian one. Many arrive having already been full-time footballers in a professional environment, and the standard of the top college programmes suits them.
 
 ### The season
 
@@ -189,23 +189,23 @@ College soccer keeps rules that will surprise anyone raised on the British game.
 
 Soccer is one of the sports where the rules were rewritten outright on 1 July 2025. For the Division I schools that opted into the House settlement the old scholarship caps no longer exist; in their place is a squad limit of **28 players**, and the school may in principle fund all 28. That cuts both ways. More players can be paid — but a traditional American squad of 35 now has to come down to 28, and it is the marginal places that disappear.
 
-The part that matters most to a British reader: **this applies only to the Division I schools that opted in.** Schools outside the settlement continue under the old scholarship limits, Division II awards partial scholarships under the equivalency model — one pot of money spread across many players rather than a full award each — and Division III offers no athletic scholarships at all, only academic aid and bursaries. The difference is large enough to be worth understanding before signing anything: [see the divisions](/guides/ncaa-divisions).
+The part that matters most to a UK reader: **this applies only to the Division I schools that opted in.** Schools outside the settlement continue under the old scholarship limits, Division II awards partial scholarships under the equivalency model — one pot of money spread across many players rather than a full award each — and Division III offers no athletic scholarships at all, only academic aid and bursaries. The difference is large enough to be worth understanding before signing anything: [see the divisions](/guides/ncaa-divisions).
 
 ### Conferences and independents
 
-One thing confuses almost every British reader: **a school's conference is not the same in every sport.** Not every conference sponsors football, so a university whose main conference has no men's soccer plays its soccer in an entirely different one. That is why a school's gridiron team and its soccer team can compete in different leagues. A few schools have no conference in the sport at all and play as **independents** — they have to assemble a fixture list themselves and cannot win a conference title, so their route to the play-offs runs through an at-large place awarded on results.
+One thing confuses almost every UK reader: **a school's conference is not the same in every sport.** Not every conference sponsors football, so a university whose main conference has no men's soccer plays its soccer in an entirely different one. That is why a school's gridiron team and its soccer team can compete in different leagues. A few schools have no conference in the sport at all and play as **independents** — they have to assemble a fixture list themselves and cannot win a conference title, so their route to the play-offs runs through an at-large place awarded on results.
 
-This matters in practice: the conference decides who you face every week, how far you travel, and how much an automatic play-off place is worth. British footballers sit lower in the division structure than most expect — close to six in ten of the British players we track are at Division II or Division III schools, a very different distribution from the Danish cohort, which is concentrated in Division I. That is not a lesser route; the Gulf South, Sunshine State and Great Midwest conferences are where a large part of the British game in America actually happens.
+This matters in practice: the conference decides who you face every week, how far you travel, and how much an automatic play-off place is worth. UK footballers sit lower in the division structure than most expect — close to six in ten of the UK players we track are at Division II or Division III schools, a very different distribution from the Danish cohort, which is concentrated in Division I. That is not a lesser route; the Gulf South, Sunshine State and Great Midwest conferences are where a large part of the UK game in America actually happens.
 
 ### The road to pro
 
 College soccer is a real route into professional football, though not an automatic one. On the men's side the **MLS SuperDraft** still exists — the 2026 edition was held in December 2025 — but it is no longer the only door: clubs increasingly sign players directly, and being drafted guarantees no contract. On the women's side the picture changed fundamentally in 2024, when **the NWSL abolished its draft** in a new collective bargaining agreement and became the first major American league without one. Players now negotiate directly with clubs as free agents.
 
-For British players the most common route is neither: back to the EFL, the National League or a European club, with an American degree behind them.
+For UK players the most common route is neither: back to the EFL, the National League or a European club, with an American degree behind them.
 
 ### Worth knowing
 
-The compressed calendar is the biggest adjustment for British players used to a season spread across nine months. Recovery, not fitness, is usually what separates a good first year from a difficult one.
+The compressed calendar is the biggest adjustment for UK players used to a season spread across nine months. Recovery, not fitness, is usually what separates a good first year from a difficult one.
 
 Moving between schools happens through the [transfer portal](/guides/transfer-portal), and a season lost to injury need not cost a year of eligibility — see [redshirt and eligibility](/guides/redshirt-and-eligibility).
 
@@ -221,10 +221,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   athletics: {
     title: "Athletics",
     intro:
-      "British athletes in NCAA track and field. The American college system offers year-round competition across three seasons.",
+      "UK athletes in NCAA track and field. The American college system offers year-round competition across three seasons.",
     metaDescription:
-      "British athletes in NCAA athletics — news, profiles and results from college track and field in the United States.",
-    pillar: `## British athletics in the NCAA
+      "UK athletes in NCAA athletics — news, profiles and results from college track and field in the United States.",
+    pillar: `## UK athletics in the NCAA
 
 Athletics has a long British tradition of crossing the Atlantic. The attraction is structural: British athletics is largely club-based and part-time until an athlete reaches the very top, whereas an American university offers full-time coaching, facilities and competition alongside a degree.
 
@@ -244,7 +244,7 @@ Forty-five sounds generous, and it is: athletics has one of the largest squad li
 
 ### Conferences and independents
 
-Athletics is one of the sports nearly every conference sponsors, so the conference picture tracks a school's general affiliation more closely than it does in the narrow sports. Conference championships fall at the end of each of the three seasons and are the team's real measuring stick — but they do not control access to the national championship. **Athletics qualifies on performance, not on team results:** you reach the NCAA Championships by running, jumping or throwing your way onto the national descending-order list, via a regional qualifying meet. That is a meaningful difference from the team sports, where the play-off place belongs to the squad. One strong British athlete at an ordinary programme can reach a national championship alone.
+Athletics is one of the sports nearly every conference sponsors, so the conference picture tracks a school's general affiliation more closely than it does in the narrow sports. Conference championships fall at the end of each of the three seasons and are the team's real measuring stick — but they do not control access to the national championship. **Athletics qualifies on performance, not on team results:** you reach the NCAA Championships by running, jumping or throwing your way onto the national descending-order list, via a regional qualifying meet. That is a meaningful difference from the team sports, where the play-off place belongs to the squad. One strong UK athlete at an ordinary programme can reach a national championship alone.
 
 ### The road to pro
 
@@ -252,7 +252,7 @@ Athletics has no draft. The route onward runs through results: a contract with a
 
 ### Worth knowing
 
-Three competitive seasons in one year is far more racing than most British athletes are used to. Programmes manage this by targeting specific championships rather than peaking continuously.
+Three competitive seasons in one year is far more racing than most UK athletes are used to. Programmes manage this by targeting specific championships rather than peaking continuously.
 
 Moving between schools happens through the [transfer portal](/guides/transfer-portal); see also [redshirt and eligibility](/guides/redshirt-and-eligibility).
 
@@ -266,12 +266,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   swimming: {
     title: "Swimming & Diving",
     intro:
-      "British swimmers in the NCAA. College swimming combines full-time training with a degree, and the team scoring makes it unlike club swimming at home.",
+      "UK swimmers in the NCAA. College swimming combines full-time training with a degree, and the team scoring makes it unlike club swimming at home.",
     metaDescription:
-      "British swimmers in NCAA swimming and diving — news, profiles and results from college swimming in the United States.",
-    pillar: `## British swimming in the NCAA
+      "UK swimmers in NCAA swimming and diving — news, profiles and results from college swimming in the United States.",
+    pillar: `## UK swimming in the NCAA
 
-Swimming is one of Britain's strongest Olympic sports, and the American college system is a natural fit: it offers full-time training, a competitive team environment and a degree at the same time, at an age when British swimmers otherwise have to choose between the sport and their studies.
+Swimming is one of Britain's strongest Olympic sports, and the American college system is a natural fit: it offers full-time training, a competitive team environment and a degree at the same time, at an age when UK swimmers otherwise have to choose between the sport and their studies.
 
 ### The season
 
@@ -289,17 +289,17 @@ Outside the settlement schools and throughout Division II the equivalency model 
 
 ### Conferences and independents
 
-The conference shapes the ordinary week in swimming — dual meets through the autumn and the conference championship in February, which for most swimmers is the biggest meet of the year. But access to the NCAA Championships does **not** run through the conference: it runs through **times**. You qualify by hitting a standard, and the fastest in the country are invited. It is the same individual logic as athletics, and it has a real consequence for a British swimmer: you can reach an American national championship from a programme that is nowhere near the top of the country, if the clock says so.
+The conference shapes the ordinary week in swimming — dual meets through the autumn and the conference championship in February, which for most swimmers is the biggest meet of the year. But access to the NCAA Championships does **not** run through the conference: it runs through **times**. You qualify by hitting a standard, and the fastest in the country are invited. It is the same individual logic as athletics, and it has a real consequence for a UK swimmer: you can reach an American national championship from a programme that is nowhere near the top of the country, if the clock says so.
 
 Because swimming needs a pool, programmes are expensive to run and a number of universities have cut their teams over the years. It is worth asking about a programme's financial footing before accepting an offer.
 
 ### The road to pro
 
-There is no draft and no large professional league to move into. The route onward is the national team: national championships, international meets, the World Championships and the Olympics. What the NCAA offers instead is the densest competitive environment in the world for swimmers of that age, and Olympic swimmers of many nationalities have been developed in American college programmes. For a British swimmer the arithmetic is usually simple: four years of two sessions a day, a strength coach, a physiotherapist and a team around you — with a degree alongside.
+There is no draft and no large professional league to move into. The route onward is the national team: national championships, international meets, the World Championships and the Olympics. What the NCAA offers instead is the densest competitive environment in the world for swimmers of that age, and Olympic swimmers of many nationalities have been developed in American college programmes. For a UK swimmer the arithmetic is usually simple: four years of two sessions a day, a strength coach, a physiotherapist and a team around you — with a degree alongside.
 
 ### Worth knowing
 
-Racing for team points rather than personal times is the biggest mental adjustment for British swimmers. A third place that scores can matter more to the team than a personal best that does not. One practical detail: American college swimming is raced in a 25-yard pool (short course yards), not the 50 metres of an Olympic pool, so times do not compare directly with those from home.
+Racing for team points rather than personal times is the biggest mental adjustment for UK swimmers. A third place that scores can matter more to the team than a personal best that does not. One practical detail: American college swimming is raced in a 25-yard pool (short course yards), not the 50 metres of an Olympic pool, so times do not compare directly with those from home.
 
 Moving between schools happens through the [transfer portal](/guides/transfer-portal); see also [redshirt and eligibility](/guides/redshirt-and-eligibility).
 
@@ -312,12 +312,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   golf: {
     title: "Golf",
     intro:
-      "British golfers in the NCAA. American college golf is one of the best-established routes from the British amateur game to the professional tours.",
+      "UK golfers in the NCAA. American college golf is one of the best-established routes from the British amateur game to the professional tours.",
     metaDescription:
-      "British golfers in NCAA golf — news, profiles and results from college golf in the United States.",
-    pillar: `## British golf in the NCAA
+      "UK golfers in NCAA golf — news, profiles and results from college golf in the United States.",
+    pillar: `## UK golf in the NCAA
 
-Golf is the sport where the British college route is most firmly established. British junior and amateur golf is strong, the university system at home offers nothing comparable in terms of coaching and year-round competition, and American programmes actively recruit from British amateur championships.
+Golf is the sport where the UK college route is most firmly established. British junior and amateur golf is strong, the university system at home offers nothing comparable in terms of coaching and year-round competition, and American programmes actively recruit from British amateur championships.
 
 ### The season
 
@@ -337,13 +337,13 @@ The flip side is that golf is one of the sports where a full scholarship is real
 
 Golf is an individual sport with a team result laid over it, and that shapes the conference structure. The conference championship is a single tournament over about three days rather than a season of head-to-head matches, and the winner takes an automatic place onward. The rest of the field is chosen on **ranking**: college golf is governed heavily by national rankings, and a team that plays its way up through strong autumn invitationals can qualify without winning anything at all. Which conference a school belongs to therefore matters less in golf than in the team sports — and an individual from a small programme can advance alone even when the team does not.
 
-The route to the NCAA finals runs through regional tournaments, where both teams and individuals qualify. British golfers are spread more evenly across the divisions than most assume: a clear majority are at Division I programmes, but well over a third are at Division II schools.
+The route to the NCAA finals runs through regional tournaments, where both teams and individuals qualify. UK golfers are spread more evenly across the divisions than most assume: a clear majority are at Division I programmes, but well over a third are at Division II schools.
 
 ### The road to pro
 
 Golf has the most formalised college-to-professional transition in American sport. **PGA TOUR University** ranks Division I men over the last two years of their college careers, and after the NCAA final in May the top 20 convert that ranking directly into professional status: number one becomes a PGA TOUR member, numbers one to ten take status on the Korn Ferry Tour, and numbers six to twenty on PGA TOUR Americas. It is a public, calculable route — a player can follow their own position through the season.
 
-There is no single equivalent ranking on the women's side; that route runs through LPGA qualifying and the amateur rankings. Either way, college has served British players as a staging post: four years of elite competition and facilities, with a degree if the golf does not carry all the way.
+There is no single equivalent ranking on the women's side; that route runs through LPGA qualifying and the amateur rankings. Either way, college has served UK players as a staging post: four years of elite competition and facilities, with a degree if the golf does not carry all the way.
 
 ### Worth knowing
 
@@ -361,12 +361,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   tennis: {
     title: "Tennis",
     intro:
-      "British tennis players in the NCAA. College tennis offers a funded, team-based alternative to the punishing economics of the junior professional tour.",
+      "UK tennis players in the NCAA. College tennis offers a funded, team-based alternative to the punishing economics of the junior professional tour.",
     metaDescription:
-      "British tennis players in NCAA tennis — news, profiles and results from college tennis in the United States.",
-    pillar: `## British tennis in the NCAA
+      "UK tennis players in NCAA tennis — news, profiles and results from college tennis in the United States.",
+    pillar: `## UK tennis in the NCAA
 
-Tennis has become one of the busiest British routes into American college sport, for a straightforward economic reason: the lower reaches of the professional tour cost more to play than they pay. A scholarship removes that problem for four years, adds daily coaching and a degree, and lets a player develop without the financial pressure that ends many careers before they start.
+Tennis has become one of the busiest UK routes into American college sport, for a straightforward economic reason: the lower reaches of the professional tour cost more to play than they pay. A scholarship removes that problem for four years, adds daily coaching and a degree, and lets a player develop without the financial pressure that ends many careers before they start.
 
 ### The season
 
@@ -386,7 +386,7 @@ That is precisely why tennis is among the most internationally recruited sports 
 
 In tennis the conference sets the rhythm of the year — who you face in dual matches, and how far the team travels in the spring — but it does not by itself control access to the championships. The conference winner takes an automatic place in the NCAA team event, while the rest of the field is selected on the **ITA national rankings**, updated through the season for teams, singles players and doubles pairs alike. The individual NCAA tournament runs alongside the team event, so a player can reach a national championship even after their team has gone out.
 
-Because ranking carries so much weight, where a player sits on the team's order of play matters more to them than which conference the school belongs to. British players are found at every level: a little under half of those we track are at Division I schools, with substantial numbers at Division II and Division III.
+Because ranking carries so much weight, where a player sits on the team's order of play matters more to them than which conference the school belongs to. UK players are found at every level: a little under half of those we track are at Division I schools, with substantial numbers at Division II and Division III.
 
 ### The road to pro
 
@@ -408,12 +408,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   rowing: {
     title: "Rowing",
     intro:
-      "British rowers in the NCAA. British school and club rowing produces exactly the experience American programmes recruit for.",
+      "UK rowers in the NCAA. British school and club rowing produces exactly the experience American programmes recruit for.",
     metaDescription:
-      "British rowers in NCAA rowing — news, profiles and results from college rowing in the United States.",
-    pillar: `## British rowing in the NCAA
+      "UK rowers in NCAA rowing — news, profiles and results from college rowing in the United States.",
+    pillar: `## UK rowing in the NCAA
 
-Rowing is the sport where British and American college traditions overlap most naturally. Britain has deep school and club rowing, and American universities recruit rowers who already know how to train and race in a crew — which is precisely what British junior rowing produces.
+Rowing is the sport where UK and American college traditions overlap most naturally. Britain has deep school and club rowing, and American universities recruit rowers who already know how to train and race in a crew — which is precisely what British junior rowing produces.
 
 ### The season
 
@@ -425,7 +425,7 @@ When two or more schools meet at a regatta, each enters several boats in differe
 
 ### Scholarships and squad size
 
-Rowing is the sport where the gap between the men's and women's routes is widest, and a British rower needs to know it before applying. **Women's rowing is an NCAA championship sport**, with everything that brings in scholarships and structure. **Men's rowing sits outside the NCAA** altogether and is governed by the Intercollegiate Rowing Association. The consequence is blunt: NCAA scholarship rules simply do not apply to the men, and what support a male rower receives is a matter for the individual school.
+Rowing is the sport where the gap between the men's and women's routes is widest, and a UK rower needs to know it before applying. **Women's rowing is an NCAA championship sport**, with everything that brings in scholarships and structure. **Men's rowing sits outside the NCAA** altogether and is governed by the Intercollegiate Rowing Association. The consequence is blunt: NCAA scholarship rules simply do not apply to the men, and what support a male rower receives is a matter for the individual school.
 
 On the women's side the squad limit for Division I schools that opted into the House settlement is **68 rowers** — the largest in any college sport. There is a reason: an eight needs nine people in the boat, a programme enters several boats, and the whole model depends on being able to absorb beginners. That is exactly why American programmes actively recruit **walk-ons** — tall, well-trained students with no rowing background, taught from scratch. Outside the settlement schools and in Division II the equivalency model applies as before, and Division III offers no athletic scholarships; [the divisions](/guides/ncaa-divisions) are explained separately.
 
@@ -437,7 +437,7 @@ For the men, the IRA National Championship Regatta is what the NCAA final is for
 
 ### The road to pro
 
-There is no professional league to be drafted into. The route onward is the national team: club and international selection, World Championships and the Olympics. That makes college rowing something close to a four-year elite programme with a degree built in, and it is precisely why the route appeals — training volume, a boathouse and coaching access at a level few can fund privately. British rowers are unusually well placed to use it, and the great majority of those we track are at Division I programmes.
+There is no professional league to be drafted into. The route onward is the national team: club and international selection, World Championships and the Olympics. That makes college rowing something close to a four-year elite programme with a degree built in, and it is precisely why the route appeals — training volume, a boathouse and coaching access at a level few can fund privately. UK rowers are unusually well placed to use it, and the great majority of those we track are at Division I programmes.
 
 ### Worth knowing
 
@@ -455,12 +455,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   gymnastics: {
     title: "Gymnastics",
     intro:
-      "British gymnasts in the NCAA. College gymnastics offers competitive years beyond the age at which elite careers usually end.",
+      "UK gymnasts in the NCAA. College gymnastics offers competitive years beyond the age at which elite careers usually end.",
     metaDescription:
-      "British gymnasts in NCAA gymnastics — news, profiles and results from college gymnastics in the United States.",
-    pillar: `## British gymnastics in the NCAA
+      "UK gymnasts in NCAA gymnastics — news, profiles and results from college gymnastics in the United States.",
+    pillar: `## UK gymnastics in the NCAA
 
-Gymnastics is a small British pathway, but a meaningful one, because of what it offers at a particular moment: elite gymnastics careers often end in the late teens, and American college gymnastics gives four more competitive years with a degree attached.
+Gymnastics is a small UK pathway, but a meaningful one, because of what it offers at a particular moment: elite gymnastics careers often end in the late teens, and American college gymnastics gives four more competitive years with a degree attached.
 
 ### The season
 
@@ -473,7 +473,7 @@ When two or more schools meet, gymnasts compete on the individual apparatus — 
 
 Women's gymnastics was historically a **headcount sport** in Division I: an award counted as a whole one regardless of size, so in practice only full scholarships were made — which is exactly why college gymnastics is among the most sought-after destinations in the sport. After the House settlement in 2025 that gave way to a **squad limit of 20 gymnasts** at the schools that opted in, within which support may be divided freely.
 
-Men's gymnastics sits at the opposite extreme: very few programmes remain in the United States, and they have been cut one by one over decades. For a British gymnast that means real opportunities on the women's side and very thin ones on the men's. Outside the settlement schools and in Division II the old rules apply; Division III offers no athletic scholarships. See [the divisions](/guides/ncaa-divisions).
+Men's gymnastics sits at the opposite extreme: very few programmes remain in the United States, and they have been cut one by one over decades. For a UK gymnast that means real opportunities on the women's side and very thin ones on the men's. Outside the settlement schools and in Division II the old rules apply; Division III offers no athletic scholarships. See [the divisions](/guides/ncaa-divisions).
 
 ### Conferences and independents
 
@@ -483,7 +483,7 @@ That lets a strong team from a small conference reach the championship, and an i
 
 ### The road to pro
 
-There is no professional gymnastics league. The route onward is the national team, the European and World Championships and the Olympics — and college has taken on a new role here: a number of elite gymnasts now use the NCAA as the place a career continues after an Olympic Games, rather than stopping at nineteen. For a British gymnast that is the argument for the route: four years of daily coaching, medical support and competition, with a degree that elite gymnastics rarely leaves room for.
+There is no professional gymnastics league. The route onward is the national team, the European and World Championships and the Olympics — and college has taken on a new role here: a number of elite gymnasts now use the NCAA as the place a career continues after an Olympic Games, rather than stopping at nineteen. For a UK gymnast that is the argument for the route: four years of daily coaching, medical support and competition, with a degree that elite gymnastics rarely leaves room for.
 
 ### Worth knowing
 
@@ -500,12 +500,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   "ice-hockey": {
     title: "Ice Hockey",
     intro:
-      "British players in NCAA ice hockey. A narrow route, and one that usually runs through junior hockey in North America first.",
+      "UK players in NCAA ice hockey. A narrow route, and one that usually runs through junior hockey in North America first.",
     metaDescription:
-      "British players in NCAA ice hockey — news, profiles and results from college hockey in the United States.",
-    pillar: `## British players in college hockey
+      "UK players in NCAA ice hockey — news, profiles and results from college hockey in the United States.",
+    pillar: `## UK players in college hockey
 
-Ice hockey is among the narrowest British pathways into the NCAA. The domestic game is small, and almost every British player who reaches American college hockey has played junior hockey in North America first, since that is where programmes recruit.
+Ice hockey is among the narrowest UK pathways into the NCAA. The domestic game is small, and almost every UK player who reaches American college hockey has played junior hockey in North America first, since that is where programmes recruit.
 
 ### The season
 
@@ -525,11 +525,11 @@ The number of Division I programmes is small — hockey is expensive and needs i
 
 Hockey's conferences are the sport's own and have nothing to do with a school's other affiliations — one of the clearest illustrations of the rule that conference follows the sport. The conference tournaments in March award automatic places in the NCAA tournament, and the rest are selected on a national ranking. A few programmes play as independents.
 
-The big change is that the recruiting base was rewritten on 1 August 2025, when players from the Canadian major junior leagues (the CHL) became eligible. Previously treated as professionals and barred, they have arrived in Division I in numbers — which has made places materially harder to win for everyone else, British players included. The change does not apply to Division III.
+The big change is that the recruiting base was rewritten on 1 August 2025, when players from the Canadian major junior leagues (the CHL) became eligible. Previously treated as professionals and barred, they have arrived in Division I in numbers — which has made places materially harder to win for everyone else, UK players included. The change does not apply to Division III.
 
 ### The road to pro
 
-College hockey is one of the NHL's most important suppliers, and the route has a particular advantage: a player can be drafted by an NHL club and still continue in college, as long as he does not sign a professional contract. That buys four years of development with a draft pick in hand — and a degree if it does not work out. For a British player the alternatives are junior hockey in North America or senior hockey at home, and college is the only one of the three that comes with a degree.
+College hockey is one of the NHL's most important suppliers, and the route has a particular advantage: a player can be drafted by an NHL club and still continue in college, as long as he does not sign a professional contract. That buys four years of development with a draft pick in hand — and a degree if it does not work out. For a UK player the alternatives are junior hockey in North America or senior hockey at home, and college is the only one of the three that comes with a degree.
 
 ### Worth knowing
 
@@ -547,12 +547,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   volleyball: {
     title: "Volleyball",
     intro:
-      "British volleyball players in the NCAA. A small pathway from a small domestic sport, but the college game is one of the biggest in American college sport.",
+      "UK volleyball players in the NCAA. A small pathway from a small domestic sport, but the college game is one of the biggest in American college sport.",
     metaDescription:
-      "British volleyball players in NCAA volleyball — news, profiles and results from college volleyball in the United States.",
-    pillar: `## British volleyball in the NCAA
+      "UK volleyball players in NCAA volleyball — news, profiles and results from college volleyball in the United States.",
+    pillar: `## UK volleyball in the NCAA
 
-Volleyball is a small sport in Britain, so the British presence in NCAA volleyball is correspondingly modest. Those who do make the move tend to come through the national youth setup or from playing abroad, and they arrive into one of the largest spectator sports in American college athletics.
+Volleyball is a small sport in Britain, so the UK presence in NCAA volleyball is correspondingly modest. Those who do make the move tend to come through the national youth setup or from playing abroad, and they arrive into one of the largest spectator sports in American college athletics.
 
 ### The season
 
@@ -576,11 +576,11 @@ Because men's volleyball has so few programmes, its conference map is thin, and 
 
 ### The road to pro
 
-There is no draft in volleyball, and for the great majority a professional career means Europe or Asia, where club volleyball is large and well paid. That suits a British player: college offers four years of hard competition and a degree, and the route onward runs back to a continent where the sport is stronger than it is in America. The national team and beach volleyball — with the Olympics as the target — are the other routes.
+There is no draft in volleyball, and for the great majority a professional career means Europe or Asia, where club volleyball is large and well paid. That suits a UK player: college offers four years of hard competition and a degree, and the route onward runs back to a continent where the sport is stronger than it is in America. The national team and beach volleyball — with the Olympics as the target — are the other routes.
 
 ### Worth knowing
 
-The scale is the shock. A British player used to sports halls will find college volleyball played in arenas, televised nationally, in front of crowds larger than most British football matches.
+The scale is the shock. A UK player used to sports halls will find college volleyball played in arenas, televised nationally, in front of crowds larger than most British football matches.
 
 Moving between schools happens through the [transfer portal](/guides/transfer-portal); see also [redshirt and eligibility](/guides/redshirt-and-eligibility).
 
@@ -593,14 +593,14 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   "field-hockey": {
     title: "Field Hockey",
     intro:
-      "British field hockey players in the NCAA. One of the strongest British pathways into American college sport — and, in the NCAA, a women's sport only.",
+      "UK field hockey players in the NCAA. One of the strongest UK pathways into American college sport — and, in the NCAA, a women's sport only.",
     metaDescription:
-      "British field hockey players in the NCAA — news, profiles and results from American college field hockey.",
-    pillar: `## British field hockey in the NCAA
+      "UK field hockey players in the NCAA — news, profiles and results from American college field hockey.",
+    pillar: `## UK field hockey in the NCAA
 
-Field hockey is one of the most reliable British routes into American college sport. The school and club system produces players who arrive already coached, the NCAA field is unusually international, and American programmes actively recruit from England, Scotland and Wales alongside the Netherlands, Germany, Argentina and Australia.
+Field hockey is one of the most reliable UK routes into American college sport. The school and club system produces players who arrive already coached, the NCAA field is unusually international, and American programmes actively recruit from England, Scotland and Wales alongside the Netherlands, Germany, Argentina and Australia.
 
-**One thing has to be said first: NCAA field hockey is a women's sport.** There is no NCAA men's championship and no men's field hockey scholarships. For British men the route does not exist, at any standard.
+**One thing has to be said first: NCAA field hockey is a women's sport.** There is no NCAA men's championship and no men's field hockey scholarships. For UK men the route does not exist, at any standard.
 
 ### The season
 
@@ -642,10 +642,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   rugby: {
     title: "Rugby",
     intro:
-      "British rugby players in American college sport. Two separate worlds: the women's game is on its way into the NCAA, the men's game sits outside it.",
+      "UK rugby players in American college sport. Two separate worlds: the women's game is on its way into the NCAA, the men's game sits outside it.",
     metaDescription:
-      "British rugby players in American college sport — news, profiles and results from NCAA and college rugby in the United States.",
-    pillar: `## British rugby in American college sport
+      "UK rugby players in American college sport — news, profiles and results from NCAA and college rugby in the United States.",
+    pillar: `## UK rugby in American college sport
 
 **The first thing to understand is that college rugby is not one system but two.** For women, rugby is one of the NCAA's four current emerging sports — a recognised route towards a full championship, with scholarships under NCAA rules and championship matches run by the National Intercollegiate Rugby Association. For men, rugby is not an NCAA sport at all. The men's programmes play under National Collegiate Rugby and the Collegiate Rugby Association of America, and varsity sides generally do not award athletic scholarships.
 
@@ -661,7 +661,7 @@ Fifteen a side, two halves of 40 minutes, and the familiar arithmetic: five for 
 
 This is where the two systems diverge most sharply, and it should set expectations before anything else. **Women's rugby follows NCAA rules:** it is an equivalency sport, so awards are made in partial shares, and at the Division I schools that opted into the House settlement in 2025 a **squad limit of 36 players** applies. **Men's rugby sits outside the NCAA**, and therefore outside the scholarship system altogether — most varsity programmes offer no athletic scholarships, and what exists is the individual school's own arrangement.
 
-For a British player that means the question "what funding can I get?" has two completely different answers depending on gender, and that a male rugby player generally has to fund his studies another way: academic scholarships, need-based aid, or his own money. [The divisions](/guides/ncaa-divisions) explain the underlying model.
+For a UK player that means the question "what funding can I get?" has two completely different answers depending on gender, and that a male rugby player generally has to fund his studies another way: academic scholarships, need-based aid, or his own money. [The divisions](/guides/ncaa-divisions) explain the underlying model.
 
 58 American colleges field varsity rugby: 35 men's teams and 43 women's, spread across the three NCAA divisions, the NAIA and a handful of others. The NCAA's own listing counts around 30 institutions sponsoring women's rugby as an emerging sport, and NIRA's top division held 13 teams in 2025.
 
@@ -695,10 +695,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   "water-polo": {
     title: "Water Polo",
     intro:
-      "British water polo players in the NCAA. The men play in the autumn, the women in the spring, and every division competes for the same title.",
+      "UK water polo players in the NCAA. The men play in the autumn, the women in the spring, and every division competes for the same title.",
     metaDescription:
-      "British water polo players in the NCAA — news, profiles and results from American college water polo.",
-    pillar: `## British water polo in the NCAA
+      "UK water polo players in the NCAA — news, profiles and results from American college water polo.",
+    pillar: `## UK water polo in the NCAA
 
 Water polo is a full NCAA sport for both men and women, with one feature few college sports share: the title is a National Collegiate championship. Teams from Divisions I, II and III play for the same trophy in the same eight-team knockout bracket.
 
@@ -720,7 +720,7 @@ One oddity: the NCAA runs a single combined championship across the divisions in
 
 ### The road to pro
 
-Professional water polo is a southern European affair — Italy, Spain, Croatia, Hungary and Greece have the strongest leagues — while there is no large professional league in the United States. The route onward for a British player therefore runs home to Europe, or through the national team towards the European and World Championships and the Olympics. College offers four years of daily training in one of the densest competitive environments in the world, plus an American degree, before the career continues on the other side of the Atlantic.
+Professional water polo is a southern European affair — Italy, Spain, Croatia, Hungary and Greece have the strongest leagues — while there is no large professional league in the United States. The route onward for a UK player therefore runs home to Europe, or through the national team towards the European and World Championships and the Olympics. College offers four years of daily training in one of the densest competitive environments in the world, plus an American degree, before the career continues on the other side of the Atlantic.
 
 ### Worth knowing
 
@@ -739,10 +739,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   fencing: {
     title: "Fencing",
     intro:
-      "British fencers in the NCAA. One of the few championships where Division I, II and III meet on the same piste.",
+      "UK fencers in the NCAA. One of the few championships where Division I, II and III meet on the same piste.",
     metaDescription:
-      "British fencers in the NCAA — news, profiles and results from American college fencing.",
-    pillar: `## British fencing in the NCAA
+      "UK fencers in the NCAA — news, profiles and results from American college fencing.",
+    pillar: `## UK fencing in the NCAA
 
 Fencing has one of the most unusual championships in the NCAA: there is no split by division. Teams from Divisions I, II and III qualify for the same National Collegiate championship and meet head to head — a small Division III squad can end up fencing a scholarship-funded Division I programme for the same title.
 
@@ -788,10 +788,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   squash: {
     title: "Squash",
     intro:
-      "British squash players in American college sport. A varsity sport at some of the oldest universities in the country — and outside the NCAA.",
+      "UK squash players in American college sport. A varsity sport at some of the oldest universities in the country — and outside the NCAA.",
     metaDescription:
-      "British squash players in American college sport — news, profiles and results from college squash in the United States.",
-    pillar: `## British squash in American college sport
+      "UK squash players in American college sport — news, profiles and results from college squash in the United States.",
+    pillar: `## UK squash in American college sport
 
 **Squash is not an NCAA sport.** It is governed by the College Squash Association, a body of its own — though every CSA member institution is an NCAA member, and the association leans heavily on NCAA legislation for its own compliance rules. In practice squash is a varsity sport with coaching, dual matches and national championships, but without an NCAA title and outside the NCAA scholarship system.
 
@@ -804,7 +804,7 @@ Nine players from each side meet in nine individual matches, and the team result
 
 ### Scholarships and squad size
 
-**Squash is not an NCAA sport**, and that is the single most important thing for a British player to know: NCAA scholarship rules, squad limits and the House settlement simply do not apply. The sport is run by the College Squash Association, and what support a player receives depends entirely on the individual school — typically through academic scholarships and need-based aid rather than athletic awards.
+**Squash is not an NCAA sport**, and that is the single most important thing for a UK player to know: NCAA scholarship rules, squad limits and the House settlement simply do not apply. The sport is run by the College Squash Association, and what support a player receives depends entirely on the individual school — typically through academic scholarships and need-based aid rather than athletic awards.
 
 That sounds like a disadvantage and is not necessarily one: squash is strongest at some of America's wealthiest and most academically demanding universities, where need-based aid can cover more than a partial athletic scholarship would. The grades have to carry it, though.
 
@@ -815,7 +815,7 @@ Because the sport sits outside the NCAA, there are no ordinary conferences in sq
 
 ### The road to pro
 
-Professional squash exists on the PSA tour, but it is a small sport with modest prize money outside the very top. For most players college squash is therefore four years of daily training and team competition alongside a strong degree — and for a smaller group a staging post to the tour. For a British player it is the combination that makes the argument.
+Professional squash exists on the PSA tour, but it is a small sport with modest prize money outside the very top. For most players college squash is therefore four years of daily training and team competition alongside a strong degree — and for a smaller group a staging post to the tour. For a UK player it is the combination that makes the argument.
 
 ### Worth knowing
 
@@ -833,10 +833,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   esports: {
     title: "Esports",
     intro:
-      "British players on American college esports teams. Varsity programmes with coaches, team rooms and scholarships — entirely outside the NCAA.",
+      "UK players on American college esports teams. Varsity programmes with coaches, team rooms and scholarships — entirely outside the NCAA.",
     metaDescription:
-      "British players in American college esports — news, profiles and results from varsity college esports in the United States.",
-    pillar: `## British players in American college esports
+      "UK players in American college esports — news, profiles and results from varsity college esports in the United States.",
+    pillar: `## UK players in American college esports
 
 **Esports sits outside the NCAA.** There is no NCAA championship in League of Legends and no NCAA rulebook to stay inside. The scene has built its own governing bodies instead — the National Association of Collegiate Esports and the National Esports Collegiate Conference — while the game publishers run parallel circuits of their own, the largest being Riot Games' College League of Legends.
 
@@ -876,12 +876,12 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   lacrosse: {
     title: "Lacrosse",
     intro:
-      "British lacrosse players in the NCAA. One of the largest team sports in American college sport, and one of its broadest fields.",
+      "UK lacrosse players in the NCAA. One of the largest team sports in American college sport, and one of its broadest fields.",
     metaDescription:
-      "British lacrosse players in the NCAA — news, profiles and results from American college lacrosse.",
-    pillar: `## British lacrosse in the NCAA
+      "UK lacrosse players in the NCAA — news, profiles and results from American college lacrosse.",
+    pillar: `## UK lacrosse in the NCAA
 
-Lacrosse is among the largest team sports in American college sport by number of programmes, played across all three NCAA divisions for both men and women. For British players it is a genuine route: the English university and club game feeds the American college system, and the Northeast in particular recruits abroad.
+Lacrosse is among the largest team sports in American college sport by number of programmes, played across all three NCAA divisions for both men and women. For UK players it is a genuine route: the English university and club game feeds the American college system, and the Northeast in particular recruits abroad.
 
 ### The season
 
@@ -897,11 +897,11 @@ The field is large: 77 men's teams in Division I, 82 in Division II and 247 in D
 
 Lacrosse is geographically lopsided in the same way as field hockey: the weight sits in the Northeast, and because many conferences outside that region do not sponsor the sport at all, a number of universities play their lacrosse in **a different conference from the rest of their teams**. A few play as independents. The conference champion takes an automatic place in the NCAA tournament and the rest of a small field is selected — with only 18 men's teams in the Division I bracket, the margin for getting in is thin.
 
-For a British player that means a school's general reputation says very little about the standard of its lacrosse programme. Look at the conference and the results.
+For a UK player that means a school's general reputation says very little about the standard of its lacrosse programme. Look at the conference and the results.
 
 ### The road to pro
 
-Professional lacrosse exists in North America, but the leagues are small and few players live on the sport alone. For a British player the realistic route onward is the national team — lacrosse returns to the Olympic programme in its sixes format, which has given European federations a new target — and club lacrosse at home. College is therefore first of all four years of the best coaching the sport offers, with a degree alongside.
+Professional lacrosse exists in North America, but the leagues are small and few players live on the sport alone. For a UK player the realistic route onward is the national team — lacrosse returns to the Olympic programme in its sixes format, which has given European federations a new target — and club lacrosse at home. College is therefore first of all four years of the best coaching the sport offers, with a degree alongside.
 
 ### Worth knowing
 
@@ -919,10 +919,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   softball: {
     title: "Softball",
     intro:
-      "British softball players in the NCAA. The most widely sponsored women's team sport in American college sport.",
+      "UK softball players in the NCAA. The most widely sponsored women's team sport in American college sport.",
     metaDescription:
-      "British softball players in the NCAA — news, profiles and results from American college softball.",
-    pillar: `## British softball in the NCAA
+      "UK softball players in the NCAA — news, profiles and results from American college softball.",
+    pillar: `## UK softball in the NCAA
 
 Softball is the women's sport with the most programmes in American college sport. It is not women's baseball: the diamond is smaller, the pitch is underarm and the game is shorter — but the recruiting, the season and the championship mirror baseball's closely.
 
@@ -944,7 +944,7 @@ A few schools play as independents with no conference and have to assemble a sch
 
 ### The road to pro
 
-Professional softball exists in the United States, but the league is small next to the college game, and most players stop after college or continue with a national team. Softball has been in and out of the Olympic programme, which makes that route less predictable than in other sports. For a British player college is therefore the goal in itself: four years of hard competition and an American degree.
+Professional softball exists in the United States, but the league is small next to the college game, and most players stop after college or continue with a national team. Softball has been in and out of the Olympic programme, which makes that route less predictable than in other sports. For a UK player college is therefore the goal in itself: four years of hard competition and an American degree.
 
 ### Worth knowing
 
@@ -961,10 +961,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   wrestling: {
     title: "Wrestling",
     intro:
-      "British wrestlers in the NCAA. One of college sport's oldest disciplines — and since 2026 an NCAA championship sport for women too.",
+      "UK wrestlers in the NCAA. One of college sport's oldest disciplines — and since 2026 an NCAA championship sport for women too.",
     metaDescription:
-      "British wrestlers in the NCAA — news, profiles and results from American college wrestling.",
-    pillar: `## British wrestling in the NCAA
+      "UK wrestlers in the NCAA — news, profiles and results from American college wrestling.",
+    pillar: `## UK wrestling in the NCAA
 
 Wrestling is an American winter sport and one of the most thoroughly organised: weight classes, dual meets between schools, and a championship that fills an NBA arena. **The big news is the women's game.** The NCAA held its first women's wrestling championship on 6-7 March 2026 in Coralville, Iowa, making wrestling the NCAA's 91st championship sport. McKendree took the inaugural title, 171-166 over Iowa.
 
@@ -986,7 +986,7 @@ That means a single strong wrestler can reach the NCAA championship from a progr
 
 ### The road to pro
 
-There is no large professional wrestling league. The route onward is the national team and the Olympic styles — freestyle and Greco-Roman — with the European and World Championships and the Olympics as the targets, and American college wrestling is the largest development system in the world for exactly that. Another route has become conspicuously common: MMA and the UFC recruit heavily from former college wrestlers, because the wrestling base translates directly into takedowns and control in the cage. For a British wrestler, college is above all access to daily training and hard opposition at a level that does not exist at home.
+There is no large professional wrestling league. The route onward is the national team and the Olympic styles — freestyle and Greco-Roman — with the European and World Championships and the Olympics as the targets, and American college wrestling is the largest development system in the world for exactly that. Another route has become conspicuously common: MMA and the UFC recruit heavily from former college wrestlers, because the wrestling base translates directly into takedowns and control in the cage. For a UK wrestler, college is above all access to daily training and hard opposition at a level that does not exist at home.
 
 ### Worth knowing
 
@@ -1004,10 +1004,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   bowling: {
     title: "Bowling",
     intro:
-      "British bowlers in the NCAA. A women's championship where all three divisions play for the same title.",
+      "UK bowlers in the NCAA. A women's championship where all three divisions play for the same title.",
     metaDescription:
-      "British bowlers in the NCAA — news, profiles and results from American college bowling.",
-    pillar: `## British bowling in the NCAA
+      "UK bowlers in the NCAA — news, profiles and results from American college bowling.",
+    pillar: `## UK bowling in the NCAA
 
 Bowling is an NCAA sport for women and, like fencing and water polo, has a single championship: teams from Divisions I, II and III play for the same title. Men's bowling exists at a number of schools but has no NCAA championship.
 
@@ -1029,7 +1029,7 @@ As in water polo, the NCAA runs a single combined championship across the divisi
 
 ### The road to pro
 
-Professional bowling exists in the United States, but few players live on prize money alone. The route onward for a British player usually runs home to European tournament bowling and the national team. What college offers instead is hard to find elsewhere: structured daily training, a coach and a team, in a sport otherwise practised largely alone.
+Professional bowling exists in the United States, but few players live on prize money alone. The route onward for a UK player usually runs home to European tournament bowling and the national team. What college offers instead is hard to find elsewhere: structured daily training, a coach and a team, in a sport otherwise practised largely alone.
 
 ### Worth knowing
 
@@ -1047,10 +1047,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   sailing: {
     title: "Sailing",
     intro:
-      "British sailors in American college sport. A varsity sport with national championships — run outside the NCAA, by sailing's own association.",
+      "UK sailors in American college sport. A varsity sport with national championships — run outside the NCAA, by sailing's own association.",
     metaDescription:
-      "British sailors in American college sport — news, profiles and results from college sailing in the United States.",
-    pillar: `## British sailing in American college sport
+      "UK sailors in American college sport — news, profiles and results from college sailing in the United States.",
+    pillar: `## UK sailing in American college sport
 
 **College sailing sits outside the NCAA.** It is governed by the Inter-Collegiate Sailing Association, the sport's own college body, and it is the ICSA rather than the NCAA that runs the national championships. Sailing is a varsity sport at a long list of schools, with coaches, boat parks and full regatta programmes.
 
@@ -1092,10 +1092,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   shooting: {
     title: "Shooting",
     intro:
-      "British shooters in American college sport. Rifle is an NCAA sport contested by men and women together; pistol has championships of its own.",
+      "UK shooters in American college sport. Rifle is an NCAA sport contested by men and women together; pistol has championships of its own.",
     metaDescription:
-      "British shooters in American college sport — news, profiles and results from college rifle and pistol in the United States.",
-    pillar: `## British shooting in American college sport
+      "UK shooters in American college sport — news, profiles and results from college rifle and pistol in the United States.",
+    pillar: `## UK shooting in American college sport
 
 Shooting covers two closely related college sports with separate governing bodies. **Rifle is an NCAA sport** with one championship across all divisions — and a rarity in American college sport: men and women shoot in the same competition for the same titles. Formally rifle is recorded as a men's sport in the NCAA rulebook, but it has been mixed since 1980. **Pistol is not an NCAA sport**; the collegiate pistol championships are run by the NRA.
 
@@ -1137,10 +1137,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   skiing: {
     title: "Skiing",
     intro:
-      "British skiers in the NCAA. Alpine and nordic are one team and one championship — and the field is among the most international in college sport.",
+      "UK skiers in the NCAA. Alpine and nordic are one team and one championship — and the field is among the most international in college sport.",
     metaDescription:
-      "British skiers in the NCAA — news, profiles and results from American college skiing.",
-    pillar: `## British skiing in the NCAA
+      "UK skiers in the NCAA — news, profiles and results from American college skiing.",
+    pillar: `## UK skiing in the NCAA
 
 NCAA skiing is built unlike any other American winter sport: **alpine and nordic are the same team**, men and women score towards the same title, and there is a single championship across the divisions. A university cannot win on slalom alone — it needs speed skiers and distance skiers both.
 
@@ -1155,7 +1155,7 @@ Eight events are contested: slalom and giant slalom for both sexes, and classic 
 
 Skiing is an NCAA sport with a single combined championship, and its scholarships follow the equivalency model. At the Division I schools that opted into the House settlement in 2025, the scholarship cap has given way to a **squad limit of 16 skiers** — one of the smallest in college sport, and it has to cover both alpine and nordic across both genders.
 
-That small limit explains why college skiing is so emphatically international: when a programme has only 16 places and needs to score in all four disciplines, it recruits on results, and the results are in Norway, Sweden, Switzerland and Austria. A British skier is therefore competing against a Nordic field for places. See [the divisions](/guides/ncaa-divisions).
+That small limit explains why college skiing is so emphatically international: when a programme has only 16 places and needs to score in all four disciplines, it recruits on results, and the results are in Norway, Sweden, Switzerland and Austria. A UK skier is therefore competing against a Nordic field for places. See [the divisions](/guides/ncaa-divisions).
 
 ### Conferences and independents
 Programmes cluster in the Rockies, New England and Alaska, where the snow is, and the field is among the most international in college sport: Norwegian, Swedish and Finnish skiers are heavily represented at the top, precisely because the Nordic training culture fits the format directly.
@@ -1185,10 +1185,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   triathlon: {
     title: "Triathlon",
     intro:
-      "British triathletes in American college sport. An NCAA emerging sport for women, raced draft-legal, with the championship in November.",
+      "UK triathletes in American college sport. An NCAA emerging sport for women, raced draft-legal, with the championship in November.",
     metaDescription:
-      "British triathletes in American college sport — news, profiles and results from college triathlon in the United States.",
-    pillar: `## British triathlon in American college sport
+      "UK triathletes in American college sport — news, profiles and results from college triathlon in the United States.",
+    pillar: `## UK triathlon in American college sport
 
 Triathlon is one of the NCAA's four current emerging sports for women — a recognised sport on its way to a full championship, but not there yet. It was adopted in 2014, and in 2025-26 42 institutions sponsor varsity triathlon, 14 of them in Division II. There is no equivalent NCAA route for men.
 
@@ -1228,10 +1228,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   polo: {
     title: "Polo",
     intro:
-      "British polo players in American college sport. Arena polo, three a side, a national championship of its own — and no NCAA.",
+      "UK polo players in American college sport. Arena polo, three a side, a national championship of its own — and no NCAA.",
     metaDescription:
-      "British polo players in American college sport — news, profiles and results from college polo in the United States.",
-    pillar: `## British polo in American college sport
+      "UK polo players in American college sport — news, profiles and results from college polo in the United States.",
+    pillar: `## UK polo in American college sport
 
 College polo is run by the United States Polo Association through its Intercollegiate/Interscholastic programme. **It is not an NCAA sport**, but it is organised competition with regional circuits and a national championship — and one of the few college sports where teams ride the school's own horses.
 
@@ -1246,7 +1246,7 @@ College polo is played **in an arena rather than on a grass field**, under USPA 
 
 **Polo is not an NCAA sport.** Intercollegiate polo is run by the United States Polo Association, so NCAA scholarship rules and squad limits do not apply. Support is the individual school's affair, and in practice there are very few athletic scholarships in the sport — academic awards and financial aid are the normal route.
 
-What college polo does solve is a problem otherwise insurmountable for a British player: the schools provide the horses. Being able to play without owning or transporting ponies is the real economic advantage of the route.
+What college polo does solve is a problem otherwise insurmountable for a UK player: the schools provide the horses. Being able to play without owning or transporting ponies is the real economic advantage of the route.
 
 ### Conferences and independents
 More than 35 established intercollegiate programmes are spread across 15 men's and 26 women's teams in four regions. The field is small but stable, and the USPA also runs an international intercollegiate fixture in which American college players meet opposition from abroad.
@@ -1273,10 +1273,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   "flag-football": {
     title: "Flag Football",
     intro:
-      "British flag football players in American college sport. The fastest-growing women's sport in the college system — and an Olympic sport from 2028.",
+      "UK flag football players in American college sport. The fastest-growing women's sport in the college system — and an Olympic sport from 2028.",
     metaDescription:
-      "British flag football players in American college sport — news, profiles and results from college flag football in the United States.",
-    pillar: `## British flag football in American college sport
+      "UK flag football players in American college sport — news, profiles and results from college flag football in the United States.",
+    pillar: `## UK flag football in American college sport
 
 Flag football is the fastest-moving sport in American college athletics right now. The NCAA added it to its emerging sports for women programme in January 2026, and more than 120 schools are fielding a squad this academic year. The NAIA went further and made flag football its 30th championship sport from 2026-27, with the first NAIA national championship in spring 2027 and around 60 institutions taking part.
 
@@ -1293,7 +1293,7 @@ Five players a side and no tackling: the defence stops the play by pulling a fla
 
 Flag football is one of the NCAA's emerging sports for women, and its scholarships follow the equivalency model — partial shares rather than full awards. At the Division I schools that opted into the House settlement in 2025 a **squad limit of 25 players** applies.
 
-The sport is growing faster than anything else on the list, because it is cheap to start: no equipment, no helmets and no stadium, just a field. For a British player that means the number of programmes is small today and likely larger tomorrow. See [the divisions](/guides/ncaa-divisions).
+The sport is growing faster than anything else on the list, because it is cheap to start: no equipment, no helmets and no stadium, just a field. For a UK player that means the number of programmes is small today and likely larger tomorrow. See [the divisions](/guides/ncaa-divisions).
 
 ### Conferences and independents
 
@@ -1321,10 +1321,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   cycling: {
     title: "Cycling",
     intro:
-      "British riders on American college teams. Five national collegiate championships a year — road, track, mountain bike, cyclocross and now gravel.",
+      "UK riders on American college teams. Five national collegiate championships a year — road, track, mountain bike, cyclocross and now gravel.",
     metaDescription:
-      "British riders in American college cycling — news, profiles and results from collegiate cycling in the United States.",
-    pillar: `## British cycling in American college sport
+      "UK riders in American college cycling — news, profiles and results from collegiate cycling in the United States.",
+    pillar: `## UK cycling in American college sport
 
 Collegiate cycling sits outside the NCAA and is run by USA Cycling, which stages the national collegiate championships. In return there are more of them than in any other college sport: road, track, mountain bike and cyclocross each have their own title, and gravel joined as a fifth in 2026.
 
@@ -1340,7 +1340,7 @@ Collegiate cycling covers four disciplines, each with its own season and its own
 
 **Cycling is not an NCAA sport.** Collegiate cycling is run by USA Cycling, and NCAA scholarship rules and squad limits do not apply. Most programmes operate as club teams with limited or no athletic funding, and the occasional school with a serious programme is the exception rather than the rule.
 
-For a British rider that means planning to fund the degree academically. In return the barrier to entry is low, and the access to racing every weekend in an organised environment is real.
+For a UK rider that means planning to fund the degree academically. In return the barrier to entry is low, and the access to racing every weekend in an organised environment is real.
 
 ### Conferences and independents
 Schools race in two tiers: a varsity division and a club division. At the mountain bike championships the varsity field runs to roughly 15-20 schools while the club division counts more than 30 — a structure that lets a rider compete for their university whether or not the school runs a fully funded programme.
@@ -1367,10 +1367,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   archery: {
     title: "Archery",
     intro:
-      "British archers on American college teams. Varsity programmes with scholarships, club squads, and four bow classes shooting for the same national title.",
+      "UK archers on American college teams. Varsity programmes with scholarships, club squads, and four bow classes shooting for the same national title.",
     metaDescription:
-      "British archers in American college sport — news, profiles and results from collegiate archery in the United States.",
-    pillar: `## British archery in American college sport
+      "UK archers in American college sport — news, profiles and results from collegiate archery in the United States.",
+    pillar: `## UK archery in American college sport
 
 Collegiate archery sits outside the NCAA and is run by USA Archery through its Collegiate Archery Program. The programme covers the full range: varsity teams with scholarships, club squads and student organisations all shoot in the same system and for the same championships.
 
@@ -1385,7 +1385,7 @@ There are four classes — recurve, compound, barebow and bowhunter — for both
 
 **Archery has no NCAA championship**, and collegiate competition is run by the sport's own federations. NCAA scholarship rules and squad limits therefore do not apply. A few universities run serious programmes with their own coaches and ranges and can offer support under their own rules; in most places archery is a club activity.
 
-For a British archer that means investigating the individual programme rather than assuming a common standard — the gap between the best and the typical programme is wider in archery than in almost any other sport here.
+For a UK archer that means investigating the individual programme rather than assuming a common standard — the gap between the best and the typical programme is wider in archery than in almost any other sport here.
 
 ### Conferences and independents
 The field runs from large universities with fully funded varsity programmes to pure club squads, which makes the way in broader than in most college sports. USA Archery also names an academic All-American team, where the grade average counts alongside the scores.
@@ -1412,10 +1412,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   "acrobatics-tumbling": {
     title: "Acrobatics & Tumbling",
     intro:
-      "British acrobatics and tumbling athletes on American college teams. The NCAA's newest championship sport, voted through in January 2026.",
+      "UK acrobatics and tumbling athletes on American college teams. The NCAA's newest championship sport, voted through in January 2026.",
     metaDescription:
-      "British athletes in NCAA acrobatics and tumbling — news, profiles and results from American college acrobatics & tumbling.",
-    pillar: `## British acrobatics and tumbling in the NCAA
+      "UK athletes in NCAA acrobatics and tumbling — news, profiles and results from American college acrobatics & tumbling.",
+    pillar: `## UK acrobatics and tumbling in the NCAA
 
 Acrobatics and tumbling is the newest sport on the NCAA's list. At the January 2026 convention, members from all three divisions voted to make it a championship sport, and the first NCAA championship is expected in spring 2027. Until then the title is decided by the National Collegiate Acrobatics & Tumbling Association, which has run the sport since long before the NCAA arrived.
 
@@ -1463,10 +1463,10 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   ultimate: {
     title: "Ultimate",
     intro:
-      "British ultimate players on American college teams. A self-refereed team sport with a national championship of its own, in two divisions.",
+      "UK ultimate players on American college teams. A self-refereed team sport with a national championship of its own, in two divisions.",
     metaDescription:
-      "British ultimate players in American college sport — news, profiles and results from college ultimate in the United States.",
-    pillar: `## British ultimate in American college sport
+      "UK ultimate players in American college sport — news, profiles and results from college ultimate in the United States.",
+    pillar: `## UK ultimate in American college sport
 
 Ultimate sits outside the NCAA and is run by USA Ultimate, which stages the national college championships in two divisions: D-I for the larger programmes and D-III for smaller schools. Both divisions hold separate men's and women's championships, reached through sectionals and regionals across the spring.
 
@@ -1483,7 +1483,7 @@ Ultimate is **self-refereed**. Players call their own games under the principle 
 
 **Ultimate is not an NCAA sport.** College ultimate is run by USA Ultimate, and NCAA scholarship rules and squad limits do not apply. Almost every programme is a student-run club team, and there are in practice no athletic scholarships in the sport.
 
-For a British player, ultimate is therefore not a way to fund an American degree. It is, though, a very real way to play at a high level if you are studying in the United States anyway — college ultimate is one of the strongest competitive environments in the world game.
+For a UK player, ultimate is therefore not a way to fund an American degree. It is, though, a very real way to play at a high level if you are studying in the United States anyway — college ultimate is one of the strongest competitive environments in the world game.
 
 ### Conferences and independents
 
@@ -1509,16 +1509,16 @@ Moving between schools happens through the [transfer portal](/guides/transfer-po
   other: {
     title: "Other sports",
     intro:
-      "British athletes in the NCAA sports we do not yet cover with their own section.",
+      "UK athletes in the NCAA sports we do not yet cover with their own section.",
     metaDescription:
-      "British athletes in other NCAA sports — news, profiles and results from college sport in the United States.",
+      "UK athletes in other NCAA sports — news, profiles and results from college sport in the United States.",
     pillar: `## Other sports
 
 The NCAA sponsors championships in far more sports than the ones with their own section here — among them lacrosse, water polo, wrestling, fencing, skiing, cross country as a separate championship, and several others.
 
-British athletes turn up across that whole range, sometimes in ones and twos. This section collects them until a sport has enough British representation to deserve a section of its own.
+UK athletes turn up across that whole range, sometimes in ones and twos. This section collects them until a sport has enough UK representation to deserve a section of its own.
 
-Know a British athlete at an American university who we are not covering? [Tell us](/contact) — the name, the university and the sport is enough.
+Know a UK athlete at an American university who we are not covering? [Tell us](/contact) — the name, the university and the sport is enough.
 
 ### The season
 
@@ -1538,7 +1538,7 @@ If the sport sits outside the NCAA — as squash, sailing, cycling, ultimate and
 
 ### Worth knowing
 
-Several of the NCAA's smaller sports draw fewer scholarship applicants, which can be a real advantage for a British athlete with talent in a niche event. Wrestling is a large and deeply traditional college sport, and lacrosse is growing quickly. The list is still expanding: women's wrestling held its first NCAA championship in 2026, with acrobatics and tumbling and stunt to follow from 2027.
+Several of the NCAA's smaller sports draw fewer scholarship applicants, which can be a real advantage for a UK athlete with talent in a niche event. Wrestling is a large and deeply traditional college sport, and lacrosse is growing quickly. The list is still expanding: women's wrestling held its first NCAA championship in 2026, with acrobatics and tumbling and stunt to follow from 2027.
 
 ### Sources
 
