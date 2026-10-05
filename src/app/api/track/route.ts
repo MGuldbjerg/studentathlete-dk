@@ -99,14 +99,28 @@ export async function POST(req: NextRequest) {
     // som saniteret kanalnavn, aldrig rå tekst fra URL'en.
     const source = type === "pageview" ? normalizeSource(body.source) : null;
 
-    await db
-      .prepare(
-        `INSERT INTO events
-           (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source, site)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(type, path, pageType, sport, referrer, country, device, visitorHash, clickKind, clickTarget, source, site)
-      .run();
+    const values = [type, path, pageType, sport, referrer, country, device, visitorHash, clickKind, clickTarget, source];
+    try {
+      await db
+        .prepare(
+          `INSERT INTO events
+             (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source, site)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(...values, site)
+        .run();
+    } catch {
+      // Deployed before migration 061 ran: keep the visit, lose only its site.
+      // Without this, every page view would be dropped by the catch below.
+      await db
+        .prepare(
+          `INSERT INTO events
+             (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(...values)
+        .run();
+    }
 
     return ack();
   } catch {
