@@ -21,7 +21,9 @@
  *   1. GROUNDING — every score, record, clock time and score sequence in a fact
  *      must appear in the source. Plain numbers must appear as a number.
  *   2. DATES — a date on the sheet must be written in the source in some form.
- *      A date the model derived from "Tuesday" is dropped, never guessed.
+ *      A date the model derived from "Tuesday" is dropped, never guessed. On a
+ *      weekly-honour page the page's own publication stamp does not date the
+ *      EVENT it honours (see eventDateProblem).
  *   3. ATTRIBUTION — a number in `stats` credited to the athlete must be stated
  *      about the athlete somewhere in the source (sentence-level, see
  *      numberIsAthletes).
@@ -120,6 +122,65 @@ export function dateInSource(md: { m: number; d: number }, canonSource: string):
     `\\d{4}-${mm}-${dd}(?!\\d)`, // 2026-09-17
   ];
   return patterns.some((p) => new RegExp(p).test(canonSource));
+}
+
+/**
+ * Sidearm stamps every story with when the PAGE went up: «10/5/2026 2:30:00 PM»
+ * — a full date with a clock time to the second. That is the publication date,
+ * not the date anything in the story happened.
+ */
+const PUBLICATION_STAMP_RE = /(?<!\d)(\d{1,2})\/(\d{1,2})\/(\d{4})\s+\d{1,2}:\d{2}:\d{2}\s*[ap]m\b/g;
+const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+/**
+ * Is the event's date grounded in the source — or only in its publication stamp?
+ *
+ * Rule 2 asked «is the date written in the source?», and the publication stamp
+ * answered yes. Three drafts of 6 October 2026 went through that hole, each an
+ * award announcement published days after the match it honours, each dated by
+ * its stamp:
+ *
+ *   #528  stamp 10/5/2026 (Mon); the source says the draw was «On Saturday»
+ *   #532  stamp 10/5/2026; the match is not dated at all
+ *   #534  stamp 10/5/2026; the race is not dated at all
+ *
+ * A stamp-only date is still the right date for most pages: a tournament
+ * report goes up the evening it happens («To start the day…», no weekday, no
+ * date in the text). What separates the three is the KIND of page — each is a
+ * weekly honour («of the week», «weekly», «honor roll», «last week»), and a
+ * weekly honour is by definition written after the week it looks back on.
+ *
+ * Backtested on the 300 newest dated sheets (6 October 2026): of the 285 dates
+ * the old rule kept, this drops 10 — all ten weekly-honour pages, every one a
+ * wrong date — and keeps every same-day report. Two stricter variants were
+ * measured and rejected:
+ *   · «stamp counts only with the matching weekday» also caught the ten, but
+ *     dropped 9 true dates from tournament reports that never name the day;
+ *   · «…and any OTHER weekday in the text vetoes the stamp» dropped one true
+ *     date (#8019: published Saturday, the page mentions Sunday's next round).
+ *
+ * Only `event.date` is held to this. A date inside a fact can legitimately BE
+ * the announcement date («named Rookie of the Week on 10/5») — the event is the
+ * one thing on the sheet that the publication date is never evidence for.
+ */
+const RETROSPECTIVE_RE = /\b(of the week|weekly|honou?r roll|last week|(this )?past (week|weekend))\b/;
+
+export function eventDateProblem(md: { m: number; d: number }, canonSource: string): string | null {
+  const stampWeekdays: string[] = [];
+  const body = canonSource.replace(PUBLICATION_STAMP_RE, (_all, m: string, d: string, y: string) => {
+    if (+m === md.m && +d === md.d) {
+      stampWeekdays.push(WEEKDAYS[new Date(Date.UTC(+y, +m - 1, +d)).getUTCDay()]);
+    }
+    return " ";
+  });
+  if (dateInSource(md, body)) return null;
+  if (stampWeekdays.length === 0) return "the date is not written in the source";
+  // The text itself puts the event on the day the page went up.
+  if (stampWeekdays.some((wd) => new RegExp(`\\b${wd}\\b`).test(body))) return null;
+  if (RETROSPECTIVE_RE.test(body)) {
+    return "the date is only when a weekly-honour page was published; the event it honours was earlier";
+  }
+  return null; // a same-day report: the stamp is the event's day
 }
 
 const MONTH_WORD =
@@ -418,8 +479,9 @@ export function verifyFactSheet(
   let event = fs.event;
   if (event?.date) {
     const md = parseMonthDay(String(event.date));
-    if (md && !dateInSource(md, prose.canon)) {
-      unverified.push({ field: "event.date", text: String(event.date), reason: "the date is not written in the source" });
+    const why = md ? eventDateProblem(md, prose.canon) : null;
+    if (why) {
+      unverified.push({ field: "event.date", text: String(event.date), reason: why });
       event = { ...event, date: null };
     }
   }

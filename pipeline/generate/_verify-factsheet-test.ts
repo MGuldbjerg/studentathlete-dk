@@ -115,5 +115,60 @@ ok(v.factSheet.stats.length === 1 && v.factSheet.stats[0].text === "Hollis score
 ok(v.factSheet.other_facts.length === 1, "box-score facts are not judged against the prose");
 ok(v.unverified.length === 2 && v.unverified.every((u) => u.reason.length > 0), "every removal is recorded with a reason");
 
+// ─── The publication stamp is not the event's date (6 October 2026) ─────────
+// Three award announcements reached drafts dated by their own stamp: the
+// awards went up on Monday 5 October, the matches they honour were earlier.
+
+const stamped = (date: string, source: string) =>
+  verifyFactSheet(
+    { ...sheet, event: { type: "Soccer", date, opponent: null, competition: null }, stats: [], qualitative: [], other_facts: [] },
+    source,
+    "Tyler Ackah-Wheatcroft",
+  );
+
+const award528 =
+  "Ackah-Wheatcroft, Caffaro Sweep Lone Star Conference Defensive Player of the Week Awards\n10/5/2026 2:30:00 PM\n" +
+  "He sparked the Eagles to a 2-0 shutout victory against West Texas A&M. On Saturday, Ackah-Wheatcroft put in another 90-minute shift.";
+const r528 = stamped("10/5/2026", award528);
+ok(r528.factSheet.event?.date === null, "#528: Monday's stamp is not the date of a match the source puts «On Saturday»");
+ok(r528.unverified.some((u) => u.field === "event.date" && /published/.test(u.reason)),
+  "…and the reason says it was only the publication date");
+
+const award532 =
+  "Trinder Named Metro Conference Rookie of the Week\n10/5/2026 1:00:00 PM\nLucy Trinder recorded her third goal of the year in a 3-0 win over Saint Peter's.";
+ok(stamped("10/5/2026", award532).factSheet.event?.date === null, "#532: an undated match does not borrow the stamp");
+ok(stamped("2026-10-05", award532).factSheet.event?.date === null, "#534: the ISO form of the stamp date is dropped too");
+
+// Same-day reports must keep their date — the weekday ties the stamp to the event.
+const recap = "Late Heroics From Rosen\n10/4/2026 7:12:00 PM\nThe NMU men's soccer team defeated the Parkside Rangers 1-0 on Sunday.";
+ok(stamped("Oct. 04, 2026", recap).factSheet.event?.date === "Oct. 04, 2026",
+  "a recap published Sunday that says «on Sunday» keeps its date (4 Oct 2026 was a Sunday)");
+// A same-day tournament report often names no day at all — Billson's finals
+// page said only «To start the day». Dropping these cost 9 true dates in the
+// backtest, so a stamp-only date stands unless the page is a weekly honour.
+const finals = "Billson & Blumentritt Earn ITA Regional Titles\n10/5/2026 3:37:00 PM\nTo start the day, Theo Billson faced Dominik Knutson.";
+ok(stamped("10/5/2026", finals).factSheet.event?.date === "10/5/2026",
+  "a same-day report that names no weekday keeps its stamp date");
+// Deliberate trade, measured: vetoing the stamp whenever the text names
+// another weekday dropped a true date (#8019, published Saturday, mentioning
+// Sunday's next round) and caught nothing the weekly-honour rule missed.
+ok(stamped("10/4/2026", recap.replace("on Sunday", "on Saturday")).factSheet.event?.date === "10/4/2026",
+  "another weekday alone does not veto the stamp on a non-weekly page");
+
+const honorRoll =
+  "John Ferry and Amelia Jones Make the CACC Weekly Honor Roll\n9/29/2026 11:00:00 AM\nJones placed fourth at the Rowan Invitational.";
+ok(stamped("9/29/2026", honorRoll).factSheet.event?.date === null,
+  "#7550: a weekly honour roll is not dated by its stamp either");
+
+const withHeader = "Men's Soccer Falls\nwinner Charlotte 4 final Oct. 03, 2026 2 ETSU\n10/3/2026 8:59:00 PM\nThe Bucs fell 4-2.";
+ok(stamped("Oct. 03, 2026", withHeader).factSheet.event?.date === "Oct. 03, 2026",
+  "a date written in the story itself (box-score header) needs no weekday");
+
+const otherStamp = "10/1/2026 9:00:00 AM\nThe Eagles beat West Texas A&M 2-0 on Oct. 5.";
+ok(stamped("10/5/2026", otherStamp).factSheet.event?.date === "10/5/2026",
+  "a stamp for another day does not hide a date the text does write");
+ok(stamped("10/9/2026", award532).unverified.some((u) => u.reason === "the date is not written in the source"),
+  "a date written nowhere keeps the old reason");
+
 console.log(`verify-factsheet: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);
