@@ -88,6 +88,11 @@ its FULL source, corrects what the source supports, and publishes through
 `pipeline/fix/apply-draft-decisions.ts` — which spaces publishes **17–23 minutes**
 apart (Mikkel, 2026-09-24: a batch going live at once looks spammy). Run it
 detached, give the expected end time, and never publish without that instruction.
+The spacing is **per site**: .dk and .co.uk are separate sites to their readers,
+so a Danish and a British article may go live at the same moment — one decisions
+file per country, run in parallel (Mikkel, 2026-10-06). Danish drafts: Claude
+corrects, Mikkel reads and publishes — the .dk pages promise a person reads
+every article (2026-10-06).
 
 ### The standing exception: the 01:00 correction run (agreed 2026-09-10)
 
