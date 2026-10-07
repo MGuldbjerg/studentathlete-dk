@@ -61,6 +61,23 @@ export function threadsContainerParams(content: PostContent, country: string, to
   return params;
 }
 
+/**
+ * "Media Not Found" right after the container reported FINISHED.
+ *
+ * Seen 2026-10-07 (threads_uk, fbtrace A7BtsrpY7P9M9at5liWR2Ru): the status
+ * endpoint said FINISHED, and threads_publish answered 400, code 24, subcode
+ * 4279009, "The media with id … cannot be found". Meta flags it
+ * is_transient:false, but it is the publish endpoint not yet seeing what the
+ * status endpoint already sees. Publishing the SAME container again a little
+ * later is the fix; any other 400 is a real failure.
+ */
+export function isMediaNotYetVisible(status: number, body: string): boolean {
+  return status === 400 && /"error_subcode"\s*:\s*4279009/.test(body);
+}
+
+/** Waits before re-publishing a container the publish endpoint could not see yet. */
+export const PUBLISH_RETRY_DELAYS_MS = [10_000, 30_000];
+
 async function waitForContainer(creationId: string, token: string): Promise<void> {
   const deadline = Date.now() + CONTAINER_TIMEOUT_MS;
   let lastStatus = "unknown";
@@ -135,10 +152,19 @@ export function createThreadsChannel(country: string): SocialChannel {
 
       await waitForContainer(creationId, token);
 
-      const pubRes = await fetch(`${THREADS_GRAPH}/${userId}/threads_publish`, {
-        method: "POST",
-        body: new URLSearchParams({ creation_id: creationId, access_token: token }),
-      });
+      const publish = () =>
+        fetch(`${THREADS_GRAPH}/${userId}/threads_publish`, {
+          method: "POST",
+          body: new URLSearchParams({ creation_id: creationId, access_token: token }),
+        });
+      let pubRes = await publish();
+      for (const delay of PUBLISH_RETRY_DELAYS_MS) {
+        if (pubRes.ok) break;
+        const body = await pubRes.clone().text();
+        if (!isMediaNotYetVisible(pubRes.status, body)) break;
+        await sleep(delay);
+        pubRes = await publish();
+      }
       if (!pubRes.ok) {
         const body = await pubRes.text();
         if (authFailed(pubRes.status)) {

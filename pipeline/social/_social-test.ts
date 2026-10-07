@@ -25,7 +25,7 @@ import { patDaysLeft, refreshRequestFor } from "./refresh-ig-tokens";
 import { followerRequest } from "./collect-followers";
 import { dashboardChannels } from "../../src/lib/social-stats";
 import { COUNTRIES } from "../../src/lib/countries";
-import { createThreadsChannel, threadsContainerParams, threadsTopicTag } from "./channels/threads";
+import { createThreadsChannel, isMediaNotYetVisible, threadsContainerParams, threadsTopicTag } from "./channels/threads";
 import { countryForUrl } from "./rescrape-facebook";
 import { scopesNotGrantedForTarget } from "./check-tokens";
 import {
@@ -819,6 +819,13 @@ expect("window: unpublished is out", withinQueueWindow(null, "instagram_uk", win
 
 // ── Threads (2026-10-05) ──────────────────────────────────────────────────
 // New accounts, so symmetric names on both the queue and the secrets.
+{
+  // The 2026-10-07 failure, verbatim from the run log.
+  const notFound = '{"error":{"message":"The requested resource does not exist","type":"OAuthException","code":24,"error_subcode":4279009,"is_transient":false,"error_user_title":"Media Not Found"}}';
+  expect("threads: Media Not Found after FINISHED is retried", isMediaNotYetVisible(400, notFound), true);
+  expect("threads: another 400 is not", isMediaNotYetVisible(400, '{"error":{"code":100,"error_subcode":2207051}}'), false);
+  expect("threads: a 500 is not this case", isMediaNotYetVisible(500, notFound), false);
+}
 expect("threads DK queue name", channelNameFor("threads", "DK"), "threads_dk");
 expect("threads UK queue name", channelNameFor("threads", "UK"), "threads_uk");
 expect("threads secret name", envNameFor("threads", "UK", "ACCESS_TOKEN"), "THREADS_UK_ACCESS_TOKEN");
