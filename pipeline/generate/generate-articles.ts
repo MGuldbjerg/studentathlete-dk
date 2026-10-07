@@ -25,6 +25,7 @@ import { MULTI_DAY_SPORTS, SIBLING_DAYS, foldEarlierReports, holdDecision, type 
 import { PARENT_DAYS, cleanSection, findParent, isWeeklyAward, sectionPrompt } from "./award-section";
 import { ADDITION_TYPE, appendAddition } from "../../src/lib/article-addition";
 import { earlierLines, rosterLine, withRecords } from "./records";
+import { MAX_AGE_DAYS, ncaaDivision, ncaaSport, rankingLines, schoolKeys, type StoredRanking } from "../stats/ncaa-rankings";
 import { numbersIn, unsupportedNumbers, unstableNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
@@ -728,6 +729,33 @@ async function main(): Promise<void> {
         ).results[0]?.n ?? 0;
         const roster = rosterLine(story.athlete_name, count, cc, story.university, story.sport, story.gender, new Date());
         if (roster) lines.push(roster);
+        // National top-10 placings from NCAA.com (ncaa-rankings.ts), exact
+        // school match only, and only from a table through games of the last
+        // MAX_AGE_DAYS — an older one is out of season.
+        try {
+          const slug = ncaaSport(story.sport, story.gender);
+          const div = ncaaDivision(story.division);
+          if (slug && div) {
+            const school = (
+              await db.query<{ common_name: string | null }>("SELECT common_name FROM schools WHERE name = ? LIMIT 1", [story.university])
+            ).results[0];
+            const keys = schoolKeys(story.university, school?.common_name ?? null);
+            if (keys.length) {
+              const ranks = (
+                await db.query<StoredRanking>(
+                  `SELECT sport, division, stat, rank, tied, team, value, value_label, games, fetched_on
+                     FROM team_rankings
+                    WHERE team_key IN (${keys.map(() => "?").join(",")}) AND sport = ? AND division = ?
+                      AND fetched_on >= date('now', '-${MAX_AGE_DAYS} days')`,
+                  [...keys, slug, div],
+                )
+              ).results;
+              lines.push(...rankingLines(ranks));
+            }
+          }
+        } catch {
+          /* no rankings: the other records still go in */
+        }
         const prior = (
           await db.query<{ title: string; source_url: string | null; fact_sheet: string | null }>(
             `SELECT a.title, a.source_url, s.fact_sheet
