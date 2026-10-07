@@ -16,19 +16,22 @@ a record is stated, never characterised («efficient», «dominant»).
 - Measured on 50 stories: 9.4 → 13.1 facts per sheet. Known gap: the attribution check drops
   true tennis bracket results (Billson, #8143) — removal-only, fix with step 2.
 
-### 2. Same athlete, same event: one article (next)
+### 2. Same athlete, same event: one article (2a + 2b DONE, 2c next)
 Measured 2026-10-07: of 317 articles in 45 days, 28 pairs were the same athlete on the same
 site within 4 days.
-- **Single matches are never held.** Weekly awards are on a set schedule (83 % published
-  Monday or Tuesday), but that is 2–3 days after a weekend match, too long to hold a recap.
-  - Award arrives while the recap is an unpublished draft → merged into the draft.
-  - Recap already live → the award becomes an **added section** on that article. It waits in
-    the review queue like a draft and goes live only on publish instruction (CLAUDE.md
-    boundary). It also gets a social post linking the same article.
-  - Award covering several matches → the section goes on the latest recap that week.
-  - No recap that week → its own article, as today.
-- **Multi-day tournaments (golf, tennis) are held up to 48 hours**: day reports and the final
-  become one recap when the final arrives, or after 48 hours.
+- **2b DONE (#13, live 2026-10-07): single matches are never held.** Weekly awards are on a
+  set schedule (83 % published Monday or Tuesday), but that is 2–3 days after a weekend match.
+  `award-section.ts` + `src/lib/article-addition.ts`, migration 064.
+  - Award arrives while the recap is an unpublished draft → appended to the draft.
+  - Recap already live → a pending `addition` row in the draft queue; publishing it appends
+    «Update, 7 October: …» to the article and removes the row.
+  - The award's source must name the recap's opponent/tournament; no match → own article.
+  - Backtest: 23 of 157 weekly awards in 45 days attach, all checked by hand.
+  - **Not done: the social post for an added section** — `social_posts` holds one post per
+    article and channel, so it needs a schema change. Follow-up.
+- **2a DONE (#12, 2026-10-07): multi-day tournaments (golf, tennis) are held up to 48 hours**:
+  day reports and the final become one recap when the final arrives, or after 48 hours.
+  `tournament-hold.ts`, migration 063 (`stories.merged_into`).
 - **Never two matches in one article** (risk of cross-attributed numbers with free models).
 - **Preseason teams and watch lists**: one article per list per site (e.g. «Three Britons on
   the preseason All-Patriot League team»). Athlete lines built in code from the DB and checked
