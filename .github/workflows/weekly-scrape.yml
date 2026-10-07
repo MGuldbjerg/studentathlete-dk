@@ -23,7 +23,11 @@ jobs:
         # NJCAA kom til 31/8. Tieren er 442 skoler, men kun tre sportsgrene
         # registreres (lib/divisions.ts), og jobbet finder intet før
         # find-athletics-site har bekræftet skolernes atletiksites.
-        division: [D1, D2, D3, NJCAA]
+        # NAIA added 2026-10-07 (Mikkel): left out since June as "low Danish
+        # density", but NSSA's client list puts Danes at Campbellsville,
+        # Cumberlands, Tennessee Wesleyan, USAO, Morningside … — and all 896
+        # NAIA teams had never been scraped. All sports (lib/divisions.ts).
+        division: [D1, D2, D3, NJCAA, NAIA]
       max-parallel: 1
 
     steps:
