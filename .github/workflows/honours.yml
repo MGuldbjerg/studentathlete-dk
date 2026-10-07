@@ -49,6 +49,16 @@ jobs:
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
           BROWSER_RUN_SHARE: '0.5'
 
+      # Conference award releases: weekly awards, season teams, honour rolls
+      # (pipeline/scrape/conference-honors.ts). Ten days back each night, so a
+      # missed run is caught up by the next one.
+      - name: Honours from conference releases
+        run: npx tsx pipeline/scrape/scrape-conference-honors.ts --days 10
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
       # Kun ved fejl. Fundene står på profilerne og taler for sig selv.
       - name: Discord-notifikation ved fejl
         if: failure()
