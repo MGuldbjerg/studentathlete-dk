@@ -96,7 +96,7 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
                 </a>
               )}
               {article.author && (
-                <span>{athlete ? "·" : ""} Af <span className="text-ink font-medium">{article.author}</span></span>
+                <span>{athlete ? "· " : ""}<span className="text-ink font-medium">{t("tpl.byline", lang, { author: article.author })}</span></span>
               )}
             </div>
             <div className="flex items-center gap-3 text-muted text-xs tracking-wide">
@@ -106,7 +106,7 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
                 </time>
               )}
               <span className="text-border">·</span>
-              <span>{readTime} min. læsning</span>
+              <span>{t("card.read_time", lang, { n: String(readTime) })}</span>
             </div>
           </div>
 

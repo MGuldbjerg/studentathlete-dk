@@ -198,7 +198,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 className="inline-flex items-center gap-1.5 mt-5 text-xs font-bold tracking-[0.1em]
                            uppercase hover:underline"
                 style={{ color: "#BF0A30" }}>
-                Officiel profil hos {athlete.university} ↗
+                {t("profile.official_bio", lang, { school: athlete.university })}
               </a>
             )}
           </aside>
@@ -210,7 +210,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
             {athlete.profile_summary && (
               <section className="mb-10 pb-10" style={{ borderBottom: "1px solid #E2E0DC" }}>
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">
-                  Om {athlete.name}
+                  {t("profile.about", lang, { name: athlete.name })}
                 </p>
                 <p className="text-base text-ink leading-relaxed">{athlete.profile_summary}</p>
               </section>

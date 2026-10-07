@@ -92,7 +92,7 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
           {/* Venstre: atleter */}
           <section>
             <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-5">
-              Danske atleter på {school.name}
+              {t("school.athletes_heading", lang, { school: school.name })}
             </p>
 
             {athletes.length > 0 ? (

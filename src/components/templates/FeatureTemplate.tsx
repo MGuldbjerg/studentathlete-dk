@@ -59,7 +59,7 @@ export async function FeatureTemplate({ article, athlete, relatedArticles = [] }
                 </span>
               )}
               <span className="text-white/30 text-[10px] tracking-[0.15em]">
-                {readTime} min. læsning
+                {t("card.read_time", lang, { n: String(readTime) })}
               </span>
             </div>
 
@@ -95,7 +95,7 @@ export async function FeatureTemplate({ article, athlete, relatedArticles = [] }
                   · {athlete.university}
                 </a>
               )}
-              {article.author && <span>Af {article.author}</span>}
+              {article.author && <span>{t("tpl.byline", lang, { author: article.author })}</span>}
               {article.published_at && (
                 <>
                   <span>·</span>

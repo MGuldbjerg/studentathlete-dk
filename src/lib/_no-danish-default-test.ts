@@ -133,5 +133,32 @@ const brandHits = files.filter((f) => {
 });
 ok("brandet kommer fra landeprofilen, ikke fra en streng", brandHits.length === 0, brandHits.join(", "));
 
+// ── 4. No Danish words as literal text in reader-facing JSX ────────────────
+// Rules 1-3 catch a Danish DEFAULT; this catches Danish typed straight into a
+// template. Found on student-athlete.co.uk 2026-10-07: "Af" (byline), "min.
+// læsning", "Om {name}", "Officiel profil hos", "Om atleten", "Se fuld profil"
+// and "Danske atleter på {school}" — none of them went through t(), so the
+// UiKey union could not see them. Comments are stripped first; the files below
+// are exempt for the stated reason.
+const DANISH_TEXT_EXEMPT: Record<string, string> = {
+  "src/components/ui/AdSlot.tsx": "placeholder labels, rendered only in local development",
+  "src/components/ui/FanaticsAffiliateLink.tsx": "not rendered anywhere yet (commerce plan) — fix before it is",
+};
+const DANISH_WORD =
+  /[æøåÆØÅ]|(?<![\w."'`/-])(Af|Om|Se fuld|Officiel|hos|Tidligere|læsning|Kilde|Udgivet|Opdateret|Danske)(?![\w-])/;
+const jsxHits: string[] = [];
+for (const f of [...walk("src/components"), ...walk("src/app")]) {
+  if (!f.endsWith(".tsx") || f.includes("/admin") || f.includes("_spil-i-usa") || DANISH_TEXT_EXEMPT[f]) continue;
+  const stripped = code(f)
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, (m) => "\n".repeat(m.split("\n").length - 1))
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => "\n".repeat(m.split("\n").length - 1));
+  stripped.split("\n").forEach((line, i) => {
+    const l = line.replace(/\/\/.*$/, "");
+    if (/^\s*(import|export|\*)/.test(l)) return;
+    if (DANISH_WORD.test(l)) jsxHits.push(`${f}:${i + 1}: ${l.trim().slice(0, 80)}`);
+  });
+}
+ok("no Danish words typed into reader-facing JSX (use t())", jsxHits.length === 0, jsxHits.join("\n      "));
+
 console.log(`\nno-danish-default: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

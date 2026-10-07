@@ -91,7 +91,7 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], rela
             {article.published_at && (
               <p className="text-white/30 text-xs tracking-widest mt-10">
                 <time dateTime={article.published_at}>{formatDate(article.published_at, lang)}</time>
-                {article.author && <> · Af {article.author}</>}
+                {article.author && <> · {t("tpl.byline", lang, { author: article.author })}</>}
               </p>
             )}
           </div>

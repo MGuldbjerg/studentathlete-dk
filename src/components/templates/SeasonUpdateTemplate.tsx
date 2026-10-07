@@ -104,7 +104,7 @@ export async function SeasonUpdateTemplate({ article, athlete, athletes = [], re
                 · {athlete.university}
               </a>
             )}
-            {article.author && <span>· Af {article.author}</span>}
+            {article.author && <span>· {t("tpl.byline", lang, { author: article.author })}</span>}
           </div>
           <div className="flex items-center gap-2 text-muted tracking-wide">
             {article.published_at && (
