@@ -152,31 +152,22 @@ const dayDiff = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)
  *
  * Weekly awards: the same week can already be on file from an article about it
  * (dated by the article, a day or two later) — within six days is the same
- * week. A weekly award from a bio has no date; the first dated one from the
- * conference gives it its date instead of standing beside it.
+ * week. A weekly award the BIO page already gives for that season (undated) is
+ * left alone: dating it in place made the bio harvest re-insert an undated copy
+ * the next night, so the profile showed the award twice (2026-10-07).
  * Season honours: the unique index (athlete, award, season) does the work.
  */
 async function record(
   db: D1Client | null,
   h: FoundHonour,
   existing: Map<number, EventRow[]>,
-): Promise<"new" | "dated" | "known"> {
+): Promise<"new" | "known"> {
   const season = seasonForEvent(h.occurred_on, h.significance);
   const rows = existing.get(h.athleteId) ?? [];
   const same = rows.filter((r) => r.award_name === h.award_name && r.season === season);
 
   if (WEEKLY_AWARDS.includes(h.award_name)) {
-    if (same.some((r) => r.occurred_on && dayDiff(r.occurred_on, h.occurred_on) <= 6)) return "known";
-    const undated = same.find((r) => !r.occurred_on);
-    if (undated) {
-      if (db) {
-        await db.execute(`UPDATE athlete_events SET occurred_on = ?, source_url = ? WHERE id = ?`, [
-          h.occurred_on, h.source_url, undated.id,
-        ]);
-      }
-      undated.occurred_on = h.occurred_on;
-      return "dated";
-    }
+    if (same.some((r) => !r.occurred_on || dayDiff(r.occurred_on, h.occurred_on) <= 6)) return "known";
   } else if (same.length > 0) {
     return "known";
   }
@@ -222,7 +213,7 @@ async function main(): Promise<void> {
     `${athletes.length} athletes · ${sites.length} conference site(s) · since ${args.since}${args.dryRun ? " — DRY RUN" : ""}`,
   );
 
-  const totals = { stories: 0, fetched: 0, found: 0, new: 0, dated: 0, known: 0 };
+  const totals = { stories: 0, fetched: 0, found: 0, new: 0, known: 0 };
   const honoured = new Set<number>();
   let next = 0;
 
@@ -276,7 +267,7 @@ async function main(): Promise<void> {
   await Promise.all(Array.from({ length: SITE_CONCURRENCY }, () => worker()));
   console.log(
     `\nDone: ${totals.fetched}/${totals.stories} releases read · ${totals.found} honours for ${honoured.size} athletes · ` +
-      `${totals.new} new, ${totals.dated} dated an undated row, ${totals.known} already on file` +
+      `${totals.new} new, ${totals.known} already on file` +
       `${args.dryRun ? " (dry run — nothing written)" : ""}.`,
   );
 }
