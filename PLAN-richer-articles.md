@@ -48,11 +48,15 @@ site within 4 days.
   to attribute each player to a list.
 - Rejected: weekly round-ups (Mikkel).
 
-### 3. Facts from our own database, computed in code
-- Earlier this season (our own published articles' fact sheets): up to 2–3 lines for short
-  pieces.
-- The national angle: «one of four British players on the roster», «the third British player
-  to win an RMAC weekly award this season». Confirmed, active athletes only.
+### 3. Facts from our own database, computed in code — DONE (#14, live 2026-10-07)
+`records.ts`; the sheet's `records` field, labelled as ours; the writer may use 1-2 sentences.
+- Our earlier articles: up to three of our own published headlines about the athlete since
+  July, with the event date from their sheets.
+- The national angle: «one of 4 British players on Fort Lewis College's men's soccer roster
+  (as of …)» — active athletes of that nationality, school, sport and gender; two upwards.
+  Spot-checked by name on live data (LMU golf 9, Princeton FH 8, UAH soccer 8).
+- NOT built: «the third British player to win an RMAC weekly award this season» —
+  athlete_events stores award categories without the conference.
 - Previous school (transfers) is Mikkel's call: not house practice yet.
 
 ### 4. (merged into 5)
