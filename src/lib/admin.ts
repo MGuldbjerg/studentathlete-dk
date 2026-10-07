@@ -315,23 +315,53 @@ export async function getArticleById(id: number): Promise<Article | null> {
   }
 }
 
-export async function getAllArticles(): Promise<Article[]> {
+/** Published articles shown per page in the dashboard list. */
+export const ADMIN_ARTICLES_PER_PAGE = 25;
+
+/**
+ * Which page to show and how many there are. A page number from the URL that
+ * is missing, garbage or past the end lands on the nearest real page.
+ */
+export function pageInfo(total: number, requested: unknown, perPage: number): { page: number; pages: number; offset: number } {
+  const pages = Math.max(1, Math.ceil(total / perPage));
+  const n = Number.parseInt(String(requested ?? "1"), 10);
+  const page = Number.isFinite(n) ? Math.min(Math.max(n, 1), pages) : 1;
+  return { page, pages, offset: (page - 1) * perPage };
+}
+
+/**
+ * One page of the published-articles list, newest edit first. The dashboard
+ * used to load every article for the site (200+ on .co.uk by October 2026)
+ * and render them all (Mikkel, 2026-10-07).
+ */
+export async function getPublishedArticlesPage(
+  requestedPage: unknown,
+  perPage = ADMIN_ARTICLES_PER_PAGE,
+): Promise<{ articles: Article[]; total: number; page: number; pages: number }> {
   const db = await getDB();
-  if (!db) return [];
+  if (!db) return { articles: [], total: 0, page: 1, pages: 1 };
   try {
+    const country = await contentCountry();
+    const count = await db
+      .prepare(`SELECT COUNT(*) AS n FROM articles WHERE country = ? AND published = 1`)
+      .bind(country)
+      .first();
+    const total = Number((count as { n?: number } | null)?.n ?? 0);
+    const { page, pages, offset } = pageInfo(total, requestedPage, perPage);
     const r = await db
       .prepare(
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.country = ?
-         ORDER BY a.updated_at DESC`
+         WHERE a.country = ? AND a.published = 1
+         ORDER BY a.updated_at DESC
+         LIMIT ? OFFSET ?`
       )
-      .bind(await contentCountry())
+      .bind(country, perPage, offset)
       .all();
-    return (r.results ?? []) as Article[];
+    return { articles: (r.results ?? []) as Article[], total, page, pages };
   } catch {
-    return [];
+    return { articles: [], total: 0, page: 1, pages: 1 };
   }
 }
 
@@ -1760,8 +1790,14 @@ export async function getCheckData(id: number): Promise<CheckData | null> {
   if (!db) return null;
   const art = (await db
     .prepare(
+      // Day reports of a tournament folded into this article (merged_into,
+      // migration 063) are part of its source: their facts are in the draft.
       `SELECT a.id, a.title, a.content, a.published, a.country, a.source_url,
-              s.content_raw AS source_raw, s.sensitive
+              NULLIF(COALESCE(s.content_raw, '') ||
+                COALESCE((SELECT group_concat(char(10) || char(10) || '=== Earlier report: ' ||
+                                  COALESCE(m.headline, '') || ' ===' || char(10) || COALESCE(m.content_raw, ''), '')
+                          FROM stories m WHERE m.merged_into = a.id), ''), '') AS source_raw,
+              s.sensitive
        FROM articles a
        LEFT JOIN stories s ON s.id = a.story_id
        WHERE a.id = ?`,

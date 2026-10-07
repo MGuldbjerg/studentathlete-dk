@@ -1,20 +1,25 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getDraftArticles, getAllArticles, getPendingPhotoSuggestionCount, getNewLeadCount, getPendingProfileDraftCount, getMergeCandidateCount, getInstagramCandidateCount } from "@/lib/admin";
+import { getDraftArticles, getPublishedArticlesPage, getPendingPhotoSuggestionCount, getNewLeadCount, getPendingProfileDraftCount, getMergeCandidateCount, getInstagramCandidateCount } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ side?: string }>;
+}) {
+  const { side } = await searchParams;
 
-  const [drafts, allArticles, pendingPhotos, newLeads, pendingProfiles, pendingDupes, pendingHandles] = await Promise.all([
+  const [drafts, publishedPage, pendingPhotos, newLeads, pendingProfiles, pendingDupes, pendingHandles] = await Promise.all([
     getDraftArticles(),
-    getAllArticles(),
+    getPublishedArticlesPage(side),
     getPendingPhotoSuggestionCount(),
     getNewLeadCount(),
     getPendingProfileDraftCount(),
     getMergeCandidateCount(),
     getInstagramCandidateCount(),
   ]);
-  const published = allArticles.filter((a) => a.published === 1);
+  const { articles: published, total: publishedTotal, page, pages } = publishedPage;
 
   return (
     <main className="min-h-screen bg-surface">
@@ -234,7 +239,8 @@ export default async function AdminDashboard() {
         <section>
           <h2 className="text-lg font-bold text-ink mb-1">Publicerede artikler</h2>
           <p className="text-muted text-sm mb-3">
-            {published.length} artikel{published.length === 1 ? "" : "er"}
+            {publishedTotal} artikel{publishedTotal === 1 ? "" : "er"}
+            {pages > 1 ? ` · side ${page} af ${pages}` : ""}
           </p>
 
           <div className="flex flex-col gap-2">
@@ -271,8 +277,38 @@ export default async function AdminDashboard() {
               </div>
             ))}
           </div>
+
+          {pages > 1 && <Pager page={page} pages={pages} />}
         </section>
       </div>
     </main>
+  );
+}
+
+/** Forrige · 1 2 … 9 · Næste — keeps the drafts section at the top of every page. */
+function Pager({ page, pages }: { page: number; pages: number }) {
+  const href = (p: number) => (p === 1 ? "/admin" : `/admin?side=${p}`);
+  // First, last, and two either side of the current page; gaps become "…".
+  const shown = [...new Set([1, pages, page - 2, page - 1, page, page + 1, page + 2])]
+    .filter((p) => p >= 1 && p <= pages)
+    .sort((a, b) => a - b);
+  const link = "px-3 py-1.5 text-sm rounded border border-border bg-paper hover:border-ink";
+  return (
+    <nav className="flex flex-wrap items-center gap-1.5 mt-6" aria-label="Sider">
+      {page > 1 && <Link href={href(page - 1)} className={link}>← Forrige</Link>}
+      {shown.map((p, i) => (
+        <span key={p} className="flex items-center gap-1.5">
+          {i > 0 && p - shown[i - 1] > 1 && <span className="text-muted text-sm">…</span>}
+          {p === page ? (
+            <span className="px-3 py-1.5 text-sm rounded font-semibold text-white" style={{ backgroundColor: "#00205B" }}>
+              {p}
+            </span>
+          ) : (
+            <Link href={href(p)} className={link}>{p}</Link>
+          )}
+        </span>
+      ))}
+      {page < pages && <Link href={href(page + 1)} className={link}>Næste →</Link>}
+    </nav>
   );
 }
