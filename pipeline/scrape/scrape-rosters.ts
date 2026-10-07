@@ -77,12 +77,23 @@ const PRESTO_SPORT_CODES: Record<string, string[]> = {
  * Generér mulige roster-URLs for en skole/sport baseret på platform.
  * Returnerer flere kandidater i prioriteret rækkefølge.
  */
-function getRosterUrls(website: string, sport: string, platformType: string | null): string[] {
+/** "2026-27": the season segment current PrestoSports URLs carry. */
+export function prestoSeason(academicYear: number): string {
+  return `${academicYear}-${String((academicYear + 1) % 100).padStart(2, "0")}`;
+}
+
+export function getRosterUrls(website: string, sport: string, platformType: string | null, academicYear = getAcademicYear()): string[] {
   const urls: string[] = [];
 
   if (platformType === "prestosports") {
+    // Current PrestoSports puts the season in the path; `roster.aspx?path=` is
+    // the old format and now answers 405 (Mars Hill, Wilmington, 2026-10-07).
+    // This season first, then last season's page for a team that has not yet
+    // published this one; the old format stays last for any site still on it.
     const codes = PRESTO_SPORT_CODES[sport] ?? [sport];
     for (const code of codes) {
+      urls.push(`${website}/sports/${code}/${prestoSeason(academicYear)}/roster`);
+      urls.push(`${website}/sports/${code}/${prestoSeason(academicYear - 1)}/roster`);
       urls.push(`${website}/roster.aspx?path=${code}`);
     }
   } else {
@@ -362,7 +373,11 @@ async function main(): Promise<void> {
     `SELECT
        rc.id as check_id, rc.school_id, rc.sport, rc.roster_url,
        rc.team_slug, rc.inventory_source, rc.api_sport_id,
-       s.name, s.slug, s.state, s.division, s.conference, s.website, s.platform_type
+       s.name, s.slug, s.state, s.division, s.conference,
+       -- The confirmed athletics site, when there is one: \`website\` is often the
+       -- university's main site, where /sports/... is a 404 (Gannon, Coker,
+       -- Tusculum … 2026-10-07).
+       COALESCE(s.athletics_url, s.website) AS website, s.platform_type
      FROM roster_checks rc
      JOIN schools s ON rc.school_id = s.id
      LEFT JOIN (
