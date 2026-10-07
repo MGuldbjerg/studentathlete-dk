@@ -44,14 +44,15 @@ const PATTERNS: Pattern[] = [
     // "All-America Scholar(s)" (golf, swimming, …) is academic too: Lamar's
     // "six golf All-America Scholars" became an athletic All-American for
     // Nathan Woodham, and a draft repeated it (2026-09-30).
-    re: /\bacademic\s+all[-\s]?americ(a|an)\b|\ball[-\s]?america(n)?\s+scholars?\b|\bscholar[-\s]all[-\s]?americ(a|an)\b/i,
+    re: /\bacademic\s+all[-\s]?americ(a|ans?)\b|\ball[-\s]?america(n)?\s+scholars?\b|\bscholar[-\s]all[-\s]?americ(a|ans?)\b/i,
     kind: "award",
     award: "Academic All-American",
     significance: "honor",
   },
   // «All-America Second Team» er den almindelige skrivemåde — uden n.
+  // The plural counts too: "became Tiffin's first-ever All Americans" (2026-10-07).
   {
-    re: /(?<!academic\s)(?<!scholar[-\s])\ball[-\s]?americ(a|an)\b(?!\s+scholars?\b)/i,
+    re: /(?<!academic\s)(?<!scholar[-\s])\ball[-\s]?americ(a|ans?)\b(?!\s+scholars?\b)/i,
     kind: "award",
     award: "All-American",
     significance: "honor",
@@ -151,7 +152,11 @@ export function seasonForEvent(iso: string | null, significance: string): string
 }
 
 /** Awards that recur within a season: one row per article, not per season. */
-export const WEEKLY_AWARDS = ["Player of the Week", "Rookie of the Week/Month", "Ugens spiller"];
+export const WEEKLY_AWARDS = [
+  "Player of the Week", "Rookie of the Week/Month", "Ugens spiller",
+  // From conference releases (pipeline/scrape/conference-honors.ts, 2026-10-07).
+  "Honor Roll", "Crew of the Week",
+];
 
 export function seasonFromDate(iso: string | null): string {
   const d = iso ? new Date(iso) : new Date();
@@ -201,6 +206,14 @@ const AWARD_LABELS: Record<string, { da: string; en: string }> = {
   Mesterskab: { da: "Mesterskab", en: "Championship" },
   Rekord: { da: "Rekord", en: "Record" },
   Draftet: { da: "Draftet", en: "Drafted" },
+  // Conference releases (2026-10-07). The honour roll is the weekly athletic
+  // one — the academic and commissioner's rolls are never harvested.
+  "Honor Roll": { da: "Ugens æresliste", en: "Weekly Honour Roll" },
+  "Crew of the Week": { da: "Ugens båd", en: "Crew of the Week" },
+  "All-Freshman": { da: "All-Freshman", en: "All-Freshman Team" },
+  "All-Conference HM": { da: "All-Conference (honorable mention)", en: "All-Conference Honourable Mention" },
+  "All-Region HM": { da: "All-Region (honorable mention)", en: "All-Region Honourable Mention" },
+  "All-American HM": { da: "All-American (honorable mention)", en: "All-American Honourable Mention" },
 };
 
 export function awardLabel(awardName: string | null, lang: string): string {

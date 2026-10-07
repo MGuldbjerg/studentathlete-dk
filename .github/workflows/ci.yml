@@ -78,12 +78,15 @@ jobs:
             pipeline/lib/_robots-txt-site-test.ts \
             pipeline/scrape/_team-discovery-test.ts \
             pipeline/scrape/_athletics-site-test.ts \
+            pipeline/scrape/_honors-test.ts \
+            pipeline/scrape/_conference-honors-test.ts \
             pipeline/scrape/parsers/_roster-api-test.ts \
             pipeline/scrape/parsers/_sidearm-test.ts \
             pipeline/social/_social-test.ts \
             pipeline/report/_search-console-test.ts \
             pipeline/report/_indexnow-backfill-test.ts \
             pipeline/profiles/_profile-drafts-test.ts \
+            src/lib/_award-label-test.ts \
             src/lib/_analytics-test.ts \
             src/lib/_social-stats-test.ts \
             src/lib/_site-family-test.ts \

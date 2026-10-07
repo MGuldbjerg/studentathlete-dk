@@ -26,6 +26,11 @@ eq(awardLabel("Ugens spiller", "en"), "Player of the Week", "dansk nøgle → en
 eq(awardLabel("Noget Ukendt", "en"), "Noget Ukendt", "ukendt nøgle vises som den er, ikke som tom celle");
 eq(awardLabel(null, "en"), "", "ingen pris er tom streng");
 
+// Conference-release awards (2026-10-07).
+eq(awardLabel("Honor Roll", "en"), "Weekly Honour Roll", "the weekly honour roll says weekly");
+eq(awardLabel("All-Conference HM", "en"), "All-Conference Honourable Mention", "honourable mention keeps its own name");
+eq(extractEvents("became Tiffin's first-ever ITA women's tennis All Americans").map((e) => e.award_name).join(","), "All-American", "the plural counts");
+
 // ── academic vs athletic, and which season an honour belongs to (2026-09-30) ──
 const awards = (t: string) => extractEvents(t).map((e) => e.award_name).join(",");
 eq(awards("Lamar among national leaders with six golf All-America Scholars"), "Academic All-American", "All-America Scholars is academic (Woodham)");
