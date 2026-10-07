@@ -6,7 +6,7 @@
  * Gemmer kladder i articles-tabellen med published = 0.
  */
 
-import { createD1Client } from "../lib/d1-client";
+import { createD1Client, type D1Client } from "../lib/d1-client";
 import { generateSlug } from "../../src/lib/slug";
 import { ProviderChain } from "../lib/llm/provider-chain";
 import type { StyleCorrectionEntry } from "./prompts/system";
@@ -21,6 +21,7 @@ import { sensitiveCareBlock, type SensitiveType } from "../discover/sensitive";
 import { checkStoryIdentity, hasUnsourcedQuote } from "./identity-guard";
 import { checkEventTiming } from "./event-timing";
 import { groupBySourceAndCountry } from "./group-stories";
+import { MULTI_DAY_SPORTS, SIBLING_DAYS, foldEarlierReports, holdDecision, type Report } from "./tournament-hold";
 import { numbersIn, unsupportedNumbers, unstableNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
@@ -272,6 +273,98 @@ function parseArgs(): {
   return { maxAgeDays, dryRun, storyId, forceProvider, noJson };
 }
 
+interface ReportRow {
+  id: number;
+  athlete_id: number;
+  headline: string | null;
+  fact_sheet: string | null;
+  discovered_at: string;
+}
+
+/** D1 writes datetime('now') as «2026-10-07 12:13:00», in UTC. */
+function utc(stamp: string): Date {
+  return new Date(stamp.replace(" ", "T") + (stamp.endsWith("Z") ? "" : "Z"));
+}
+
+function asReport(r: ReportRow): Report {
+  let factSheet: FactSheet | null = null;
+  try {
+    factSheet = r.fact_sheet ? (JSON.parse(r.fact_sheet) as FactSheet) : null;
+  } catch {
+    /* an unreadable sheet only weakens the match, it never blocks */
+  }
+  return { id: r.id, headline: r.headline, factSheet, discoveredAt: utc(r.discovered_at) };
+}
+
+/**
+ * Hold, cover or write each golf/tennis story — see tournament-hold.ts.
+ *
+ * Removes held and covered stories from `stories` in place and returns, per
+ * story that IS written, the earlier day reports to fold into its sheet.
+ * A story covered by a report that is still waiting is left 'new': that
+ * report folds it in when it is written. Only a story covered by an article
+ * that already exists is closed here ('merged').
+ */
+async function applyTournamentHold(
+  db: D1Client,
+  stories: StoryWithAthlete[],
+  dryRun: boolean,
+): Promise<Map<number, Report[]>> {
+  const earlierById = new Map<number, Report[]>();
+  const multi = stories.filter((s) => MULTI_DAY_SPORTS.has(s.sport));
+  if (!multi.length) return earlierById;
+
+  const ids = [...new Set(multi.map((s) => s.athlete_id))];
+  const marks = ids.map(() => "?").join(",");
+  // Both through athlete_id indexes (idx_stories_athlete, idx_articles_athlete).
+  const waiting = (
+    await db.query<ReportRow>(
+      `SELECT id, athlete_id, headline, fact_sheet, discovered_at FROM stories
+        WHERE athlete_id IN (${marks}) AND status = 'new' AND fact_status = 'built'
+          AND discovered_at >= datetime('now', '-${SIBLING_DAYS} days')`,
+      ids,
+    )
+  ).results;
+  const written = (
+    await db.query<ReportRow & { article_id: number }>(
+      `SELECT s.id, a.athlete_id, s.headline, s.fact_sheet, s.discovered_at, a.id AS article_id
+         FROM articles a JOIN stories s ON s.id = a.story_id
+        WHERE a.athlete_id IN (${marks}) AND a.created_at >= datetime('now', '-${SIBLING_DAYS + 2} days')`,
+      ids,
+    )
+  ).results;
+
+  const now = new Date();
+  for (const st of multi) {
+    const mine = (rows: ReportRow[]) => rows.filter((r) => r.athlete_id === st.athlete_id && r.id !== st.id).map(asReport);
+    const exclude = [st.athlete_name, st.preferred_name ?? "", st.university];
+    const self: Report = asReport({ ...st, discovered_at: String(st.discovered_at) } as ReportRow);
+    const decision = holdDecision(self, mine(waiting), mine(written), exclude, now);
+
+    if (decision.action === "write") {
+      if (decision.earlier.length) {
+        earlierById.set(st.id, decision.earlier);
+        console.log(`  ⛳ Story ${st.id} (${st.athlete_name}): tournament recap — folds in ${decision.earlier.map((r) => r.id).join(", ")}`);
+      }
+      continue;
+    }
+    stories.splice(stories.indexOf(st), 1);
+    if (decision.action === "hold") {
+      console.log(`  ⏸ Story ${st.id} (${st.athlete_name}): ${decision.reason}`);
+      continue;
+    }
+    const byArticle = written.find((w) => w.id === decision.byStoryId)?.article_id;
+    console.log(`  ↪ Story ${st.id} (${st.athlete_name}): ${decision.reason}${byArticle ? ` (#${byArticle})` : ""}`);
+    if (byArticle && !dryRun) {
+      await db.execute(
+        `UPDATE stories SET status = 'merged', merged_into = ?, processed_at = datetime('now') WHERE id = ?`,
+        [byArticle, st.id],
+      );
+    }
+  }
+  return earlierById;
+}
+
 async function main(): Promise<void> {
   const { maxAgeDays, dryRun, storyId, forceProvider, noJson } = parseArgs();
   if (dryRun) console.log("DRY-RUN: ingen kladder, ingen forsøg talt op." + String.fromCharCode(10));
@@ -385,7 +478,10 @@ async function main(): Promise<void> {
        CASE WHEN s.content_raw IS NOT NULL THEN 0 WHEN s.summary IS NOT NULL THEN 1 ELSE 2 END,
        s.relevance_score DESC
      LIMIT ?`,
-    [MIN_RELEVANCE_GENERATE, maxAgeDays, MAX_ARTICLES_PER_RUN],
+    // Twice the run's cap: held tournament reports stay 'new' and come back
+    // every run, and must not take the slots of stories that can be written.
+    // The cap itself is applied after the hold below.
+    [MIN_RELEVANCE_GENERATE, maxAgeDays, MAX_ARTICLES_PER_RUN * 2],
   );
 
   // Grouping below only sees ONE run. A second British player from the same
@@ -421,6 +517,12 @@ async function main(): Promise<void> {
       ["drafted", st.id],
     );
   }
+
+  // Multi-day tournaments: one recap, not a draft per day — see
+  // tournament-hold.ts. Two indexed queries for the whole run (athlete_id),
+  // never one per story.
+  const earlierById = await applyTournamentHold(db, stories, dryRun);
+  stories.splice(MAX_ARTICLES_PER_RUN);
 
   // Én artikel pr. (kilde, land) — se group-stories.ts for hvorfor landet er
   // skillelinjen og ikke atleten.
@@ -497,6 +599,18 @@ async function main(): Promise<void> {
       console.log(`  ⊘ Story ${story.id} har allerede en artikel — springer over.`);
       await db.execute('UPDATE stories SET status = ? WHERE id = ?', ["drafted", story.id]);
       continue;
+    }
+
+    // A tournament recap: the earlier day reports go into the sheet as
+    // labelled context, so every step below — prompt, number check, the
+    // admin panel — reads one sheet. See tournament-hold.ts.
+    const earlier = earlierById.get(story.id) ?? [];
+    if (earlier.length && story.fact_sheet) {
+      try {
+        story.fact_sheet = JSON.stringify(foldEarlierReports(JSON.parse(story.fact_sheet) as FactSheet, earlier));
+      } catch {
+        /* an unreadable sheet is written as before, without the earlier days */
+      }
     }
 
     /**
@@ -921,6 +1035,20 @@ async function main(): Promise<void> {
             [newArticleId, mate.athlete_id],
           );
         }
+      }
+
+      // The day reports this recap folded in: the folded sheet is kept on the
+      // story (the admin panel and the reviews read it from there), and each
+      // day report points at the article, so its source is shown with it.
+      if (earlier.length && newArticleId) {
+        await db.execute(`UPDATE stories SET fact_sheet = ? WHERE id = ?`, [story.fact_sheet, story.id]);
+        for (const r of earlier) {
+          await db.execute(
+            `UPDATE stories SET status = 'merged', merged_into = ?, processed_at = datetime('now') WHERE id = ?`,
+            [newArticleId, r.id],
+          );
+        }
+        console.log(`    + tournament recap: folded in ${earlier.length} day report(s)`);
       }
 
       generated++;
