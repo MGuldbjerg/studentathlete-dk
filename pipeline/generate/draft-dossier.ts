@@ -149,7 +149,7 @@ export function cleanSource(raw: string | null, summary: string | null): string 
  * på rigtige kladder må ikke skifte ordlyd, fordi koden bag den bliver ryddet op.
  */
 export function dossier(r: DossierRow): string {
-  return `${athleteTable(r)}${companionTables(r.companions)}
+  return `${additionNote(r.article_type)}${athleteTable(r)}${companionTables(r.companions)}
 ## Kilden (${r.source_url ?? "ukendt URL"})
 
 \`\`\`
@@ -161,6 +161,20 @@ ${mergedSources(r.merged_sources)}
 \`\`\`json
 ${pretty(r.fact_sheet)}
 \`\`\`
+`;
+}
+
+/**
+ * An ADDITION (src/lib/article-addition.ts) is 1-3 sentences that will be
+ * appended to an existing match report — judge it as that, not as a thin
+ * article. Empty for everything else, so other dossiers are unchanged.
+ */
+export function additionNote(articleType: string | null): string {
+  if (articleType !== "addition") return "";
+  return `## NB: Dette er en TILFØJELSE, ikke en artikel
+
+Kladden er 1-3 sætninger, der føjes til en allerede skrevet kampartikel om samme atlet, når den udgives. Bedøm den som det: hver påstand skal stå i kilden nedenfor, men den skal IKKE fortælle kampen igen, have overskrift eller nå en artikels længde. Udvid den aldrig.
+
 `;
 }
 

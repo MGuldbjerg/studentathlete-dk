@@ -24,7 +24,7 @@
  *   npx tsx pipeline/fix/apply-draft-decisions.ts <decisions.json> [--dry-run] [--no-spacing]
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { createD1Client } from "../lib/d1-client";
 import { generateSlug } from "../../src/lib/slug";
 import {
@@ -33,6 +33,15 @@ import {
   rejectLogParams,
 } from "../../src/lib/review-snapshot";
 import { HARVEST_INSERT_SQL, harvestRows } from "../../src/lib/athlete-events";
+import {
+  ADDITION_PARENT_SQL,
+  ADDITION_TYPE,
+  APPLY_ADDITION_DELETE_SQL,
+  APPLY_ADDITION_PARENT_SQL,
+  APPLY_ADDITION_STORY_SQL,
+  appendAddition,
+  langOf,
+} from "../../src/lib/article-addition";
 
 interface Decision {
   id: number;
@@ -58,6 +67,7 @@ if (!file) {
 }
 
 const decisions = JSON.parse(readFileSync(file, "utf8")) as Decision[];
+const decisionsWritten = statSync(file).mtime;
 const db = createD1Client();
 
 // Language matters for the slug: the Danish pack transliterates æ/ø/å, and the
@@ -91,11 +101,12 @@ async function main() {
         story_id: number | null;
         athlete_id: number | null;
         sensitive: string | null;
+        updated_at: string | null;
       }>(
         `SELECT a.id, a.published, a.country, a.article_type, a.fabrication_risk,
                 a.cover_image_url, a.title, a.content, a.original_content,
                 a.claude_fixed_content,
-                a.story_id, a.athlete_id, s.sensitive
+                a.story_id, a.athlete_id, s.sensitive, a.updated_at
            FROM articles a LEFT JOIN stories s ON s.id = a.story_id
           WHERE a.id = ?`,
         [d.id],
@@ -110,6 +121,14 @@ async function main() {
       console.log(`  ! #${d.id} is already published — skipping`);
       continue;
     }
+    // A weekly award can be appended to a draft (award-section.ts) after the
+    // decisions were written. New content from the file would silently drop
+    // that paragraph, so such a draft is left for the next review instead.
+    if (d.action === "publish" && d.content !== undefined && row.updated_at &&
+        new Date(row.updated_at.replace(" ", "T") + "Z") > decisionsWritten) {
+      console.log(`  ! #${d.id} changed after the decisions file was written — skipping, review it again`);
+      continue;
+    }
 
     if (d.action === "reject") {
       console.log(`  − rejecting #${d.id}: ${row.title}`);
@@ -120,6 +139,31 @@ async function main() {
       }
       await db.batch(REJECT_DELETE_SQL.map((sql) => ({ sql, params: [d.id] })));
       rejected++;
+      continue;
+    }
+
+    // ── an addition: appended to its report, as publishArticle does ─────────
+    // Not a new page, so it neither waits for nor sets the spacing.
+    if (row.article_type === ADDITION_TYPE) {
+      const parent = (
+        await db.query<{ id: number; content: string; published: number; country: string | null }>(
+          ADDITION_PARENT_SQL, [d.id])
+      ).results[0];
+      if (!parent) {
+        console.log(`  ! #${d.id} is an addition without its report — skipping`);
+        continue;
+      }
+      console.log(`  ⊕ adding #${d.id} to #${parent.id}${parent.published ? "" : " (draft)"}`);
+      if (DRY) continue;
+      const content = appendAddition(parent.content, d.content ?? row.content, {
+        live: parent.published === 1, lang: langOf(parent.country), when: new Date(),
+      });
+      await db.batch([
+        { sql: APPLY_ADDITION_PARENT_SQL, params: [content, parent.id] },
+        { sql: APPLY_ADDITION_STORY_SQL, params: [parent.id, d.id] },
+        ...APPLY_ADDITION_DELETE_SQL.map((sql) => ({ sql, params: [d.id] })),
+      ]);
+      published++;
       continue;
     }
 

@@ -22,6 +22,8 @@ import { checkStoryIdentity, hasUnsourcedQuote } from "./identity-guard";
 import { checkEventTiming } from "./event-timing";
 import { groupBySourceAndCountry } from "./group-stories";
 import { MULTI_DAY_SPORTS, SIBLING_DAYS, foldEarlierReports, holdDecision, type Report } from "./tournament-hold";
+import { PARENT_DAYS, cleanSection, findParent, isWeeklyAward, sectionPrompt } from "./award-section";
+import { ADDITION_TYPE, appendAddition } from "../../src/lib/article-addition";
 import { numbersIn, unsupportedNumbers, unstableNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
@@ -365,6 +367,100 @@ async function applyTournamentHold(
   return earlierById;
 }
 
+/**
+ * A weekly award for a match we already reported: a section on that report
+ * instead of a second article — see award-section.ts. Returns the title to
+ * announce when it handled the story, null when the award should be written
+ * as its own article as before (no report found, or the section failed).
+ */
+async function addAwardToReport(
+  db: D1Client,
+  chain: ProviderChain,
+  story: StoryWithAthlete,
+  preferProvider: string,
+  dryRun: boolean,
+): Promise<string | null> {
+  const { country, prompts } = siteFor(story);
+  const lang = prompts.language === "en" ? "en" : "da";
+  // Through idx_articles_athlete: this athlete's articles only.
+  const rows = (
+    await db.query<{ id: number; title: string; content: string; published: number; article_type: string | null; fact_sheet: string | null }>(
+      `SELECT a.id, a.title, a.content, a.published, a.article_type, s.fact_sheet
+         FROM articles a LEFT JOIN stories s ON s.id = a.story_id
+        WHERE a.athlete_id = ? AND UPPER(COALESCE(a.country, ?)) = ?
+          AND a.created_at >= datetime('now', '-${PARENT_DAYS} days')
+        ORDER BY a.created_at DESC`,
+      [story.athlete_id, DEFAULT_COUNTRY, country],
+    )
+  ).results;
+  const parent = findParent(
+    [story.headline, story.summary, story.content_raw].filter(Boolean).join("\n"),
+    rows.map((r) => {
+      let factSheet: FactSheet | null = null;
+      try { factSheet = r.fact_sheet ? (JSON.parse(r.fact_sheet) as FactSheet) : null; } catch { /* no sheet, no match */ }
+      return { id: r.id, title: r.title, published: r.published, articleType: r.article_type, factSheet };
+    }),
+  );
+  if (!parent) return null;
+  const parentRow = rows.find((r) => r.id === parent.id)!;
+
+  let facts = "";
+  try {
+    facts = story.fact_sheet ? renderFactSheet(JSON.parse(story.fact_sheet) as FactSheet) : "";
+  } catch {
+    return null;
+  }
+  if (!facts) return null;
+
+  const { system, prompt } = sectionPrompt(lang, parentRow.content, facts);
+  const response = await chain.generate({ system, prompt, max_tokens: 400, json: false, preferProvider });
+  const section = cleanSection(response.text ?? "");
+  if (!section) {
+    console.log(`  ✗ Story ${story.id}: award section unusable — written as its own article`);
+    return null;
+  }
+  // Every number must be in the award's facts or the report itself.
+  const bad = unsupportedNumbers(section, `${facts}\n${parentRow.content}`);
+  if (bad.length) {
+    console.log(`  ✗ Story ${story.id}: award section has unsourced numbers (${bad.join(", ")}) — written as its own article`);
+    return null;
+  }
+
+  console.log(`  ⊕ Story ${story.id} (${story.athlete_name}): award → ${parent.published ? "addition to live" : "appended to draft"} #${parent.id}`);
+  console.log(`    «${section}»`);
+  if (dryRun) return section;
+
+  if (!parent.published) {
+    // Nobody has read the draft yet: the award simply becomes part of it.
+    await db.execute(`UPDATE articles SET content = ?, updated_at = datetime('now') WHERE id = ?`, [
+      appendAddition(parentRow.content, section, { live: false, lang, when: new Date() }),
+      parent.id,
+    ]);
+    await db.execute(
+      `UPDATE stories SET status = 'merged', merged_into = ?, processed_at = datetime('now') WHERE id = ?`,
+      [parent.id, story.id],
+    );
+    return `${parentRow.title} (+ ${story.headline ?? "award"})`;
+  }
+
+  // The report is live: a pending addition, reviewed and published like a draft.
+  const title = lang === "da" ? `Tilføjelse til «${parentRow.title}»` : `Addition to «${parentRow.title}»`;
+  await db.execute(
+    `INSERT INTO articles
+       (title, slug, content, summary, article_type, athlete_id, source_url, story_id,
+        model_used, tokens_input, tokens_output, published, author, llm_provider,
+        original_content, country, parent_article_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)`,
+    [
+      title, `${ADDITION_TYPE}-${parent.id}-${story.id}`, section, story.headline ?? null, ADDITION_TYPE,
+      story.athlete_id, story.source_url, story.id, response.model, response.tokens_input,
+      response.tokens_output, countryProfile(country).brand, response.provider, section, country, parent.id,
+    ],
+  );
+  await db.execute('UPDATE stories SET status = ?, processed_at = datetime("now") WHERE id = ?', ["drafted", story.id]);
+  return title;
+}
+
 async function main(): Promise<void> {
   const { maxAgeDays, dryRun, storyId, forceProvider, noJson } = parseArgs();
   if (dryRun) console.log("DRY-RUN: ingen kladder, ingen forsøg talt op." + String.fromCharCode(10));
@@ -659,6 +755,29 @@ async function main(): Promise<void> {
       );
       blockedByGuard++;
       continue;
+    }
+
+    // A WEEKLY AWARD for a match we already reported becomes a section on that
+    // report, not a second article (Mikkel, 2026-10-07). Only for a story about
+    // one athlete; anything that goes wrong falls through to the usual article.
+    if (!(companions.get(story.id)?.length) && isWeeklyAward(story.headline)) {
+      try {
+        const done = await addAwardToReport(
+          db, chain, story,
+          forceProvider ?? (available.includes("anthropic") ? "anthropic" : "gemini"),
+          dryRun,
+        );
+        if (done) {
+          if (!dryRun) {
+            const c = siteFor(story).country;
+            draftsByCountry.set(c, [...(draftsByCountry.get(c) ?? []), done]);
+            generated++;
+          }
+          continue;
+        }
+      } catch (err) {
+        console.log(`  ✗ Story ${story.id}: award section failed (${err instanceof Error ? err.message : String(err)}) — written as its own article`);
+      }
     }
 
     const articleType = selectArticleType(story);

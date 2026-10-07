@@ -42,6 +42,7 @@ jobs:
             pipeline/generate/_verify-factsheet-test.ts \
             pipeline/generate/_source-window-test.ts \
             pipeline/generate/_tournament-hold-test.ts \
+            pipeline/generate/_award-section-test.ts \
             pipeline/generate/_identity-guard-test.ts \
             pipeline/generate/_event-timing-test.ts \
             pipeline/generate/_timeline-test.ts \

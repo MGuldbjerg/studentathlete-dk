@@ -14,6 +14,14 @@ import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS, settingScope, GLOBAL_SCOPE } from "./site-content";
 import { contentCountry } from "./site-server";
 import { HARVEST_INSERT_SQL, harvestRows } from "./athlete-events";
+import {
+  ADDITION_PARENT_SQL,
+  APPLY_ADDITION_DELETE_SQL,
+  APPLY_ADDITION_PARENT_SQL,
+  APPLY_ADDITION_STORY_SQL,
+  appendAddition,
+  langOf,
+} from "./article-addition";
 
 // ─── DB-queries til admin ───────────────────────────────────────────────────
 
@@ -107,6 +115,29 @@ export async function getFactSheetForArticle(articleId: number): Promise<{
 export async function publishArticle(id: number): Promise<void> {
   const db = await getDB();
   if (!db) return;
+
+  // A pending ADDITION is not an article of its own: publishing it appends it
+  // to the report it belongs to and removes the row. Mirrors
+  // apply-draft-decisions.ts — see src/lib/article-addition.ts.
+  const parent = (await db.prepare(ADDITION_PARENT_SQL).bind(id).first()) as
+    | { id: number; content: string; published: number; country: string | null }
+    | null;
+  if (parent) {
+    const add = (await db.prepare("SELECT content FROM articles WHERE id = ?").bind(id).first()) as
+      | { content: string }
+      | null;
+    const content = appendAddition(parent.content, add?.content ?? "", {
+      live: parent.published === 1,
+      lang: langOf(parent.country),
+      when: new Date(),
+    });
+    await db.batch([
+      db.prepare(APPLY_ADDITION_PARENT_SQL).bind(content, parent.id),
+      db.prepare(APPLY_ADDITION_STORY_SQL).bind(parent.id, id),
+      ...APPLY_ADDITION_DELETE_SQL.map((sql) => db.prepare(sql).bind(id)),
+    ]);
+    return;
+  }
 
   // Stamp cover_image_url at publish time so it's frozen forever
   const article = await db
