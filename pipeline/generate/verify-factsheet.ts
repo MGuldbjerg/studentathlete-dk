@@ -23,7 +23,8 @@
  *   2. DATES — a date on the sheet must be written in the source in some form.
  *      A date the model derived from "Tuesday" is dropped, never guessed. On a
  *      weekly-honour page the page's own publication stamp does not date the
- *      EVENT it honours (see eventDateProblem).
+ *      EVENT it honours, nor do sidebar story dates, award-roll entries or the
+ *      weekday of the announcement (see eventDateProblem).
  *   3. ATTRIBUTION — a number in `stats` credited to the athlete must be stated
  *      about the athlete somewhere in the source (sentence-level, see
  *      numberIsAthletes).
@@ -165,26 +166,63 @@ const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "frida
  */
 const RETROSPECTIVE_RE = /\b(of the week|weekly|honou?r roll|last week|(this )?past (week|weekend))\b/;
 
+/**
+ * Dates on the page that say when some PAGE went up, or head a list entry.
+ * Three more drafts of 7 October 2026 were dated by them once the stamp above
+ * was closed off:
+ *
+ *   · «related stories 10.03.26 women's soccer match at uwf moved» — the sidebar
+ *     dates each linked story (#553, #555). Two-digit-year dotted dates are a
+ *     page stamp, the sidebar's or the page's own («list9.17.26 | football»), so
+ *     they are handled exactly like the publication stamp: evidence for the
+ *     event's date on a same-day report, not on a weekly honour. Deleting them
+ *     outright cost two true dates in the backtest.
+ *   · «oct. 6: lauri orava, christian brothers» — a season roll of award winners,
+ *     one line per announcement week (#551). A date followed by a colon heads a
+ *     list entry, not an account of a match, and is removed.
+ */
+const DOTTED_STAMP_RE = /(?<![\d.])(\d{1,2})\.(\d{1,2})\.(\d{2})(?![\d.])/g;
+const MONTH_WORD =
+  "(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)";
+const LIST_ENTRY_DATE_RE = new RegExp(`\\b${MONTH_WORD}\\.?\\s+\\d{1,2}\\s*:`, "g");
+
+/**
+ * «announced by the league offices Monday afternoon», «released its weekly awards
+ * Monday» (#549, #550): on an award page the stamp's weekday is usually the
+ * ANNOUNCEMENT's weekday, so it only puts the event on the stamp's day when it
+ * is not tied to the announcing.
+ */
+const ANNOUNCING = "(?:announc|releas|unveil)\\w*";
+function weekdayOfEvent(wd: string, body: string): boolean {
+  const unrelated = body
+    .replace(new RegExp(`${ANNOUNCING}[^.|]{0,60}?\\b${wd}\\b`, "g"), " ")
+    .replace(new RegExp(`\\b${wd}\\b[^.|]{0,30}?${ANNOUNCING}`, "g"), " ");
+  return new RegExp(`\\b${wd}\\b`).test(unrelated);
+}
+
 export function eventDateProblem(md: { m: number; d: number }, canonSource: string): string | null {
   const stampWeekdays: string[] = [];
-  const body = canonSource.replace(PUBLICATION_STAMP_RE, (_all, m: string, d: string, y: string) => {
+  const stamp = (_all: string, m: string, d: string, y: string) => {
     if (+m === md.m && +d === md.d) {
-      stampWeekdays.push(WEEKDAYS[new Date(Date.UTC(+y, +m - 1, +d)).getUTCDay()]);
+      const year = y.length === 2 ? 2000 + +y : +y;
+      stampWeekdays.push(WEEKDAYS[new Date(Date.UTC(year, +m - 1, +d)).getUTCDay()]);
     }
     return " ";
-  });
+  };
+  const body = canonSource
+    .replace(PUBLICATION_STAMP_RE, stamp)
+    .replace(DOTTED_STAMP_RE, stamp)
+    .replace(LIST_ENTRY_DATE_RE, " ");
   if (dateInSource(md, body)) return null;
   if (stampWeekdays.length === 0) return "the date is not written in the source";
   // The text itself puts the event on the day the page went up.
-  if (stampWeekdays.some((wd) => new RegExp(`\\b${wd}\\b`).test(body))) return null;
+  if (stampWeekdays.some((wd) => weekdayOfEvent(wd, body))) return null;
   if (RETROSPECTIVE_RE.test(body)) {
     return "the date is only when a weekly-honour page was published; the event it honours was earlier";
   }
   return null; // a same-day report: the stamp is the event's day
 }
 
-const MONTH_WORD =
-  "(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)";
 // Month words must be whole words: "2 decision" and "1 margin" are not dates.
 const DATE_IN_FACT_RE = new RegExp(
   `\\b\\d{4}-\\d{1,2}-\\d{1,2}\\b|\\b\\d{1,2}\\/\\d{1,2}(?:\\/\\d{2,4})?\\b|\\b${MONTH_WORD}\\.?\\s+\\d{1,2}(?!\\d)|\\b\\d{1,2}\\s+${MONTH_WORD}\\b`,
