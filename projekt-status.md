@@ -1,6 +1,17 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-10-05 (where we are — read this section first)
+**Sidst opdateret**: 2026-10-07 (where we are — read this section first)
+
+---
+
+## 📰 Fuller articles: plan agreed, step 1 done (2026-10-07)
+
+`PLAN-richer-articles.md` — five steps, agreed with Mikkel. Step 1 merged (#11): the
+fact-sheet model reads a *chosen* 8000 characters (`source-window.ts`) and fills a new
+`context` field; 9.4 → 13.1 facts per sheet on 50 stories. Next: step 2 (award as an added
+section on the match recap, 48-hour hold for golf/tennis tournaments, list articles). Cost
+rule for all steps is in the plan: pipeline-side only, indexed lookups, no Browser Rendering.
+Also today: date check closes sidebar dates, award rolls and «announced Monday» (#10).
 
 ---
 
