@@ -16,7 +16,7 @@ a record is stated, never characterised («efficient», «dominant»).
 - Measured on 50 stories: 9.4 → 13.1 facts per sheet. Known gap: the attribution check drops
   true tennis bracket results (Billson, #8143) — removal-only, fix with step 2.
 
-### 2. Same athlete, same event: one article (2a + 2b DONE, 2c next)
+### 2. Same athlete, same event: one article (DONE — 2c dropped)
 Measured 2026-10-07: of 317 articles in 45 days, 28 pairs were the same athlete on the same
 site within 4 days.
 - **2b DONE (#13, live 2026-10-07): single matches are never held.** Weekly awards are on a
@@ -27,16 +27,25 @@ site within 4 days.
     «Update, 7 October: …» to the article and removes the row.
   - The award's source must name the recap's opponent/tournament; no match → own article.
   - Backtest: 23 of 157 weekly awards in 45 days attach, all checked by hand.
-  - **Not done: the social post for an added section** — `social_posts` holds one post per
-    article and channel, so it needs a schema change. Follow-up.
+  - No second social post for an added section (Mikkel, 2026-10-07: «just leave that»).
 - **2a DONE (#12, 2026-10-07): multi-day tournaments (golf, tennis) are held up to 48 hours**:
   day reports and the final become one recap when the final arrives, or after 48 hours.
   `tournament-hold.ts`, migration 063 (`stories.merged_into`).
 - **Never two matches in one article** (risk of cross-attributed numbers with free models).
-- **Preseason teams and watch lists**: one article per list per site (e.g. «Three Britons on
-  the preseason All-Patriot League team»). Athlete lines built in code from the DB and checked
-  against the sources; the model writes only the intro. Tested on 60 days of lists first —
-  one wrong name–school pairing and the format is dropped.
+- **2c DROPPED (tested 2026-10-07): preseason teams and watch lists as one article per list.**
+  Mikkel's bar was «if the free LLMs can't handle those, drop them» and «one wrong pairing and
+  the format is dropped». On the 57 list stories of 60 days (5 groups with two or more of a
+  site's athletes):
+  - Gemini 2.5 Flash put praise in 3 of 5 intros despite an explicit ban («prestigious»,
+    «exceptional talent», «prestigefyldte»); ministral-8b invented a list name («2027 Walker
+    Cup roster» for the Haskins Award watch list).
+  - One release often names players to SEVERAL lists (UAH: Orzechowski and Wright to the
+    preseason All-GSC team, Rigby and McCabe to the Newcomers to Watch list). Code can tell a
+    player is on *a* list in the release, not reliably on *which* — the wrong pairing that was
+    the bar.
+  - Small gain: lists come in two or three waves a year.
+  List stories stay one article each, through the normal checks. Do not retry without a way
+  to attribute each player to a list.
 - Rejected: weekly round-ups (Mikkel).
 
 ### 3. Facts from our own database, computed in code
