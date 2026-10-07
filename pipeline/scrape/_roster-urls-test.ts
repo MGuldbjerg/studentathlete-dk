@@ -1,5 +1,5 @@
 /** Roster URL candidates for teams without an inventory row (2026-10-07). */
-import { getRosterUrls, prestoSeason } from "./scrape-rosters";
+import { getRosterUrls, prestoSeason, withCurrentSeason } from "./scrape-rosters";
 
 let passed = 0;
 let failed = 0;
@@ -28,6 +28,17 @@ eq(
     "https://gannonsports.com/sports/womens-soccer/roster",
   ],
   "Sidearm unchanged",
+);
+
+eq(
+  withCurrentSeason("https://angelinaathletics.com/sports/msoc/2025-26/roster", 2026),
+  ["https://angelinaathletics.com/sports/msoc/2026-27/roster", "https://angelinaathletics.com/sports/msoc/2025-26/roster"],
+  "a stored PrestoSports season rolls forward; last season stays as fallback",
+);
+eq(
+  withCurrentSeason("https://gannonsports.com/sports/womens-soccer/roster", 2026),
+  ["https://gannonsports.com/sports/womens-soccer/roster"],
+  "a URL without a season is left alone",
 );
 
 console.log(`\n${passed} passed, ${failed} failed`);

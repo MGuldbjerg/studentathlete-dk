@@ -76,6 +76,13 @@ inherits it instead of rediscovering the keys.
 - `bash scripts/migrate-live.sh <file>` for **additive** migrations (it refuses
   anything else)
 
+**Several sessions share this working copy.** Another session may have a feature
+branch checked out. Before committing, check `git rev-parse --abbrev-ref HEAD`
+is `main`; after pushing, check `git merge-base --is-ancestor <commit>
+origin/main`. A commit made on someone else's branch and "pushed" to main is
+silently left out of main when that branch is squash-merged (2026-10-07: the
+WAF fix had to be recovered from the reflog).
+
 **Ask first — anything that touches data or readers:**
 - other D1 writes (`wrangler d1 execute --remote`, seeds, data fixes)
 - `gh workflow run` — several workflows generate and post by themselves

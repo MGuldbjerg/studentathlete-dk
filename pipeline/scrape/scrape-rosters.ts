@@ -115,6 +115,19 @@ export function getRosterUrls(website: string, sport: string, platformType: stri
  * inventaret) falder tilbage på det gamle gætteri, så en skole uden sitemap og
  * uden API stadig bliver scrapet som før.
  */
+/**
+ * A stored PrestoSports URL names a season ("/sports/msoc/2025-26/roster"), and
+ * there is no season-free address (it 404s). Stored once, it went stale the
+ * next August: Angelina's soccer rows still pointed at 2025-26 in October 2026.
+ * Ask for this season first, then last season's, then the URL as stored.
+ */
+export function withCurrentSeason(url: string, academicYear = getAcademicYear()): string[] {
+  const m = /\/(\d{4})-(\d{2})\/roster/.exec(url);
+  if (!m) return [url];
+  const swap = (y: number) => url.replace(m[0], `/${prestoSeason(y)}/roster`);
+  return [...new Set([swap(academicYear), swap(academicYear - 1), url])];
+}
+
 function rosterUrlsFor(check: RosterCheckWithSchool): string[] {
   // Vendt om med vilje: ALT der ikke er 'legacy' (eller uden kilde) kommer fra
   // inventaret og har skolens egen URL. Den første version listede kilderne
@@ -123,7 +136,7 @@ function rosterUrlsFor(check: RosterCheckWithSchool): string[] {
   // gav 404. En ny kilde må ikke kunne genindføre den fejl.
   const fromInventory =
     check.roster_url && check.inventory_source && check.inventory_source !== "legacy";
-  if (fromInventory) return [check.roster_url as string];
+  if (fromInventory) return withCurrentSeason(check.roster_url as string);
   return getRosterUrls(check.website, check.sport, check.platform_type);
 }
 
