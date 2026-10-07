@@ -40,6 +40,12 @@ export interface DossierRow {
   previous_school: string | null;
   /** JSON array of the article's OTHER athletes (article_athletes), "[]" if none. */
   companions?: string | null;
+  /**
+   * JSON array of tournament day reports folded into this article
+   * (stories.merged_into, migration 063), "[]" if none. Their facts are in the
+   * draft, so their text is part of the source the review judges it against.
+   */
+  merged_sources?: string | null;
 }
 
 interface Companion {
@@ -68,7 +74,11 @@ const DOSSIER_COLUMNS = `a.id, a.title, a.content, a.country, a.article_type, s.
                    'position', c.position, 'university', c.university,
                    'hometown', c.hometown, 'previous_school', c.previous_school))
           FROM article_athletes aa JOIN athletes c ON c.id = aa.athlete_id
-          WHERE aa.article_id = a.id AND aa.athlete_id != COALESCE(a.athlete_id, -1)) AS companions`;
+          WHERE aa.article_id = a.id AND aa.athlete_id != COALESCE(a.athlete_id, -1)) AS companions,
+         (SELECT json_group_array(json_object(
+                   'source_url', m.source_url, 'headline', m.headline,
+                   'content_raw', m.content_raw, 'summary', m.summary))
+          FROM stories m WHERE m.merged_into = a.id) AS merged_sources`;
 
 const DOSSIER_FROM = `FROM articles a
   LEFT JOIN stories s ON s.id = a.story_id
@@ -145,13 +155,36 @@ export function dossier(r: DossierRow): string {
 \`\`\`
 ${cleanSource(r.content_raw, r.summary)}
 \`\`\`
-
+${mergedSources(r.merged_sources)}
 ## Faktaarket (det ENESTE kladden må hvile på)
 
 \`\`\`json
 ${pretty(r.fact_sheet)}
 \`\`\`
 `;
+}
+
+/**
+ * The tournament's earlier day reports, each as its own source block. Empty
+ * when there are none, so every other dossier stays byte for byte as before.
+ */
+export function mergedSources(json: string | null | undefined): string {
+  let list: Array<{ source_url: string | null; headline: string | null; content_raw: string | null; summary: string | null }> = [];
+  try {
+    list = JSON.parse(json ?? "[]");
+  } catch {
+    return "";
+  }
+  if (!Array.isArray(list)) return "";
+  return list
+    .map((m) => `
+## Tidligere dagsrapport fra samme turnering (${m.source_url ?? "ukendt URL"})
+
+\`\`\`
+${cleanSource(m.content_raw, m.summary)}
+\`\`\`
+`)
+    .join("");
 }
 
 function athleteTable(r: Omit<Companion, "name"> & { athlete_name: string | null }): string {
