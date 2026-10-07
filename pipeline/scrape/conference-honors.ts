@@ -105,7 +105,7 @@ export interface Award {
  * teams, and the non-athletic awards.
  */
 const BLOCK =
-  /academic|scholar|commissioner|\bdean|honou?r society|\bgpa\b|nominee|watch ?list|pre-?season|\bcoach|\bstaff\b|sportsmanship|community|all-tournament|tournament team|postgraduate|elite (90|24|18)/i;
+  /academic|scholar|commissioner|\bdean|honou?r society|\bgpa\b|nominee|watch ?list|pre-?season|\bcoach|\bstaff\b|sportsmanship|community|all-tournament|tournament team|postgraduate|elite (90|24|18)|\brank(ed|ing|ings)\b|\bstandings\b|\bleaders\b/i;
 
 /** Within an all-conference list: "First Team", "Second Team", "Honorable Mention". */
 const TIER = /^(first|second|third|1st|2nd|3rd|all)[- ]?team\b|^honou?rable mention\b/i;
@@ -285,7 +285,7 @@ const MONTHS: Record<string, number> = {
  * 13 Players of the Week for one (Southland, 2026-10-07 backfill).
  */
 const DATE_ONLY =
-  /^(?:(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})|(\d{1,2})\/(\d{1,2}))(?:,?\s*\d{4})?\.?$/i;
+  /^(?:week\s*\d{1,2}\s*[:–—-]\s*)?(?:(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})|(\d{1,2})\/(\d{1,2}))(?:,?\s*\d{4})?\.?$/i;
 
 /** "Sept. 16 –", "9/15:", "Feb. 24 -" at the start of an entry line. */
 const DATE_PREFIX =
@@ -513,7 +513,11 @@ export function extractConferenceHonours(
  */
 export function headlineAward(headline: string): Award | null | "skip" {
   if (/academic|scholar|pre-?season|watch ?list|nominee/i.test(headline)) return "skip";
-  const cleaned = headline.replace(/,?\s*(coach(ing)?( staff)?|staff)( and staff)? of the (year|week)/gi, " ");
+  const cleaned = headline
+    .replace(/,?\s*(coach(ing)?( staff)?|staff)( and staff)? of the (year|week)/gi, " ")
+    // "No. 5-ranked X named Player of the Week": the ranking describes the
+    // player, it does not make the story a ranking table.
+    .replace(/\b(no\.?\s*\d+[- ]?|top[- ]?\d+[- ]?|\d+(st|nd|rd|th)[- ]?)?ranked\b/gi, " ");
   const cls = classifyLabel(cleaned);
   return cls === "block" ? null : cls;
 }

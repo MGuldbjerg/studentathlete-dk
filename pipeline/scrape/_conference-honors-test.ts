@@ -60,7 +60,8 @@ eq((classifyLabel("Runner of the Year") as { award_name: string }).award_name, "
 eq((classifyLabel("All-MEC First Team") as { award_name: string }).award_name, "All-Conference", "All-<any conference> on a conference site");
 eq((classifyLabel("All-American Conference Second Team") as { award_name: string }).award_name, "All-Conference", "the American Conference's team is not All-America");
 eq((classifyLabel("ITA All-America Honors") as { award_name: string }).award_name, "All-American", "national All-America");
-eq(classifyLabel("All-Time Leaders"), null, "All-Time is not a team");
+eq(classifyLabel("All-Time"), null, "All-Time is not a team");
+eq(classifyLabel("All-Time Leaders"), "block", "a leaders list blocks the names under it");
 eq(headlineAward("2025-26 Lightweight Men's Rowing All-Ivy, Coaching Staff of the Year Announced") !== "skip", true, "a coaching award beside a team does not skip the story");
 eq(headlineAward("Preseason All-ACC Team Announced"), "skip", "a forecast is skipped");
 
@@ -179,6 +180,21 @@ eq(sportOf("FIELD HOCKEY"), { sport: "field-hockey", gender: null }, "field hock
   ok(got.includes("All-Conference@2025-11-05"), "\"First Team All-Conference\" is read as All-Conference, not a bare tier");
   ok(got.includes("All-Freshman@2025-11-05"), "All-Freshman Team");
 }
+{
+  // A national ranking table at the foot of a weekly-award release (Sam Reeve
+  // got nine Players of the Week from nine releases about other players).
+  const reeve = cand("Sam Reeve", "University of Memphis", "Memphis", "tennis", "m");
+  const found = run("amer_ranking", { headline: "UTSA's Torres Named Men's Tennis Player of the Week", date: "2025-04-08", category: "Men's Tennis" }, [reeve]);
+  eq(about(found, reeve), [], "a name in a rankings table is not an award");
+}
+{
+  // "Week 4: Oct. 10" is the date cell of RMAC's season list.
+  const constable = cand("Freya Constable", "Colorado State University–Pueblo", "CSU Pueblo", "golf", "f");
+  const found = run("rmac_weeklist", { headline: "Westminster's Lam Garners RMAC Women's Golfer of the Week Honors", date: "2025-03-20", category: "Women's Golf" }, [constable]);
+  // She won twice that season (Week 4 and, on 13 March, Week 10) — both dated by their cell.
+  eq(about(found, constable), ["Player of the Week@2024-10-10", "Player of the Week@2025-03-13"], "a 'Week N: date' cell dates the name below it");
+}
+eq(headlineAward("No. 5-ranked Smith Named ACC Player of the Week") !== null, true, "a ranked player in the headline does not block the award");
 eq((classifyLabel("Freshman of the Year") as { award_name: string }).award_name, "Freshman of the Year", "freshman of the year label");
 eq((classifyLabel("Newcomer of the Year") as { award_name: string }).award_name, "Freshman of the Year", "newcomer of the year is the same tier");
 
