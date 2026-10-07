@@ -162,5 +162,25 @@ eq(sportOf("FIELD HOCKEY"), { sport: "field-hockey", gender: null }, "field hock
   ok(about(found, foley).includes("Player of the Week@2025-02-24"), "\"Feb. 24 - Name, School (…)\" entry");
 }
 
+// ── Backfill findings, 2026-10-07 ────────────────────────────────────────────
+{
+  // A season table repeated in every weekly release, the date in its own cell.
+  // Read with the release's date, Jemma Cave got 13 Players of the Week for one.
+  const cave = cand("Jemma Cave", "Stephen F. Austin State University", "SFA", "tennis", "f");
+  const found = run("slc_table", { headline: "Garcia Baquero Named Jersey Mike's SLC Tennis Players of the Week", date: "2025-03-11", category: "Women's Tennis" }, [cave]);
+  eq(about(found, cave), ["Player of the Week@2025-01-28"], "a date alone in a table cell dates the names below it");
+}
+{
+  const manufor = cand("Samuel Manufor", "University of North Carolina at Charlotte", "Charlotte", "soccer", "m");
+  const found = run("amer_honors", { headline: "American Conference Announces 2025 Men’s Soccer Honors", date: "2025-11-05", category: "Men's Soccer" }, [manufor]);
+  const got = about(found, manufor);
+  ok(got.includes("Freshman of the Year@2025-11-05"), "Freshman of the Year keeps its own name, not Player of the Year");
+  ok(!got.includes("Player of the Year@2025-11-05"), "…and is not also Player of the Year");
+  ok(got.includes("All-Conference@2025-11-05"), "\"First Team All-Conference\" is read as All-Conference, not a bare tier");
+  ok(got.includes("All-Freshman@2025-11-05"), "All-Freshman Team");
+}
+eq((classifyLabel("Freshman of the Year") as { award_name: string }).award_name, "Freshman of the Year", "freshman of the year label");
+eq((classifyLabel("Newcomer of the Year") as { award_name: string }).award_name, "Freshman of the Year", "newcomer of the year is the same tier");
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

@@ -135,6 +135,11 @@ export function classifyLabel(text: string): Award | "block" | null {
   if (/\bof the week\b|\bweekly (award|honou?r)s?\b/i.test(t)) {
     return { award_name: "Player of the Week", kind: "award", significance: "notable" };
   }
+  // Before the general form: a freshman award stored as Player of the Year
+  // overstated it (Samuel Manufor, American Conference, 2026-10-07).
+  if (/\b(freshman|rookie|newcomer) of the year\b/i.test(t)) {
+    return { award_name: "Freshman of the Year", kind: "award", significance: "honor" };
+  }
   if (/\b[a-z-]+ of the year\b/i.test(t)) {
     return { award_name: "Player of the Year", kind: "award", significance: "honor" };
   }
@@ -273,6 +278,15 @@ const MONTHS: Record<string, number> = {
   jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
 };
 
+/**
+ * A date alone on its line: a season table's date cell ("Jan. 28"), dating the
+ * names in the cells after it. Without this, every weekly release that repeats
+ * the season table re-recorded each winner under its own date — Jemma Cave got
+ * 13 Players of the Week for one (Southland, 2026-10-07 backfill).
+ */
+const DATE_ONLY =
+  /^(?:(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})|(\d{1,2})\/(\d{1,2}))(?:,?\s*\d{4})?\.?$/i;
+
 /** "Sept. 16 –", "9/15:", "Feb. 24 -" at the start of an entry line. */
 const DATE_PREFIX =
   /^(?:(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})|(\d{1,2})\/(\d{1,2}))\s*[:–—-]\s*/i;
@@ -376,6 +390,8 @@ export function extractConferenceHonours(
 
   let sport = storySport;
   let label: Award | "block" | null = storyAward;
+  /** The date cell the following names belong to; cleared by every new label. */
+  let listDate: string | null = null;
 
   for (const raw of lines) {
     const line = raw.trim();
@@ -386,6 +402,7 @@ export function extractConferenceHonours(
     if (lineSport && words <= 6 && !line.includes(":") && classifyLabel(line) === null) {
       sport = lineSport.gender || !storySport ? lineSport : { ...lineSport, gender: storySport.gender };
       label = storyAward;
+      listDate = null;
       continue;
     }
 
@@ -396,9 +413,21 @@ export function extractConferenceHonours(
       continue;
     }
 
-    // Tier lines inside a season team.
+    // A date cell dates the rows after it.
+    const dateCell = DATE_ONLY.exec(line);
+    if (dateCell) {
+      listDate = dateFrom(dateCell, meta.date);
+      continue;
+    }
+
+    // Tier lines inside a season team. The line's own award wins over the
+    // headline's: "First Team All-Conference" under a headline that only says
+    // "Honors" was read as a bare tier, and the whole team was lost.
     if (TIER.test(line) && words <= 6) {
-      label = /^honou?rable/i.test(line) ? honourableMention(storyAward) : storyAward;
+      const own = classifyLabel(line);
+      const base = own && own !== "block" ? own : storyAward;
+      label = /^honou?rable/i.test(line) ? honourableMention(base) : base;
+      listDate = null;
       continue;
     }
 
@@ -414,6 +443,7 @@ export function extractConferenceHonours(
         rest = line.slice(colon + 1).trim();
         if (!rest) {
           label = cls;
+          listDate = null;
           if (lineSport) sport = lineSport;
           continue;
         }
@@ -421,6 +451,7 @@ export function extractConferenceHonours(
     }
     if (inline === null && words <= 12 && classifyLabel(line) !== null && !nameLike(line, index)) {
       label = classifyLabel(line);
+      listDate = null;
       if (lineSport) sport = lineSport;
       continue;
     }
@@ -429,7 +460,7 @@ export function extractConferenceHonours(
     if (!award || award === "block") continue;
 
     // Entry line: optional date, optional role, then items.
-    let occurred = meta.date.slice(0, 10);
+    let occurred = listDate ?? meta.date.slice(0, 10);
     const d = DATE_PREFIX.exec(rest);
     if (d) {
       occurred = dateFrom(d, meta.date);
