@@ -28,6 +28,18 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
 
+      # National team rankings from NCAA.com for the article writer
+      # (PLAN-richer-articles.md, step 5.1): ~70 page fetches from here, about
+      # 800 D1 row writes into its own table, no LLM. Before the 07:30 and 13:30
+      # generation runs. A failure here must not cost the statistics page.
+      - name: NCAA team rankings
+        continue-on-error: true
+        run: npx tsx pipeline/stats/ncaa-rankings.ts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
       - name: Discord ved fejl
         if: failure()
         env:
