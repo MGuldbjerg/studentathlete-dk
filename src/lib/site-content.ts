@@ -100,6 +100,17 @@ export const SITE_CONTENT: SettingDef[] = [
     default: "false",
     scope: "global",
   },
+  {
+    key: "ga4.measurement_id",
+    group: "Annoncer",
+    label: "Google Analytics 4 measurement ID",
+    type: "text",
+    help:
+      "From GA4 (G-…), one per site. Empty = no GA4. Loads only together with the AdSense " +
+      "script, whose Google consent banner governs it: storage stays denied in the EEA/UK " +
+      "until the visitor accepts (src/lib/ga4.ts).",
+    default: "",
+  },
 ];
 
 export const SETTING_KEYS = new Set(SITE_CONTENT.map((s) => s.key));

@@ -10,6 +10,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { BASE_URL } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/admin";
 import { adsenseIds } from "@/lib/site-content";
+import { ga4Id, ga4Snippet } from "@/lib/ga4";
 import { currentLanguage, currentBaseUrl, currentSite } from "@/lib/site-server";
 import "./globals.css";
 
@@ -53,6 +54,9 @@ export default async function RootLayout({
   const settings = await getSiteSettings();
   const adsense = adsenseIds(settings["adsense.publisher_id"]);
   const adsScript = settings["adsense.enabled"] === "true";
+  // GA4 rides on the AdSense consent banner: without that banner there is no
+  // consent to read, so no GA4 either.
+  const ga4 = adsense && adsScript ? ga4Id(settings["ga4.measurement_id"]) : null;
   const lang = await currentLanguage();
   return (
     <html lang={lang}>
@@ -68,6 +72,11 @@ export default async function RootLayout({
             annoncer reelt slås til. Udfyldes i admin → Tekster; tomt felt =
             intet tag. Se også /ads.txt, som bærer samme ID. */}
         {adsense && <meta name="google-adsense-account" content={adsense.account} />}
+
+        {/* GA4 consent defaults FIRST — before AdSense or any Google tag can
+            run. Storage is denied in the EEA/UK until Google's banner grants it. */}
+        {ga4 && <script dangerouslySetInnerHTML={{ __html: ga4Snippet(ga4) }} />}
+        {ga4 && <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4}`} />}
 
         {/* AdSense-scriptet. Ét tag leverer TRE ting: auto ads, Googles
             certificerede CMP (samtykkeboksen serveres af auto-ads-scriptet —
