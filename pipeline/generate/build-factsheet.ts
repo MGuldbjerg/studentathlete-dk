@@ -52,6 +52,12 @@ export interface FactSheet {
    * read as the athlete's. Optional: sheets built before that have none.
    */
   context?: Array<{ text: string; source: "prose" | "boxscore" }>;
+  /**
+   * Facts from StudentAthlete's own records, computed in code when the draft
+   * is written (records.ts): the national angle on the roster, our earlier
+   * articles this season. Never from the source, and labelled as ours.
+   */
+  records?: Array<{ text: string; source: "records" }>;
   box_score_url: string | null;
   /**
    * KAMPEN SELV — scoringsoversigt og holdstatistik, læst regelbaseret ud af
@@ -278,6 +284,11 @@ export function renderFactSheet(fs: FactSheet): string {
     blocks.push(
       "Kontekst (holdet, sæsonen, rekorder, holdkammerater — IKKE atletens egne tal, medmindre linjen selv siger det):\n" +
         fs.context.map((f) => `- ${f.text}`).join("\n"),
+    );
+  if (fs.records?.length)
+    blocks.push(
+      "Egne optegnelser (StudentAthletes egne tal — IKKE fra kilden; højst 1-2 nøgterne sætninger herfra):\n" +
+        fs.records.map((f) => `- ${f.text}`).join("\n"),
     );
   return blocks.join("\n\n");
 }

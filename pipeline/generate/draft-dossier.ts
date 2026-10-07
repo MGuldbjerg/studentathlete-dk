@@ -155,12 +155,36 @@ export function dossier(r: DossierRow): string {
 \`\`\`
 ${cleanSource(r.content_raw, r.summary)}
 \`\`\`
-${mergedSources(r.merged_sources)}
+${mergedSources(r.merged_sources)}${recordsNote(r.fact_sheet)}
 ## Faktaarket (det ENESTE kladden må hvile på)
 
 \`\`\`json
 ${pretty(r.fact_sheet)}
 \`\`\`
+`;
+}
+
+/**
+ * Our own records on the sheet (records.ts): the roster count and our earlier
+ * articles this season. Like the athlete table, they are the database's own
+ * knowledge — not in the source, and not invented. Empty when there are none,
+ * so every other dossier is unchanged.
+ */
+export function recordsNote(factSheet: string | null): string {
+  let records: Array<{ text: string }> = [];
+  try {
+    const fs = JSON.parse(factSheet ?? "null") as { records?: Array<{ text: string }> } | null;
+    records = Array.isArray(fs?.records) ? fs.records : [];
+  } catch {
+    return "";
+  }
+  if (!records.length) return "";
+  return `
+## Basens egne tal (beregnet af os da kladden blev skrevet — IKKE fra kilden)
+
+Disse står i faktaarkets \`records\` og er basens viden på samme måde som atlettabellen. En sætning i kladden, der gengiver en af dem nøgternt, er IKKE opdigtet.
+
+${records.map((x) => `- ${x.text}`).join("\n")}
 `;
 }
 

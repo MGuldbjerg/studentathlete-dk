@@ -20,7 +20,8 @@ export const CLOSING_RULES_DA = `
 - Den kan gå live flere dage senere: datid om det der er sket; nævn kun næste kamp med den dato kilden giver, aldrig "tirsdag" (regel 31)
 - Hvor atleten er fra: "fra <HJEMBY>" — aldrig "født i" (regel 32)
 - Er artiklen kort, og giver TIDLIGERE BEKRÆFTEDE BEGIVENHEDER sæsonens kåringer, må du slutte med én nøgtern sætning derfra (regel 2)
-- Blokken «Kontekst» (holdets resultat, placering, rekorder, holdkammerater) er fakta du må bruge; et hold- eller holdkammerattal dér er aldrig atletens eget (regel 2)`;
+- Blokken «Kontekst» (holdets resultat, placering, rekorder, holdkammerater) er fakta du må bruge; et hold- eller holdkammerattal dér er aldrig atletens eget (regel 2)
+- Blokken «Egne optegnelser» er StudentAthletes egne tal (truppen, vores tidligere artikler om atleten): højst 1-2 nøgterne sætninger derfra, aldrig fremstillet som kildens ord (regel 2)`;
 
 const BASE_PROMPT = `Du er journalist på StudentAthlete.dk, et dansk medie der dækker danske student athletes i USA.
 

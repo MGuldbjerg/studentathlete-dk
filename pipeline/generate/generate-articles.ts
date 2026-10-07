@@ -24,6 +24,7 @@ import { groupBySourceAndCountry } from "./group-stories";
 import { MULTI_DAY_SPORTS, SIBLING_DAYS, foldEarlierReports, holdDecision, type Report } from "./tournament-hold";
 import { PARENT_DAYS, cleanSection, findParent, isWeeklyAward, sectionPrompt } from "./award-section";
 import { ADDITION_TYPE, appendAddition } from "../../src/lib/article-addition";
+import { earlierLines, rosterLine, withRecords } from "./records";
 import { numbersIn, unsupportedNumbers, unstableNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
@@ -709,6 +710,53 @@ async function main(): Promise<void> {
       }
     }
 
+    // OUR OWN RECORDS on the sheet — the national angle on the roster and our
+    // earlier articles this season (records.ts). Two queries through indexes
+    // (idx_athletes_uni_active_country, idx_articles_athlete). They never
+    // block an article.
+    let recordsAdded = false;
+    if (story.fact_sheet) {
+      try {
+        const cc = (story.home_country ?? "").toUpperCase();
+        const lines: string[] = [];
+        const count = (
+          await db.query<{ n: number }>(
+            `SELECT COUNT(*) AS n FROM athletes
+              WHERE university = ? AND active = 1 AND home_country = ? AND sport = ? AND COALESCE(gender, '') = ?`,
+            [story.university, cc, story.sport, story.gender ?? ""],
+          )
+        ).results[0]?.n ?? 0;
+        const roster = rosterLine(story.athlete_name, count, cc, story.university, story.sport, story.gender, new Date());
+        if (roster) lines.push(roster);
+        const prior = (
+          await db.query<{ title: string; source_url: string | null; fact_sheet: string | null }>(
+            `SELECT a.title, a.source_url, s.fact_sheet
+               FROM articles a LEFT JOIN stories s ON s.id = a.story_id
+              WHERE a.athlete_id = ? AND a.published = 1 AND a.published_at >= ?
+                AND COALESCE(a.article_type, '') != '${ADDITION_TYPE}'
+              ORDER BY a.published_at DESC LIMIT 4`,
+            [story.athlete_id, `${currentSeasonStart()}-07-01`],
+          )
+        ).results;
+        lines.push(
+          ...earlierLines(
+            prior.map((p) => {
+              let factSheet: FactSheet | null = null;
+              try { factSheet = p.fact_sheet ? (JSON.parse(p.fact_sheet) as FactSheet) : null; } catch { /* title alone */ }
+              return { title: p.title, sourceUrl: p.source_url, factSheet };
+            }),
+            story.source_url,
+          ),
+        );
+        if (lines.length) {
+          story.fact_sheet = JSON.stringify(withRecords(JSON.parse(story.fact_sheet) as FactSheet, lines));
+          recordsAdded = true;
+        }
+      } catch {
+        /* our records are extra; a failed lookup writes the article without them */
+      }
+    }
+
     /**
      * IDENTITETSVAGT — før modellen overhovedet kaldes.
      *
@@ -1159,8 +1207,13 @@ async function main(): Promise<void> {
       // The day reports this recap folded in: the folded sheet is kept on the
       // story (the admin panel and the reviews read it from there), and each
       // day report points at the article, so its source is shown with it.
-      if (earlier.length && newArticleId) {
+      // The sheet as the writer saw it — with folded day reports and our own
+      // records — is kept on the story: the admin panel and the reviews read it
+      // from there, so neither looks unsourced.
+      if ((earlier.length || recordsAdded) && newArticleId) {
         await db.execute(`UPDATE stories SET fact_sheet = ? WHERE id = ?`, [story.fact_sheet, story.id]);
+      }
+      if (earlier.length && newArticleId) {
         for (const r of earlier) {
           await db.execute(
             `UPDATE stories SET status = 'merged', merged_into = ?, processed_at = datetime('now') WHERE id = ?`,

@@ -15,6 +15,7 @@ interface FactSheetShape {
   quotes: Array<TaggedFact & { speaker?: string }>;
   other_facts: TaggedFact[];
   context: TaggedFact[];
+  records: Array<{ text: string }>;
   box_score_url: string | null;
 }
 
@@ -30,6 +31,7 @@ function parseFactSheet(json: string | null): FactSheetShape | null {
       quotes: Array.isArray(raw.quotes) ? raw.quotes : [],
       other_facts: Array.isArray(raw.other_facts) ? raw.other_facts : [],
       context: Array.isArray(raw.context) ? raw.context : [],
+      records: Array.isArray(raw.records) ? raw.records : [],
       box_score_url: typeof raw.box_score_url === "string" ? raw.box_score_url : null,
     };
   } catch {
@@ -129,6 +131,10 @@ export function FactSheetPanel({
           )}
           <FactList heading="Andre fakta" facts={fs.other_facts} />
           <FactList heading="Kontekst (hold, sæson, rekorder)" facts={fs.context} />
+          <FactList
+            heading="Egne optegnelser (beregnet af os, ikke fra kilden)"
+            facts={fs.records.map((r) => ({ text: r.text, source: "prose" as const }))}
+          />
         </>
       )}
 
