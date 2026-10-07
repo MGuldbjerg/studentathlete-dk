@@ -170,5 +170,42 @@ ok(stamped("10/5/2026", otherStamp).factSheet.event?.date === "10/5/2026",
 ok(stamped("10/9/2026", award532).unverified.some((u) => u.reason === "the date is not written in the source"),
   "a date written nowhere keeps the old reason");
 
+// ─── Sidebars, award rolls and «announced Monday» (7 October 2026) ──────────
+// Five more award drafts were dated by text that is on the page but is not
+// about the match: the sidebar's story dates, the season's roll of winners, and
+// the weekday of the announcement itself.
+
+const award553 =
+  "Urquhart Named ASUN Defensive Player Of The Week For Third Time\n10/5/2026 1:00:00 PM\n" +
+  "Urquhart scored Jacksonville's lone goal in its road draw in Charlotte. The league announced Monday.\n" +
+  "Related Stories\n10.03.26\nWomen's Soccer Match At UWF Moved\n10.01.26\nDolphins Earn Draw In Charlotte";
+ok(stamped("10/3/2026", award553).factSheet.event?.date === null,
+  "#553: a sidebar story date does not date the match a weekly award honours");
+
+const award551 =
+  "Atoyebi and Wright Recognized with GSC Weekly Honors\n10/6/2026 11:13:00 AM\n" +
+  "Wright posted a 4-0 shutout against Spring Hill.\nGoalkeeper of the Week\nSept. 29: Jakob Buhrkuhl, AUM\nOct. 6: Sonny Wright, UAH";
+ok(stamped("10/6/2026", award551).factSheet.event?.date === null,
+  "#551: «Oct. 6: Sonny Wright» in the season's award roll is not a match date");
+
+const award549 =
+  "Egan, MacLean earn Patriot League Weekly Awards\n10/5/2026 1:34:00 PM\n" +
+  "MacLean was named Rookie of the Week, as announced by the league offices Monday afternoon, after Saturday's 2-1 win.";
+ok(stamped("10/5/2026", award549).factSheet.event?.date === null,
+  "#549: the stamp's weekday in «announced … Monday» is the announcement's, not the match's");
+ok(stamped("10/5/2026", "Taylor Repeats As CAA Defensive Player Of The Week\n10/5/2026 12:00:00 PM\n" +
+  "Taylor was named as the conference released its weekly awards Monday. He scored Saturday.").factSheet.event?.date === null,
+  "#550: «released its weekly awards Monday» is the announcement too");
+
+// What must survive: a dotted stamp is still a stamp, so a same-day page keeps
+// it (Temple prints its own date as «9.17.26»), and an award page whose text
+// ties the stamp's weekday to the match keeps it too (#7558: «Friday night at Duke»).
+ok(stamped("9.17.26", "Clarke Named to Watch List9.17.26 | Football\nThe watch list was announced Thursday.")
+  .factSheet.event?.date === "9.17.26",
+  "a page's own dotted date stands on a same-day page");
+ok(stamped("9/25/2026", "Taylor Lands On TopDrawer Team Of The Week\nRelated Stories\n9.25.26\nElon Wins At Duke\n" +
+  "Taylor scored the game-winning goal Friday night for the Phoenix at Duke.").factSheet.event?.date === "9/25/2026",
+  "a dotted date counts on an award page when the text puts the match on that weekday");
+
 console.log(`verify-factsheet: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);
