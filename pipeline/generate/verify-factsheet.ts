@@ -35,7 +35,7 @@
 import type { FactSheet } from "./build-factsheet";
 
 export interface UnverifiedFact {
-  field: "event.date" | "result.final_score" | "stats" | "qualitative" | "other_facts";
+  field: "event.date" | "result.final_score" | "stats" | "qualitative" | "other_facts" | "context";
   text: string;
   reason: string;
 }
@@ -544,6 +544,9 @@ export function verifyFactSheet(
     stats: keep("stats", fs.stats),
     qualitative: keep("qualitative", fs.qualitative),
     other_facts: keep("other_facts", fs.other_facts),
+    // Grounded like everything else; no attribution test — context is by
+    // definition about the team, the season or someone else.
+    ...(fs.context ? { context: keep("context", fs.context) } : {}),
   };
   return { factSheet, unverified };
 }

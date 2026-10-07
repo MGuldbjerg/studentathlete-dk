@@ -19,6 +19,7 @@ import { enrichFactSheetWithBoxScore, extractBoxScoreText,
 } from "./box-score";
 import { isTransientLLMError } from "../lib/llm/errors";
 import { verifyFactSheet, type UnverifiedFact } from "./verify-factsheet";
+import { selectSourceWindow } from "./source-window";
 import { siteCountrySql } from "../../src/lib/countries";
 
 interface StoryRow {
@@ -41,6 +42,16 @@ export interface FactSheet {
   qualitative: Array<{ text: string; source: "prose" | "boxscore" }>;
   quotes: Array<{ text: string; speaker: string; source: "prose" | "boxscore" }>;
   other_facts: Array<{ text: string; source: "prose" | "boxscore" }>;
+  /**
+   * What the source says AROUND the athlete: the team's result, record and
+   * standing, rankings, the athlete's season and career totals and programme
+   * records, team-mates' awards in the same release. Added 7 October 2026 —
+   * nearly every fact added by hand to that day's 16 British drafts was in the
+   * source and missing here, because the sheet was asked about the athlete's
+   * own performance only. Kept apart from `stats` so a team figure can never
+   * read as the athlete's. Optional: sheets built before that have none.
+   */
+  context?: Array<{ text: string; source: "prose" | "boxscore" }>;
   box_score_url: string | null;
   /**
    * KAMPEN SELV — scoringsoversigt og holdstatistik, læst regelbaseret ud af
@@ -67,8 +78,13 @@ const SYSTEM_MESSAGE =
   "quantitative facts (scores, stats, times, placements) AND qualitative observations " +
   "the source reports (e.g. 'controlled midfield', 'made key passes in the build-up', " +
   "'praised by the coach'). Qualitative observations are first-class facts — do not drop " +
-  "them just because they are not numbers. NEVER infer, embellish, or add anything not in " +
-  "the source. Keep facts in the source's original language. Respond with ONLY a JSON object.";
+  "them just because they are not numbers. Also capture the CONTEXT the source states around " +
+  "the athlete in `context`: the team's result, record and standing, rankings, the athlete's " +
+  "season and career totals and programme records, and awards to team-mates in the same " +
+  "release. A team or team-mate figure belongs in `context`, never in `stats`. Leave out " +
+  "upcoming games and schedules: the article runs days later. NEVER infer, " +
+  "embellish, or add anything not in the source. Keep facts in the source's original " +
+  "language. Respond with ONLY a JSON object.";
 
 const SCHEMA_HINT = `{
   "has_substance": boolean,   // false ONLY if the source says nothing specific about THIS athlete
@@ -78,6 +94,7 @@ const SCHEMA_HINT = `{
   "qualitative": [{"text": string, "source": "prose"}],     // descriptive performance the source reports
   "quotes": [{"text": string, "speaker": string, "source": "prose"}],
   "other_facts": [{"text": string, "source": "prose"}],
+  "context": [{"text": string, "source": "prose"}],         // team result/record/standing, rankings, season & career totals, records, team-mates' awards
   "box_score_url": string|null   // if the source links a box score / stats page
 }`;
 
@@ -127,7 +144,8 @@ export function normalizeFactSheet(raw: Record<string, unknown>): FactSheet {
   const qualitative = asArray<{ text: string; source: "prose" | "boxscore" }>(raw.qualitative);
   const quotes = asArray<{ text: string; speaker: string; source: "prose" | "boxscore" }>(raw.quotes);
   const other_facts = asArray<{ text: string; source: "prose" | "boxscore" }>(raw.other_facts);
-  const event = (raw.event && typeof raw.event === "object" ? raw.event : null) as FactSheet["event"];
+  const context = asArray<{ text: string; source: "prose" | "boxscore" }>(raw.context);
+  const event =(raw.event && typeof raw.event === "object" ? raw.event : null) as FactSheet["event"];
   const result = (raw.result && typeof raw.result === "object" ? raw.result : null) as FactSheet["result"];
 
   const fs: FactSheet = {
@@ -138,8 +156,10 @@ export function normalizeFactSheet(raw: Record<string, unknown>): FactSheet {
     qualitative,
     quotes,
     other_facts,
+    context,
     box_score_url: typeof raw.box_score_url === "string" ? raw.box_score_url : null,
   };
+  // Context alone is not a story about the athlete: hasSubstance ignores it.
   return { ...fs, has_substance: hasSubstance(fs) };
 }
 
@@ -254,6 +274,11 @@ export function renderFactSheet(fs: FactSheet): string {
     );
   if (fs.other_facts.length)
     blocks.push("Andre fakta:\n" + fs.other_facts.map((f) => `- ${f.text}`).join("\n"));
+  if (fs.context?.length)
+    blocks.push(
+      "Kontekst (holdet, sæsonen, rekorder, holdkammerater — IKKE atletens egne tal, medmindre linjen selv siger det):\n" +
+        fs.context.map((f) => `- ${f.text}`).join("\n"),
+    );
   return blocks.join("\n\n");
 }
 
@@ -293,7 +318,11 @@ export async function buildFactSheet(
 ): Promise<{ factSheet: FactSheet | null; status: FactStatus }> {
   // Kildens «UP NEXT» er sand når referatet skrives, men ikke når vi genererer
   // dage senere. Fjern den FØR faktaarket bygges — se forward-looking.ts.
-  const source = stripForwardLooking(story.content_raw ?? story.summary ?? story.headline ?? "").slice(0, 8000);
+  // The window is CHOSEN, not cut at 8000: see source-window.ts.
+  const source = selectSourceWindow(
+    stripForwardLooking(story.content_raw ?? story.summary ?? story.headline ?? ""),
+    story.athlete_name,
+  );
   if (!source.trim()) return { factSheet: null, status: "no_substance" };
 
   const prompt = [
