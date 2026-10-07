@@ -169,7 +169,7 @@ function parseArgs(): CliArgs {
 interface FetchResult {
   html: string | null;
   httpStatus: number;
-  result: "ok" | "not_found" | "blocked" | "server_error" | "timeout" | "error";
+  result: "ok" | "not_found" | "blocked" | "server_error" | "timeout" | "error" | "challenged";
   size: number;
 }
 
@@ -190,6 +190,21 @@ function isTransient(result: FetchResult["result"]): boolean {
   return result === "blocked" || result === "server_error" || result === "timeout";
 }
 
+/**
+ * An AWS WAF challenge: HTTP 202, an EMPTY body and `x-amzn-waf-action:
+ * challenge`. The page is behind a JavaScript proof-of-work that only a browser
+ * can pass. Read as "200-ish, no roster", it hid 205 teams at 47 schools
+ * (PrestoSports-hosted NJCAA/D2 sites, measured 2026-10-07): the empty body was
+ * falsy, every URL variant "failed", and the render fallback never ran because
+ * no URL had "worked". It is its own result now, and those URLs are rendered.
+ */
+export function isWafChallenge(status: number, wafAction: string | null): boolean {
+  return status === 202 && (wafAction ?? "").toLowerCase() === "challenge";
+}
+
+/** Roster URLs the WAF challenged this run — candidates for the browser. */
+const challengedUrls = new Set<string>();
+
 async function fetchOnce(url: string, timeoutMs: number): Promise<FetchResult> {
   try {
     const response = await fetch(url, {
@@ -197,6 +212,10 @@ async function fetchOnce(url: string, timeoutMs: number): Promise<FetchResult> {
       signal: AbortSignal.timeout(timeoutMs),
       redirect: "follow",
     });
+    if (isWafChallenge(response.status, response.headers.get("x-amzn-waf-action"))) {
+      challengedUrls.add(url);
+      return { html: null, httpStatus: response.status, result: "challenged", size: 0 };
+    }
     const text = response.ok ? await response.text() : null;
     let result: FetchResult["result"] = "ok";
     if (!response.ok) {
@@ -457,12 +476,39 @@ async function main(): Promise<void> {
         }
       }
 
+      // A WAF challenge is not a missing page: the browser can pass it.
+      let challengedOnly = false;
+      if (!html && !apiRoster) {
+        const challenged = rosterUrlsFor(check).find((u) => challengedUrls.has(u));
+        if (challenged) {
+          challengedOnly = true;
+          if (renderEnabled && !renderQuotaExhausted && rendersUsed < renderBudget) {
+            rendersUsed++;
+            try {
+              const rendered = await renderPage(challenged);
+              if (rendered && parseRoster(rendered).length > 0) {
+                html = rendered;
+                usedUrl = challenged;
+                console.log(`  ⟳ ${check.name} / ${check.sport}: past the WAF challenge via the browser`);
+              }
+            } catch (err) {
+              if (err instanceof BrowserRenderError && err.quotaExhausted) renderQuotaExhausted = true;
+            }
+          }
+        }
+      }
+
       if (!html && !apiRoster) {
         await db.execute(
           `UPDATE roster_checks
-           SET status = 'error', checked_at = datetime('now'), error_message = 'Fetch fejlede for alle URL-varianter'
+           SET status = 'error', checked_at = datetime('now'), error_message = ?
            WHERE id = ?`,
-          [check.check_id],
+          [
+            challengedOnly
+              ? "WAF-challenge (AWS) — kræver browser; render-budget brugt eller render fejlede"
+              : "Fetch fejlede for alle URL-varianter",
+            check.check_id,
+          ],
         );
         totalErrors++;
         totalProcessed++;
