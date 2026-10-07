@@ -145,7 +145,8 @@ const CLOSING_RULES = `
 - It may go live days later: past tense for what happened; mention the next fixture only with the date the source gives, never "on Tuesday" (rule 29)
 - Where the athlete is from: "from <HOMETOWN>" only — never "-born", "native" or "X's own" (rule 30)
 - If the article is short and PREVIOUSLY CONFIRMED EVENTS gives this season's awards, you may end with one plain sentence from them (rule 2)
-- The «Kontekst» block (team result, standing, records, team-mates) is fact you may use; a team or team-mate figure there is never the athlete's own (rule 2)`;
+- The «Kontekst» block (team result, standing, records, team-mates) is fact you may use; a team or team-mate figure there is never the athlete's own (rule 2)
+- The «Egne optegnelser» block is StudentAthlete's own records (the roster, our earlier articles about the athlete): at most 1-2 plain sentences from it, never presented as the source's words (rule 2)`;
 
 function shell(context: ArticleContext): string {
   return `${athleteFactsBlockEn(context)}
