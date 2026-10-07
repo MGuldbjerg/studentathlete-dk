@@ -63,8 +63,11 @@ site within 4 days.
 
 ### 5. Season and league statistics from stats pages
 Same machinery for all three: fetch a table, stamp the date, match names exactly or skip.
-1. National team rankings from NCAA.com (D1–D3, ~20 stats per sport, server-rendered,
-   `/stats` allowed by robots). National only. First, because one uniform site.
+1. **DONE (#15, 2026-10-07)** National team rankings from NCAA.com. `pipeline/stats/ncaa-rankings.ts`
+   daily in `stats-daily.yml`, table `team_rankings` (migration 065). Soccer, field hockey,
+   basketball when in season; volleyball left out (tables count sets). Dated by the table's
+   «through games» date; tables older than 10 days are out of season (basketball on 7 Oct
+   was last April's). Exact school match after «St.»/«U.» expansion only.
 2. The athlete's season statistics from the school's own stats page.
 3. Conference rankings and standings from conference sites (mostly Sidearm), one platform at
    a time.
