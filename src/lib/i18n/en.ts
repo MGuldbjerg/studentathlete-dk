@@ -544,6 +544,8 @@ const ui: LanguagePack["ui"] = {
   "tpl.read_also": "Read next",
   "tpl.related": "Related articles",
   "tpl.more_recruiting": "More on recruitment",
+  "tpl.about_athlete": "About the athlete",
+  "tpl.full_profile": "See full profile →",
   "tpl.previous_updates": "Earlier updates",
   "tpl.student_athlete_tag": "Student athlete",
   "tpl.official": "Official",

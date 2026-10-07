@@ -525,6 +525,34 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
 }
 
 /**
+ * Every athlete an article is about, the primary athlete first.
+ *
+ * `article_athletes` links an article to all athletes it covers (role
+ * 'primary' or 'featured'); the article row itself names only the primary one.
+ * The fact cards at the bottom of an article showed that one alone, so a
+ * report naming five British players had a card for one (Mikkel, 2026-10-07).
+ * Only athletes of the site's own country are returned, like getAthleteBySlug.
+ */
+export async function getArticleAthletes(articleId: number, country?: string): Promise<Athlete[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = await db
+      .prepare(
+        `SELECT a.*, s.slug AS school_slug
+           FROM article_athletes aa
+           JOIN athletes a ON a.id = aa.athlete_id
+           LEFT JOIN schools s ON s.name = a.university
+          WHERE aa.article_id = ? AND a.home_country = ?
+          ORDER BY (aa.role = 'primary') DESC, a.name`,
+      )
+      .bind(articleId, await siteCountry(country))
+      .all();
+    return (r.results ?? []) as Athlete[];
+  } catch (err) { rethrowDbError(err, "artiklens atleter"); }
+}
+
+/**
  * Slår en NEDLAGT atlet-slug op → atletens nuværende slug (301-mål).
  *
  * Slugs dør på to måder: skolen ændrer atletens navn, eller to rækker viser sig

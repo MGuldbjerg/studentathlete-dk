@@ -554,6 +554,8 @@ const ui: LanguagePack["ui"] = {
   "tpl.read_also": "Læs også",
   "tpl.related": "Relaterede artikler",
   "tpl.more_recruiting": "Mere om rekruttering",
+  "tpl.about_athlete": "Om atleten",
+  "tpl.full_profile": "Se fuld profil →",
   "tpl.previous_updates": "Tidligere opdateringer",
   "tpl.student_athlete_tag": "Student athlete",
   "tpl.official": "Officielt",

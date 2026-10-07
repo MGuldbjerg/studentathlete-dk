@@ -13,6 +13,8 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
+  /** Every athlete the article covers, primary first — one card each. */
+  athletes?: Athlete[];
   relatedArticles?: Article[];
 }
 
@@ -35,7 +37,7 @@ export function getSeason(dateStr: string | null): string {
   return `${start}–${String(start + 1).slice(2)}`;
 }
 
-export async function SeasonUpdateTemplate({ article, athlete, relatedArticles = [] }: Props) {
+export async function SeasonUpdateTemplate({ article, athlete, athletes = [], relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   const readTime = getReadingTime(article.content);
@@ -125,18 +127,19 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
         <SourceBox sourceUrl={article.source_url} lang={lang} />
         {article.author_role !== "human" && <AiDisclaimer />}
 
-        {/* ── Atletdatakort ─────────────────────────────────────── */}
-        {athlete && (
-          <aside className="my-8 overflow-hidden"
+        {/* ── Atletdatakort — one per athlete the article covers ── */}
+        {athletes.map((athlete) => (
+          <aside key={athlete.id} className="my-8 overflow-hidden"
             style={{ border: "1px solid #E2E0DC" }}>
             {/* Blå header */}
             <div className="px-5 py-3 flex items-center justify-between"
               style={{ backgroundColor: "#00205B" }}>
               <div>
-                <p className="text-white font-bold text-sm"
+                <a href={getAthleteUrl(athlete.slug, lang)}
+                  className="block text-white font-bold text-sm hover:underline"
                   style={{ fontFamily: "var(--font-serif)" }}>
                   {athlete.name}
-                </p>
+                </a>
                 <p className="text-white/50 text-xs">{athlete.university}</p>
               </div>
               <span className="text-[10px] font-black tracking-[0.2em] uppercase px-2 py-1"
@@ -163,7 +166,7 @@ export async function SeasonUpdateTemplate({ article, athlete, relatedArticles =
               ))}
             </div>
           </aside>
-        )}
+        ))}
 
         <AdSlot slot="article-footer" className="my-6" />
         <RelatedArticles articles={relatedArticles} title={t("tpl.previous_updates", lang)} lang={lang} />

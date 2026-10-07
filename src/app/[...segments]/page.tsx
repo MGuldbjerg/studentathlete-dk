@@ -7,6 +7,7 @@ import {
   getAthleteInitialCounts,
   getAthletesByLetter,
   getAthleteBySlug,
+  getArticleAthletes,
   getAthleteSlugByAlias,
   getArticlesByAthleteId,
   getAthleteEvents,
@@ -539,8 +540,9 @@ export default async function DynamicPage({
     }
 
     if (article && normalizedSport === prefix) {
-      const [athlete, relatedArticles] = await Promise.all([
+      const [athlete, linkedAthletes, relatedArticles] = await Promise.all([
         article.athlete_slug ? getAthleteBySlug(article.athlete_slug) : null,
+        getArticleAthletes(article.id),
         article.athlete_id
           ? getArticlesByAthleteId(article.athlete_id, 4).then((arts) =>
               arts.filter((a) => a.slug !== slug)
@@ -548,7 +550,10 @@ export default async function DynamicPage({
           : [],
       ]);
 
-      const props = { article, athlete, relatedArticles };
+      // One fact card per athlete the article covers; an article without
+      // links (older rows) still gets its primary athlete's card.
+      const athletes = linkedAthletes.length > 0 ? linkedAthletes : athlete ? [athlete] : [];
+      const props = { article, athlete, athletes, relatedArticles };
 
       let template;
       switch (article.article_type) {

@@ -15,10 +15,12 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
+  /** Every athlete the article covers, primary first — one fact box each. */
+  athletes?: Athlete[];
   relatedArticles?: Article[];
 }
 
-export async function RecruitingTemplate({ article, athlete, relatedArticles = [] }: Props) {
+export async function RecruitingTemplate({ article, athlete, athletes = [], relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   return (
@@ -111,16 +113,16 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
           <SourceBox sourceUrl={article.source_url} lang={lang} />
           {article.author_role !== "human" && <AiDisclaimer />}
 
-          {/* Atletfaktaboks */}
-          {athlete && (
-            <aside className="mt-10 mb-10">
+          {/* Atletfaktaboks — one per athlete the article covers */}
+          {athletes.map((athlete) => (
+            <aside key={athlete.id} className="mt-10 mb-10">
               {/* Rød venstre-linje */}
               <div className="flex">
                 <div className="w-[3px] flex-shrink-0 mr-5"
                   style={{ backgroundColor: "#BF0A30" }} />
                 <div className="flex-1">
                   <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">
-                    Om atleten
+                    {t("tpl.about_athlete", lang)}
                   </p>
                   <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
                     {[
@@ -140,12 +142,12 @@ export async function RecruitingTemplate({ article, athlete, relatedArticles = [
                   <a href={getAthleteUrl(athlete.slug, lang)}
                     className="inline-block mt-5 text-xs font-bold tracking-[0.12em] uppercase hover:underline"
                     style={{ color: "#BF0A30" }}>
-                    Se fuld profil →
+                    {t("tpl.full_profile", lang)}
                   </a>
                 </div>
               </div>
             </aside>
-          )}
+          ))}
 
           <AdSlot slot="article-footer" className="my-6" />
           <RelatedArticles articles={relatedArticles} title={t("tpl.more_recruiting", lang)} lang={lang} />

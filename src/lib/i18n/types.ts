@@ -275,6 +275,8 @@ export type UiKey =
   | "tpl.read_also"
   | "tpl.related"
   | "tpl.more_recruiting"
+  | "tpl.about_athlete"
+  | "tpl.full_profile"
   | "tpl.previous_updates"
   | "tpl.student_athlete_tag"
   | "tpl.official"
