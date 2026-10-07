@@ -73,8 +73,12 @@ export default async function RootLayout({
             intet tag. Se også /ads.txt, som bærer samme ID. */}
         {adsense && <meta name="google-adsense-account" content={adsense.account} />}
 
-        {/* GA4 consent defaults FIRST — before AdSense or any Google tag can
-            run. Storage is denied in the EEA/UK until Google's banner grants it. */}
+        {/* GA4 consent defaults. React hoists the async gtag.js and AdSense
+            <script src> tags above this inline one (seen live 2026-10-07), so
+            the guarantee is the dataLayer ORDER, not the script order: the
+            snippet pushes consent 'default' before 'config', and GA4 sends
+            nothing before 'config'. Storage stays denied in the EEA/UK until
+            Google's banner grants it. AdSense reads the TCF signal instead. */}
         {ga4 && <script dangerouslySetInnerHTML={{ __html: ga4Snippet(ga4) }} />}
         {ga4 && <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4}`} />}
 
