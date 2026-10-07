@@ -83,6 +83,7 @@ jobs:
             pipeline/scrape/_athletics-site-test.ts \
             pipeline/scrape/_honors-test.ts \
             pipeline/scrape/_conference-honors-test.ts \
+            pipeline/scrape/_roster-urls-test.ts \
             pipeline/scrape/_waf-challenge-test.ts \
             pipeline/scrape/parsers/_roster-api-test.ts \
             pipeline/scrape/parsers/_sidearm-test.ts \
