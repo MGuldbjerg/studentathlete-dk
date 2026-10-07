@@ -13,6 +13,11 @@ items: `projekt-status.md` (newest sections at the top). Audited 2026-09-30.
   .co.uk, through the language packs (`src/lib/i18n/da.ts`, `en.ts`). Sentence
   case in headlines on both.
 - **Admin is Danish on purpose** (`ADMIN_LANG`), not by fallback.
+- **US college class years are names, never translated**: freshman, sophomore,
+  junior, senior (and redshirt, walk-on) stay English on .dk too — in articles,
+  UI strings, award labels ("Freshman of the Year", not "Årets nykommer") and
+  prompts. "Friskmand" is not a word. Rephrase if the English reads badly
+  (Mikkel, 2026-08-13; repeated 2026-10-07 after an award label broke it).
 
 ## Sites are separate, only the engine is shared (Mikkel, 2026-08-21)
 

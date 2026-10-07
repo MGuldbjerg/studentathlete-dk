@@ -28,6 +28,7 @@ eq(awardLabel(null, "en"), "", "ingen pris er tom streng");
 
 // Conference-release awards (2026-10-07).
 eq(awardLabel("Honor Roll", "en"), "Weekly Honour Roll", "the weekly honour roll says weekly");
+eq(awardLabel("Freshman of the Year", "da"), "Freshman of the Year", "class years are names — never translated");
 eq(awardLabel("All-Conference HM", "en"), "All-Conference Honourable Mention", "honourable mention keeps its own name");
 eq(extractEvents("became Tiffin's first-ever ITA women's tennis All Americans").map((e) => e.award_name).join(","), "All-American", "the plural counts");
 

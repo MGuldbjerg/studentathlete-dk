@@ -211,7 +211,9 @@ const AWARD_LABELS: Record<string, { da: string; en: string }> = {
   "Honor Roll": { da: "Ugens æresliste", en: "Weekly Honour Roll" },
   "Crew of the Week": { da: "Ugens båd", en: "Crew of the Week" },
   "All-Freshman": { da: "All-Freshman", en: "All-Freshman Team" },
-  "Freshman of the Year": { da: "Årets nykommer", en: "Freshman of the Year" },
+  // US class years (freshman, sophomore …) are names and are never translated
+  // (Mikkel, 2026-08-13 and 2026-10-07).
+  "Freshman of the Year": { da: "Freshman of the Year", en: "Freshman of the Year" },
   "All-Conference HM": { da: "All-Conference (honorable mention)", en: "All-Conference Honourable Mention" },
   "All-Region HM": { da: "All-Region (honorable mention)", en: "All-Region Honourable Mention" },
   "All-American HM": { da: "All-American (honorable mention)", en: "All-American Honourable Mention" },
