@@ -1,0 +1,85 @@
+name: Reels (UK)
+
+# One text-only Instagram reel a day for student-athlete.co.uk (PLAN-reels.md).
+# Mikkel 2026-10-08: UK first, no athlete tags yet, around 9 AM UK time, silent.
+#
+# Two cron times cover 9 AM in both BST (07:50 UTC = 08:50) and GMT
+# (08:50 UTC = 08:50); `--scheduled` keeps only a run inside 08:30–11:00 UK
+# time and only one reel a day, so the other run is a no-op.
+#
+# Scheduled runs post only while the repository variable REELS_ENABLED_UK is
+# 'true' — that variable is the on/off switch. A manual run defaults to
+# render-only (an MP4 as a run artifact, nothing posted, nothing written).
+on:
+  schedule:
+    - cron: '50 7 * * *'
+    - cron: '50 8 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "render-only: MP4 only · container-only: upload to Meta, publish nothing · post: publish"
+        type: choice
+        options: [render-only, container-only, post]
+        default: render-only
+      article:
+        description: "Article id (empty = pick from the last 24 hours)"
+        required: false
+        default: ''
+
+jobs:
+  reel:
+    if: github.event_name == 'workflow_dispatch' || vars.REELS_ENABLED_UK == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: ffmpeg -version | head -1
+
+      - name: Make (and post) the reel
+        run: |
+          ARGS="--country UK --out $RUNNER_TEMP/reel"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            ARGS="$ARGS --scheduled"
+          else
+            case "${{ inputs.mode }}" in
+              render-only) ARGS="$ARGS --render-only" ;;
+              container-only) ARGS="$ARGS --container-only" ;;
+            esac
+            if [ -n "${{ inputs.article }}" ]; then ARGS="$ARGS --article ${{ inputs.article }}"; fi
+          fi
+          npx tsx pipeline/reels/make-reel.ts $ARGS
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          IG_UK_USER_ID: ${{ secrets.IG_UK_USER_ID }}
+          # The UK account posts via Instagram login (no Facebook page link possible).
+          IG_UK_LOGIN: instagram
+          IG_UK_ACCESS_TOKEN: ${{ secrets.IG_UK_ACCESS_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reel
+          path: ${{ runner.temp }}/reel
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Discord notification on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ UK reel failed\",\"description\":\"No reel today. [See the log]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
