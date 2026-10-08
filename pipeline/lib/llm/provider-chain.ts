@@ -12,6 +12,7 @@ import { GroqProvider } from "./provider-groq";
 import { CloudflareAIProvider } from "./provider-cloudflare-ai";
 import { NvidiaProvider } from "./provider-nvidia";
 import { AnthropicProvider } from "./provider-anthropic";
+import { ClaudeCliProvider } from "./provider-claude-cli";
 import { AllProvidersFailedError, LLMHttpError, isRateLimitError, isServerError } from "./errors";
 
 const DAILY_LIMITS: Record<string, number> = {
@@ -24,6 +25,10 @@ const DAILY_LIMITS: Record<string, number> = {
   // som med de øvrige. Verifikation er lavvolumen.
   nvidia: 1000,
   anthropic: 999999,
+  // Mikkel's Claude subscription, shared with his own interactive use — the
+  // cap keeps the pipeline from spending his 5-hour window. Opt-in per workflow
+  // (LLM_CLAUDE_CLI=1); see provider-claude-cli.ts.
+  claude: Number(process.env.CLAUDE_DAILY_CAP) || 150,
 };
 
 function getToday(): string {
@@ -125,6 +130,9 @@ export class ProviderChain {
       // Sidst i kæden: NIM er tilføjet som DOMMER, ikke som skribent.
       new NvidiaProvider(),
       new AnthropicProvider(),
+      // Last, so it is reached by preferProvider: "claude" or when every free
+      // rung is spent — never by accident before them.
+      new ClaudeCliProvider(),
     ];
   }
 
@@ -242,6 +250,7 @@ export class ProviderChain {
       "GROQ_API_KEY",
       "CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID",
       "ANTHROPIC_API_KEY",
+      "LLM_CLAUDE_CLI=1 + CLAUDE_CODE_OAUTH_TOKEN",
     ];
 
     throw new AllProvidersFailedError(
