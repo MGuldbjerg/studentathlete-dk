@@ -42,7 +42,12 @@ jobs:
 
       - run: npm ci
 
-      - run: ffmpeg -version | head -1
+      # Not preinstalled on ubuntu-latest any more (2026-10-08: ENOENT).
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          ffmpeg -version | head -1
 
       - name: Make (and post) the reel
         run: |
