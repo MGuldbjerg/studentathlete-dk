@@ -65,7 +65,7 @@ function authFailed(status: number): boolean {
  * Permalinket til opslaget. Fail-soft: kender vi det ikke, har vi stadig
  * postet — men `delete-post.ts` får sværere ved at rydde op, så vi prøver.
  */
-async function fetchPermalink(graph: string, mediaId: string, token: string): Promise<string | null> {
+export async function fetchPermalink(graph: string, mediaId: string, token: string): Promise<string | null> {
   try {
     const res = await fetch(`${graph}/${mediaId}?fields=permalink&access_token=${encodeURIComponent(token)}`);
     if (!res.ok) return null;
@@ -157,7 +157,7 @@ async function waitForContainer(graph: string, creationId: string, token: string
  *
  * Kun 9007 prøves igen — enhver anden fejl er ægte og skal koste et forsøg.
  */
-async function publishWithRetry(graph: string, igUserId: string, creationId: string, token: string): Promise<string | null> {
+export async function publishWithRetry(graph: string, igUserId: string, creationId: string, token: string): Promise<string | null> {
   const delays = [0, 3_000, 6_000, 12_000];
 
   for (let i = 0; i < delays.length; i++) {
