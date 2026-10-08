@@ -492,21 +492,30 @@ async function main(): Promise<void> {
       // A WAF challenge is not a missing page: the browser can pass it.
       let challengedOnly = false;
       if (!html && !apiRoster) {
-        const challenged = rosterUrlsFor(check).find((u) => challengedUrls.has(u));
-        if (challenged) {
-          challengedOnly = true;
-          if (renderEnabled && !renderQuotaExhausted && rendersUsed < renderBudget) {
-            rendersUsed++;
-            try {
-              const rendered = await renderPage(challenged);
-              if (rendered && parseRoster(rendered).length > 0) {
-                html = rendered;
-                usedUrl = challenged;
-                console.log(`  ⟳ ${check.name} / ${check.sport}: past the WAF challenge via the browser`);
-              }
-            } catch (err) {
-              if (err instanceof BrowserRenderError && err.quotaExhausted) renderQuotaExhausted = true;
+        // Presto lists this season first; a team that hasn't posted it yet has
+        // last season's roster at the next URL, so try up to two (2026-10-08).
+        const challenged = rosterUrlsFor(check).filter((u) => challengedUrls.has(u)).slice(0, 2);
+        challengedOnly = challenged.length > 0;
+        for (const url of challenged) {
+          if (!renderEnabled || renderQuotaExhausted || rendersUsed >= renderBudget) break;
+          rendersUsed++;
+          try {
+            const rendered = await renderPage(url);
+            if (rendered && parseRoster(rendered).length > 0) {
+              html = rendered;
+              usedUrl = url;
+              console.log(`  ⟳ ${check.name} / ${check.sport}: past the WAF challenge via the browser (${url})`);
+              break;
             }
+            // What came back instead — the challenge page, or a page without a roster?
+            const title = rendered?.match(/<title[^>]*>([^<]*)/i)?.[1]?.trim().slice(0, 80) ?? "";
+            console.log(
+              `  ✗ ${check.name} / ${check.sport}: rendered ${url} → ` +
+                (rendered ? `${rendered.length} bytes, title «${title}», no roster` : "nothing (timeout/network)"),
+            );
+          } catch (err) {
+            console.log(`  ✗ ${check.name} / ${check.sport}: render error ${String(err).slice(0, 160)}`);
+            if (err instanceof BrowserRenderError && err.quotaExhausted) renderQuotaExhausted = true;
           }
         }
       }
