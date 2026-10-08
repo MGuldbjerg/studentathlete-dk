@@ -41,5 +41,11 @@ eq(
   "a URL without a season is left alone",
 );
 
+eq(
+  getRosterUrls("https://mmabucs.com/landing/index", "soccer", "prestosports", 2026)[0],
+  "https://mmabucs.com/sports/msoc/2026-27/roster",
+  "Presto's /landing/index home page is not part of the address",
+);
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

@@ -5,6 +5,7 @@
 import type { RosterEntry } from "../../lib/types";
 import { isSidearm, parseSidearm } from "./sidearm";
 import { parseGeneric } from "./generic";
+import { isPrestoCards, parsePrestoCards } from "./presto";
 
 export function parseRoster(html: string): RosterEntry[] {
   // Sidearm-sider findes i flere layouts. parseSidearm fanger kort-/liste-layoutet,
@@ -13,6 +14,10 @@ export function parseRoster(html: string): RosterEntry[] {
   // fuldt hentbar roster fejlagtigt som 'error' — ~2.300 checks ramt af dette).
   if (isSidearm(html)) {
     const rows = parseSidearm(html);
+    if (rows.length > 0) return rows;
+  }
+  if (isPrestoCards(html)) {
+    const rows = parsePrestoCards(html);
     if (rows.length > 0) return rows;
   }
   return parseGeneric(html);

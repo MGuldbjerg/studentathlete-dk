@@ -84,6 +84,10 @@ export function prestoSeason(academicYear: number): string {
 
 export function getRosterUrls(website: string, sport: string, platformType: string | null, academicYear = getAcademicYear()): string[] {
   const urls: string[] = [];
+  // Presto's home page is /landing/index, and some schools were stored with it
+  // as their address — every roster URL built on it was a 404 (Tennessee Tech,
+  // Framingham State, Mass Maritime … 2026-10-08).
+  website = website.replace(/\/landing\/index\/?$/i, "").replace(/\/+$/, "");
 
   if (platformType === "prestosports") {
     // Current PrestoSports puts the season in the path; `roster.aspx?path=` is
@@ -213,6 +217,11 @@ function isTransient(result: FetchResult["result"]): boolean {
  */
 export function isWafChallenge(status: number, wafAction: string | null): boolean {
   return status === 202 && (wafAction ?? "").toLowerCase() === "challenge";
+}
+
+/** A rendered page titled as the site's 404 ("Page Not Found - Ferris State …"). */
+export function isNotFoundTitle(title: string): boolean {
+  return /^(page )?not found\b|\b404\b/i.test(title.trim());
 }
 
 /** Roster URLs the WAF challenged this run — candidates for the browser. */
@@ -496,6 +505,7 @@ async function main(): Promise<void> {
         // last season's roster at the next URL, so try up to two (2026-10-08).
         const challenged = rosterUrlsFor(check).filter((u) => challengedUrls.has(u)).slice(0, 2);
         challengedOnly = challenged.length > 0;
+        let notFoundRenders = 0;
         for (const url of challenged) {
           if (!renderEnabled || renderQuotaExhausted || rendersUsed >= renderBudget) break;
           rendersUsed++;
@@ -509,6 +519,19 @@ async function main(): Promise<void> {
             }
             // What came back instead — the challenge page, or a page without a roster?
             const title = rendered?.match(/<title[^>]*>([^<]*)/i)?.[1]?.trim().slice(0, 80) ?? "";
+            // Behind the challenge was the site's 404 page: record it like an
+            // HTTP 404, so the URL is never rendered again (2026-10-08 — half
+            // of a day's renders went to "Page Not Found").
+            if (isNotFoundTitle(title)) {
+              notFoundRenders++;
+              try {
+                await db.execute(
+                  `INSERT OR REPLACE INTO url_probes (school_id, url, purpose, http_status, result, response_size)
+                   VALUES (?, ?, 'roster_scrape', 404, 'not_found', ?)`,
+                  [check.school_id, url, rendered?.length ?? 0],
+                );
+              } catch { /* log-fejl må ikke stoppe kørslen */ }
+            }
             console.log(
               `  ✗ ${check.name} / ${check.sport}: rendered ${url} → ` +
                 (rendered ? `${rendered.length} bytes, title «${title}», no roster` : "nothing (timeout/network)"),
@@ -518,6 +541,8 @@ async function main(): Promise<void> {
             if (err instanceof BrowserRenderError && err.quotaExhausted) renderQuotaExhausted = true;
           }
         }
+        // Every challenged URL was a 404 behind the challenge: not a WAF problem.
+        if (notFoundRenders > 0 && notFoundRenders === challenged.length) challengedOnly = false;
       }
 
       if (!html && !apiRoster) {
