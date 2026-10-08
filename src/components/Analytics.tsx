@@ -6,6 +6,15 @@ import { track } from "@/lib/track";
 // Kilde-parameteren hedder ?kilde= på .dk og ?source= på .co.uk. Klienten tager
 // imod begge, så et delt link ikke mister sin kilde på det andet site.
 import { sourceParamAliases } from "@/lib/routes";
+import { classify, normalizeSource } from "@/lib/analytics";
+import { GA4_CLICK_EVENTS, INTERNAL_FLAG, campaignFromSource } from "@/lib/ga4";
+
+type Gtag = (...args: unknown[]) => void;
+/** GA4, when the layout loaded it (AdSense on and a measurement ID set). */
+function gtag(): Gtag | null {
+  const g = (window as unknown as { gtag?: Gtag }).gtag;
+  return typeof g === "function" ? g : null;
+}
 
 /**
  * First-party analytics-beacon. Renderes én gang i layout.
@@ -23,7 +32,11 @@ export function Analytics() {
   // URL'en — altså landingen. Efterfølgende klik rundt på sitet er "direkte",
   // og det er med vilje: vi tæller ankomster, ikke sessioner.
   useEffect(() => {
-    if (pathname.startsWith("/admin")) return;
+    if (pathname.startsWith("/admin")) {
+      // Opening the admin marks this browser as ours for GA4 (see lib/ga4.ts).
+      try { localStorage.setItem(INTERNAL_FLAG, "1"); } catch { /* ignorér */ }
+      return;
+    }
     let source: string | undefined;
     try {
       const qs = new URLSearchParams(window.location.search);
@@ -37,6 +50,23 @@ export function Analytics() {
       referrer: document.referrer || undefined,
       source,
     });
+
+    // GA4: one page view per path, with what the page is. The campaign fields
+    // ride on the landing view, where the tag is in the URL.
+    const g = gtag();
+    if (g) {
+      const lang = document.documentElement.lang || "da";
+      const { pageType, sport } = classify(pathname, lang);
+      const campaign = campaignFromSource(normalizeSource(source));
+      if (campaign) g("set", campaign);
+      g("event", "page_view", {
+        page_location: location.href,
+        page_title: document.title,
+        page_type: pageType,
+        sport_name: sport ?? "(none)",
+        ...(campaign ?? {}),
+      });
+    }
   }, [pathname]);
 
   // Klik-tracking (delegeret, monteres én gang)
@@ -53,6 +83,8 @@ export function Analytics() {
           tagged.dataset.trackTarget ??
           (tagged instanceof HTMLAnchorElement ? tagged.getAttribute("href") ?? undefined : undefined);
         track({ type: "click", path: location.pathname, clickKind: kind, clickTarget: t ?? undefined });
+        const event = GA4_CLICK_EVENTS[kind];
+        if (event) gtag()?.("event", event, { link_url: t, page_type: classify(location.pathname, document.documentElement.lang || "da").pageType });
         return;
       }
 

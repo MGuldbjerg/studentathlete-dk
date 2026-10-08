@@ -2,7 +2,7 @@
  * Tests for the GA4 tag: the ID is validated, and consent defaults come before
  * anything that could set a cookie.
  */
-import { CONSENT_REGIONS, ga4Id, ga4Snippet } from "./ga4";
+import { CONSENT_REGIONS, GA4_CLICK_EVENTS, campaignFromSource, ga4Id, ga4Snippet } from "./ga4";
 
 let passed = 0;
 let failed = 0;
@@ -32,6 +32,17 @@ ok(s.includes("ad_user_data:'denied'") && s.includes("ad_personalization:'denied
 for (const c of ["GB", "DK", "DE", "NO", "CH"]) ok(CONSENT_REGIONS.includes(c), `${c} is a consent region`);
 ok(!CONSENT_REGIONS.includes("US"), "the US is not");
 eq(CONSENT_REGIONS.length, 32, "27 EU + 3 EEA + UK + CH");
+ok(s.includes("send_page_view:false"), "page views come from the Analytics component, not the config");
+ok(s.indexOf("traffic_type") < s.indexOf("'config'"), "the internal flag is set before anything is sent");
+ok(s.indexOf("traffic_type") > s.indexOf("'consent','default'"), "…and after the consent defaults");
+
+// Our ?source= tags as GA4 campaign fields
+eq(campaignFromSource("bluesky_uk"), { campaign_source: "bluesky_uk", campaign_medium: "social" }, "a social channel");
+eq(campaignFromSource("ig"), { campaign_source: "ig", campaign_medium: "social" }, "the Instagram bio link");
+eq(campaignFromSource("facebook_uk"), { campaign_source: "facebook_uk", campaign_medium: "social" }, "Facebook UK");
+eq(campaignFromSource("nssa"), { campaign_source: "nssa", campaign_medium: "referral" }, "a partner link is a referral");
+eq(campaignFromSource(null), null, "no tag, no campaign");
+eq(GA4_CLICK_EVENTS.bio_out, "bio_click", "school bio clicks");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
