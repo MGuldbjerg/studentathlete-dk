@@ -10,6 +10,7 @@ import {
   parseArticleOutput,
   parseArticleOutputSmart,
   salvageTruncatedJson,
+  parseRefusal,
 } from "./parse-output";
 
 let passed = 0;
@@ -163,6 +164,24 @@ check("tom streng → null", parseArticleJson("") === null);
   const long = ("word ".repeat(360) + "\n\n## Heading\n\nMore.").trim();
   check("long article: headings kept", stripShortArticleHeadings(long).includes("## Heading"));
   check("a '#' inside a sentence is not a heading", stripShortArticleHeadings("Ranked #2 in the nation.") === "Ranked #2 in the nation.");
+}
+
+// ── parseRefusal: the model's own "not about this athlete" (2026-10-08) ─────
+{
+  check("JSON refusal gives the reason",
+    parseRefusal('{"cannot_write": "The source is a volleyball report; she runs cross-country."}') ===
+      "The source is a volleyball report; she runs cross-country.");
+  check("JSON refusal inside a code fence", parseRefusal('```json\n{"cannot_write": "Not named."}\n```') === "Not named.");
+  // Haiku's actual answers in the writer bake-off, before the JSON way out existed.
+  const en = "**I haven't written this article, because the source doesn't cover Amelia Jones. The linked page reports a volleyball match.**\n\nTo produce her season update, I need…";
+  check("English prose refusal (story 8580)", (parseRefusal(en) ?? "").startsWith("I haven't written this article"), String(parseRefusal(en)));
+  const da = "**Jeg kan ikke skrive artiklen, fordi kildematerialet ikke nævner Louise Standtke. Jeg har derfor ikke returneret JSON.**\n\n- Kildens overskrift…";
+  check("Danish prose refusal (story 8419)", (parseRefusal(da) ?? "").startsWith("Jeg kan ikke skrive artiklen"), String(parseRefusal(da)));
+  check("a real article is not a refusal",
+    parseRefusal('{"title": "Nwosu strikes late", "summary": "s", "content": "Josh Nwosu scored."}') === null);
+  check("an article that QUOTES a refusal later is not one",
+    parseRefusal("Nwosu strikes late\n\nThe coach said: \"I can't write off this team.\"") === null);
+  check("empty answer is not a refusal", parseRefusal("") === null);
 }
 
 console.log(`\nparse-output: ${passed} passed, ${failed} failed`);

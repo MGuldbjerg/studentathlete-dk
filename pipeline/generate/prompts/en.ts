@@ -68,7 +68,8 @@ const JSON_FORMAT = `
 Output format: reply with EXACTLY one valid JSON object and nothing else (no text before or after, no code fences):
 {"title": "<headline — 80 characters maximum, see rule 17, no markdown markers>", "summary": "<standfirst — 1-2 sentences, see rule 18>", "content": "<body in markdown>"}
 - The content field (becomes semantic HTML — use markdown, NEVER raw HTML tags): paragraphs separated by one blank line; subheadings with ## or ### (NEVER a single #, the title lives in the title field, and NEVER **bold** in place of a ## subheading); **bold**, *italic*; lists with "- " or "1. "; links [text](url)
-- Do NOT repeat the title or the standfirst in the content field`;
+- Do NOT repeat the title or the standfirst in the content field
+- If the source is not about the athlete — another person with the same name, another sport, or the athlete is not mentioned at all — write NO article. Reply instead with exactly: {"cannot_write": "<one sentence on why>"}`;
 
 export function buildSystemPromptEn(
   corrections: StyleCorrectionEntry[] = [],

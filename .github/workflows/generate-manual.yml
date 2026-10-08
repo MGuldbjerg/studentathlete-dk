@@ -39,6 +39,13 @@ jobs:
 
       - run: npm ci
 
+      # Claude Haiku on Mikkel's subscription writes and extracts first
+      # (2026-10-08, see pipeline/lib/llm/provider-claude-cli.ts). Only the two
+      # steps below set LLM_CLAUDE_CLI; the cap (CLAUDE_DAILY_CAP, default 150)
+      # and a usage limit both fall back to the free chain. If the CLI install
+      # fails, the chain falls back too — so this step must never fail the run.
+      - run: npm install -g @anthropic-ai/claude-code || echo "! claude CLI not installed — free chain only"
+
       - name: Byg faktaark fra nye historier (fase 1)
         run: npx tsx pipeline/generate/build-factsheet.ts --max-age-days ${{ github.event.inputs.max_age_days || '7' }}
         env:
@@ -49,6 +56,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LLM_CLAUDE_CLI: '1'
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
       - name: Generer artikeludkast fra nye historier
         id: generate
@@ -65,6 +74,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LLM_CLAUDE_CLI: '1'
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Kanal pr. land — ét ekstra land = én ekstra linje her.
           # Mangler et lands secret, falder notify.ts tilbage til fælleskanalen.
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

@@ -45,7 +45,7 @@ import { promptsFor } from "../generate/prompts";
 import type { StyleCorrectionEntry } from "../generate/prompts/system";
 import { countryProfile, DEFAULT_COUNTRY } from "../../src/lib/countries";
 import { buildPrompt, selectArticleType, type StoryWithAthlete } from "../generate/generate-articles";
-import { parseArticleOutputSmart, salvageTruncatedJson } from "../generate/parse-output";
+import { parseArticleOutputSmart, parseRefusal, salvageTruncatedJson } from "../generate/parse-output";
 import { checkDraft, severityOf, type Finding } from "../generate/quality-check";
 import { hasUnsourcedQuote } from "../generate/identity-guard";
 import type { FactSheet } from "../generate/build-factsheet";
@@ -70,6 +70,7 @@ function sleep(ms: number): Promise<void> {
 
 interface Score {
   ok: number;
+  refused: number;
   parseFail: number;
   error: number;
   high: number;
@@ -82,7 +83,7 @@ interface Score {
 }
 
 function blank(): Score {
-  return { ok: 0, parseFail: 0, error: 0, high: 0, medium: 0, honours: 0, quotes: 0, words: 0, ms: 0, byCategory: new Map() };
+  return { ok: 0, refused: 0, parseFail: 0, error: 0, high: 0, medium: 0, honours: 0, quotes: 0, words: 0, ms: 0, byCategory: new Map() };
 }
 
 async function main(): Promise<void> {
@@ -159,6 +160,13 @@ async function main(): Promise<void> {
         const res = await c.p.generate({ system, prompt, max_tokens: 2000, json: true });
         const ms = Date.now() - t0;
         s.ms += ms;
+        const refusal = parseRefusal(res.text);
+        if (refusal) {
+          s.refused++;
+          console.log(`   ${c.label.padEnd(18)} REFUSED: ${refusal.slice(0, 120)}, ${ms} ms`);
+          report.push(`### ${c.label}: refused\n\n${refusal}\n`);
+          continue;
+        }
         const parsed =
           parseArticleOutputSmart(res.text, articleType) ??
           (() => {
@@ -222,7 +230,7 @@ async function main(): Promise<void> {
     const s = scores.get(c.label)!;
     const cats = [...s.byCategory.entries()].map(([k, v]) => `${k} ${v}`).join(", ") || "none";
     console.log(
-      `  ${c.label.padEnd(18)} drafts ${s.ok}/${stories.length} (parse fail ${s.parseFail}, error ${s.error}), ` +
+      `  ${c.label.padEnd(18)} drafts ${s.ok}/${stories.length}, refused ${s.refused} (parse fail ${s.parseFail}, error ${s.error}), ` +
         `${s.high} high + ${s.medium} medium findings [${cats}], ${s.honours} unsourced honours, ${s.quotes} unsourced quotes, ` +
         `${s.ok ? Math.round(s.words / s.ok) : 0} words avg, ${Math.round(s.ms / stories.length)} ms/story`,
     );

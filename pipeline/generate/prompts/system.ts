@@ -73,7 +73,8 @@ const JSON_FORMAT = `
 Output-format: Svar med PRÆCIS ét gyldigt JSON-objekt og intet andet (ingen tekst før/efter, ingen kodeblokke):
 {"title": "<overskrift — maks 80 tegn, jf. regel 17, ingen markdown-markører>", "summary": "<ingress — 1-2 sætninger, jf. regel 18>", "content": "<brødtekst i markdown>"}
 - content-feltet (bliver til semantisk HTML — brug markdown, ALDRIG rå HTML-tags): afsnit adskilt af én tom linje; underoverskrifter med ## eller ### (ALDRIG enkelt # — titlen ligger i title-feltet, og ALDRIG **fed** som erstatning for en ## underoverskrift); **fed**, *kursiv*; lister med "- " eller "1. "; links [tekst](url)
-- Gentag IKKE titlen eller ingressen i content-feltet`;
+- Gentag IKKE titlen eller ingressen i content-feltet
+- Handler kilden ikke om atleten — et andet menneske med samme navn, en anden sport, eller atleten nævnes slet ikke — så skriv INGEN artikel. Svar i stedet med præcis: {"cannot_write": "<én sætning om hvorfor>"}`;
 
 export function buildSystemPrompt(
   corrections: StyleCorrectionEntry[] = [],

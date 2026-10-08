@@ -75,7 +75,7 @@ export interface FactSheet {
 
 /** Minimal interface — accepterer ProviderChain eller en stub i tests. */
 export interface ChainLike {
-  generate(opts: { system: string; prompt: string; max_tokens: number; json?: boolean }): Promise<{ text: string }>;
+  generate(opts: { system: string; prompt: string; max_tokens: number; json?: boolean; preferProvider?: string }): Promise<{ text: string }>;
 }
 
 const SYSTEM_MESSAGE =
@@ -353,7 +353,14 @@ export async function buildFactSheet(
     // as nothing: story 3992 (35 kB, 24 facts) failed on every model at 900 and
     // built 29 facts at 1600. 2400 found no more, so the ceiling was the only
     // thing wrong. Measured 2026-09-09 with pipeline/backtest/model-bakeoff.ts.
-    const res = await chain.generate({ system: SYSTEM_MESSAGE, prompt, max_tokens: 1600, json: true });
+    // Claude Haiku first when the workflow switches it on (LLM_CLAUDE_CLI=1):
+    // 65 facts to ministral-8b's 38 on the same eight sources, zero unsourced
+    // numbers, and the only model that refused the "Kansas City Roos" phantom
+    // (model-bakeoff.ts, 2026-10-08). Without the flag the chain ignores this.
+    const res = await chain.generate({
+      system: SYSTEM_MESSAGE, prompt, max_tokens: 1600, json: true,
+      preferProvider: process.env.LLM_CLAUDE_CLI === "1" ? "claude" : undefined,
+    });
     text = res.text;
   } catch (err) {
     // A quota failure is the weather, not the story.

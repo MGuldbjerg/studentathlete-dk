@@ -41,6 +41,31 @@ export function extractJson<T>(raw: string): T | null {
   return null;
 }
 
+/**
+ * Did the model decline to write — and why?
+ *
+ * The JSON prompt gives it a way out: {"cannot_write": "<reason>"} when the
+ * source is about someone else, another sport, or does not name the athlete.
+ * Claude Haiku used the way out before it existed, in prose (writer bake-off
+ * 2026-10-08: story 8580, a volleyball report attached to a cross-country
+ * runner) — and the line parser took the explanation for an ARTICLE. So prose
+ * refusals at the start of an answer count too.
+ *
+ * Returns the reason, or null if this is an attempt at an article.
+ */
+export function parseRefusal(text: string): string | null {
+  const obj = extractJson<Record<string, unknown>>(text);
+  if (obj && typeof obj.cannot_write === "string" && obj.cannot_write.trim()) {
+    return obj.cannot_write.trim();
+  }
+  if (obj && typeof obj.title === "string" && typeof obj.content === "string") return null;
+  const head = text.replace(/[*_#>]/g, "").trim().slice(0, 400);
+  const prose =
+    /^(I (can(no|['’])t|cannot|haven['’]t|have not|won['’]t|am unable to|'m unable to) (writ(e|ten)|produced?|created?)|I'm not able to write|Jeg kan ikke skrive|Jeg har (derfor )?ikke skrevet|Det kan jeg ikke skrive)/i;
+  if (prose.test(head)) return head.split(/(?<=[.!?])\s/)[0].slice(0, 300);
+  return null;
+}
+
 export function parseArticleOutput(
   text: string,
   articleType: string = "news",

@@ -12,7 +12,7 @@ import { ProviderChain } from "../lib/llm/provider-chain";
 import type { StyleCorrectionEntry } from "./prompts/system";
 import { promptsFor, promptForType, type PromptSet } from "./prompts";
 import { countryProfile, DEFAULT_COUNTRY, siteCountrySql } from "../../src/lib/countries";
-import { parseArticleOutputSmart, type ParsedArticle, salvageTruncatedJson, stripShortArticleHeadings } from "./parse-output";
+import { parseArticleOutputSmart, parseRefusal, type ParsedArticle, salvageTruncatedJson, stripShortArticleHeadings } from "./parse-output";
 import { renderFactSheet, type FactSheet } from "./build-factsheet";
 import type { ArticleContext } from "./prompts/news";
 import type { Story } from "../lib/types";
@@ -939,8 +939,17 @@ async function main(): Promise<void> {
        * Claude når nøglen findes, ellers Gemini 2.5 Flash. Bliver Gemini
        * rate-limited (5 rpm), falder kæden selv tilbage til mistral — og så
        * står redningen klar. Det er derfor en PRÆFERENCE og ikke et krav.
+       *
+       * Since 2026-10-08: Claude Haiku on the subscription ("claude") when the
+       * workflow switches it on. Writer bake-off: it refused the wrong-person
+       * stories Gemini wrote up (pipeline/backtest/writer-bakeoff.ts). Its daily
+       * cap or a usage limit drops the chain back to Gemini by itself.
        */
-      const preferProvider = available.includes("anthropic") ? "anthropic" : "gemini";
+      const preferProvider = available.includes("anthropic")
+        ? "anthropic"
+        : available.includes("claude")
+          ? "claude"
+          : "gemini";
       const response = await chain.generate({
         system: systemPrompt,
         prompt,
@@ -969,6 +978,8 @@ async function main(): Promise<void> {
           `  [dry-run] provider-svar: ${raw.length} tegn · provider: ${response.provider}` +
             ` · model: ${response.model} · tokens ind/ud: ${response.tokens_input}/${response.tokens_output}`,
         );
+        const declined = parseRefusal(raw);
+        if (declined) console.log(`  [dry-run] AFVIST af modellen: ${declined}`);
         console.log(`  [dry-run] RÅ SVAR:${String.fromCharCode(10)}${raw.slice(0, 1500)}`);
         const direkte = parseArticleOutputSmart(raw, articleType);
         const reddet = direkte ? null : salvageTruncatedJson(raw);
@@ -978,6 +989,22 @@ async function main(): Promise<void> {
             (direkte ? "" : ` · redning: ${efterRedning ? "OK — artiklen var færdig" : "nægtet (ikke færdig)"}`),
         );
         if (efterRedning) console.log(`  [dry-run] reddet titel: ${efterRedning.title}`);
+        continue;
+      }
+
+      /**
+       * The model's own "not about this athlete". Treated like the identity
+       * guard: the story is rejected, not retried, and no draft is written —
+       * the explanation must never become one (writer bake-off, story 8580).
+       */
+      const refusal = parseRefusal(response.text);
+      if (refusal) {
+        console.log(`  ⛔ Story ${story.id}: ${response.provider} declined to write — ${refusal}`);
+        await db.execute(
+          "UPDATE stories SET status = 'rejected', processed_at = datetime('now') WHERE id = ?",
+          [story.id],
+        );
+        blockedByGuard++;
         continue;
       }
 
