@@ -67,7 +67,7 @@ const lines = rankingLines([
   stored({ stat: "Won-Lost-Tied Percentage", rank: 9, tied: 0, value: ".800", value_label: "Pct" }),
 ]);
 ok(lines.length === 2, "only top-10 placings after at least four games, best two");
-ok(lines[0] === "NCAA statistics through games of 7 October 2026: Tiffin rank tied for 4th in Division II men's soccer for shutout percentage (Pct .636, 11 games)",
+ok(lines[0] === "NCAA statistics through games of 7 October 2026: Tiffin rank tied for 4th in Division II men's soccer for shutout percentage (.636, 11 games)",
   "the line, dated and with the tie");
 
 // ─── «Through games»: what the numbers are true as of ───────────────────────

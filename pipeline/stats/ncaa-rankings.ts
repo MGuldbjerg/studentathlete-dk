@@ -209,7 +209,9 @@ export function rankingLines(rows: StoredRanking[], max = 2): string[] {
       const date = new Date(`${r.fetched_on}T12:00:00Z`).toLocaleDateString("en-GB", {
         day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
       });
-      const label = r.value_label ? `${r.value_label} ${r.value}` : r.value;
+      // The value alone: the stat's name says what it is, and NCAA.com's own
+      // column label can mislead («Per Game .700» on shutout percentage).
+      const label = r.value;
       return `NCAA statistics through games of ${date}: ${r.team} rank ${r.tied ? "tied for " : ""}${ordinal(r.rank)} in Division ${ROMAN[r.division]} ${LABEL[r.sport] ?? r.sport} for ${r.stat.toLowerCase()} (${label}${r.games ? `, ${r.games} games` : ""})`;
     });
 }
