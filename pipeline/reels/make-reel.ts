@@ -11,15 +11,14 @@
  * (`instagram_uk_reel`), so the hourly social drain never touches it and the
  * UNIQUE(article_id, channel) constraint stops a rerun posting twice.
  *
- * Upload: resumable (bytes straight to Meta), so nothing is hosted. Meta's docs
- * tie that path to Facebook Login and the UK account uses Instagram Login —
- * `--container-only` exists to find out without publishing anything.
+ * Upload: Meta fetches the MP4 from /api/og?type=reel on the site, where it is
+ * parked in card_blobs for the minute that takes (see parkVideo below).
  *
  *   npx tsx pipeline/reels/make-reel.ts [--country UK] [--article N] [--out DIR]
  *        [--render-only | --container-only] [--scheduled]
  *
  *   --render-only     frames + MP4 to disk; no Meta, no D1 write
- *   --container-only  upload and wait for FINISHED, then stop: nothing is published
+ *   --container-only  let Meta fetch it and wait for FINISHED, then stop: nothing is published
  *   --scheduled       only between 08:30 and 11:00 UK time, and once a day
  */
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -27,9 +26,10 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
-import { createD1Client } from "../lib/d1-client";
+import { createD1Client, type D1Client } from "../lib/d1-client";
 import { countryProfile } from "../../src/lib/countries";
-import { metaDescription } from "../../src/lib/seo";
+import { getArticleReelUrl, metaDescription, reelBlobKey } from "../../src/lib/seo";
+import { siteBaseUrl } from "../../src/lib/site";
 import { ADDITION_TYPE } from "../../src/lib/article-addition";
 import { isWeeklyAward } from "../generate/award-section";
 import { buildPostText } from "../social/copy";
@@ -166,13 +166,34 @@ function encode(files: string[], durations: number[], out: string): void {
   if (res.status !== 0) throw new Error(`ffmpeg failed (${res.status}): ${(res.stderr ?? res.error?.message ?? "").slice(-1500)}`);
 }
 
-// ─── Publishing (Instagram, resumable upload) ───────────────────────────────
+// ─── Publishing (Instagram, video_url) ──────────────────────────────────────
+//
+// Resumable byte upload was tried first and refused on 2026-10-08 («The
+// parameter video_url is required»): with Instagram Login the video must be at
+// a public URL. It is parked in card_blobs and served by /api/og?type=reel for
+// the minute Meta needs, then deleted. Base64 in a TEXT column, as the cards:
+// D1's REST API takes no binary, and a row may be at most 2 MB.
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const REEL_TIMEOUT_MS = 5 * 60_000;
 const REEL_POLL_MS = 10_000;
+const MAX_BASE64 = 1_800_000;
 
-async function uploadReel(country: string, video: Buffer, caption: string): Promise<{ graph: string; igUserId: string; token: string; creationId: string }> {
+export async function parkVideo(db: D1Client, articleId: number, video: Buffer): Promise<void> {
+  const b64 = video.toString("base64");
+  if (b64.length > MAX_BASE64) throw new Error(`Reel too large for a D1 row (${Math.round(b64.length / 1024)} KB base64)`);
+  await db.execute(
+    `INSERT INTO card_blobs (key, png_base64, width, height) VALUES (?, ?, ?, ?)
+     ON CONFLICT(key) DO UPDATE SET png_base64 = excluded.png_base64, created_at = datetime('now')`,
+    [reelBlobKey(articleId), b64, REEL_WIDTH, REEL_HEIGHT],
+  );
+}
+
+export async function unparkVideo(db: D1Client, articleId: number): Promise<void> {
+  await db.execute("DELETE FROM card_blobs WHERE key = ?", [reelBlobKey(articleId)]);
+}
+
+async function uploadReel(country: string, videoUrl: string, caption: string): Promise<{ graph: string; igUserId: string; token: string; creationId: string }> {
   const igUserId = readAccountEnv("instagram", country, "USER_ID");
   const token = readAccountEnv("instagram", country, "ACCESS_TOKEN");
   if (!igUserId || !token) throw new Error(`Instagram ${country} is not configured (USER_ID / ACCESS_TOKEN)`);
@@ -181,23 +202,13 @@ async function uploadReel(country: string, video: Buffer, caption: string): Prom
   const create = await fetch(`${graph}/${igUserId}/media`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ media_type: "REELS", upload_type: "resumable", caption, share_to_feed: true, access_token: token }),
+    body: JSON.stringify({ media_type: "REELS", video_url: videoUrl, caption, share_to_feed: true, access_token: token }),
   });
   const createBody = await create.text();
-  if (!create.ok) throw new Error(`Reel container failed (${create.status}): ${createBody}`);
-  const { id: creationId, uri } = JSON.parse(createBody) as { id?: string; uri?: string };
+  if (!create.ok) throw new Error(`Reel container failed (${create.status}): ${createBody} [video_url: ${videoUrl}]`);
+  const { id: creationId } = JSON.parse(createBody) as { id?: string };
   if (!creationId) throw new Error(`Reel container without id: ${createBody}`);
-  console.log(`  container ${creationId}${uri ? ` · upload to ${new URL(uri).host}` : ""}`);
-
-  const target = uri ?? `https://rupload.facebook.com/ig-api-upload/v26.0/${creationId}`;
-  const up = await fetch(target, {
-    method: "POST",
-    headers: { Authorization: `OAuth ${token}`, offset: "0", file_size: String(video.length) },
-    body: new Uint8Array(video),
-  });
-  const upBody = await up.text();
-  if (!up.ok) throw new Error(`Reel upload failed (${up.status}): ${upBody}`);
-  console.log(`  uploaded ${Math.round(video.length / 1024)} KB`);
+  console.log(`  container ${creationId} · Meta fetches ${videoUrl}`);
 
   // Video takes longer than an image: poll for minutes, not seconds.
   const deadline = Date.now() + REEL_TIMEOUT_MS;
@@ -279,8 +290,10 @@ async function main(): Promise<void> {
     "instagram",
   );
 
+  const videoUrl = siteBaseUrl(countryProfile(args.country)) + getArticleReelUrl({ id: r.id });
   try {
-    const up = await uploadReel(args.country, readFileSync(video), caption);
+    await parkVideo(db, r.id, readFileSync(video));
+    const up = await uploadReel(args.country, videoUrl, caption);
     if (args.containerOnly) {
       console.log(`  container FINISHED — stopping here (--container-only). Nothing was published.`);
       return;
@@ -306,6 +319,9 @@ async function main(): Promise<void> {
       );
     }
     throw err;
+  } finally {
+    // Meta has its own copy once the container is FINISHED; ours goes either way.
+    await unparkVideo(db, r.id).catch((e) => console.error(`  ! could not delete reel-${r.id}:`, e));
   }
 }
 

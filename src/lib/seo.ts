@@ -200,6 +200,20 @@ export function getArticleIgCardUrl(article: Pick<Article, "id">): string {
 }
 
 /**
+ * A reel's MP4, held in card_blobs only while Instagram fetches it
+ * (pipeline/reels/make-reel.ts). The UK account uses Instagram Login, which
+ * takes video only as `video_url` — no byte upload — so the video needs a
+ * public address for a minute. Deleted after publishing.
+ */
+export function reelBlobKey(articleId: number): string {
+  return `reel-${articleId}`;
+}
+
+export function getArticleReelUrl(article: Pick<Article, "id">): string {
+  return `/api/og?type=reel&article=${article.id}`;
+}
+
+/**
  * Cover til lister/karrusel/thumbnails er ALTID det genererede 16:9 kampkort:
  * ensartede dimensioner + skarpt på store skærme. Rigtige profilfotos (typisk
  * portræt-headshots i lav opløsning) vises KUN på atletprofilen og inde i

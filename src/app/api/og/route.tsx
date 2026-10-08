@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import type { ReactElement } from "react";
 import { NextRequest } from "next/server";
 import { getDB, getEnv } from "@/lib/db";
-import { cardBlobKey, igCardBlobKey } from "@/lib/seo";
+import { cardBlobKey, igCardBlobKey, reelBlobKey } from "@/lib/seo";
 import { buildGenericElement } from "@/lib/og-generic";
 import {
   buildMatchCardElement,
@@ -154,6 +154,17 @@ export async function GET(req: NextRequest) {
     // Fald igennem til generisk design med de params der måtte være sat
   }
 
+  // A reel's MP4 (pipeline/reels/make-reel.ts): there only while Instagram
+  // fetches it, so no edge cache — a cached 404 or a stale video would stick.
+  if (type === "reel") {
+    const articleId = parseInt(searchParams.get("article") ?? "", 10);
+    if (Number.isFinite(articleId)) {
+      const blob = await getCardBlob(reelBlobKey(articleId));
+      if (blob) return blob;
+    }
+    return new Response("No reel", { status: 404 });
+  }
+
   // Instagram-kortet: 1080×1350 JPEG, pre-rendret i pipelinen.
   //
   // INGEN fallback her, med vilje. Det liggende fallback ville være forkert
@@ -227,6 +238,13 @@ async function getCardBlob(key: string): Promise<Response | null> {
       bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
     // JPEG kom til med Instagram-kortet (kun JPEG accepteres dér).
     const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    // MP4 came with the reels: «ftyp» at byte 4.
+    const isMp4 = bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70;
+    if (isMp4) {
+      return new Response(bytes, {
+        headers: { "Content-Type": "video/mp4", "Content-Length": String(bytes.length), "Cache-Control": "no-store" },
+      });
+    }
     return new Response(bytes, {
       headers: {
         "Content-Type": isWebp ? "image/webp" : isJpeg ? "image/jpeg" : "image/png",
