@@ -68,9 +68,18 @@ Same machinery for all three: fetch a table, stamp the date, match names exactly
    basketball when in season; volleyball left out (tables count sets). Dated by the table's
    «through games» date; tables older than 10 days are out of season (basketball on 7 Oct
    was last April's). Exact school match after «St.»/«U.» expansion only.
-2. The athlete's season statistics from the school's own stats page.
-3. Conference rankings and standings from conference sites (mostly Sidearm), one platform at
-   a time.
+2. **DONE (#16, 2026-10-08)** The athlete's season statistics from the school's own stats
+   page. `pipeline/stats/season-stats.ts`, fetched once per soccer/field hockey article at
+   generation (next to the roster URL we already scrape). Both Sidearm layouts; tables found
+   by their columns; exact full-name match or nothing. Checked on live pages against the
+   sources (Deighan 6, Cotton 5, Picksley 5, Sykes 4 + team lead, Mujica 4 shutouts).
+3. **ASSESSED, NOT BUILT (2026-10-08)** Conference standings from conference sites. Probed six
+   of the largest: every site has its own columns (Ivy «CPts», Sun Belt «Conf. Points», NE10
+   «Points»), Conference Carolinas splits into divisions, the GSC standings URL lands on the
+   front page, G-MAC did not answer. It would need a hand-checked setup per conference for 97
+   conferences (top 25 = 66 % of our soccer/FH athletes), and step 1's `context` already
+   carries standings whenever the source states them («second in the CCAA, two points
+   behind…»). Build for the largest conferences only if Mikkel asks for it.
 
 Rules: clear rankings only (outright or tied first, top 3 in conference, top 10 nationally,
 after ≥ 4 matches); always dated («as of 6 October», «before Saturday's match»); team sports
