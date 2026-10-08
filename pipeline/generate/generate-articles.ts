@@ -26,6 +26,9 @@ import { PARENT_DAYS, cleanSection, findParent, isWeeklyAward, sectionPrompt } f
 import { ADDITION_TYPE, appendAddition } from "../../src/lib/article-addition";
 import { earlierLines, rosterLine, withRecords } from "./records";
 import { MAX_AGE_DAYS, ncaaDivision, ncaaSport, rankingLines, schoolKeys, type StoredRanking } from "../stats/ncaa-rankings";
+import { STATS_SPORTS, parseSeasonTables, seasonLine, statsUrl } from "../stats/season-stats";
+import { robotsAllows } from "../lib/robots";
+import { pipelineUserAgent } from "../../src/lib/site";
 import { numbersIn, unsupportedNumbers, unstableNumbers } from "./fact-numbers";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { notifyDraftsReady, notifyFailure } from "../lib/notify";
@@ -755,6 +758,34 @@ async function main(): Promise<void> {
           }
         } catch {
           /* no rankings: the other records still go in */
+        }
+        // The athlete's season statistics from the school's own stats page
+        // (season-stats.ts): one fetch per article, robots.txt respected,
+        // exact name match or nothing.
+        try {
+          if (STATS_SPORTS.has(story.sport)) {
+            const roster = (
+              await db.query<{ roster_url: string | null; common_name: string | null }>(
+                `SELECT r.roster_url, s.common_name FROM roster_checks r JOIN schools s ON s.id = r.school_id
+                  WHERE s.name = ? AND r.sport = ? AND (r.gender = ? OR r.gender IS NULL) AND r.status = 'success'
+                    AND r.roster_url IS NOT NULL
+                  ORDER BY (r.gender = ?) DESC LIMIT 1`,
+                [story.university, story.sport, story.gender ?? "", story.gender ?? ""],
+              )
+            ).results[0];
+            const url = roster?.roster_url ? statsUrl(roster.roster_url, currentSeasonStart()) : null;
+            const ua = pipelineUserAgent();
+            if (url && (await robotsAllows(url, ua))) {
+              const res = await fetch(url, { headers: { "User-Agent": ua }, signal: AbortSignal.timeout(15_000) });
+              if (res.ok) {
+                const school = roster?.common_name?.split("/")[0].trim() || story.university;
+                const line = seasonLine(story.athlete_name, school, parseSeasonTables(await res.text()), new Date());
+                if (line) lines.push(line);
+              }
+            }
+          }
+        } catch {
+          /* no stats page: the other records still go in */
         }
         const prior = (
           await db.query<{ title: string; source_url: string | null; fact_sheet: string | null }>(

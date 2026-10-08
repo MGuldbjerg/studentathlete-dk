@@ -45,6 +45,7 @@ jobs:
             pipeline/generate/_award-section-test.ts \
             pipeline/generate/_records-test.ts \
             pipeline/stats/_ncaa-rankings-test.ts \
+            pipeline/stats/_season-stats-test.ts \
             pipeline/generate/_identity-guard-test.ts \
             pipeline/generate/_event-timing-test.ts \
             pipeline/generate/_timeline-test.ts \
