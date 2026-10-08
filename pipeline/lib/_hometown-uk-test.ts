@@ -145,6 +145,8 @@ for (const [h, want] of [
   ["Munich, Germany", "DE"], ["Berlin", "DE"], ["Sydney, Australia", "AU"], ["Torquay, Victoria, AUS", "AU"],
   ["Doncaster, Australia", "AU"], ["Brisbane, Queensland", "AU"], ["Stockholm, Sweden", "SE"], ["Göteborg", "SE"],
   ["Madrid, Spain", "ES"], ["Barcelona", "ES"],
+  ["Paris, France", "FR"], ["Lyon, France", "FR"], ["Toulouse", "FR"], ["Saint-Étienne", "FR"],
+  ["Paris, Texas", null], ["Versailles, Ky.", null], ["Marseilles, Ill.", null], ["Lyon County, Nev.", null],
   ["London, England", "UK"], ["Aarhus, Denmark", "DK"],
   ["Berlin, N.H.", null], ["Hamburg, N.Y.", null], ["Valencia, Venezuela", null], ["New Berlin, Wis.", null],
 ] as [string, string | null][]) {
@@ -152,7 +154,7 @@ for (const [h, want] of [
   if (got === want) passed++;
   else { failed++; console.log(`  ✗ collecting: classifyHometown("${h}") = ${got}, forventede ${want}`); }
 }
-if (activeCountries().some((c) => ["AU", "DE", "SE", "ES"].includes(c.code))) { failed++; console.log("  ✗ a collecting country leaked into the site list"); } else passed++;
+if (activeCountries().some((c) => ["AU", "DE", "SE", "ES", "FR"].includes(c.code))) { failed++; console.log("  ✗ a collecting country leaked into the site list"); } else passed++;
 
 console.log(`\nisUkHometown: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

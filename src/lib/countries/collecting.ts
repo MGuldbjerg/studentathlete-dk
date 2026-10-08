@@ -2,7 +2,7 @@
  * COLLECTING countries: no domain, no site, no articles — but their athletes,
  * stories and award history are gathered, so the history is in place at launch.
  *
- * Mikkel, 2026-09-30: "Go with Australia, Germany, Sweden, Spain." Chosen from
+ * Mikkel, 2026-09-30: "Go with Australia, Germany, Sweden, Spain." France added 2026-10-08. Chosen from
  * the international catalogue (athletes: Spain 1,575, Germany 1,350,
  * Australia 1,047, Sweden 864).
  *
@@ -54,5 +54,19 @@ export const es: HometownProfile = {
   falsePositivePatterns: [],
 };
 
+/**
+ * Added 2026-10-08 (Mikkel: "Yes" to collecting France — 1,109 athletes in the
+ * catalogue, fourth after the UK, Spain and Germany). Paris, Lyon, Marseille,
+ * Nice, Versailles and Orleans are left out: Paris TX/TN/KY, Lyon County,
+ * Marseilles IL, Nice CA, Versailles KY, Orleans MA. "Paris, France" is caught
+ * by the marker.
+ */
+export const fr: HometownProfile = {
+  code: "FR",
+  countryMarkers: ["France", "FRA"],
+  cities: ["Toulouse", "Bordeaux", "Nantes", "Strasbourg", "Rennes", "Lille", "Grenoble", "Reims", "Dijon", "Clermont-Ferrand", "Aix-en-Provence", "Boulogne-Billancourt", "Saint-Étienne", "Saint-Etienne", "Le Havre", "Le Mans"],
+  falsePositivePatterns: [],
+};
+
 /** Order matters only against each other; sites are classified first. */
-export const COLLECTING: Record<string, HometownProfile> = { AU: au, DE: de, SE: se, ES: es };
+export const COLLECTING: Record<string, HometownProfile> = { AU: au, DE: de, SE: se, ES: es, FR: fr };
