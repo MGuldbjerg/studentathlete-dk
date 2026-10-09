@@ -187,6 +187,10 @@ async function athleteAliasRedirect(req: NextRequest): Promise<URL | null> {
  */
 const GONE_PATHS: Record<string, string> = {
   "/ig": "/artikler?kilde=ig",
+  // UK #545 was a second article on the same win as #465 (2026-10-09); its
+  // social posts still link here.
+  "/golf/henry-drake-wins-south-southeast-regional-preview-for-first-college-title":
+    "/golf/henry-drake-wins-first-collegiate-title-at-south-southeast-regional-preview",
 };
 
 export async function middleware(req: NextRequest) {
