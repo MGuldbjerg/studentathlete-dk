@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs } from "@/lib/db";
+import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs, getCoveredSchoolSlugs } from "@/lib/db";
 import { getSportSlugs } from "@/lib/sport-content";
 import { getArticleUrl, getAthleteUrl, getSchoolUrl } from "@/lib/seo";
 import { getGuideSlugs } from "@/lib/viden-content";
@@ -33,7 +33,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, athletes, schools] = await Promise.all([
     getAllArticleSlugs(),
     getAllAthleteSlugs(),
-    getAllSchoolSlugs(),
+    // Where thin profiles are not indexed, only schools with a covered athlete.
+    site.indexThinProfiles ? getAllSchoolSlugs() : getCoveredSchoolSlugs(),
   ]);
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -143,7 +144,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       };
     });
 
-  const athletePages: MetadataRoute.Sitemap = athletes.map((a) => ({
+  // Profiles without an article are `noindex` there (profileRobots) — a
+  // sitemap must not ask Google for pages it is told not to index.
+  const athletePages: MetadataRoute.Sitemap = athletes
+    .filter((a) => site.indexThinProfiles || a.has_article === 1)
+    .map((a) => ({
     url: `${base}${getAthleteUrl(a.slug, lang)}`,
     lastModified: new Date(a.updated_at),
     changeFrequency: "monthly" as const,

@@ -139,6 +139,8 @@ export const uk: CountryProfile = {
   darkLaunch: false,
   // The privacy page (pages: privatliv/UK) is published — /privacy, footer, sitemap.
   hasPrivacyPage: true,
+  // AdSense «low value content», 2026-10-09: ~2,560 of 2,830 profiles had no article.
+  indexThinProfiles: false,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
   demonym: "UK",

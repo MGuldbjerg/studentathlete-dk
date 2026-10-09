@@ -179,4 +179,6 @@ export const dk: CountryProfile = {
   ],
   // Published 2026-10-08 (pages: DK/privatliv), from UDKAST-persondata-dk.md + the UK page.
   hasPrivacyPage: true,
+  // AdSense approved with every profile indexed; unchanged.
+  indexThinProfiles: true,
 };

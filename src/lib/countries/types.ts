@@ -60,6 +60,14 @@ export interface CountryProfile {
    * only where this is true, and a new country must decide, not inherit.
    */
   hasPrivacyPage: boolean;
+  /**
+   * Whether athlete and school pages with no published article are indexed.
+   * false = such pages carry `noindex, follow` and stay out of the sitemap;
+   * visitors still reach them. Required, not defaulted: a profile is a name,
+   * a school and roster data, and thousands of them make a site read as thin.
+   * UK set false 2026-10-09 after AdSense rejected it for low value content.
+   */
+  indexThinProfiles: boolean;
 }
 
 /**

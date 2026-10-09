@@ -502,6 +502,15 @@ export async function getArticlesByUniversity(
  * Atleten med den slug — PÅ DETTE SITE. Et andet lands atlet giver `null`, så
  * profilen kun findes ét sted (samme grund som `getArticleBySlug`).
  */
+/**
+ * Does athlete `a` have a published article — as its subject (articles.athlete_id)
+ * or named in one (article_athletes)? Both lookups are indexed. Decides whether
+ * a profile is indexed where the site's `indexThinProfiles` is false.
+ */
+const HAS_ARTICLE_SQL = `(EXISTS (SELECT 1 FROM articles ar WHERE ar.athlete_id = a.id AND ar.published = 1)
+  OR EXISTS (SELECT 1 FROM article_athletes aa JOIN articles ar ON ar.id = aa.article_id
+             WHERE aa.athlete_id = a.id AND ar.published = 1))`;
+
 export async function getAthleteBySlug(slug: string, country?: string): Promise<Athlete | null> {
   const db = await getDB();
   if (!db) {
@@ -513,7 +522,7 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
     // migration-057 (indeks på schools.name) — uden det var den en fuld scan.
     const r = await db
       .prepare(
-        `SELECT a.*, s.slug AS school_slug
+        `SELECT a.*, s.slug AS school_slug, ${HAS_ARTICLE_SQL} AS has_article
            FROM athletes a
            LEFT JOIN schools s ON s.name = a.university
           WHERE a.slug = ? AND a.home_country = ?`,
@@ -905,20 +914,21 @@ export async function getAllArticleSlugs(country?: string): Promise<
  * udlede hvilke BOGSTAVSIDER der findes (kun bogstaver med aktive atleter).
  */
 export async function getAllAthleteSlugs(country?: string): Promise<
-  { slug: string; updated_at: string; name: string; active: number }[]
+  { slug: string; updated_at: string; name: string; active: number; has_article: number }[]
 > {
   const db = await getDB();
   if (!db) {
     return MOCK_ATHLETES
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((a) => ({ slug: a.slug, updated_at: a.updated_at, name: a.name, active: a.active }));
+      .map((a) => ({ slug: a.slug, updated_at: a.updated_at, name: a.name, active: a.active, has_article: 1 }));
   }
   try {
     const r = await db
-      .prepare("SELECT slug, updated_at, name, active FROM athletes WHERE home_country = ? ORDER BY name")
+      .prepare(`SELECT a.slug, a.updated_at, a.name, a.active, ${HAS_ARTICLE_SQL} AS has_article
+                  FROM athletes a WHERE a.home_country = ? ORDER BY a.name`)
       .bind(await siteCountry(country))
       .all();
-    return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number }[];
+    return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number; has_article: number }[];
   } catch (err) { rethrowDbError(err, "atlet-slugs til sitemap"); }
 }
 
@@ -954,6 +964,47 @@ export async function getAllSchoolSlugs(country?: string): Promise<{ slug: strin
       .all();
     return (r.results ?? []) as { slug: string }[];
   } catch (err) { rethrowDbError(err, "skole-slugs til sitemap"); }
+}
+
+/**
+ * Schools with at least one athlete FROM THIS SITE'S COUNTRY who has a
+ * published article — the school pages that are indexed where the site's
+ * `indexThinProfiles` is false. Read for the sitemap only.
+ */
+export async function getCoveredSchoolSlugs(country?: string): Promise<{ slug: string }[]> {
+  const db = await getDB();
+  if (!db) return MOCK_SCHOOLS.map((s) => ({ slug: s.slug }));
+  try {
+    const r = await db
+      .prepare(
+        `SELECT slug FROM schools
+         WHERE name IN (
+           SELECT a.university FROM athletes a
+           WHERE a.home_country = ? AND ${HAS_ARTICLE_SQL}
+         )
+         ORDER BY name`,
+      )
+      .bind(await siteCountry(country))
+      .all();
+    return (r.results ?? []) as { slug: string }[];
+  } catch (err) { rethrowDbError(err, "dækkede skole-slugs til sitemap"); }
+}
+
+/** Does this school have an athlete from this site's country with a published article? */
+export async function schoolHasCoverage(schoolName: string, country?: string): Promise<boolean> {
+  const db = await getDB();
+  if (!db) return true;
+  try {
+    const r = await db
+      .prepare(
+        `SELECT 1 AS ok FROM athletes a
+          WHERE a.university = ? AND a.home_country = ? AND ${HAS_ARTICLE_SQL}
+          LIMIT 1`,
+      )
+      .bind(schoolName, await siteCountry(country))
+      .first();
+    return r != null;
+  } catch (err) { rethrowDbError(err, "skole-dækning"); }
 }
 
 // ─── Stats page (/statistik · /statistics) ──────────────────────────────────

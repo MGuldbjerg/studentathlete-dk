@@ -75,3 +75,16 @@ export async function siteRobots(): Promise<{ index: boolean; follow: boolean }>
   const dark = (await currentSite()).darkLaunch === true;
   return { index: !dark, follow: !dark };
 }
+
+/**
+ * Robots for an athlete or school page. Where the site does not index thin
+ * profiles (`indexThinProfiles: false`), a page without a published article
+ * is `noindex, follow`: visitors and crawlers still reach the articles it
+ * links to, but Google does not judge the site by it. Dark launch still wins.
+ */
+export async function profileRobots(hasArticle: boolean): Promise<{ index: boolean; follow: boolean }> {
+  const site = await currentSite();
+  const base = await siteRobots();
+  if (!base.index || site.indexThinProfiles || hasArticle) return base;
+  return { index: false, follow: true };
+}

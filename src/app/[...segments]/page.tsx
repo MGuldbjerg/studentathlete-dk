@@ -12,6 +12,7 @@ import {
   getArticlesByAthleteId,
   getAthleteEvents,
   getSchoolBySlug,
+  schoolHasCoverage,
   getAthletesByUniversity,
   getArticlesByUniversity,
   getArticleBySlug,
@@ -20,7 +21,7 @@ import {
   countAthletesBySport,
 } from "@/lib/db";
 import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
-import { currentLanguage, currentSite, currentBaseUrl, siteRobots } from "@/lib/site-server";
+import { currentLanguage, currentSite, currentBaseUrl, siteRobots, profileRobots } from "@/lib/site-server";
 import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, athleteOgParams, getArticleCoverUrl, metaDescription } from "@/lib/seo";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
@@ -224,7 +225,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [ogImage],
           },
           alternates: { canonical: `${base}${getAthleteUrl(slug, lang)}` },
-          robots: await siteRobots(),
+          robots: await profileRobots(athlete.has_article === 1),
         };
       }
     }
@@ -246,7 +247,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             url: `${base}${getSchoolUrl(slug, lang)}`,
           },
           alternates: { canonical: `${base}${getSchoolUrl(slug, lang)}` },
-          robots: await siteRobots(),
+          robots: await profileRobots(site.indexThinProfiles || (await schoolHasCoverage(school.name))),
         };
       }
     }
