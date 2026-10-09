@@ -77,6 +77,12 @@ Same machinery for all three: fetch a table, stamp the date, match names exactly
    as data from NCAA.com through ncaa-api — no render, no model. `pipeline/stats/ncaa-boxscore.ts`,
    tried before the render path in build-factsheet. Measured on 59 recent NCAA match stories: 51
    found, every final score agreeing with the source's (`pipeline/backtest/ncaa-boxscore-coverage.ts`).
+5. **ASSESSED, CLOSED (2026-10-09)** College golf results/rankings as data. Golfstat: its
+   tournament results live on results.golfstat.com, whose robots.txt is `User-agent: * Disallow: /`;
+   its own player rankings page says "not available" since 2023-24. The official NCAA rankings moved
+   to Clippd Scoreboard, whose terms forbid spiders, robots, crawlers and data mining and license
+   personal, non-commercial use only. So no golf feed — unless Clippd licenses one. Golf facts keep
+   coming from the schools' own recaps.
 3. **ASSESSED, NOT BUILT (2026-10-08)** Conference standings from conference sites. Probed six
    of the largest: every site has its own columns (Ivy «CPts», Sun Belt «Conf. Points», NE10
    «Points»), Conference Carolinas splits into divisions, the GSC standings URL lands on the
