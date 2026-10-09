@@ -15,12 +15,13 @@ import { fetchHtml } from "../discover/extract-story";
 import { parseMatchFacts, type MatchFacts } from "./match-facts";
 import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
 import { enrichFactSheetWithBoxScore, extractBoxScoreText,
-  looksLikeMatchStory,
+  looksLikeMatchStory, mergeBoxScoreIntoFactSheet,
 } from "./box-score";
 import { isTransientLLMError } from "../lib/llm/errors";
 import { verifyFactSheet, type UnverifiedFact } from "./verify-factsheet";
 import { selectSourceWindow } from "./source-window";
 import { siteCountrySql } from "../../src/lib/countries";
+import { lookupApplies, officialLine } from "../stats/ncaa-boxscore";
 
 interface StoryRow {
   id: number;
@@ -32,6 +33,11 @@ interface StoryRow {
   sport: string;
   university: string;
   fact_attempts: number;
+  discovered_at: string;
+  preferred_name: string | null;
+  gender: string | null;
+  division: string | null;
+  common_name: string | null;
 }
 
 export interface FactSheet {
@@ -267,7 +273,13 @@ export function renderFactSheet(fs: FactSheet): string {
         t.rows.map((r) => `- ${r.label}: ${r.values.join(" - ")}`).join("\n"),
     );
   }
-  if (fs.stats.length) blocks.push("Statistik:\n" + fs.stats.map((s) => `- ${s.text}`).join("\n"));
+  // Box-score lines are labelled so the writer can attribute them (NCAA.com's
+  // official box score) rather than present them as the recap's words.
+  if (fs.stats.length)
+    blocks.push(
+      "Statistik:\n" +
+        fs.stats.map((s) => `- ${s.text}${s.source === "boxscore" ? " (officiel box score)" : ""}`).join("\n"),
+    );
   if (fs.qualitative.length)
     blocks.push(
       "Observationer (kvalitativ kontekst — skriv i egne ord; parafraser ikke kildens formuleringer):\n" +
@@ -402,8 +414,10 @@ async function main(): Promise<void> {
 
   const result = await db.query<StoryRow>(
     `SELECT s.id, s.headline, s.summary, s.content_raw, s.source_url,
-            s.fact_attempts,
-            a.name as athlete_name, a.sport, a.university
+            s.fact_attempts, s.discovered_at,
+            a.name as athlete_name, a.sport, a.university,
+            a.preferred_name, a.gender, a.division,
+            (SELECT common_name FROM schools WHERE name = a.university LIMIT 1) as common_name
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
      WHERE s.status = 'new'
@@ -418,7 +432,7 @@ async function main(): Promise<void> {
   const stories = result.results;
   console.log(`Bygger faktaark for ${stories.length} historie(r)${dryRun ? " (DRY-RUN)" : ""}...\n`);
 
-  let built = 0, noSubstance = 0, failed = 0, transient = 0, matchFactsFound = 0;
+  let built = 0, noSubstance = 0, failed = 0, transient = 0, matchFactsFound = 0, officialLines = 0;
   // If the chain is spent, it is spent for the NEXT story too. Three in a row
   // is not bad luck, it is an exhausted quota — stop rather than burn the rest
   // of the window on calls that cannot succeed.
@@ -470,9 +484,45 @@ async function main(): Promise<void> {
       }
     }
 
+    // THE OFFICIAL LINE FIRST, as data (ncaa-boxscore.ts): NCAA soccer and
+    // field hockey box scores from NCAA.com through ncaa-api — no render, no
+    // model. Measured 2026-10-09 on 59 recent NCAA match stories: 51 found,
+    // every final score in agreement with the source's. When it finds the
+    // line, the render path below is skipped.
+    let officialFound = false;
+    if (factSheet && status === "built" && boxScore && looksLikeMatchStory(factSheet) && lookupApplies(story)) {
+      try {
+        const line = await officialLine({
+          athleteName: story.athlete_name,
+          preferredName: story.preferred_name,
+          sport: story.sport,
+          gender: story.gender,
+          division: story.division,
+          university: story.university,
+          commonName: story.common_name,
+          opponent: typeof factSheet.event?.opponent === "string" ? factSheet.event.opponent : null,
+          eventDate: typeof factSheet.event?.date === "string" ? factSheet.event.date : null,
+          storyDate: story.discovered_at,
+        });
+        if (line) {
+          factSheet = mergeBoxScoreIntoFactSheet(
+            factSheet,
+            { found: true, final_score: line.finalScore, stat_line: line.statLine },
+            line.url,
+          );
+          officialFound = true;
+          officialLines++;
+          console.log(`    + NCAA box score: ${line.finalScore} — ${line.statLine.join(", ")}`);
+        }
+      } catch (err) {
+        // A missing box score must never cost the fact sheet.
+        console.warn(`  ⚠ NCAA box score [${story.id}]: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
     // Box-score-berigelse: grundsandhed for TAL (aldrig erstatning for kvalitativ prosa).
     // Kun for byggede faktaark, inden for render-budget, og kun hvis quota ikke er opbrugt.
-    if (factSheet && status === "built" && renderEnabled && !renderQuotaExhausted && rendersUsed < boxScoreBudget) {
+    if (factSheet && status === "built" && !officialFound && renderEnabled && !renderQuotaExhausted && rendersUsed < boxScoreBudget) {
       try {
         const enriched = await enrichFactSheetWithBoxScore(
           factSheet,
@@ -535,6 +585,7 @@ async function main(): Promise<void> {
     (transient ? ` | Afventer kvote: ${transient}` : "") +
     (retrying ? ` | Prøves igen: ${retrying}` : "") +
     ` | Med kampforløb: ${matchFactsFound}` +
+    ` | NCAA box scores: ${officialLines}` +
       (renderEnabled ? ` | Box scores: ${boxScoreFound} fundet (${rendersUsed}/${boxScoreBudget} render)` : ""),
   );
 }

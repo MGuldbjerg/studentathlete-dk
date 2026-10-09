@@ -73,6 +73,10 @@ Same machinery for all three: fetch a table, stamp the date, match names exactly
    generation (next to the roster URL we already scrape). Both Sidearm layouts; tables found
    by their columns; exact full-name match or nothing. Checked on live pages against the
    sources (Deighan 6, Cotton 5, Picksley 5, Sykes 4 + team lead, Mujica 4 shutouts).
+4. **DONE (2026-10-09)** The athlete's official box-score line for NCAA soccer and field hockey,
+   as data from NCAA.com through ncaa-api — no render, no model. `pipeline/stats/ncaa-boxscore.ts`,
+   tried before the render path in build-factsheet. Measured on 59 recent NCAA match stories: 51
+   found, every final score agreeing with the source's (`pipeline/backtest/ncaa-boxscore-coverage.ts`).
 3. **ASSESSED, NOT BUILT (2026-10-08)** Conference standings from conference sites. Probed six
    of the largest: every site has its own columns (Ivy «CPts», Sun Belt «Conf. Points», NE10
    «Points»), Conference Carolinas splits into divisions, the GSC standings URL lands on the
