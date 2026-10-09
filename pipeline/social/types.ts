@@ -33,6 +33,16 @@ export interface PostContent {
   summary: string | null;
   /** Absolut URL til kampkort/cover (bruges som Bluesky-thumb) */
   imageUrl: string;
+  /** Instagram only: usernames invited as collaborators (collab.ts picks them). */
+  collaborators?: string[];
+}
+
+export interface PostResult {
+  postUrl: string | null;
+  /** The platform's id for the post, where the adapter knows it. */
+  mediaId?: string | null;
+  /** The collaborators the post actually went out with (Instagram may refuse them). */
+  collaborators?: string[];
 }
 
 export interface SocialChannel {
@@ -51,7 +61,7 @@ export interface SocialChannel {
   /** Er de nødvendige secrets sat? Ukonfigurerede kanaler springes helt over. */
   isConfigured(): boolean;
   /** Post opslaget. Kaster ved fejl. Returnerer link til opslaget hvis kendt. */
-  post(content: PostContent): Promise<{ postUrl: string | null }>;
+  post(content: PostContent): Promise<PostResult>;
 }
 
 /**

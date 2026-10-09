@@ -26,7 +26,7 @@
  * Grænse: 100 API-udgivelser pr. 24 timer pr. konto. Pacingen rører den ikke.
  */
 
-import { ChannelAuthError, type PostContent, type SocialChannel } from "../types";
+import { ChannelAuthError, type PostContent, type PostResult, type SocialChannel } from "../types";
 import { accountIsConfigured, channelNameFor, readAccountEnv } from "../registry";
 
 // Samme version som facebook.ts — ét sted at bumpe, når Meta udfaser.
@@ -201,22 +201,34 @@ export function createInstagramChannel(country: string): SocialChannel {
       return accountIsConfigured("instagram", country);
     },
 
-    async post(content: PostContent): Promise<{ postUrl: string | null }> {
+    async post(content: PostContent): Promise<PostResult> {
       const igUserId = readAccountEnv("instagram", country, "USER_ID")!;
       const token = readAccountEnv("instagram", country, "ACCESS_TOKEN")!;
       const graph = graphFor(country);
 
       // Trin 1: containeren. Her henter Meta billedet — en fejl her er typisk
       // billedet (utilgængeligt, forkert format, forkert formforhold), ikke teksten.
-      const createRes = await fetch(`${graph}/${igUserId}/media`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image_url: content.imageUrl,
-          caption: content.text,
-          access_token: token,
-        }),
-      });
+      const createContainer = (collaborators: string[]) =>
+        fetch(`${graph}/${igUserId}/media`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image_url: content.imageUrl,
+            caption: content.text,
+            ...(collaborators.length ? { collaborators } : {}),
+            access_token: token,
+          }),
+        });
+      let collaborators = content.collaborators ?? [];
+      let createRes = await createContainer(collaborators);
+      // A private or unknown collaborator makes Meta refuse the whole container.
+      // An invite must never cost the post: try once more without them.
+      if (!createRes.ok && collaborators.length && !authFailed(createRes.status)) {
+        const body = await createRes.text();
+        console.log(`  instagram: refused with collaborators ${collaborators.join(", ")} — posting without (${createRes.status}): ${body.slice(0, 200)}`);
+        collaborators = [];
+        createRes = await createContainer(collaborators);
+      }
       if (!createRes.ok) {
         const body = await createRes.text();
         if (authFailed(createRes.status)) {
@@ -240,9 +252,9 @@ export function createInstagramChannel(country: string): SocialChannel {
       // endnu — media-id'et er ikke slået igennem. Det er sekunder, ikke minutter,
       // så vi prøver igen her frem for at bruge et kø-forsøg på det.
       const mediaId = await publishWithRetry(graph, igUserId, creationId, token);
-      if (!mediaId) return { postUrl: null };
+      if (!mediaId) return { postUrl: null, mediaId: null, collaborators };
 
-      return { postUrl: await fetchPermalink(graph, mediaId, token) };
+      return { postUrl: await fetchPermalink(graph, mediaId, token), mediaId, collaborators };
     },
   };
 }

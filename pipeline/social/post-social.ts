@@ -42,15 +42,16 @@ import {
 } from "./pacing";
 import { buildPostText } from "./copy";
 import { ChannelAuthError, type CardKind, type PostContent, type SocialChannel } from "./types";
+import { collabEnabled, loadCandidates, refreshInviteStatus, normaliseHandle, pickCollaborators, recordInvites } from "./collab";
 import { createBlueskyChannel } from "./channels/bluesky";
 // X droppet 2026-06-15: X fjernede sit gratis API-tier (nu pay-per-use, ~$0,01/opslag).
 // Adapter + secrets bevares — for at gen-aktivere: gendan importen og føj `x` til
 // ALL_CHANNELS igen (kræver pay-per-use-kredit på X-kontoen).
 // import { x } from "./channels/x";
 import { createFacebookChannel } from "./channels/facebook";
-import { createInstagramChannel } from "./channels/instagram";
+import { createInstagramChannel, graphFor } from "./channels/instagram";
 import { createThreadsChannel } from "./channels/threads";
-import { allAccounts } from "./registry";
+import { allAccounts, readAccountEnv } from "./registry";
 import { sourceParam } from "../../src/lib/routes";
 import type { Platform } from "./types";
 
@@ -328,15 +329,25 @@ async function postOne(
 
   const content = buildContent(row, ch);
 
+  // Instagram: invite the article's athletes as collaborators (collab.ts).
+  const invites =
+    ch.platform === "instagram" && collabEnabled()
+      ? pickCollaborators(await loadCandidates(db, row.article_id, ch.country))
+      : [];
+  if (invites.length) content.collaborators = invites.map((c) => normaliseHandle(c.handle));
+
   if (dryRun) {
-    console.log(`  ${ch.name} [dry-run]: ville poste "${row.title}" → ${content.url}`);
+    console.log(
+      `  ${ch.name} [dry-run]: ville poste "${row.title}" → ${content.url}` +
+        (invites.length ? ` (collab: ${content.collaborators!.join(", ")})` : ""),
+    );
     // Dry-run skriver intet, så næste runde ville hente den SAMME række og
     // kunne love det samme opslag fire gange. Stop bygen efter ét.
     return { posted: false, error: null, empty: true, fatal: false };
   }
 
   try {
-    const { postUrl } = await ch.post(content);
+    const { postUrl, mediaId, collaborators } = await ch.post(content);
     await db.execute(
       `UPDATE social_posts
        SET status = 'posted', posted_at = datetime('now'), post_url = ?, attempts = attempts + 1
@@ -344,6 +355,17 @@ async function postOne(
       [postUrl, row.id],
     );
     console.log(`  ${ch.name}: postet "${row.title}"${postUrl ? ` → ${postUrl}` : ""}`);
+    // Only the invites that actually went out count against the weekly limit.
+    const sent = invites.filter((c) => (collaborators ?? []).includes(normaliseHandle(c.handle)));
+    if (sent.length) {
+      try {
+        await recordInvites(db, sent, row.article_id, ch.name, mediaId ?? null);
+        console.log(`  ${ch.name}: collab invite → ${sent.map((c) => normaliseHandle(c.handle)).join(", ")}`);
+      } catch (err) {
+        // The post is out; a failed bookkeeping row must not mark it failed.
+        console.error(`  ${ch.name}: collab invites sent but not recorded: ${err instanceof Error ? err.message : err}`);
+      }
+    }
     return { posted: true, error: null, empty: false, fatal: false };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -510,6 +532,19 @@ async function main(): Promise<void> {
 
   const expired = await expireStale(db);
   if (expired > 0) console.log(`Markerede ${expired} forældede kø-rækker som expired.`);
+
+  // Read back whether earlier collab invites were accepted or declined; a
+  // decline pauses that athlete (collab.ts). Best effort — never stops a run.
+  if (!dryRun && collabEnabled()) {
+    for (const ch of channels.filter((c) => c.platform === "instagram")) {
+      await refreshInviteStatus(
+        db,
+        ch.name,
+        graphFor(ch.country),
+        readAccountEnv("instagram", ch.country, "ACCESS_TOKEN")!,
+      ).catch((err: unknown) => console.log(`  ${ch.name}: collab status check failed: ${err instanceof Error ? err.message : err}`));
+    }
+  }
 
   const { posted: postedTotal, errors } = await drainAll(channels, (ch) => drainChannel(db, ch, dryRun));
   console.log(`I alt postet: ${postedTotal}`);
