@@ -8,6 +8,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { activeCountries, countryProfile } from "../../src/lib/countries";
 import { notify, COLOR, adminLink } from "../lib/notify";
+import { channelNameFor } from "../social/registry";
 
 const TYPE_LABELS: Record<string, string> = {
   news: "Nyheder",
@@ -48,6 +49,8 @@ async function digestFor(db: Db, country: string): Promise<boolean> {
   } catch {
     /* review_log findes ikke endnu — udelad linjen */
   }
+
+  const collabLine = await collabInvitesLine(db, country);
 
   const [articles, athletes, stories, totals, learning, queue] = await Promise.all([
     db.query<{ article_type: string; cnt: number }>(
@@ -149,6 +152,7 @@ async function digestFor(db: Db, country: string): Promise<boolean> {
           value: `📝 ${total_articles ?? "?"} artikler (${published ?? "?"} live)\n🏈 ${total_athletes ?? "?"} aktive atleter`,
           inline: false,
         },
+        ...(collabLine ? [{ name: "Instagram collab invites", value: collabLine, inline: false }] : []),
         {
           name: "Venter på dig",
           value:
@@ -161,6 +165,31 @@ async function digestFor(db: Db, country: string): Promise<boolean> {
     },
     country,
   );
+}
+
+/**
+ * Collab invites on the country's Instagram account (Mikkel, 2026-10-10:
+ * «include collab invites sent and accepted»). The week's invites, and the
+ * running total. "Unanswered" is honest wording: if Meta never lets us read the
+ * invite status (see refreshInviteStatus), invites stay 'sent' for good.
+ */
+export async function collabInvitesLine(db: Db, country: string): Promise<string | null> {
+  try {
+    const { results } = await db.query<{ week: number; sent: number; accepted: number; declined: number }>(
+      `SELECT SUM(CASE WHEN datetime(invited_at) >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS week,
+              COUNT(*) AS sent,
+              SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted,
+              SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) AS declined
+         FROM ig_collab_invites WHERE channel = ?`,
+      [channelNameFor("instagram", country)],
+    );
+    const r = results[0];
+    if (!r || !r.sent) return null;
+    const open = r.sent - (r.accepted ?? 0) - (r.declined ?? 0);
+    return `**${r.week ?? 0}** sent this week · all time: ${r.sent} sent → 🤝 ${r.accepted ?? 0} accepted · ${r.declined ?? 0} declined · ${open} unanswered`;
+  } catch {
+    return null; // table missing (pre migration 066) — leave the field out
+  }
 }
 
 async function main() {

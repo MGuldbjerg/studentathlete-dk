@@ -25,7 +25,7 @@ import { patDaysLeft, refreshRequestFor } from "./refresh-ig-tokens";
 import { followerRequest } from "./collect-followers";
 import { dashboardChannels } from "../../src/lib/social-stats";
 import { COUNTRIES } from "../../src/lib/countries";
-import { createThreadsChannel, isMediaNotYetVisible, threadsContainerParams, threadsTopicTag } from "./channels/threads";
+import { createThreadsChannel, isInvalidLinkAttachment, isMediaNotYetVisible, threadsContainerParams, threadsTopicTag, withLinkInText } from "./channels/threads";
 import { countryForUrl } from "./rescrape-facebook";
 import { scopesNotGrantedForTarget } from "./check-tokens";
 import {
@@ -865,6 +865,18 @@ expect("container is a TEXT post", thParams.get("media_type"), "TEXT");
 expect("container carries the link as attachment", thParams.get("link_attachment"), "https://studentathlete.dk/a");
 expect("container carries the topic", thParams.get("topic_tag"), "dansksport");
 expect("container carries the text", thParams.get("text"), "Hej");
+// 2026-10-10: Threads' own link fetch fails now and then → retry, then link in text.
+{
+  const invalid = '{"error":{"message":"Fatal","type":"OAuthException","code":-1,"error_subcode":4279047,"is_transient":false,"error_user_title":"Invalid Link Attachment"}}';
+  expect("threads: Invalid Link Attachment recognised", isInvalidLinkAttachment(400, invalid), true);
+  expect("threads: Media Not Found is not a link failure", isInvalidLinkAttachment(400, '{"error":{"error_subcode":4279009}}'), false);
+  const c = { text: "x".repeat(600), url: "https://student-athlete.co.uk/golf/a?source=threads_uk", title: "t", summary: null, imageUrl: "i" };
+  const f = withLinkInText(c);
+  expect("fallback text holds 500", [...f.text].length <= 500, true);
+  expect("fallback text ends with the link", f.text.endsWith(c.url), true);
+  expect("short text kept whole", withLinkInText({ ...c, text: "Hej" }).text, `Hej\n\n${c.url}`);
+  expect("fallback container has no attachment", threadsContainerParams(f, "UK", "tok", false).has("link_attachment"), false);
+}
 expect("no topic param when the country has none", threadsContainerParams(
   { text: "x", url: "u", title: "t", summary: null, imageUrl: "i" }, "XX", "tok").has("topic_tag"), false);
 
