@@ -1,0 +1,102 @@
+name: Opus editor (UK)
+
+# Mikkel, 2026-10-10: «an automatic publish/reject job by Opus at midnight and
+# midday — only for the UK articles». pipeline/fix/auto-editor.ts decides every
+# unpublished UK draft (publish after correction / reject / hold), and
+# apply-draft-decisions.ts publishes SPACED 17–23 min apart, as always.
+# Danish drafts are never touched.
+#
+# Runs on Mikkel's Claude subscription (CLAUDE_CODE_OAUTH_TOKEN), not an API key.
+#
+# The repo is public, so this log is public: stdout is ids and actions only
+# (--public-log), decisions live in $RUNNER_TEMP and die with the runner, and the
+# titles and reasons go to Discord. Never add an upload-artifact step here.
+#
+# Midnight and midday Copenhagen time. GitHub cron is UTC and Denmark shifts
+# between UTC+1 and UTC+2, so it fires at both candidate hours and the gate below
+# lets through only the run whose local hour is 00 or 12.
+#
+# Off switch: repo variable AUTO_EDITOR_UK = off.
+
+on:
+  schedule:
+    - cron: '0 22,23,10,11 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Decide only — publish and reject nothing'
+        type: boolean
+        default: false
+
+concurrency:
+  group: auto-editor-uk
+  cancel-in-progress: false
+
+jobs:
+  edit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Midnight or midday in Copenhagen?
+        id: gate
+        run: |
+          H=$(TZ=Europe/Copenhagen date +%H)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$H" = "00" ] || [ "$H" = "12" ]; then
+            if [ "${{ vars.AUTO_EDITOR_UK }}" = "off" ]; then echo "AUTO_EDITOR_UK=off — skipping"; echo "run=false" >> $GITHUB_OUTPUT
+            else echo "run=true" >> $GITHUB_OUTPUT; fi
+          else
+            echo "Local hour $H — not this trigger"; echo "run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+        if: steps.gate.outputs.run == 'true'
+      - run: npm install -g @anthropic-ai/claude-code
+        if: steps.gate.outputs.run == 'true'
+
+      - name: Check Claude login
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          OUT=$(claude -p "Reply with exactly: OK" --allowed-tools "" 2>&1 || true)
+          if ! echo "$OUT" | grep -q "OK"; then
+            echo "! Claude login failed — run 'claude setup-token' again and update CLAUDE_CODE_OAUTH_TOKEN"; exit 1
+          fi
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      - name: Opus decides the UK drafts
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          ARGS="--country UK --out $RUNNER_TEMP/decisions.json"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          npx tsx pipeline/fix/auto-editor.ts $ARGS
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_UK: ${{ secrets.DISCORD_WEBHOOK_UK }}
+
+      - name: Reject and publish (spaced)
+        if: steps.gate.outputs.run == 'true' && github.event.inputs.dry_run != 'true'
+        run: npx tsx pipeline/fix/apply-draft-decisions.ts "$RUNNER_TEMP/decisions.json" --public-log
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      - name: Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_UK || secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Opus editor (UK) failed\",\"description\":\"[See the log]($RUN_URL).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"

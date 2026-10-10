@@ -21,7 +21,10 @@
  * A long queue therefore takes hours — run it in the background. `--no-spacing`
  * exists for a single urgent correction, not for batches.
  *
- *   npx tsx pipeline/fix/apply-draft-decisions.ts <decisions.json> [--dry-run] [--no-spacing]
+ * `--public-log` (the auto-editor's CI run; the repo is public) prints ids only,
+ * never a title — a rejected draft's title is draft text.
+ *
+ *   npx tsx pipeline/fix/apply-draft-decisions.ts <decisions.json> [--dry-run] [--no-spacing] [--public-log]
  */
 
 import { readFileSync, statSync } from "node:fs";
@@ -55,6 +58,8 @@ interface Decision {
 const [file, ...flags] = process.argv.slice(2);
 const DRY = flags.includes("--dry-run");
 const NO_SPACING = flags.includes("--no-spacing");
+const PUBLIC_LOG = flags.includes("--public-log");
+const shown = (title: string) => (PUBLIC_LOG ? "" : `: ${title}`);
 
 const GAP_MIN_S = 17 * 60;
 const GAP_MAX_S = 23 * 60;
@@ -131,7 +136,7 @@ async function main() {
     }
 
     if (d.action === "reject") {
-      console.log(`  − rejecting #${d.id}: ${row.title}`);
+      console.log(`  − rejecting #${d.id}${shown(row.title)}`);
       if (DRY) continue;
       // review_log first: the row must survive the article it describes.
       if (row.original_content) {
@@ -191,7 +196,7 @@ async function main() {
     }
     publishedAny = true;
 
-    console.log(`  ✓ publishing #${d.id}: ${d.title ?? row.title}  [${new Date().toLocaleTimeString("da-DK")}]`);
+    console.log(`  ✓ publishing #${d.id}${shown(d.title ?? row.title)}  [${new Date().toLocaleTimeString("da-DK")}]`);
     if (DRY) continue;
 
     if (sets.length) {
