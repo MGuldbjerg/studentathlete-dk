@@ -12,21 +12,31 @@ name: Opus editor (UK)
 # (--public-log), decisions live in $RUNNER_TEMP and die with the runner, and the
 # titles and reasons go to Discord. Never add an upload-artifact step here.
 #
-# Midnight and midday Copenhagen time. GitHub cron is UTC and Denmark shifts
-# between UTC+1 and UTC+2, so it fires at both candidate hours and the gate below
-# lets through only the run whose local hour is 00 or 12.
+# Midnight and midday Copenhagen time. GitHub cron is UTC, Denmark shifts
+# between UTC+1 and UTC+2, and GitHub drops or delays scheduled runs by hours
+# (the first night: 22:00 never fired, 23:00 ran at 00:33 UTC). So it fires
+# hourly through each half-day window, and the gate lets the FIRST run in a
+# window through: local time 00–05 or 12–17, and no earlier run of this
+# workflow in the same window got past the gate.
+#
+# At most 12 drafts per run: 12 spaced publishes (17–23 min) plus the Opus calls
+# fit inside GitHub's 6-hour job limit; the rest wait for the next window.
 #
 # Off switch: repo variable AUTO_EDITOR_UK = off.
 
 on:
   schedule:
-    - cron: '0 22,23,10,11 * * *'
+    - cron: '7 22,23,0,1,2,3,10,11,12,13,14,15 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
         description: 'Decide only — publish and reject nothing'
         type: boolean
         default: false
+
+permissions:
+  contents: read
+  actions: read
 
 concurrency:
   group: auto-editor-uk
@@ -35,18 +45,25 @@ concurrency:
 jobs:
   edit:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 360
     steps:
-      - name: Midnight or midday in Copenhagen?
+      - name: First run of this half-day window?
         id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          H=$(TZ=Europe/Copenhagen date +%H)
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$H" = "00" ] || [ "$H" = "12" ]; then
-            if [ "${{ vars.AUTO_EDITOR_UK }}" = "off" ]; then echo "AUTO_EDITOR_UK=off — skipping"; echo "run=false" >> $GITHUB_OUTPUT
-            else echo "run=true" >> $GITHUB_OUTPUT; fi
-          else
-            echo "Local hour $H — not this trigger"; echo "run=false" >> $GITHUB_OUTPUT
-          fi
+          go() { echo "run=$1" >> $GITHUB_OUTPUT; echo "$2"; }
+          if [ "${{ vars.AUTO_EDITOR_UK }}" = "off" ]; then go false "AUTO_EDITOR_UK=off — skipping"; exit 0; fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then go true "manual run"; exit 0; fi
+          H=$(TZ=Europe/Copenhagen date +%-H)
+          if [ "$H" -lt 6 ]; then W=00; elif [ "$H" -ge 12 ] && [ "$H" -lt 18 ]; then W=12; else go false "local hour $H — outside the windows"; exit 0; fi
+          START=$(date -u -d "TZ=\"Europe/Copenhagen\" $(TZ=Europe/Copenhagen date +%F) $W:00" +%FT%TZ)
+          for id in $(gh run list -R "$GITHUB_REPOSITORY" --workflow auto-editor-uk.yml --created ">=$START" -L 50 --json databaseId --jq '.[].databaseId'); do
+            [ "$id" = "${{ github.run_id }}" ] && continue
+            S=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$id/jobs" --jq '.jobs[].steps[] | select(.name=="Opus decides the UK drafts") | .conclusion // .status')
+            case "$S" in success|failure|cancelled|in_progress|queued) go false "run $id already handled the window from $START"; exit 0;; esac
+          done
+          go true "first run in the window from $START"
 
       - uses: actions/checkout@v5
         if: steps.gate.outputs.run == 'true'
@@ -73,7 +90,7 @@ jobs:
       - name: Opus decides the UK drafts
         if: steps.gate.outputs.run == 'true'
         run: |
-          ARGS="--country UK --out $RUNNER_TEMP/decisions.json"
+          ARGS="--country UK --out $RUNNER_TEMP/decisions.json --limit 12"
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
           npx tsx pipeline/fix/auto-editor.ts $ARGS
         env:
