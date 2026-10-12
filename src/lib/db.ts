@@ -3,6 +3,7 @@ import { DEFAULT_COUNTRY, countryProfile } from "./countries";
 import { contentCountry } from "./site-server";
 import type { Article, Athlete, School } from "./types";
 import { recordsOf } from "./athlete-hub";
+import { seasonFromDate } from "./athlete-events";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
 
@@ -537,8 +538,19 @@ const articleCountSql = (t: string) => `((SELECT COUNT(*) FROM articles ar WHERE
 function publicAthleteClause(code: string, t = "a"): string {
   const min = countryProfile(code).profilePublicMinArticles;
   if (min <= 0) return "";
-  return min === 1 ? `AND ${hasArticleSql(t)}` : `AND ${articleCountSql(t)} >= ${min}`;
+  const articles = min === 1 ? hasArticleSql(t) : `${articleCountSql(t)} >= ${min}`;
+  return `AND (${articles} OR ${hasStatsSql(t)})`;
 }
+
+/**
+ * Does athlete `t` have this season's stats from the school's own page
+ * (athlete_season_stats, migration 067)? Such a profile has real, dated
+ * numbers and is public and indexed even before we have written about the
+ * athlete (Mikkel 2026-10-12, PLAN-adsense-uk.md). Primary-key lookup. The
+ * season is a literal from our own clock, never input.
+ */
+const hasStatsSql = (t: string) =>
+  `EXISTS (SELECT 1 FROM athlete_season_stats st WHERE st.athlete_id = ${t}.id AND st.season = '${seasonFromDate(null)}' AND st.games > 0)`;
 
 /** Stats cached per site must not mix the filtered and the unfiltered answer. */
 const publicKey = (key: string, code: string) =>
@@ -555,7 +567,7 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
     // migration-057 (indeks på schools.name) — uden det var den en fuld scan.
     const r = await db
       .prepare(
-        `SELECT a.*, s.slug AS school_slug, ${HAS_ARTICLE_SQL} AS has_article,
+        `SELECT a.*, s.slug AS school_slug, ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
                 ${articleCountSql("a")} AS article_count
            FROM athletes a
            LEFT JOIN schools s ON s.name = a.university
@@ -667,6 +679,31 @@ export async function countTeamCompatriots(a: Athlete, country?: string): Promis
       .first()) as { n: number } | null;
     return r?.n ?? 0;
   } catch { return 0; }
+}
+
+export interface SeasonStatsRow {
+  kind: "outfield" | "keeper";
+  games: number;
+  cells: string;
+  line: string | null;
+  school: string;
+  source_url: string;
+  fetched_on: string;
+}
+
+/** This season's stats row for the athlete (athlete_season_stats), or null. Primary-key lookup. */
+export async function getSeasonStats(athleteId: number): Promise<SeasonStatsRow | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    return ((await db
+      .prepare(
+        `SELECT kind, games, cells, line, school, source_url, fetched_on FROM athlete_season_stats
+          WHERE athlete_id = ? AND season = ? AND games > 0`,
+      )
+      .bind(athleteId, seasonFromDate(null))
+      .first()) as SeasonStatsRow | null) ?? null;
+  } catch { return null; }
 }
 
 /**
@@ -1027,24 +1064,24 @@ export async function getAllArticleSlugs(country?: string): Promise<
  * udlede hvilke BOGSTAVSIDER der findes (kun bogstaver med aktive atleter).
  */
 export async function getAllAthleteSlugs(country?: string): Promise<
-  { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number }[]
+  { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number; has_stats: number }[]
 > {
   const db = await getDB();
   if (!db) {
     return MOCK_ATHLETES
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((a) => ({ slug: a.slug, updated_at: a.updated_at, name: a.name, active: a.active, has_article: 1, article_count: 1 }));
+      .map((a) => ({ slug: a.slug, updated_at: a.updated_at, name: a.name, active: a.active, has_article: 1, article_count: 1, has_stats: 0 }));
   }
   try {
     // Public profiles only: the sitemap and the alphabet must not point at a 404.
     const code = await siteCountry(country);
     const r = await db
-      .prepare(`SELECT a.slug, a.updated_at, a.name, a.active, ${HAS_ARTICLE_SQL} AS has_article,
+      .prepare(`SELECT a.slug, a.updated_at, a.name, a.active, ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
                        ${articleCountSql("a")} AS article_count
                   FROM athletes a WHERE a.home_country = ? ${publicAthleteClause(code)} ORDER BY a.name`)
       .bind(code)
       .all();
-    return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number }[];
+    return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number; has_stats: number }[];
   } catch (err) { rethrowDbError(err, "atlet-slugs til sitemap"); }
 }
 
@@ -1139,7 +1176,7 @@ export async function schoolHasCoverage(schoolName: string, country?: string): P
     const r = await db
       .prepare(
         `SELECT 1 AS ok FROM athletes a
-          WHERE a.university = ? AND a.home_country = ? AND ${HAS_ARTICLE_SQL}
+          WHERE a.university = ? AND a.home_country = ? AND (${HAS_ARTICLE_SQL} OR ${hasStatsSql("a")})
           LIMIT 1`,
       )
       .bind(schoolName, await siteCountry(country))

@@ -18,6 +18,7 @@ import {
   countAthletesAtUniversity,
   countTeamCompatriots,
   getLatestRecords,
+  getSeasonStats,
   getArticlesByUniversity,
   getArticleBySlug,
   getAthletesBySport,
@@ -202,7 +203,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     if (isRoute("athletes", "atleter")) {
       const athlete = await getAthleteBySlug(slug);
       // Below the site's bar the profile is a 404 (see the page below).
-      if (athlete && (athlete.article_count ?? 0) >= site.profilePublicMinArticles) {
+      if (athlete && ((athlete.article_count ?? 0) >= site.profilePublicMinArticles || athlete.has_stats === 1)) {
         const description =
           athlete.profile_summary ??
           t("meta.athlete_description", lang, { name: athlete.name, sport: sportLabel(athlete.sport, lang).toLowerCase(), university: athlete.university, brand });
@@ -230,7 +231,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [ogImage],
           },
           alternates: { canonical: `${base}${getAthleteUrl(slug, lang)}` },
-          robots: await profileRobots((athlete.article_count ?? 0) >= site.profileIndexMinArticles),
+          robots: await profileRobots((athlete.article_count ?? 0) >= site.profileIndexMinArticles || athlete.has_stats === 1),
         };
       }
     }
@@ -487,18 +488,19 @@ export default async function DynamicPage({
       }
       // Not public yet on this site (CountryProfile.profilePublicMinArticles):
       // an honest 404, and the page appears with the first published article.
-      if (athlete && (athlete.article_count ?? 0) < (await currentSite()).profilePublicMinArticles) notFound();
+      if (athlete && athlete.has_stats !== 1 && (athlete.article_count ?? 0) < (await currentSite()).profilePublicMinArticles) notFound();
       if (athlete) {
         // Seks hentes, fem vises: atleten selv skal filtreres fra, og uden den
         // ekstra ville en profil kunne stå med fire landsmænd på skolen, hvor
         // der er fem. Opslaget er indekseret (idx_athletes_university) og
         // returnerer en håndfuld rækker — ingen CPU, én rundtur.
-        const [articles, events, schoolmatesRaw, teamCount, records] = await Promise.all([
+        const [articles, events, schoolmatesRaw, teamCount, records, seasonStats] = await Promise.all([
           getArticlesByAthleteId(athlete.id, 10),
           getAthleteEvents(athlete.id),
           getAthletesByUniversity(athlete.university, 6),
           countTeamCompatriots(athlete),
           getLatestRecords(athlete.id),
+          getSeasonStats(athlete.id),
         ]);
         const schoolmates = schoolmatesRaw.filter((a) => a.id !== athlete.id).slice(0, 5);
         return (
@@ -510,6 +512,7 @@ export default async function DynamicPage({
               schoolmates={schoolmates}
               teamCount={teamCount}
               records={records}
+              seasonStats={seasonStats}
             />
             <AdminEditButton href={`/admin/atleter/${athlete.id}`} label="Rediger atlet" />
           </>
