@@ -84,7 +84,7 @@ export async function SportLandingPage({ sport, content, articles, athletes, cou
               className="text-xl font-bold text-ink"
               style={{ fontFamily: "var(--font-serif)" }}
             >
-              Seneste nyheder
+              {t("news.latest", lang)}
             </h2>
           </div>
 

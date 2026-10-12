@@ -61,13 +61,21 @@ export interface CountryProfile {
    */
   hasPrivacyPage: boolean;
   /**
-   * Whether athlete and school pages with no published article are indexed.
-   * false = such pages carry `noindex, follow` and stay out of the sitemap;
-   * visitors still reach them. Required, not defaulted: a profile is a name,
-   * a school and roster data, and thousands of them make a site read as thin.
-   * UK set false 2026-10-09 after AdSense rejected it for low value content.
+   * How many published articles an athlete needs before the profile is PUBLIC,
+   * and before it is INDEXED. 0 / 0 = every profile public and indexed.
+   *
+   * Below `profilePublicMinArticles` a profile answers 404 and is listed
+   * nowhere — not on /athletes, school rosters or sport pages — though counts
+   * still include it. A school page follows: public only with a public athlete.
+   * Between the two numbers a profile is reachable but `noindex, follow`.
+   *
+   * Required, not defaulted: a profile is a name, a school and roster data, and
+   * thousands of them make a site read as thin. UK (Mikkel, 2026-10-12, after
+   * AdSense rejected .co.uk for low value content on 2026-10-09): public from
+   * 1, indexed from 2. A new country must decide, not inherit.
    */
-  indexThinProfiles: boolean;
+  profilePublicMinArticles: number;
+  profileIndexMinArticles: number;
 }
 
 /**

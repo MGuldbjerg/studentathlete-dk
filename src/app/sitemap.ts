@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getAllArticleSlugs(),
     getAllAthleteSlugs(),
     // Where thin profiles are not indexed, only schools with a covered athlete.
-    site.indexThinProfiles ? getAllSchoolSlugs() : getCoveredSchoolSlugs(),
+    site.profileIndexMinArticles === 0 ? getAllSchoolSlugs() : getCoveredSchoolSlugs(),
   ]);
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -144,10 +144,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       };
     });
 
-  // Profiles without an article are `noindex` there (profileRobots) — a
+  // Profiles below the site's index bar are `noindex` (profileRobots) — a
   // sitemap must not ask Google for pages it is told not to index.
   const athletePages: MetadataRoute.Sitemap = athletes
-    .filter((a) => site.indexThinProfiles || a.has_article === 1)
+    .filter((a) => a.article_count >= site.profileIndexMinArticles)
     .map((a) => ({
     url: `${base}${getAthleteUrl(a.slug, lang)}`,
     lastModified: new Date(a.updated_at),

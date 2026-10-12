@@ -14,6 +14,7 @@ import {
   getSchoolBySlug,
   schoolHasCoverage,
   getAthletesByUniversity,
+  countAthletesAtUniversity,
   getArticlesByUniversity,
   getArticleBySlug,
   getAthletesBySport,
@@ -197,7 +198,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     // /atleter|/athletes/{slug} → atlet-profil
     if (isRoute("athletes", "atleter")) {
       const athlete = await getAthleteBySlug(slug);
-      if (athlete) {
+      // Below the site's bar the profile is a 404 (see the page below).
+      if (athlete && (athlete.article_count ?? 0) >= site.profilePublicMinArticles) {
         const description =
           athlete.profile_summary ??
           t("meta.athlete_description", lang, { name: athlete.name, sport: sportLabel(athlete.sport, lang).toLowerCase(), university: athlete.university, brand });
@@ -225,7 +227,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [ogImage],
           },
           alternates: { canonical: `${base}${getAthleteUrl(slug, lang)}` },
-          robots: await profileRobots(athlete.has_article === 1),
+          robots: await profileRobots((athlete.article_count ?? 0) >= site.profileIndexMinArticles),
         };
       }
     }
@@ -233,7 +235,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     // /skoler|/schools/{slug} → skole-profil
     if (isRoute("schools", "skoler")) {
       const school = await getSchoolBySlug(slug);
-      if (school) {
+      if (school && (site.profilePublicMinArticles === 0 || (await schoolHasCoverage(school.name)))) {
         const where = `${school.name}${school.state ? `, ${school.state}` : ""}`;
         const description = `${t("meta.school_description", lang, { school: where })} ${school.division}${school.conference ? `, ${school.conference}` : ""}.`;
         return {
@@ -247,7 +249,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             url: `${base}${getSchoolUrl(slug, lang)}`,
           },
           alternates: { canonical: `${base}${getSchoolUrl(slug, lang)}` },
-          robots: await profileRobots(site.indexThinProfiles || (await schoolHasCoverage(school.name))),
+          robots: await profileRobots(site.profileIndexMinArticles === 0 || (await schoolHasCoverage(school.name))),
         };
       }
     }
@@ -411,8 +413,8 @@ export default async function DynamicPage({
     // /atleter|/athletes/{all|alle} → hele listen (før bogstav og profil)
     if (isRoute("athletes", "atleter") && slug === subRouteSlug("athletesAll", lang)) {
       const [active, alumni, sp] = await Promise.all([
-        getAllAthletes(),
-        getAlumniAthletes(),
+        getAllAthletes(undefined, { publicOnly: true }),
+        getAlumniAthletes(undefined, { publicOnly: true }),
         searchParams,
       ]);
       return (
@@ -478,6 +480,9 @@ export default async function DynamicPage({
         const aliasTarget = await getAthleteSlugByAlias(slug);
         if (aliasTarget) permanentRedirect(getAthleteUrl(aliasTarget, lang));
       }
+      // Not public yet on this site (CountryProfile.profilePublicMinArticles):
+      // an honest 404, and the page appears with the first published article.
+      if (athlete && (athlete.article_count ?? 0) < (await currentSite()).profilePublicMinArticles) notFound();
       if (athlete) {
         // Seks hentes, fem vises: atleten selv skal filtreres fra, og uden den
         // ekstra ville en profil kunne stå med fire landsmænd på skolen, hvor
@@ -507,17 +512,21 @@ export default async function DynamicPage({
     if (isRoute("schools", "skoler")) {
       const school = await getSchoolBySlug(slug);
       if (school) {
-        const [athletes, articles] = await Promise.all([
+        const site = await currentSite();
+        const [athletes, articles, total] = await Promise.all([
           getAthletesByUniversity(school.name),
           getArticlesByUniversity(school.name, 6),
+          countAthletesAtUniversity(school.name),
         ]);
+        // A school with no public athlete is a 404 where profiles need an article.
+        if (site.profilePublicMinArticles > 0 && athletes.length === 0) notFound();
         // Skolerne er fælles for alle sites, atleterne er ikke. Har sitet ingen
         // atleter dér, er siden tom — og en tom side skal 404'e, ikke findes på
         // hvert domæne.
         if (athletes.length === 0 && articles.length === 0) notFound();
         return (
           <>
-            <SchoolProfilePage school={school} athletes={athletes} articles={articles} />
+            <SchoolProfilePage school={school} athletes={athletes} articles={articles} totalAthletes={total} />
             <AdminEditButton href="/admin/skoler" label="Rediger skoler" />
           </>
         );

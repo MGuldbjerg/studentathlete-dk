@@ -4,9 +4,18 @@ import type { School, Athlete, Article } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
-interface Props { school: School; athletes: Athlete[]; articles: Article[] }
+interface Props {
+  school: School;
+  /** The athletes a visitor can open (CountryProfile.profilePublicMinArticles). */
+  athletes: Athlete[];
+  articles: Article[];
+  /** Every active athlete from this site's country at the school — a number, no names. */
+  totalAthletes?: number;
+}
 
-export async function SchoolProfilePage({ school, athletes, articles }: Props) {
+export async function SchoolProfilePage({ school, athletes, articles, totalAthletes }: Props) {
+  const total = Math.max(totalAthletes ?? athletes.length, athletes.length);
+  const more = total - athletes.length;
   const lang = await currentLanguage();
   const site = await currentSite();
   return (
@@ -67,7 +76,7 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
               { label: t("fact.division", lang),         value: school.division },
               { label: t("fact.conference", lang),       value: school.conference ?? "–" },
               { label: t("fact.state", lang),             value: school.state ?? "–" },
-              { label: t("school.athletes", lang),   value: String(athletes.length) },
+              { label: t("school.athletes", lang),   value: String(total) },
             ].map((stat) => (
               <div key={stat.label} className="px-5 py-5">
                 <dt className="text-[10px] text-muted uppercase tracking-[0.12em]">{stat.label}</dt>
@@ -130,13 +139,20 @@ export async function SchoolProfilePage({ school, athletes, articles }: Props) {
             ) : (
               <p className="text-muted text-sm">{t("school.no_athletes", lang)}</p>
             )}
+            {athletes.length > 0 && more > 0 && (
+              <p className="text-muted text-sm mt-4">
+                {more === 1
+                  ? t("school.more_athletes_one", lang, { school: school.name })
+                  : t("school.more_athletes", lang, { n: String(more), school: school.name })}
+              </p>
+            )}
           </section>
 
           {/* Højre: seneste artikler */}
           {articles.length > 0 && (
             <aside>
               <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-5">
-                Seneste nyheder
+                {t("news.latest", lang)}
               </p>
               <div className="flex flex-col">
                 {articles.map((a, i) => (
