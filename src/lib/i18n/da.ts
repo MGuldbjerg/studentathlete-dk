@@ -585,6 +585,9 @@ const ui: LanguagePack["ui"] = {
   "profile.no_articles": "Ingen artikler endnu.",
   "school.athletes": "Danske atleter",
   "school.no_athletes": "Ingen registrerede atleter endnu.",
+  "school.more_athletes": "Plus {n} danske atleter mere på {school}, som vi ikke har skrevet om endnu.",
+  "school.more_athletes_one": "Plus én dansk atlet mere på {school}, som vi ikke har skrevet om endnu.",
+  "news.latest": "Seneste nyheder",
   "meta.sport_title": "{sport} – danske atleter i NCAA",
   "meta.athlete_description":
     "{name} spiller {sport} for {university}. Følg den danske student athlete på {brand}.",

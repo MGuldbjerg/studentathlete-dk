@@ -577,6 +577,9 @@ const ui: LanguagePack["ui"] = {
   "profile.no_articles": "No articles yet.",
   "school.athletes": "Athletes",
   "school.no_athletes": "No athletes registered yet.",
+  "school.more_athletes": "Plus {n} more UK athletes at {school} we have not written about yet.",
+  "school.more_athletes_one": "Plus one more UK athlete at {school} we have not written about yet.",
+  "news.latest": "Latest news",
   "meta.sport_title": "{sport} – UK athletes in the NCAA",
   "meta.athlete_description":
     "{name} plays {sport} for {university}. Follow the UK student athlete on {brand}.",

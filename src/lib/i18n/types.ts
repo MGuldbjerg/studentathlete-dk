@@ -306,6 +306,9 @@ export type UiKey =
   | "profile.no_articles"
   | "school.athletes"
   | "school.no_athletes"
+  | "school.more_athletes"
+  | "school.more_athletes_one"
+  | "news.latest"
   // Metadata-skabeloner ([...segments])
   | "meta.sport_title"
   | "meta.athlete_description"
