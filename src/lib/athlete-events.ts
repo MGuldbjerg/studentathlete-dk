@@ -176,6 +176,8 @@ export interface AthleteEventRow {
   significance: Significance;
   source_url: string | null;
   occurred_on: string | null;
+  /** The article the row was harvested from, if any (profile-timeline.ts dedups on it). */
+  article_id?: number | null;
 }
 
 /**

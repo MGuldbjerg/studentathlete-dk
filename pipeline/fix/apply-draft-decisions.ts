@@ -36,6 +36,7 @@ import {
   rejectLogParams,
 } from "../../src/lib/review-snapshot";
 import { HARVEST_INSERT_SQL, harvestRows } from "../../src/lib/athlete-events";
+import { becomesTimelineEntry, timelineParams, wordCount, TIMELINE_INSERT_SQL, TIMELINE_DELETE_SQL } from "../../src/lib/timeline-entry";
 import {
   ADDITION_PARENT_SQL,
   ADDITION_TYPE,
@@ -82,6 +83,7 @@ const langForCountry = (c: string | null) => (c === "DK" ? "da" : "en");
 async function main() {
   let published = 0;
   let rejected = 0;
+  let timelined = 0;
 
   // Rejections first, so the spaced publishing that follows is the only wait.
   const ordered = [
@@ -172,6 +174,27 @@ async function main() {
       continue;
     }
 
+    // ── a timeline line: under the site's word floor (src/lib/timeline-entry.ts) ──
+    // Decided on the FINAL text, as publishArticle does. Not a page, so no spacing.
+    const finalText = d.content ?? row.content;
+    if (becomesTimelineEntry({ ...row, content: finalText })) {
+      const extra = (await db.query<{ athlete_name: string | null; source_url: string | null; fact_sheet: string | null }>(
+        `SELECT at.name AS athlete_name, a.source_url, s.fact_sheet
+           FROM articles a JOIN athletes at ON at.id = a.athlete_id LEFT JOIN stories s ON s.id = a.story_id
+          WHERE a.id = ?`, [d.id])).results[0];
+      console.log(`  ↳ #${d.id} becomes a timeline line (${wordCount(finalText)} words)${shown(d.title ?? row.title)}`);
+      if (DRY) continue;
+      await db.batch([
+        { sql: TIMELINE_INSERT_SQL, params: timelineParams({
+          athlete_id: row.athlete_id!, athlete_name: extra?.athlete_name ?? "",
+          title: d.title ?? row.title, source_url: extra?.source_url ?? null, fact_sheet: extra?.fact_sheet ?? null,
+        }) },
+        ...TIMELINE_DELETE_SQL.map((sql) => ({ sql, params: [d.id] })),
+      ]);
+      timelined++;
+      continue;
+    }
+
     // ── publish ──────────────────────────────────────────────────────────────
     const sets: string[] = [];
     const params: unknown[] = [];
@@ -246,7 +269,7 @@ async function main() {
     published++;
   }
 
-  console.log(`\n${DRY ? "[dry-run] " : ""}published: ${published} · rejected: ${rejected}`);
+  console.log(`\n${DRY ? "[dry-run] " : ""}published: ${published} · rejected: ${rejected}${timelined ? ` · timeline lines: ${timelined}` : ""}`);
 }
 
 main().catch((e) => {

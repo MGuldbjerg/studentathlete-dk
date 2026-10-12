@@ -97,6 +97,7 @@ jobs:
             pipeline/profiles/_profile-drafts-test.ts \
             src/lib/_admin-paging-test.ts \
             src/lib/_award-label-test.ts \
+            src/lib/_timeline-test.ts \
             src/lib/_ga4-test.ts \
             src/lib/_analytics-test.ts \
             src/lib/_social-stats-test.ts \

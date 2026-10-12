@@ -915,7 +915,7 @@ export async function getAthleteEvents(athleteId: number): Promise<AthleteEventR
   try {
     const r = await db
       .prepare(
-        `SELECT id, season, kind, award_name, summary, significance, source_url, occurred_on
+        `SELECT id, season, kind, award_name, summary, significance, source_url, occurred_on, article_id
          FROM athlete_events WHERE athlete_id = ?
          ORDER BY CASE significance WHEN 'honor' THEN 0 WHEN 'notable' THEN 1 ELSE 2 END, season DESC, id DESC`,
       )

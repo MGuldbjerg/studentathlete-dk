@@ -2,7 +2,8 @@ import type { Athlete, Article } from "@/lib/types";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
-import { awardLabel, type AthleteEventRow } from "@/lib/athlete-events";
+import type { AthleteEventRow } from "@/lib/athlete-events";
+import { buildTimeline } from "@/lib/profile-timeline";
 
 import { sportLabel, sportSlug, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
@@ -57,6 +58,7 @@ const STAT_ROWS = (a: Athlete, lang: string) => [
 export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
+  const timeline = buildTimeline(events, articles, athlete.name, lang, (a) => getArticleUrl(a as Article, lang));
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -87,7 +89,9 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 className="w-36 h-44 md:w-44 md:h-56 object-cover"
                 style={{ border: "2px solid rgba(255,255,255,0.12)" }} />
               {athlete.photo_credit && (
-                <p className="text-[10px] text-white/30 mt-1">{athlete.photo_credit}</p>
+                <p className="text-[10px] text-white/30 mt-1">
+                  {lang === "da" ? athlete.photo_credit : athlete.photo_credit.replace(/^Foto:/i, "Photo:")}
+                </p>
               )}
             </div>
           ) : (
@@ -152,7 +156,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
           {/* ── Sidebar ──────────────────────────────────────────── */}
           <aside>
             <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">
-              Fakta
+              {t("profile.facts", lang)}
             </p>
             <dl className="divide-y" style={{ borderTop: "1px solid #E2E0DC", borderBottom: "1px solid #E2E0DC" }}>
               {STAT_ROWS(athlete, lang).map((row) => (
@@ -216,53 +220,44 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
               </section>
             )}
 
-            {/* Karriere-højdepunkter — en TABEL, ikke skolens prosa.
-                Mikkel, 17. september 2026: «I prefer a table style summary of
-                honors to avoid a complete copy». Cellerne indeholder derfor det
-                kanoniske prisnavn og sæsonen; skolens egen sætning står hos
-                skolen, og kilde-linket peger derhen. */}
-            {events.length > 0 && (
+            {/* Tidslinje — æresbevisninger, korte historier som linjer, og vores
+                artikler, nyeste først (src/lib/profile-timeline.ts). Erstatter
+                «Career highlights»-tabellen 2026-10-12: stadig én linje pr.
+                fakta og skolens egen tekst bliver hos skolen (Mikkel 17-09). */}
+            {timeline.length > 0 && (
               <section className="mb-10">
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-2">
-                  {t("profile.career_highlights", lang)}
+                  {t("profile.timeline", lang)}
                 </p>
-                <p className="text-xs text-muted mb-4">{t("profile.honours_note", lang)}</p>
+                <p className="text-xs text-muted mb-4">{t("profile.timeline_note", lang)}</p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr style={{ borderBottom: "1px solid #E2E0DC" }}>
-                        <th className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-4">
-                          {t("profile.season", lang)}
-                        </th>
-                        <th className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-4">
-                          {t("profile.honour", lang)}
-                        </th>
-                        <th className="text-right font-semibold text-muted text-xs tracking-wide py-2">
-                          {t("profile.source", lang)}
-                        </th>
-                      </tr>
-                    </thead>
                     <tbody>
-                      {events.map((e) => (
-                        <tr key={e.id} style={{ borderBottom: "1px solid #F0EEEA" }}>
+                      {timeline.map((r) => (
+                        <tr key={r.key} style={{ borderBottom: "1px solid #F0EEEA" }}>
                           <td className="py-2.5 pr-4 text-muted whitespace-nowrap align-baseline">
-                            {e.season ?? "—"}
+                            {r.date ? formatDateShort(r.date, lang) : r.season ?? "—"}
                           </td>
                           <td className="py-2.5 pr-4 align-baseline">
                             <span
                               className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle"
-                              style={{ backgroundColor: e.significance === "honor" ? "#BF0A30" : "#00205B" }}
+                              style={{ backgroundColor: r.honor ? "#BF0A30" : "#00205B" }}
                             />
-                            <span className="font-semibold text-ink">{awardLabel(e.award_name, lang) || e.summary}</span>
+                            {r.href && !r.external ? (
+                              <a href={r.href} className="font-semibold text-ink hover:underline">{r.text}</a>
+                            ) : (
+                              <span className="font-semibold text-ink">{r.text}</span>
+                            )}
                           </td>
                           <td className="py-2.5 text-right align-baseline">
-                            {e.source_url ? (
+                            {r.href && r.external ? (
                               <a
-                                href={e.source_url}
+                                href={r.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-xs hover:underline"
                                 style={{ color: "#BF0A30" }}
+                                aria-label={t("profile.source", lang)}
                               >
                                 ↗
                               </a>
@@ -280,7 +275,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
             {articles.length > 0 ? (
               <section>
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-5">
-                  Artikler
+                  {t("profile.articles", lang)}
                 </p>
                 <div className="flex flex-col">
                   {articles.map((a, i) => (

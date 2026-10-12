@@ -304,6 +304,10 @@ export type UiKey =
   | "status.former"
   // Profilsider
   | "profile.no_articles"
+  | "profile.facts"
+  | "profile.articles"
+  | "profile.timeline"
+  | "profile.timeline_note"
   | "school.athletes"
   | "school.no_athletes"
   | "school.more_athletes"

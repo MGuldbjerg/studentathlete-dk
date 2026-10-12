@@ -51,7 +51,7 @@ function tcfapi(): TcfApi | undefined {
   return (window as unknown as { __tcfapi?: TcfApi }).__tcfapi;
 }
 
-export function ConsentSettingsLink({ enabled }: { enabled: boolean }) {
+export function ConsentSettingsLink({ enabled, label }: { enabled: boolean; label: string }) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export function ConsentSettingsLink({ enabled }: { enabled: boolean }) {
         }}
         className="text-white/60 text-sm hover:text-white transition-colors text-left"
       >
-        Cookieindstillinger
+        {label}
       </button>
     </li>
   );
