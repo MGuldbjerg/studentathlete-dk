@@ -59,9 +59,14 @@ export function findRow(name: string, t: SeasonTables): { kind: "keeper" | "outf
 async function main(): Promise<void> {
   const db = createD1Client();
   const ua = pipelineUserAgent();
-  // Tennis reads its own tables (win-loss records, season-stats.ts); it is not in
-  // STATS_SPORTS because the article writer's records line has no tennis form.
-  const sports = [...STATS_SPORTS, "tennis"];
+  // Tennis is OFF (2026-10-12). Its stats page is headed with the current
+  // season («2026-27 … Cumulative Statistics») but at Georgia State it held a
+  // full spring of dual matches (4-16) in October — last season's numbers
+  // under this season's label. The heading cannot tell them apart, so the
+  // reader (parseTennisTables) waits until the page's freshness can be shown,
+  // e.g. against the schedule's dated results. «Season so far» must be.
+  const sports = [...STATS_SPORTS];
+  if (args.includes("--with-tennis")) sports.push("tennis");
   const now = new Date();
   const season = seasonFromDate(now.toISOString());
   const today = now.toISOString().slice(0, 10);
