@@ -23,6 +23,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { robotsAllows } from "../lib/robots";
 import { pipelineUserAgent } from "../../src/lib/site";
+import { siteCountrySql } from "../../src/lib/countries";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import { currentSeasonStart } from "../generate/timeline";
 import { STATS_SPORTS, nameKey, pageSeason, parseSeasonTables, parseTennisTables, seasonLine, statsUrl, tennisLine, tennisRecord, type SeasonTables, type StatsRow } from "./season-stats";
@@ -66,8 +67,10 @@ async function main(): Promise<void> {
   const today = now.toISOString().slice(0, 10);
 
   const athletes = (await db.query<Athlete>(
+    // Only countries with a SITE: a collecting country's athletes are shown
+    // nowhere, so their numbers would be fetches and personal data for nothing.
     `SELECT id, name, university, sport, gender, home_country FROM athletes
-      WHERE active = 1 AND home_country IS NOT NULL AND university IS NOT NULL
+      WHERE active = 1 AND ${siteCountrySql("home_country")} AND university IS NOT NULL
         AND sport IN (${sports.map(() => "?").join(",")})${ONLY_COUNTRY ? " AND home_country = ?" : ""}`,
     ONLY_COUNTRY ? [...sports, ONLY_COUNTRY] : sports,
   )).results;
