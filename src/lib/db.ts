@@ -682,7 +682,7 @@ export async function countTeamCompatriots(a: Athlete, country?: string): Promis
 }
 
 export interface SeasonStatsRow {
-  kind: "outfield" | "keeper";
+  kind: "outfield" | "keeper" | "tennis";
   games: number;
   cells: string;
   line: string | null;

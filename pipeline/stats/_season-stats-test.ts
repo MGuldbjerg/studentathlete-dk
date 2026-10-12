@@ -2,7 +2,7 @@
  * Season statistics from a school's stats page: tables, names, the line.
  * Run: npx tsx pipeline/stats/_season-stats-test.ts
  */
-import { nameKey, parseSeasonTables, seasonLine, statsUrl } from "./season-stats";
+import { nameKey, pageSeason, parseSeasonTables, parseTennisTables, seasonLine, statsUrl, tennisLine, tennisRecord, winLoss } from "./season-stats";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -54,6 +54,27 @@ const nuxt = `<table><tr><th>#</th><th>Player</th><th>gp</th><th>Gs</th><th>g</t
 <tr><td>9</td><td><span>Beorlegui, Broden</span></td><td>10</td><td>9</td><td>5</td><td>3</td><td>13</td></tr></table>`;
 ok(seasonLine("Mitch Picksley", "Georgia Southern", parseSeasonTables(nuxt), d)?.endsWith("5 goals and 1 assist in 10 games — tied for the team lead in goals") === true,
   "the new layout, and a shared lead");
+
+// Tennis (classic Sidearm): win-loss records, first table of each kind is overall.
+const tennis = `<h1>2026-27 Men's Tennis Cumulative Statistics</h1>
+<table><caption>Individual Singles Overall Statistics</caption>
+<tr><th>Singles</th><th>Overall</th><th>Dual</th><th>Tour</th><th>Conf</th><th>Streak</th></tr>
+<tr><th>Nat'l</th><th>Reg'l</th></tr>
+<tr><td><a href="/x">Albiero, Andrea</a></td><td>3-0</td><td>3-0</td><td>0-0</td><td>2-0</td><td>W 3</td></tr>
+<tr><td><a href="/y">Horsley, Thomas</a></td><td>0-0</td><td>0-0</td><td>0-0</td><td>0-0</td><td>&nbsp;&mdash;&nbsp;</td></tr></table>
+<table><caption>Individual Doubles Overall Statistics</caption>
+<tr><th>Doubles</th><th>Overall</th><th>Dual</th><th>Tour</th><th>Conf</th><th>Streak</th></tr>
+<tr><td><a href="/x">Albiero, Andrea</a></td><td>2-1</td><td>2-1</td><td>0-0</td><td>1-0</td><td>W 1</td></tr></table>
+<table><caption>Individual Singles Conference Statistics</caption>
+<tr><th>Singles</th><th>Overall</th></tr><tr><td><a>Albiero, Andrea</a></td><td>9-9</td></tr></table>`;
+const tt = parseTennisTables(tennis);
+const rec = tennisRecord("Andrea Albiero", tt);
+ok(rec?.cells.singles === "3-0" && rec?.cells.doubles === "2-1" && rec?.matches === 6, "singles and doubles overall, conference table ignored");
+ok(tennisRecord("Thomas Horsley", tt) === null, "no match played → no record");
+ok(tennisRecord("Someone Else", tt) === null, "not on the page → nothing");
+ok(JSON.stringify(winLoss("12-4")) === "[12,4]" && JSON.stringify(winLoss("—")) === "[0,0]", "win-loss parse");
+ok(tennisLine("Andrea Albiero", "Adelphi", rec!.cells, d).endsWith("Andrea Albiero has a 3-0 singles record and 2-1 in doubles"), "tennis line");
+ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "the page's own season");
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);

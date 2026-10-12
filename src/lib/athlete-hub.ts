@@ -48,7 +48,7 @@ export function hubLines(records: string[]): HubLine[] {
 }
 
 /** Columns shown from a stats row, in this order, with each language's label. */
-const COLUMNS: Record<"outfield" | "keeper", Array<[string[], string, string]>> = {
+const COLUMNS: Record<"outfield" | "keeper" | "tennis", Array<[string[], string, string]>> = {
   outfield: [
     [["gp"], "Games", "Kampe"], [["gs"], "Starts", "Startet"], [["min", "mins"], "Minutes", "Minutter"],
     [["g"], "Goals", "Mål"], [["a"], "Assists", "Assists"], [["pts"], "Points", "Point"],
@@ -59,15 +59,20 @@ const COLUMNS: Record<"outfield" | "keeper", Array<[string[], string, string]>> 
     [["ga"], "Goals against", "Mål imod"], [["gaa"], "Per game", "Pr. kamp"], [["sv", "saves"], "Saves", "Redninger"],
     [["sv%", "pct", "sv pct"], "Save %", "Rednings-%"], [["sho", "sho/cbo"], "Clean sheets", "Clean sheets"],
   ],
+  tennis: [
+    [["singles"], "Singles", "Single"], [["dual"], "Singles, dual matches", "Single, holdkampe"],
+    [["conf"], "Singles, conference", "Single, konference"], [["doubles"], "Doubles", "Double"],
+    [["streak"], "Streak", "Stime"],
+  ],
 };
 
 /** The row's cells as labelled columns; a column the page lacks is left out. */
-export function statColumns(kind: "outfield" | "keeper", cellsJson: string, lang: string): Array<{ key: string; label: string; value: string }> {
+export function statColumns(kind: "outfield" | "keeper" | "tennis", cellsJson: string, lang: string): Array<{ key: string; label: string; value: string }> {
   let cells: Record<string, string> = {};
   try { cells = JSON.parse(cellsJson) as Record<string, string>; } catch { return []; }
   const da = (lang ?? "").toLowerCase() === "da";
   const out: Array<{ key: string; label: string; value: string }> = [];
-  for (const [keys, en, dk] of COLUMNS[kind]) {
+  for (const [keys, en, dk] of COLUMNS[kind] ?? []) {
     const key = keys.find((k) => typeof cells[k] === "string" && cells[k].trim() !== "" && cells[k].trim() !== "-");
     if (key) out.push({ key, label: da ? dk : en, value: cells[key].trim() });
   }

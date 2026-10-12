@@ -150,3 +150,83 @@ export function seasonLine(
     `${plural(games, "game", "games")}${lead ? ` — ${lead} in goals` : ""}`
   );
 }
+
+// ─── Tennis (2026-10-12) ────────────────────────────────────────────────────
+//
+// Sidearm's classic tennis stats page has no «Player» column: the first column
+// is headed «Singles» or «Doubles», and the cells are win-loss records
+// («3-0»). The first table of each kind is the overall one (the conference
+// tables follow). The new (Nuxt) layout renders these tables in the browser,
+// so it yields nothing here — and nothing is guessed.
+
+export interface TennisTables {
+  singles: StatsRow[];
+  doubles: StatsRow[];
+}
+
+function recordTable(html: string, first: string): StatsRow[] {
+  for (const t of html.match(/<table[\s\S]*?<\/table>/gi) ?? []) {
+    // The FIRST header row names the columns; «vs Ranked» spans two (Nat'l,
+    // Reg'l, in a second header row), so a spanned header counts as many.
+    const firstRow = /<tr[\s\S]*?<\/tr>/i.exec(t)?.[0] ?? "";
+    const headers = [...firstRow.matchAll(/<th([^>]*)>([\s\S]*?)<\/th>/gi)].flatMap((m) => {
+      const span = Number(/colspan="?(\d+)/i.exec(m[1])?.[1] ?? 1);
+      const name = text(m[2]).toLowerCase();
+      return span > 1 ? Array.from({ length: span }, (_, i) => `${name} ${i + 1}`) : [name];
+    });
+    if (headers[0] !== first || !headers.includes("overall")) continue;
+    const rows: StatsRow[] = [];
+    for (const tr of t.match(/<tr[\s\S]*?<\/tr>/gi) ?? []) {
+      const raw = [...tr.matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((m) => m[1]);
+      if (raw.length !== headers.length) continue;
+      const name = cellName(raw[0]);
+      if (!name || /^(total|opponents?)/i.test(text(raw[0]))) continue;
+      // «&mdash;» is the page's «no value»: kept as empty, never as text.
+      const cells = raw.map((c) => text(c).replace(/&mdash;|&ndash;/g, "—").trim().replace(/^[—–-]$/, ""));
+      rows.push({ name, cells: Object.fromEntries(headers.map((h, i) => [h, cells[i]])) });
+    }
+    if (rows.length) return rows;
+  }
+  return [];
+}
+
+export function parseTennisTables(html: string): TennisTables {
+  return { singles: recordTable(html, "singles"), doubles: recordTable(html, "doubles") };
+}
+
+/** «3-1» → [3, 1]; anything else → [0, 0]. */
+export function winLoss(v: string | undefined): [number, number] {
+  const m = /^(\d+)-(\d+)$/.exec((v ?? "").trim());
+  return m ? [Number(m[1]), Number(m[2])] : [0, 0];
+}
+
+/** The athlete's tennis records, or null when not on the page or no match played. */
+export function tennisRecord(athleteName: string, t: TennisTables): { cells: Record<string, string>; matches: number } | null {
+  const key = nameKey(athleteName);
+  const s = t.singles.find((r) => nameKey(r.name) === key);
+  const d = t.doubles.find((r) => nameKey(r.name) === key);
+  const cells: Record<string, string> = {};
+  if (s) { cells.singles = s.cells["overall"] ?? ""; cells.dual = s.cells["dual"] ?? ""; cells.conf = s.cells["conf"] ?? ""; cells.streak = s.cells["streak"] ?? ""; }
+  if (d) cells.doubles = d.cells["overall"] ?? "";
+  const matches = [...winLoss(cells.singles), ...winLoss(cells.doubles)].reduce((a, b) => a + b, 0);
+  return matches > 0 ? { cells, matches } : null;
+}
+
+/** The records sentence, in the same form as seasonLine so the profile reads both alike. */
+export function tennisLine(athleteName: string, school: string, cells: Record<string, string>, fetchedOn: Date): string {
+  const date = fetchedOn.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  const parts: string[] = [];
+  if (winLoss(cells.singles).some((n) => n > 0)) parts.push(`a ${cells.singles} singles record`);
+  if (winLoss(cells.doubles).some((n) => n > 0)) parts.push(`${parts.length ? "" : "a "}${cells.doubles} in doubles`);
+  return `${school}'s season statistics (stats page, ${date}): ${athleteName} has ${parts.join(" and ")}`;
+}
+
+/**
+ * The season a Sidearm stats page says it covers («2026-27 Men's Tennis
+ * Cumulative Statistics»), or null. Sidearm serves the CURRENT season for an
+ * unknown year in the URL, so the page's own heading is the check.
+ */
+export function pageSeason(html: string): string | null {
+  const m = /<h1[^>]*>[^<]*?(\d{4}-\d{2})\b[^<]*?Statistics/i.exec(html) ?? /(\d{4}-\d{2})[^<]{0,60}?Cumulative Statistics/i.exec(html);
+  return m ? m[1] : null;
+}

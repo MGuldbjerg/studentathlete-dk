@@ -10,7 +10,7 @@
  *
  * How: one fetch per TEAM, not per athlete. Athletes of every site country are
  * grouped by (school, sport, gender); each group's stats page (season-stats.ts:
- * Sidearm, soccer and field hockey) is fetched once, robots.txt respected, one
+ * Sidearm — soccer and field hockey, and tennis win-loss records) is fetched once, robots.txt respected, one
  * request per host at a time, and a row is written for every athlete of ours
  * found on it by exact full-name match with at least one game played.
  *
@@ -25,7 +25,7 @@ import { robotsAllows } from "../lib/robots";
 import { pipelineUserAgent } from "../../src/lib/site";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import { currentSeasonStart } from "../generate/timeline";
-import { STATS_SPORTS, nameKey, parseSeasonTables, seasonLine, statsUrl, type SeasonTables, type StatsRow } from "./season-stats";
+import { STATS_SPORTS, nameKey, pageSeason, parseSeasonTables, parseTennisTables, seasonLine, statsUrl, tennisLine, tennisRecord, type SeasonTables, type StatsRow } from "./season-stats";
 
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry-run");
@@ -36,6 +36,12 @@ const HOSTS_AT_ONCE = 6;
 
 interface Athlete { id: number; name: string; university: string; sport: string; gender: string | null; home_country: string }
 interface Group { university: string; sport: string; gender: string | null; athletes: Athlete[]; url?: string; school?: string }
+
+const UPSERT_SQL = `INSERT INTO athlete_season_stats (athlete_id, season, sport, kind, games, cells, line, school, source_url, fetched_on)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(athlete_id, season) DO UPDATE SET sport = excluded.sport, kind = excluded.kind,
+    games = excluded.games, cells = excluded.cells, line = excluded.line, school = excluded.school,
+    source_url = excluded.source_url, fetched_on = excluded.fetched_on`;
 
 const num = (v: string | undefined) => (v && /^\d+$/.test(v.trim()) ? Number(v) : 0);
 
@@ -52,7 +58,9 @@ export function findRow(name: string, t: SeasonTables): { kind: "keeper" | "outf
 async function main(): Promise<void> {
   const db = createD1Client();
   const ua = pipelineUserAgent();
-  const sports = [...STATS_SPORTS];
+  // Tennis reads its own tables (win-loss records, season-stats.ts); it is not in
+  // STATS_SPORTS because the article writer's records line has no tennis form.
+  const sports = [...STATS_SPORTS, "tennis"];
   const now = new Date();
   const season = seasonFromDate(now.toISOString());
   const today = now.toISOString().slice(0, 10);
@@ -105,18 +113,33 @@ async function main(): Promise<void> {
           if (!(await robotsAllows(g.url!, ua))) { failed++; continue; }
           const res = await fetch(g.url!, { headers: { "User-Agent": ua }, signal: AbortSignal.timeout(20_000) });
           if (!res.ok) { failed++; continue; }
-          const tables = parseSeasonTables(await res.text());
+          const html = await res.text();
+          // Sidearm serves the current season for any year in the URL; a page
+          // saying another season (a school still on last year's) is skipped.
+          const said = pageSeason(html);
+          if (said && said !== season) { failed++; continue; }
           fetched++;
+          if (g.sport === "tennis") {
+            const tt = parseTennisTables(html);
+            for (const a of g.athletes) {
+              const rec = tennisRecord(a.name, tt);
+              if (!rec) { missing++; continue; }
+              found++;
+              writes.push({
+                sql: UPSERT_SQL,
+                params: [a.id, season, a.sport, "tennis", rec.matches, JSON.stringify(rec.cells),
+                  tennisLine(a.name, g.school!, rec.cells, now), g.school, g.url, today],
+              });
+            }
+            continue;
+          }
+          const tables = parseSeasonTables(html);
           for (const a of g.athletes) {
             const hit = findRow(a.name, tables);
             if (!hit) { missing++; continue; }
             found++;
             writes.push({
-              sql: `INSERT INTO athlete_season_stats (athlete_id, season, sport, kind, games, cells, line, school, source_url, fetched_on)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(athlete_id, season) DO UPDATE SET sport = excluded.sport, kind = excluded.kind,
-                      games = excluded.games, cells = excluded.cells, line = excluded.line, school = excluded.school,
-                      source_url = excluded.source_url, fetched_on = excluded.fetched_on`,
+              sql: UPSERT_SQL,
               params: [a.id, season, a.sport, hit.kind, num(hit.row.cells["gp"]), JSON.stringify(hit.row.cells),
                 seasonLine(a.name, g.school!, tables, now), g.school, g.url, today],
             });
