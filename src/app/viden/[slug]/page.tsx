@@ -11,6 +11,7 @@ import {
   getGuide,
   guideToMarkdown,
   CATEGORY_LABELS,
+  categoryLabels,
   type GuideCategory,
 } from "@/lib/viden-content";
 
@@ -43,7 +44,7 @@ async function resolveGuide(slug: string): Promise<ResolvedGuide | null> {
   if (code) {
     return {
       title: code.title,
-      content: guideToMarkdown(code),
+      content: guideToMarkdown(code, site.language),
       description: code.description,
       category: code.category,
       updated: code.updated,
@@ -87,7 +88,7 @@ export default async function GuidePage({ params }: { params: Params }) {
   const url = `${base}${routePath("guides", site.language)}/${slug}`;
   const categoryLabel =
     g.category && g.category in CATEGORY_LABELS
-      ? CATEGORY_LABELS[g.category as GuideCategory]
+      ? categoryLabels(site.language)[g.category as GuideCategory]
       : null;
 
   const jsonLd = [

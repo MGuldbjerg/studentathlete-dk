@@ -13,6 +13,7 @@ import {
   getAthleteEvents,
   getSchoolBySlug,
   schoolHasCoverage,
+  countSchoolArticles,
   getAthletesByUniversity,
   countAthletesAtUniversity,
   getArticlesByUniversity,
@@ -249,7 +250,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             url: `${base}${getSchoolUrl(slug, lang)}`,
           },
           alternates: { canonical: `${base}${getSchoolUrl(slug, lang)}` },
-          robots: await profileRobots(site.profileIndexMinArticles === 0 || (await schoolHasCoverage(school.name))),
+          robots: await profileRobots(
+            site.profileIndexMinArticles === 0 || (await countSchoolArticles(school.name)) >= site.profileIndexMinArticles,
+          ),
         };
       }
     }

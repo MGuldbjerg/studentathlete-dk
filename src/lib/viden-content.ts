@@ -719,7 +719,14 @@ export const VIDEN_GUIDES: VidenGuide[] = [
 ];
 
 /** Strukturen → markdown (ArticleBody-kompatibel). Delt af seed + route-fallback. */
-export function guideToMarkdown(g: VidenGuide): string {
+/** Section headings the markdown carries, per language. Danish stays the default (seed + drift check). */
+const MD_HEADINGS: Record<string, { faq: string; related: string; sources: string }> = {
+  da: { faq: "Ofte stillede spørgsmål", related: "Læs også", sources: "Kilder" },
+  en: { faq: "Frequently asked questions", related: "Read next", sources: "Sources" },
+};
+
+export function guideToMarkdown(g: VidenGuide, lang = "da"): string {
+  const h = MD_HEADINGS[(lang ?? "").toLowerCase()] ?? MD_HEADINGS.da;
   const parts: string[] = [g.intro];
   for (const s of g.sections) {
     parts.push(`## ${s.heading}`);
@@ -727,18 +734,18 @@ export function guideToMarkdown(g: VidenGuide): string {
     if (s.list?.length) parts.push(s.list.map((i) => `- ${i}`).join("\n"));
   }
   if (g.faqs?.length) {
-    parts.push("## Ofte stillede spørgsmål");
+    parts.push(`## ${h.faq}`);
     for (const f of g.faqs) {
       parts.push(`### ${f.q}`);
       parts.push(f.a);
     }
   }
   if (g.related?.length) {
-    parts.push("## Læs også");
+    parts.push(`## ${h.related}`);
     parts.push(g.related.map((r) => `- [${r.label}](${r.href})`).join("\n"));
   }
   if (g.sources?.length) {
-    parts.push("## Kilder");
+    parts.push(`## ${h.sources}`);
     parts.push(g.sources.map((s) => `- [${s.label}](${s.url})`).join("\n"));
   }
   return parts.join("\n\n");

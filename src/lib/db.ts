@@ -459,10 +459,16 @@ export async function getArticlesByAthleteId(
         `SELECT ${ARTICLE_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.athlete_id = ? AND a.published = 1 AND a.country = ?
+         WHERE a.published = 1 AND a.country = ?
+           AND a.id IN (SELECT id FROM articles WHERE athlete_id = ?
+                        UNION SELECT article_id FROM article_athletes WHERE athlete_id = ?)
          ORDER BY a.published_at DESC LIMIT ?`
       )
-      .bind(athleteId, await siteCountry(country), limit)
+      // About the athlete OR naming them (article_athletes): an athlete who is
+      // public only through a team-mate's article must not show «No articles
+      // yet» — 35 .co.uk profiles did (site-check, 2026-10-12). Both halves
+      // of the UNION are index lookups.
+      .bind(await siteCountry(country), athleteId, athleteId, limit)
       .all();
     return (r.results ?? []) as Article[];
   } catch { return []; }
@@ -1042,19 +1048,44 @@ export async function getCoveredSchoolSlugs(country?: string): Promise<{ slug: s
   const db = await getDB();
   if (!db) return MOCK_SCHOOLS.map((s) => ({ slug: s.slug }));
   try {
+    // Schools that reach the profiles' index bar in articles (countSchoolArticles).
+    const code = await siteCountry(country);
+    const min = Math.max(1, countryProfile(code).profileIndexMinArticles);
     const r = await db
       .prepare(
         `SELECT slug FROM schools
          WHERE name IN (
-           SELECT a.university FROM athletes a
-           WHERE a.home_country = ? AND ${HAS_ARTICLE_SQL}
+           SELECT a.university FROM articles ar JOIN athletes a ON a.id = ar.athlete_id
+           WHERE a.home_country = ? AND ar.published = 1 AND ar.country = ?
+           GROUP BY a.university HAVING COUNT(*) >= ?
          )
          ORDER BY name`,
       )
-      .bind(await siteCountry(country))
+      .bind(code, code, min)
       .all();
     return (r.results ?? []) as { slug: string }[];
   } catch (err) { rethrowDbError(err, "dækkede skole-slugs til sitemap"); }
+}
+
+/**
+ * Published articles on this site about athletes from this site's country at a
+ * school — decides whether the school page is INDEXED (CountryProfile.
+ * profileIndexMinArticles, the profiles' bar). Indexed lookup on university.
+ */
+export async function countSchoolArticles(schoolName: string, country?: string): Promise<number> {
+  const db = await getDB();
+  if (!db) return 1;
+  try {
+    const code = await siteCountry(country);
+    const r = (await db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM articles ar JOIN athletes a ON a.id = ar.athlete_id
+          WHERE a.university = ? AND a.home_country = ? AND ar.published = 1 AND ar.country = ?`,
+      )
+      .bind(schoolName, code, code)
+      .first()) as { n: number } | null;
+    return r?.n ?? 0;
+  } catch { return 0; }
 }
 
 /** Does this school have an athlete from this site's country with a published article? */
