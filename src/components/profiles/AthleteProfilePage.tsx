@@ -71,7 +71,10 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
   // The records lines are English with English sources: the English site only.
   // This season's row from the school's stats page wins over a fact sheet's
   // line: it is refreshed daily. The sentence is English, the table is not.
-  const statsLine = lang === "en" && seasonStats?.line ? seasonHubLine(seasonStats.line) : null;
+  // «0 goals and 0 assists in 13 games» says less than the table beside it:
+  // the sentence only when it opens with something scored.
+  const statsLineRaw = lang === "en" && seasonStats?.line ? seasonHubLine(seasonStats.line) : null;
+  const statsLine = statsLineRaw && !/^0 goals\b/.test(statsLineRaw.text) ? statsLineRaw : null;
   const statsTable = seasonStats ? statColumns(seasonStats.kind, seasonStats.cells, lang) : [];
   // A fact sheet's season line is older than the table: keep only its ranking line then.
   const hub = lang === "en" ? hubLines(records).filter((h) => !(seasonStats && h.source.includes("stats page"))) : [];
@@ -372,7 +375,9 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                   ))}
                 </div>
               </section>
-            ) : (
+            ) : seasonStats ? null : (
+              // A profile public through its stats has its content above; an
+              // empty-state sentence under it only reads as a gap.
               <p className="text-muted text-sm">{t("profile.no_articles", lang)}</p>
             )}
           </div>
