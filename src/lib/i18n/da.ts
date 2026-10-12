@@ -587,6 +587,7 @@ const ui: LanguagePack["ui"] = {
   "profile.articles": "Artikler",
   "profile.timeline": "Tidslinje",
   "profile.season_so_far": "Sæsonen indtil nu",
+  "profile.stats_source": "{school}s statistikside, {date}",
   "fact.team_compatriots": "Danskere på holdet",
   "profile.timeline_note": "Æresbevisninger som skolerne selv lister dem, og det vi har skrevet om. ↗ åbner kilden.",
   "school.athletes": "Danske atleter",

@@ -4,7 +4,8 @@ import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 import { buildTimeline } from "@/lib/profile-timeline";
-import { hubLines } from "@/lib/athlete-hub";
+import { hubLines, seasonHubLine, statColumns } from "@/lib/athlete-hub";
+import type { SeasonStatsRow } from "@/lib/db";
 
 import { sportLabel, sportSlug, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
@@ -21,6 +22,8 @@ interface Props {
   teamCount?: number;
   /** Records lines from the newest fact sheet (src/lib/athlete-hub.ts). */
   records?: string[];
+  /** This season's stats from the school's page (athlete_season_stats). */
+  seasonStats?: SeasonStatsRow | null;
 }
 
 const STAT_ROWS = (a: Athlete, lang: string, teamCount = 0) => [
@@ -62,11 +65,16 @@ const STAT_ROWS = (a: Athlete, lang: string, teamCount = 0) => [
   },
 ].filter((r) => r.value);
 
-export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [], teamCount = 0, records = [] }: Props) {
+export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [], teamCount = 0, records = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   // The records lines are English with English sources: the English site only.
-  const hub = lang === "en" ? hubLines(records) : [];
+  // This season's row from the school's stats page wins over a fact sheet's
+  // line: it is refreshed daily. The sentence is English, the table is not.
+  const statsLine = lang === "en" && seasonStats?.line ? seasonHubLine(seasonStats.line) : null;
+  const statsTable = seasonStats ? statColumns(seasonStats.kind, seasonStats.cells, lang) : [];
+  // A fact sheet's season line is older than the table: keep only its ranking line then.
+  const hub = lang === "en" ? hubLines(records).filter((h) => !(seasonStats && h.source.includes("stats page"))) : [];
   const timeline = buildTimeline(events, articles, athlete.name, lang, (a) => getArticleUrl(a as Article, lang));
   return (
     <>
@@ -233,6 +241,38 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 artikler, nyeste først (src/lib/profile-timeline.ts). Erstatter
                 «Career highlights»-tabellen 2026-10-12: stadig én linje pr.
                 fakta og skolens egen tekst bliver hos skolen (Mikkel 17-09). */}
+            {seasonStats && statsTable.length > 0 && (
+              <section className="mb-10">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">
+                  {t("profile.season_so_far", lang)}
+                </p>
+                {statsLine && <p className="text-base font-semibold text-ink mb-3">{statsLine.text}</p>}
+                <div className="overflow-x-auto">
+                  <table className="text-sm border-collapse">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #E2E0DC" }}>
+                        {statsTable.map((c) => (
+                          <th key={c.key} className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-5">{c.label}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {statsTable.map((c) => (
+                          <td key={c.key} className="py-2 pr-5 text-lg font-bold text-ink" style={{ fontFamily: "var(--font-serif)" }}>{c.value}</td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-muted mt-2">
+                  <a href={seasonStats.source_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    {t("profile.stats_source", lang, { school: seasonStats.school, date: formatDateShort(seasonStats.fetched_on, lang) })} ↗
+                  </a>
+                </p>
+              </section>
+            )}
+
             {hub.length > 0 && (
               <section className="mb-10">
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">

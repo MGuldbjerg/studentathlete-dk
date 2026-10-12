@@ -5,7 +5,7 @@
 import { becomesTimelineEntry, timelineDate, timelineLine, timelineParams, wordCount } from "./timeline-entry";
 import { buildTimeline } from "./profile-timeline";
 import type { AthleteEventRow } from "./athlete-events";
-import { hubLines, recordsOf } from "./athlete-hub";
+import { hubLines, recordsOf, statColumns } from "./athlete-hub";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -77,6 +77,13 @@ ok(hub[0].text === "6 goals and 2 assists in 11 games — the team lead in goals
 ok(hub[1].text === "Chowan: tied for 1st in Division II men's football for goals per game (3.64, 11 games)", "ranking, British wording");
 ok(hubLines(["Our earlier article: «X»", "anything else"]).length === 0, "unknown lines are dropped");
 ok(recordsOf(JSON.stringify({ records: [{ text: "a" }, { text: 3 }] })).join() === "a" && recordsOf("{").length === 0, "records read defensively");
+
+// The stats table on the profile (athlete_season_stats → statColumns).
+const out = statColumns("outfield", JSON.stringify({ player: "Deighan, Robbie", gp: "11", gs: "9", min: "", g: "6", a: "2", pts: "14", sh: "-", sog: "12" }), "en");
+ok(out.map((c) => `${c.label}=${c.value}`).join(",") === "Games=11,Starts=9,Goals=6,Assists=2,Points=14,On target=12", "empty and dash cells left out, page order kept");
+const kp = statColumns("keeper", JSON.stringify({ gp: "10", ga: "9", gaa: "0.91", sv: "41", "sv%": ".820", "sho/cbo": "4/1" }), "da");
+ok(kp.map((c) => c.label).join(",") === "Kampe,Mål imod,Pr. kamp,Redninger,Rednings-%,Clean sheets", "keeper columns in Danish, alternative header names");
+ok(statColumns("outfield", "{", "en").length === 0, "unreadable cells → no table");
 
 console.log(`\ntimeline: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

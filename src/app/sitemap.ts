@@ -147,7 +147,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Profiles below the site's index bar are `noindex` (profileRobots) — a
   // sitemap must not ask Google for pages it is told not to index.
   const athletePages: MetadataRoute.Sitemap = athletes
-    .filter((a) => a.article_count >= site.profileIndexMinArticles)
+    .filter((a) => a.article_count >= site.profileIndexMinArticles || a.has_stats === 1)
     .map((a) => ({
     url: `${base}${getAthleteUrl(a.slug, lang)}`,
     lastModified: new Date(a.updated_at),

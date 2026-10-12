@@ -14,7 +14,7 @@ on:
 jobs:
   stats:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -35,6 +35,18 @@ jobs:
       - name: NCAA team rankings
         continue-on-error: true
         run: npx tsx pipeline/stats/ncaa-rankings.ts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+      # Every athlete's season stats from the school's own stats page
+      # (PLAN-adsense-uk.md, migration 067): one fetch per team (~460 pages,
+      # robots respected, one request per host at a time), ~900 upserts.
+      # A profile with this season's numbers is public and indexed.
+      - name: Athlete season stats
+        continue-on-error: true
+        run: npx tsx pipeline/stats/fill-season-stats.ts
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

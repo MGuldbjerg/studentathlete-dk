@@ -66,6 +66,8 @@ export interface Athlete {
   has_article?: number;
   /** Published articles about or naming the athlete (getAthleteBySlug, getAllAthleteSlugs). */
   article_count?: number;
+  /** 1 when this season's stats are on file (athlete_season_stats). */
+  has_stats?: number;
   /** Skolens stavemåde af navnet (matchnøgle for scraperen, migration-032). */
   roster_name?: string | null;
   /** Skolens eget spiller-id, "vært#id" — sand identitet på tværs af navneskift. */
