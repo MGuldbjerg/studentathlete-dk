@@ -1,8 +1,30 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-10-07 (where we are — read this section first)
+**Sidst opdateret**: 2026-10-12 (where we are — read this section first)
 
 ---
+
+## 💷 AdSense .co.uk: reworked, review requested 2026-10-12
+
+Rejected 2026-10-09 for «low value content». `PLAN-adsense-uk.md` has the plan; done
+2026-10-12 (#20–#28), and Mikkel requested a new review the same day:
+- **Profiles**: public with ≥1 article OR this season's stats; indexed with ≥2 articles OR
+  stats (`CountryProfile.profilePublicMinArticles/profileIndexMinArticles`, UK 1/2, DK 0/0).
+  Name-only profiles 404. Schools follow (indexed from 2 articles). Counts keep everyone.
+- **Stats**: `athlete_season_stats` (migration 067), filled daily in stats-daily by
+  `pipeline/stats/fill-season-stats.ts` — football + field hockey, site countries only;
+  944 UK / 101 DK on day one. Tennis is OFF: its pages show last season's numbers under the
+  current season's heading. Golf/athletics/swimming: no usable source (TFRRS acted against
+  scraping, SwimCloud blocks AI crawlers, Golfstat results disallow all). Rowing/rugby: none.
+- **Why stats matter**: 84 % of UK Google clicks (381/455, 28 days) went to profiles that
+  #20 removed; stats profiles bring the football/field hockey part back with real data.
+- **Short drafts**: UK drafts under 100 words become a dated timeline line on the profile at
+  publish (`src/lib/timeline-entry.ts`), both publish paths. New articles only.
+- **Profile**: timeline (honours + kept lines + our articles), «Season so far» stats table,
+  «UK players on the team». Danish strings on .co.uk fixed.
+- `scripts/site-check.ts` crawls a site like a reviewer; rerun before any AdSense request.
+- Scheduled task «UK AdSense: review result» runs 2026-10-26 09:00 (local, app open).
+
 
 ## 📰 Fuller articles: plan agreed, step 1 done (2026-10-07)
 
