@@ -4,6 +4,7 @@ import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 import { buildTimeline } from "@/lib/profile-timeline";
+import { hubLines } from "@/lib/athlete-hub";
 
 import { sportLabel, sportSlug, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
@@ -16,9 +17,13 @@ interface Props {
   /** Landsmænd på samme skole — profilens eneste vej VIDERE for de ~95%, der
    *  ikke har en artikel. Hentes af siden, ikke her. */
   schoolmates?: Athlete[];
+  /** Players from this site's country on the athlete's team, the athlete included. */
+  teamCount?: number;
+  /** Records lines from the newest fact sheet (src/lib/athlete-hub.ts). */
+  records?: string[];
 }
 
-const STAT_ROWS = (a: Athlete, lang: string) => [
+const STAT_ROWS = (a: Athlete, lang: string, teamCount = 0) => [
   // Sportssiden lister i forvejen 30 atleter; uden linket går trafikken kun
   // den ene vej. Samme mønster som universitetet lige nedenfor.
   {
@@ -40,6 +45,8 @@ const STAT_ROWS = (a: Athlete, lang: string) => [
     value: a.university,
     href: a.school_slug ? `${routePath("schools", lang)}/${a.school_slug}` : undefined,
   },
+  // Our own roster data: shown from two upwards (one is the athlete).
+  { label: t("fact.team_compatriots", lang), value: teamCount >= 2 ? String(teamCount) : undefined },
   { label: t("fact.state", lang),     value: a.university_state },
   { label: t("fact.division", lang), value: a.division },
   { label: t("fact.class_year", lang),   value: a.class_year },
@@ -55,9 +62,11 @@ const STAT_ROWS = (a: Athlete, lang: string) => [
   },
 ].filter((r) => r.value);
 
-export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [] }: Props) {
+export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [], teamCount = 0, records = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
+  // The records lines are English with English sources: the English site only.
+  const hub = lang === "en" ? hubLines(records) : [];
   const timeline = buildTimeline(events, articles, athlete.name, lang, (a) => getArticleUrl(a as Article, lang));
   return (
     <>
@@ -159,7 +168,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
               {t("profile.facts", lang)}
             </p>
             <dl className="divide-y" style={{ borderTop: "1px solid #E2E0DC", borderBottom: "1px solid #E2E0DC" }}>
-              {STAT_ROWS(athlete, lang).map((row) => (
+              {STAT_ROWS(athlete, lang, teamCount).map((row) => (
                 <div key={row.label} className="flex justify-between items-baseline py-3 px-1 gap-4">
                   <dt className="text-xs text-muted tracking-wide flex-shrink-0">{row.label}</dt>
                   <dd className="text-sm font-semibold text-ink text-right">
@@ -224,6 +233,22 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 artikler, nyeste først (src/lib/profile-timeline.ts). Erstatter
                 «Career highlights»-tabellen 2026-10-12: stadig én linje pr.
                 fakta og skolens egen tekst bliver hos skolen (Mikkel 17-09). */}
+            {hub.length > 0 && (
+              <section className="mb-10">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">
+                  {t("profile.season_so_far", lang)}
+                </p>
+                <div className="flex flex-col gap-3">
+                  {hub.map((h) => (
+                    <div key={h.source} className="pl-3" style={{ borderLeft: "3px solid #00205B" }}>
+                      <p className="text-base font-semibold text-ink">{h.text}</p>
+                      <p className="text-xs text-muted mt-0.5">{h.source}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {timeline.length > 0 && (
               <section className="mb-10">
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-2">

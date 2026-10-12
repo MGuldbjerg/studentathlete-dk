@@ -5,6 +5,7 @@
 import { becomesTimelineEntry, timelineDate, timelineLine, timelineParams, wordCount } from "./timeline-entry";
 import { buildTimeline } from "./profile-timeline";
 import type { AthleteEventRow } from "./athlete-events";
+import { hubLines, recordsOf } from "./athlete-hub";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -64,6 +65,18 @@ ok(rows.map((r) => r.key).join(",") === "a532,e3,a192,e2", "newest first, undate
 ok(rows[0].text === "Named Metro Conference Rookie of the Week" && rows[0].href === "/football/532" && !rows[0].external, "article row links inside");
 ok(rows[1].text === "Finishes ninth at Princeton Meadows Challenge" && rows[1].external, "kept line keeps its sentence and source");
 ok(rows[3].text === "MVP" && rows[3].honor && rows[3].date === null, "honour shows its canonical name by season");
+
+// The hub lines on the profile (athlete-hub.ts): the pipeline's own wording, parsed back.
+const hub = hubLines([
+  "Robbie Deighan is one of 7 British players on Chowan University's men's soccer roster (as of 7 October 2026)",
+  "Chowan University's season statistics (stats page, 8 October 2026): Robbie Deighan has 6 goals and 2 assists in 11 games — the team lead in goals",
+  "NCAA statistics through games of 6 October 2026: Chowan rank tied for 1st in Division II men's soccer for goals per game (3.64, 11 games)",
+]);
+ok(hub.length === 2, "season and ranking, not the roster line");
+ok(hub[0].text === "6 goals and 2 assists in 11 games — the team lead in goals" && hub[0].source === "Chowan University stats page, 8 October 2026", "season line and its source");
+ok(hub[1].text === "Chowan: tied for 1st in Division II men's football for goals per game (3.64, 11 games)", "ranking, British wording");
+ok(hubLines(["Our earlier article: «X»", "anything else"]).length === 0, "unknown lines are dropped");
+ok(recordsOf(JSON.stringify({ records: [{ text: "a" }, { text: 3 }] })).join() === "a" && recordsOf("{").length === 0, "records read defensively");
 
 console.log(`\ntimeline: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

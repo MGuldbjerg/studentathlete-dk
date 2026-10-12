@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { DEFAULT_COUNTRY, countryProfile } from "./countries";
 import { contentCountry } from "./site-server";
 import type { Article, Athlete, School } from "./types";
+import { recordsOf } from "./athlete-hub";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
 
@@ -643,6 +644,48 @@ export async function getAthletesByUniversity(
       .bind(university, code, limit)
       .all();
     return (r.results ?? []) as Athlete[];
+  } catch { return []; }
+}
+
+/**
+ * Players from this site's country on the athlete's own TEAM — same school,
+ * sport and (when known) gender, active. A number for the profile's fact box;
+ * the profile itself is one of them. Index: idx_athletes_uni_active_country.
+ */
+export async function countTeamCompatriots(a: Athlete, country?: string): Promise<number> {
+  const db = await getDB();
+  if (!db || !a.university || !a.sport) return 0;
+  try {
+    const g = (a as Athlete & { gender?: string | null }).gender ?? null;
+    const r = (await db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM athletes
+          WHERE university = ? AND home_country = ? AND active = 1 AND sport = ?
+            AND (? IS NULL OR gender = ?)`,
+      )
+      .bind(a.university, await siteCountry(country), a.sport, g, g)
+      .first()) as { n: number } | null;
+    return r?.n ?? 0;
+  } catch { return 0; }
+}
+
+/**
+ * The `records` lines of the athlete's newest published article on this site
+ * (src/lib/athlete-hub.ts reads them). One indexed lookup on athlete_id.
+ */
+export async function getLatestRecords(athleteId: number, country?: string): Promise<string[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const r = (await db
+      .prepare(
+        `SELECT s.fact_sheet FROM articles a JOIN stories s ON s.id = a.story_id
+          WHERE a.athlete_id = ? AND a.published = 1 AND a.country = ? AND s.fact_sheet LIKE '%"records"%'
+          ORDER BY a.published_at DESC LIMIT 1`,
+      )
+      .bind(athleteId, await siteCountry(country))
+      .first()) as { fact_sheet: string | null } | null;
+    return recordsOf(r?.fact_sheet ?? null);
   } catch { return []; }
 }
 

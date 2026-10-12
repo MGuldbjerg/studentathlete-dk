@@ -307,6 +307,8 @@ export type UiKey =
   | "profile.facts"
   | "profile.articles"
   | "profile.timeline"
+  | "profile.season_so_far"
+  | "fact.team_compatriots"
   | "profile.timeline_note"
   | "school.athletes"
   | "school.no_athletes"
