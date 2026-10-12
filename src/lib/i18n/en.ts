@@ -578,6 +578,8 @@ const ui: LanguagePack["ui"] = {
   "profile.facts": "Facts",
   "profile.articles": "Articles",
   "profile.timeline": "Timeline",
+  "profile.season_so_far": "Season so far",
+  "fact.team_compatriots": "UK players on the team",
   "profile.timeline_note": "Honours as the schools list them, and what we have reported. ↗ opens the source.",
   "school.athletes": "Athletes",
   "school.no_athletes": "No athletes registered yet.",
