@@ -1,3 +1,4 @@
+import { becomesTimelineEntry, timelineParams, TIMELINE_INSERT_SQL, TIMELINE_DELETE_SQL } from "./timeline-entry";
 import { cache } from "react";
 import { getDB, ARTICLE_SELECT } from "./db";
 import { pingIndexNow } from "./indexnow";
@@ -143,7 +144,7 @@ export async function publishArticle(id: number): Promise<void> {
   const article = await db
     .prepare(
       `SELECT a.cover_image_url, a.title, a.article_type, a.summary, a.content,
-              a.athlete_id, a.source_url, a.original_content,
+              a.athlete_id, a.source_url, a.original_content, a.country, at.name AS athlete_name,
               a.claude_fixed_content, a.fabrication_risk,
               s.fact_sheet, s.sensitive,
               at.photo_url, at.sport
@@ -168,7 +169,22 @@ export async function publishArticle(id: number): Promise<void> {
       sensitive: string | null;
       photo_url: string | null;
       sport: string | null;
+      country: string | null;
+      athlete_name: string | null;
     } | null;
+
+  // Under the site's word floor the draft becomes a timeline line, not a page
+  // (src/lib/timeline-entry.ts). Mirrors apply-draft-decisions.ts.
+  if (article && article.athlete_id && becomesTimelineEntry(article)) {
+    await db.batch([
+      db.prepare(TIMELINE_INSERT_SQL).bind(...timelineParams({
+        athlete_id: article.athlete_id, athlete_name: article.athlete_name ?? "",
+        title: article.title, source_url: article.source_url, fact_sheet: article.fact_sheet,
+      })),
+      ...TIMELINE_DELETE_SQL.map((sql) => db.prepare(sql).bind(id)),
+    ]);
+    return;
+  }
 
   // OG-billede-URLs er kun til meta-tags — bruges IKKE som synligt cover.
   // Atletfotos (headshots) stamples bevidst IKKE som cover: lister/karrusel

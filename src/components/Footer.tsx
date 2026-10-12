@@ -117,7 +117,7 @@ export async function Footer() {
               </li>
             )}
             {/* Leverer selv sit <li> — vises kun når Googles CMP er indlæst. */}
-            <ConsentSettingsLink enabled={settings["adsense.enabled"] === "true"} />
+            <ConsentSettingsLink enabled={settings["adsense.enabled"] === "true"} label={t("footer.cookie_settings", lang)} />
           </ul>
         </div>
       </div>

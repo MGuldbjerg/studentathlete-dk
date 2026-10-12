@@ -182,4 +182,5 @@ export const dk: CountryProfile = {
   // AdSense approved with every profile public and indexed; unchanged.
   profilePublicMinArticles: 0,
   profileIndexMinArticles: 0,
+  standaloneMinWords: 0,
 };

@@ -583,6 +583,10 @@ const ui: LanguagePack["ui"] = {
   "status.former": "Tidligere atlet",
 
   "profile.no_articles": "Ingen artikler endnu.",
+  "profile.facts": "Fakta",
+  "profile.articles": "Artikler",
+  "profile.timeline": "Tidslinje",
+  "profile.timeline_note": "Æresbevisninger som skolerne selv lister dem, og det vi har skrevet om. ↗ åbner kilden.",
   "school.athletes": "Danske atleter",
   "school.no_athletes": "Ingen registrerede atleter endnu.",
   "school.more_athletes": "Plus {n} danske atleter mere på {school}, som vi ikke har skrevet om endnu.",

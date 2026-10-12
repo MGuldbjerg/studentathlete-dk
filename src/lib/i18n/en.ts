@@ -575,6 +575,10 @@ const ui: LanguagePack["ui"] = {
   "status.former": "Former athlete",
 
   "profile.no_articles": "No articles yet.",
+  "profile.facts": "Facts",
+  "profile.articles": "Articles",
+  "profile.timeline": "Timeline",
+  "profile.timeline_note": "Honours as the schools list them, and what we have reported. ↗ opens the source.",
   "school.athletes": "Athletes",
   "school.no_athletes": "No athletes registered yet.",
   "school.more_athletes": "Plus {n} more UK athletes at {school} we have not written about yet.",
