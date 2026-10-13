@@ -15,10 +15,11 @@ function ok(cond: boolean, label: string): void {
 
 const words = (n: number) => Array.from({ length: n }, () => "word").join(" ");
 
-// The floor: UK only, final text, never an addition or an athlete-less draft.
+// The floor (130 on both sites): final text, never an addition or an athlete-less draft.
 ok(wordCount("  one two\n\nthree ") === 3, "words are whitespace tokens");
 ok(becomesTimelineEntry({ country: "UK", article_type: "season_update", content: words(75), athlete_id: 1 }), "75 words on .co.uk → a line");
-ok(!becomesTimelineEntry({ country: "UK", article_type: "season_update", content: words(100), athlete_id: 1 }), "100 words stays an article");
+ok(becomesTimelineEntry({ country: "UK", article_type: "season_update", content: words(129), athlete_id: 1 }), "129 words on .co.uk → a line");
+ok(!becomesTimelineEntry({ country: "UK", article_type: "season_update", content: words(130), athlete_id: 1 }), "130 words stays an article");
 ok(becomesTimelineEntry({ country: "DK", article_type: "season_update", content: words(129), athlete_id: 1 }), ".dk: 129 words is a line");
 ok(!becomesTimelineEntry({ country: "DK", article_type: "season_update", content: words(130), athlete_id: 1 }), ".dk: 130 words is an article");
 ok(!becomesTimelineEntry({ country: "UK", article_type: "addition", content: words(40), athlete_id: 1 }), "an addition is appended, not a line");

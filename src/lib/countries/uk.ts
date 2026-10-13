@@ -143,7 +143,8 @@ export const uk: CountryProfile = {
   // Mikkel 2026-10-12: public from 1 article, indexed from 2 (PLAN-adsense-uk.md).
   profilePublicMinArticles: 1,
   profileIndexMinArticles: 2,
-  standaloneMinWords: 100,
+  // Mikkel 2026-10-12: 100; 2026-10-13: 130, the same as .dk.
+  standaloneMinWords: 130,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
   demonym: "UK",
