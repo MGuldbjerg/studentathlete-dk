@@ -80,7 +80,7 @@ export interface CountryProfile {
    * A draft under this many words is not published as a page: publishing it
    * puts one dated line on the athlete's timeline instead (timeline-entry.ts).
    * 0 = no floor. UK 100 (Mikkel, 2026-10-12): weekly awards and one-line
-   * results were a sixth of the site's articles. DK 175 (2026-10-13).
+   * results were a sixth of the site's articles. DK 130 (2026-10-13).
    */
   standaloneMinWords: number;
 }

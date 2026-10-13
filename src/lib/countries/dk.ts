@@ -182,8 +182,7 @@ export const dk: CountryProfile = {
   // AdSense approved with every profile public and indexed; unchanged.
   profilePublicMinArticles: 0,
   profileIndexMinArticles: 0,
-  // Mikkel, 2026-10-13: a weekly award with its goal (#560, ~170 words) is a
-  // profile line, not an article. Higher than the UK's 100; 175 takes the two
-  // thin drafts then in the queue (168, 170) and leaves the median (222) alone.
-  standaloneMinWords: 175,
+  // Mikkel, 2026-10-13: a thin story is a profile line, not an article.
+  // Higher than the UK's 100; 130 words (10 of 57 published DK articles were under).
+  standaloneMinWords: 130,
 };
