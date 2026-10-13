@@ -76,6 +76,18 @@ export function timelineDate(factSheetJson: string | null, fallbackIso: string):
   return fallbackIso.slice(0, 10);
 }
 
+/**
+ * The date in a news URL — Sidearm sites file stories under /news/2026/10/6/ —
+ * when the fact sheet has none with a year. Null when the URL carries no date.
+ */
+export function sourceUrlDate(url: string | null | undefined): string | null {
+  const m = /\/(20\d\d)\/(\d{1,2})\/(\d{1,2})\//.exec(url ?? "");
+  if (!m) return null;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
 export const TIMELINE_INSERT_SQL = `INSERT OR IGNORE INTO athlete_events
   (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, article_id, created_at)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, datetime('now'))`;
@@ -101,7 +113,7 @@ export function timelineParams(d: {
   source_url: string | null;
   fact_sheet: string | null;
 }, nowIso: string = new Date().toISOString()): unknown[] {
-  const occurred = timelineDate(d.fact_sheet, nowIso);
+  const occurred = timelineDate(d.fact_sheet, sourceUrlDate(d.source_url) ?? nowIso);
   const award = extractEvents(d.title)[0];
   const significance = award?.significance ?? "routine";
   return [

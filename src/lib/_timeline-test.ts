@@ -2,7 +2,7 @@
  * The word floor (timeline-entry.ts) and the profile timeline (profile-timeline.ts).
  * Run: npx tsx src/lib/_timeline-test.ts
  */
-import { becomesTimelineEntry, timelineDate, timelineLine, timelineParams, wordCount } from "./timeline-entry";
+import { becomesTimelineEntry, sourceUrlDate, timelineDate, timelineLine, timelineParams, wordCount } from "./timeline-entry";
 import { buildTimeline } from "./profile-timeline";
 import type { AthleteEventRow } from "./athlete-events";
 import { hubLines, recordsOf, statColumns } from "./athlete-hub";
@@ -86,6 +86,13 @@ ok(out.map((c) => `${c.label}=${c.value}`).join(",") === "Games=11,Starts=9,Goal
 const kp = statColumns("keeper", JSON.stringify({ gp: "10", ga: "9", gaa: "0.91", sv: "41", "sv%": ".820", "sho/cbo": "4/1" }), "da");
 ok(kp.map((c) => c.label).join(",") === "Kampe,Mål imod,Pr. kamp,Redninger,Rednings-%,Clean sheets", "keeper columns in Danish, alternative header names");
 ok(statColumns("outfield", "{", "en").length === 0, "unreadable cells → no table");
+
+// The date in the source URL when the fact sheet has no year
+ok(sourceUrlDate("https://belmontbruins.com/news/2026/10/6/mens-soccer-x.aspx") === "2026-10-06", "Sidearm URL date");
+ok(sourceUrlDate("https://example.edu/sports/msoc/roster") === null, "no date in URL");
+ok(sourceUrlDate("https://x.edu/news/2026/13/40/y") === null, "impossible date ignored");
+ok(timelineParams({ athlete_id: 1, athlete_name: "A B", title: "A B scores", fact_sheet: null,
+  source_url: "https://x.edu/news/2026/10/6/y.aspx" }, "2026-10-13T10:00:00Z")[1] === "2026-10-06", "URL date beats publish date");
 
 console.log(`\ntimeline: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
