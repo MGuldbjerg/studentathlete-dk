@@ -1,5 +1,5 @@
 /** Tests for the automatic editor's guardrails. Run: npx tsx pipeline/fix/_auto-editor-test.ts */
-import { buildEditorPack, guard, parseVerdict, type EditorRow } from "./auto-editor";
+import { buildEditorPack, guard, overdue, parseVerdict, type EditorRow } from "./auto-editor";
 
 let pass = 0, fail = 0;
 function expect(name: string, got: unknown, want: unknown) {
@@ -15,6 +15,7 @@ const row: EditorRow = {
   athlete_name: "Jane Doe", gender: "f", class_year: "Jr.", expected_graduation: null, sport: "soccer",
   position: "F", university: "Example University", hometown: "Leeds, England", previous_school: null,
   companions: "[]", merged_sources: "[]", athlete_id: 9, preferred_name: null, headline: "Example beat Other", sensitive: null,
+  created_at: "2026-10-12 10:00:00",
 };
 
 // parseVerdict: only complete answers count
@@ -45,6 +46,25 @@ const pack = buildEditorPack(row, [{ title: "Jane Doe scores again", published_a
 expect("pack lists prior article", pack.includes("PUBLISHED 2026-10-01 «Jane Doe scores again»"), true);
 expect("pack has Northern Ireland rule", pack.includes("Northern Ireland is a place only"), true);
 expect("pack shows source before draft", pack.indexOf("example.edu/news") < pack.indexOf("## The draft"), true);
+
+// the 2-day deadline: an overdue draft is published if certain, otherwise rejected
+const NOW = Date.parse("2026-10-13T12:00:00Z");
+const old: EditorRow = { ...row, created_at: "2026-10-11 11:00:00" };
+expect("26 h is not overdue", overdue(row, NOW), false);
+expect("49 h is overdue", overdue(old, NOW), true);
+expect("no timestamp is not overdue", overdue({ created_at: null }, NOW), false);
+expect("fresh: model hold stays hold", guard(row, { action: "hold", reason: "ambiguous" }, NOW).action, "hold");
+expect("overdue: model hold → reject", guard(old, { action: "hold", reason: "ambiguous" }, NOW).action, "reject");
+expect("overdue: sensitive → reject", guard({ ...old, sensitive: "health" }, null, NOW).action, "reject");
+expect("fresh: sensitive → hold", guard({ ...row, sensitive: "health" }, null, NOW).action, "hold");
+expect("overdue: invented quote → reject",
+  guard(old, { action: "publish", title: "Jane Doe scores", summary: "s",
+    content: 'Jane Doe scored. "It was the best night of my life," Coach Smith said.' }, NOW).action,
+  "reject");
+expect("overdue: failed call still holds (not a doubt)", guard(old, null, NOW).action, "hold");
+const latePack = buildEditorPack(old, [], NOW);
+expect("overdue pack offers no hold", latePack.includes('{"action":"hold"'), false);
+expect("fresh pack offers hold", buildEditorPack(row, [], NOW).includes('{"action":"hold"'), true);
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

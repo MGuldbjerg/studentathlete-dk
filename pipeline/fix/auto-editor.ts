@@ -23,6 +23,11 @@
  *    HIGH finding turns publish into hold (the check knows nothing Opus wrote
  *    that the source didn't say)
  *  - an answer that is not valid JSON, or lacks a field, is a hold, never a guess
+ *  - Mikkel, 2026-10-13: a draft more than 2 days old is not held any longer —
+ *    published if certain, otherwise rejected. Every hold (sensitive flag, the
+ *    model's hold, a HIGH finding) becomes a reject. Only an answer that is no
+ *    verdict at all still holds: that is a failed call, not a doubt, and a
+ *    failed login must not reject the whole queue.
  *
  * The repo is public, so stdout carries ids and actions only. Titles, reasons
  * and text go to Discord (private) and to the decisions file in the runner's
@@ -45,6 +50,17 @@ export interface EditorRow extends DossierRow {
   preferred_name: string | null;
   headline: string | null;
   sensitive: string | null;
+  created_at: string | null;
+}
+
+/** Drafts older than this are decided: publish if certain, otherwise reject. */
+export const DEADLINE_DAYS = 2;
+
+/** Is the draft past the deadline? D1 timestamps are UTC without a zone. */
+export function overdue(r: Pick<EditorRow, "created_at">, now = Date.now()): boolean {
+  if (!r.created_at) return false;
+  const t = Date.parse(r.created_at.replace(" ", "T") + (/[zZ]|[+-]\d\d:?\d\d$/.test(r.created_at) ? "" : "Z"));
+  return Number.isFinite(t) && now - t > DEADLINE_DAYS * 86_400_000;
 }
 
 export interface PriorArticle {
@@ -62,7 +78,8 @@ const MODEL = process.env.AUTO_EDITOR_MODEL || "opus";
 
 // ── the prompt ──────────────────────────────────────────────────────────────
 
-export function buildEditorPack(r: EditorRow, prior: PriorArticle[]): string {
+export function buildEditorPack(r: EditorRow, prior: PriorArticle[], now = Date.now()): string {
+  const late = overdue(r, now);
   const priorList = prior.length
     ? prior.map((p) => `- ${p.published ? "PUBLISHED" : "DRAFT (also in queue)"} ${p.published_at ?? ""} «${p.title}»`).join("\n")
     : "(none)";
@@ -70,7 +87,7 @@ export function buildEditorPack(r: EditorRow, prior: PriorArticle[]): string {
 
 You are the editor of ${countryProfile(r.country ?? "UK").brand}, a news site about UK student-athletes at US colleges.
 A draft written by a smaller model from the fact sheet is below. Decide it: PUBLISH (after correcting it),
-REJECT, or HOLD for the human editor. Nobody reads it after you — what you publish goes live.
+${late ? `or REJECT. This draft is more than ${DEADLINE_DAYS} days old, so HOLD is no longer an option` : "REJECT, or HOLD for the human editor"}. Nobody reads it after you — what you publish goes live.
 
 **Read the source before the draft.** Read the draft first and you read the source through what the draft
 claims, and you miss what is wrong.
@@ -98,7 +115,7 @@ Reject when:
   a genuine new honour (conference player/golfer of the week, all-conference, records) is new
 - the source does not support the story the draft tells
 
-Hold (do not decide) when:
+${late ? "Because the draft is overdue, these also mean REJECT — publish only when you are highly certain every sentence holds:" : "Hold (do not decide) when:"}
 - identity or hometown/nationality is ambiguous or conflicts between source and athlete data
 - you would need anything outside the source and fact sheet to make it publishable
 - the story touches injury, health, legal or personal matters
@@ -121,8 +138,8 @@ Publish only after correcting, so that every sentence holds:
 Answer with ONLY a JSON object, nothing before or after it:
 
 {"action":"publish","title":"...","summary":"...","content":"...","note":"one line: what you changed"}
-{"action":"reject","reason":"one sentence"}
-{"action":"hold","reason":"one sentence"}
+{"action":"reject","reason":"one sentence"}${late ? "" : `
+{"action":"hold","reason":"one sentence"}`}
 `;
 }
 
@@ -179,16 +196,21 @@ export function recheck(r: EditorRow, v: Extract<Verdict, { action: "publish" }>
 }
 
 /** The final decision for one draft: the model's verdict after the guardrails. */
-export function guard(r: EditorRow, v: Verdict | null): Verdict {
-  if (r.sensitive) return { action: "hold", reason: `story flagged sensitive (${r.sensitive}) — never decided automatically` };
-  if (!v) return { action: "hold", reason: "the model's answer was not a valid decision" };
-  if (v.action !== "publish") return v;
-  const findings = recheck(r, v);
+export function guard(r: EditorRow, v: Verdict | null, now = Date.now()): Verdict {
+  if (!v && !r.sensitive) return { action: "hold", reason: "the model's answer was not a valid decision" };
+  const doubt = (reason: string): Verdict =>
+    overdue(r, now)
+      ? { action: "reject", reason: `over ${DEADLINE_DAYS} days old and not certain: ${reason}` }
+      : { action: "hold", reason };
+  if (r.sensitive) return doubt(`story flagged sensitive (${r.sensitive}) — never published automatically`);
+  if (v!.action === "hold") return doubt(v!.reason);
+  if (v!.action !== "publish") return v!;
+  const findings = recheck(r, v!);
   if (severityOf(findings) === "high") {
     const f = findings.find((x) => x.severity === "high")!;
-    return { action: "hold", reason: `mechanical check after correction: ${f.claim} — ${f.why}` };
+    return doubt(`mechanical check after correction: ${f.claim} — ${f.why}`);
   }
-  return v;
+  return v!;
 }
 
 // ── the run ─────────────────────────────────────────────────────────────────
@@ -229,6 +251,7 @@ async function main() {
     "ath.preferred_name",
     "s.headline",
     "s.sensitive",
+    "a.created_at",
   ])} WHERE a.published = 0 AND a.country = ? ORDER BY a.id LIMIT ?`;
   const rows = (await db.query<EditorRow>(sql, [country, limit])).results;
   console.log(`${rows.length} unpublished ${country} draft(s)`);
