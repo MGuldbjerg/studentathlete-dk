@@ -50,6 +50,13 @@ const SENSITIVE_PATTERNS: Array<{ type: SensitiveType; re: RegExp }> = [
     // Dødsfald/indlæggelse/mentalt helbred. IKKE "sudden death" (overtid i golf/hockey).
     re: /\b(pass(?:ed|es) away|dies at|died at|death of|mourns?|mourning|funeral|obituary|hospitalized|life-threatening|mental health|critical condition)\b/i,
   },
+  {
+    type: "personal",
+    // Serious illness. Mikkel, 2026-10-13: a portrait of a player's cancer
+    // (diagnosis, chemotherapy, medical bills) is too personal for the site.
+    // Injuries and surgery stay normal coverage.
+    re: /\b(cancer|cancer-free|lymphoma|leuka?emia|tumou?r|chemo(?:therapy)?|radiation (?:treatment|therapy)|in remission|diagnosed with)\b/i,
+  },
 ];
 
 /**

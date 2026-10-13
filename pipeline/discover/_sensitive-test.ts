@@ -42,6 +42,9 @@ expectType("Guard placed on academic probation", "eligibility", "academic probat
 expectType("Program mourns the death of former coach", "personal", "dødsfald");
 expectType("Team captain hospitalized after collision", "personal", "indlæggelse");
 expectType("Star opens up about mental health struggles", "personal", "mentalt helbred");
+expectType("Amtrup's journey: diagnosed with Hodgkin lymphoma as a freshman", "personal", "illness");
+expectType("Cancer-free and back on the pitch", "personal", "cancer-free");
+expectType("Defender returns after chemotherapy", "personal", "chemotherapy");
 
 // ── Må IKKE flagges (rutine-sportssprog) ─────────────────────────────────────
 expectType("Jensen wins playoff in sudden death on the 18th hole", null, "sudden death = overtid (golf)");
