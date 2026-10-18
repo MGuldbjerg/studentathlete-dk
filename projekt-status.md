@@ -4,6 +4,20 @@
 
 ---
 
+## 📝 Draft catch-up, 2026-10-18 (Mikkel back after a few days)
+
+17 open drafts (5 DK, 12 UK) checked against their full sources, corrected, and all published
+on Mikkel's instruction, spaced 17–23 min per site (local `logs/dk-decisions-2026-10-18.json`,
+`logs/uk-decisions-2026-10-18.json`; run logs beside them). Nothing rejected. Fixes worth
+knowing: invented venue (#731), wrong Triguero goal times (#740), «the hosts» for an away win
+(#742), "Bertil Hansen" for Rygaard Hansen (#723), Gratton's 11-vs-13 goal conflict in the source
+(#734, dropped). The UK run ends about 00:45 and may overlap the 00:00 auto-editor window: it
+skips anything already published. DK drafts were published by Claude on Mikkel's say-so; the .dk
+pages still promise a person reads every article.
+
+---
+
+
 ## 💷 AdSense .co.uk: reworked, review requested 2026-10-12
 
 Rejected 2026-10-09 for «low value content». `PLAN-adsense-uk.md` has the plan; done
