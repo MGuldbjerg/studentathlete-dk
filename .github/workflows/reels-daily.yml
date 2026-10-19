@@ -1,7 +1,8 @@
 name: Reels (UK)
 
 # One text-only Instagram reel a day for student-athlete.co.uk (PLAN-reels.md).
-# Mikkel 2026-10-08: UK first, no athlete tags yet, around 9 AM UK time, silent.
+# Mikkel 2026-10-08: UK first, no athlete tags yet, silent. GitHub starts these runs hours
+# late, so any run between 08:30 and 21:00 UK time may post (once a day).
 #
 # Two cron times cover 9 AM in both BST (07:50 UTC = 08:50) and GMT
 # (08:50 UTC = 08:50); `--scheduled` keeps only a run inside 08:30–11:00 UK

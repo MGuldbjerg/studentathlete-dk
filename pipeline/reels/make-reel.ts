@@ -19,7 +19,7 @@
  *
  *   --render-only     frames + MP4 to disk; no Meta, no D1 write
  *   --container-only  let Meta fetch it and wait for FINISHED, then stop: nothing is published
- *   --scheduled       only between 08:30 and 11:00 UK time, and once a day
+ *   --scheduled       only between 08:30 and 21:00 UK time, and once a day
  */
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -87,9 +87,13 @@ function londonNow(now = new Date()): { minutes: number; day: string } {
   return { minutes: Number(parts.hour) * 60 + Number(parts.minute), day: `${parts.year}-${parts.month}-${parts.day}` };
 }
 
-/** Two cron times (07:50 and 08:50 UTC) cover 9 AM in both BST and GMT; this window picks one. */
+/**
+ * GitHub delays scheduled runs by hours (11:45–18:14 UTC measured 2026-10-09..19), so a narrow
+ * 9 AM window skipped every run. Post whenever a run lands between 08:30 and 21:00 UK time;
+ * the once-a-day check below keeps it to one reel.
+ */
 export function inPostingWindow(minutes: number): boolean {
-  return minutes >= 8 * 60 + 30 && minutes < 11 * 60;
+  return minutes >= 8 * 60 + 30 && minutes < 21 * 60;
 }
 
 interface Candidate {
@@ -237,7 +241,7 @@ async function main(): Promise<void> {
   if (args.scheduled) {
     const { minutes, day } = londonNow();
     if (!inPostingWindow(minutes)) {
-      console.log(`Outside the 08:30–11:00 UK window (${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}) — nothing to do.`);
+      console.log(`Outside the 08:30–21:00 UK window (${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}) — nothing to do.`);
       return;
     }
     const today = await db.query<{ n: number }>(

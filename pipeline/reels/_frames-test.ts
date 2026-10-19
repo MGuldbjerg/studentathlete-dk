@@ -73,7 +73,7 @@ ok(JSON.stringify(fadeOffsets([2.6, 4, 3.4])) === JSON.stringify([2.2, 5.8]), "x
 ok(Math.abs(totalSeconds([2.6, 4, 3.4]) - 9.2) < 1e-9, "total minus the overlaps");
 
 // Schedule window and channel.
-ok(!inPostingWindow(7 * 60 + 50) && inPostingWindow(8 * 60 + 50) && inPostingWindow(9 * 60 + 50) && !inPostingWindow(11 * 60), "08:30–11:00 UK");
+ok(!inPostingWindow(7 * 60 + 50) && inPostingWindow(8 * 60 + 50) && inPostingWindow(14 * 60) && !inPostingWindow(21 * 60), "08:30–21:00 UK");
 ok(reelChannel("UK") === "instagram_uk_reel", "own channel, never drained");
 
 console.log(`\nreel frames: ${pass} passed, ${fail} failed`);

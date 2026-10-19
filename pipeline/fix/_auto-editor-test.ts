@@ -30,7 +30,7 @@ expect("no JSON at all", parseVerdict("I cannot decide this."), null);
 // guard: the machine never decides what it shouldn't
 expect("no verdict → hold", guard(row, null).action, "hold");
 expect("sensitive → hold even if model says publish",
-  guard({ ...row, sensitive: "injury" }, { action: "publish", title: "T", summary: "S", content: "C" }).action, "hold");
+  guard({ ...row, sensitive: "injury" }, { action: "publish", title: "T", summary: "S", content: "C" }, Date.parse("2026-10-13T12:00:00Z")).action, "hold");
 expect("reject passes through", guard(row, { action: "reject", reason: "dup" }), { action: "reject", reason: "dup" });
 expect("clean publish passes",
   guard(row, { action: "publish", title: "Jane Doe scores as Example beat Other", summary: "Jane Doe scored.",
@@ -38,7 +38,7 @@ expect("clean publish passes",
   "publish");
 expect("invented quote → hold",
   guard(row, { action: "publish", title: "Jane Doe scores", summary: "s",
-    content: 'Jane Doe scored. "It was the best night of my life," Coach Smith said.' }).action,
+    content: 'Jane Doe scored. "It was the best night of my life," Coach Smith said.' }, Date.parse("2026-10-13T12:00:00Z")).action,
   "hold");
 
 // pack: duplicates and rules are in front of the model
