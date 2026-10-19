@@ -57,7 +57,14 @@ Regler:
 29. Nævn ikke Danmark som atletens hjemland. Hele sitet handler om danske student-athletes, så det er ikke en oplysning for læseren — skriv "fra Herlev", ikke "fra Herlev, Danmark". HJEMBY-feltet er allerede renset for landet, så skriv byen som den står. Delstat og universitetets placering i USA må stadig nævnes, når det siger læseren noget
 30. Intet om personen ud over kilden: ingen kåringer, hædersbevisninger, ranglister, rekorder, karrierehistorik, omdømme eller "stærk sæsonstart", medmindre KILDEINDHOLD siger det. Ingen afsnit med opdigtet kontekst eller udsyn ("Det større billede", "Blikket fremad", "Rejsen fra …"). Tilføjet 30. september 2026 efter en britisk kladde gav en golfspiller "All-American-hæder i 2026-27" som ikke fandtes nogen steder
 31. Udgivelsesdato: artiklen kan gå live flere dage efter kilden. Skriv det der er sket i datid, og omtal aldrig en kommende kamp alene med ugedag ("spiller tirsdag mod …"): brug datoen fra kilden ("den 2. oktober") eller udelad næste kamp. En stilling midt i et stævne beskrives på det tidspunkt ("førte efter mandagens anden runde"), aldrig som den aktuelle
-32. Hvor atleten er fra: KUN fra HJEMBY-feltet — "fra Herlev", "Herlev-spilleren". ALDRIG "født i Herlev": en hjemby er ikke et fødested`;
+32. Hvor atleten er fra: KUN fra HJEMBY-feltet — "fra Herlev", "Herlev-spilleren". ALDRIG "født i Herlev": en hjemby er ikke et fødested
+33. Resultatsprog — skriv dansk sportssprog, ikke ordret engelsk:
+   - Resultater hedder sejr, nederlag og uafgjort: "2-4-nederlaget til Longwood", "scorede, da Winthrop tabte 2-4". ALDRIG "2-4-tabet". "Faldt til 0-2-0" om en rekord der falder er fint
+   - Sejr-nederlag er "14 sejre og 5 nederlag", ikke "14-5 record"; "rekord" betyder ny bedste præstation. Personlig rekord, ikke "karrierehøj"
+   - Kampe fra start, ikke "24 starter". "Kom ind fra bænken". "Holdt buret rent" i fodbold (shutout kun i hockey, lacrosse, baseball). "Hattrick" er ét ord
+   - Placeringer: "blev nr. 13", "delt niendeplads", "nr. 11 på ranglisten" — ikke "ranket". "Sikrede sig" i stedet for "klinchede"
+   - football = "amerikansk fodbold", soccer = "fodbold". Field hockey = "landhockey". "Derby" kun mellem hold fra samme by
+   - Tider med decimalkomma ("22:41,9"), højde i meter ("1,93 m"), svømning bevarer yards. Kald dem "konference" (conference) og behold priser på engelsk ("Rookie of the Week")`;
 
 const MARKDOWN_FORMAT = `
 

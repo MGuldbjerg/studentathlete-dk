@@ -218,5 +218,23 @@ ok(
   "et opdigtet navn med dansk endelse fanges stadig",
 );
 
+// ── Sprog: ordret oversatte vendinger (Mikkel, 2026-10-19) ───────────────────
+const calque = checkDraft({
+  title: "Villads Juma Baden scorede i 2-4-tabet til Longwood",
+  content: "Winthrop tabte hjemme.",
+  factSheet: null,
+  sourceText: null,
+  athlete: null,
+  language: "da",
+}, NOW);
+ok(calque.some((f) => f.category === "language" && f.claim === "2-4-tabet"), "2-4-tabet flages som sprog");
+eq(severityOf(calque.filter((f) => f.category === "language")), "medium", "ét sprogfund giver medium, ikke high");
+eq(
+  checkDraft({ ...{ title: "Scored in the 2-4-tabet", content: "x", factSheet: null, sourceText: null, athlete: null }, language: "en" }, NOW)
+    .filter((f) => f.category === "language"),
+  [],
+  "sprogtjekket kører ikke på engelsk",
+);
+
 console.log(`\n${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

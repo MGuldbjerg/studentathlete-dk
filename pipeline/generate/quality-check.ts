@@ -38,10 +38,11 @@
 
 import { checkEventTiming } from "./event-timing";
 import { numberRoleFindings } from "./number-roles";
+import { calqueFindings } from "../checks/danish-calques";
 
 export interface Finding {
   severity: "high" | "medium";
-  category: "numbers" | "roles" | "names" | "quotes" | "identity" | "pronouns" | "timing" | "class_year";
+  category: "numbers" | "roles" | "names" | "quotes" | "identity" | "pronouns" | "timing" | "class_year" | "language";
   /** Det konkrete i kladden der udløste fundet. */
   claim: string;
   /** Hvad et menneske skal kigge efter. */
@@ -439,6 +440,20 @@ export function checkDraft(input: CheckInput, now: Date = new Date()): Finding[]
     }
   }
 
+  // ── 8. Sprog ──────────────────────────────────────────────────────────────
+  // Ordret oversatte engelske vendinger («2-4-tabet»). Kun dansk: engelsk tekst
+  // har ikke den fejl. Se checks/danish-calques.ts.
+  if (input.language === "da") {
+    for (const c of calqueFindings(draft)) {
+      findings.push({
+        severity: "medium",
+        category: "language",
+        claim: c.claim,
+        why: `ikke dansk sportssprog — brug ${c.use}`,
+      });
+    }
+  }
+
   // ── 7. Årgang ─────────────────────────────────────────────────────────────
   const cls = (input.athlete?.classYear ?? "").toLowerCase();
   if (cls.startsWith("sr") || cls.startsWith("gr") || cls.startsWith("r-sr")) {
@@ -497,6 +512,9 @@ const PRECISE: ReadonlySet<Finding["category"]> = new Set([
   "pronouns",
   "quotes",
   "class_year",
+  // Sprogfund er præcise (mønstre med få falske alarmer) men kun «medium»:
+  // en dårlig vending er til rettelse, ikke til afvisning.
+  "language",
   // Rolle-fund er præcise af konstruktion: de kræver en KONFLIKT med kilden,
   // ikke et fravær. Målt mod hele arkivet 2026-09-08 (79 artikler med kilde):
   // 8 fund i udkast — de seks sæsonpremierer, den opdigtede 3-1 og de fire
@@ -535,6 +553,7 @@ export function summarise(findings: Finding[]): string {
     pronouns: "stedord",
     timing: "ikke overstået",
     class_year: "årgang",
+    language: "sprog",
   };
   return [...byCat.entries()]
     .map(([cat, claims]) => `${label[cat as Finding["category"]]}: ${claims.slice(0, 4).join(", ")}`)
