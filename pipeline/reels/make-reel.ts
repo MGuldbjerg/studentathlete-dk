@@ -1,13 +1,13 @@
 /**
- * One text-only reel a day per site (PLAN-reels.md, Mikkel 2026-10-08: UK first,
- * no athlete tags yet, around 9 AM UK time, silent).
+ * Text-only reels, at most one an hour per site (PLAN-reels.md, Mikkel 2026-10-08: UK first,
+ * no athlete tags yet, silent; 2026-10-19: hourly, newest unreeled article first).
  * ============================================================================
  *
- * Picks one article published in the last 24 hours, renders its frames with
+ * Picks the newest article published in the last 24 hours that has no reel yet, renders its frames with
  * satori + resvg (as render-cards.ts does), joins them into a silent MP4 with
  * ffmpeg, and publishes it as an Instagram reel. Everything runs in GitHub
  * Actions; the Worker is not involved, and D1 sees one selection query and one
- * `social_posts` row a day. The reel's row uses its own channel name
+ * `social_posts` row per reel. The reel's row uses its own channel name
  * (`instagram_uk_reel`), so the hourly social drain never touches it and the
  * UNIQUE(article_id, channel) constraint stops a rerun posting twice.
  *
@@ -19,7 +19,7 @@
  *
  *   --render-only     frames + MP4 to disk; no Meta, no D1 write
  *   --container-only  let Meta fetch it and wait for FINISHED, then stop: nothing is published
- *   --scheduled       only between 08:30 and 21:00 UK time, and once a day
+ *   --scheduled       only between 08:30 and 21:00 UK time, and at most one an hour
  */
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -31,7 +31,6 @@ import { countryProfile } from "../../src/lib/countries";
 import { getArticleReelUrl, metaDescription, reelBlobKey } from "../../src/lib/seo";
 import { siteBaseUrl } from "../../src/lib/site";
 import { ADDITION_TYPE } from "../../src/lib/article-addition";
-import { isWeeklyAward } from "../generate/award-section";
 import { buildPostText } from "../social/copy";
 import { readAccountEnv } from "../social/registry";
 import {
@@ -90,8 +89,11 @@ function londonNow(now = new Date()): { minutes: number; day: string } {
 /**
  * GitHub delays scheduled runs by hours (11:45–18:14 UTC measured 2026-10-09..19), so a narrow
  * 9 AM window skipped every run. Post whenever a run lands between 08:30 and 21:00 UK time;
- * the once-a-day check below keeps it to one reel.
+ * the minimum gap below keeps it to one reel an hour.
  */
+/** Minimum minutes between two reels. */
+const MIN_GAP_MINUTES = 55;
+
 export function inPostingWindow(minutes: number): boolean {
   return minutes >= 8 * 60 + 30 && minutes < 21 * 60;
 }
@@ -244,12 +246,13 @@ async function main(): Promise<void> {
       console.log(`Outside the 08:30–21:00 UK window (${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}) — nothing to do.`);
       return;
     }
-    const today = await db.query<{ n: number }>(
-      `SELECT COUNT(*) AS n FROM social_posts WHERE channel = ? AND status = 'posted' AND posted_at >= datetime('now', '-20 hours')`,
+    // 55, not 60: a run that GitHub starts a few minutes earlier than last hour's must still post.
+    const recent = await db.query<{ n: number }>(
+      `SELECT COUNT(*) AS n FROM social_posts WHERE channel = ? AND status = 'posted' AND posted_at >= datetime('now', '-${MIN_GAP_MINUTES} minutes')`,
       [channel],
     );
-    if ((today.results[0]?.n ?? 0) > 0) {
-      console.log(`A reel already went out today (${day}) — nothing to do.`);
+    if ((recent.results[0]?.n ?? 0) > 0) {
+      console.log(`A reel went out in the last ${MIN_GAP_MINUTES} minutes (${day}) — nothing to do.`);
       return;
     }
   }
@@ -267,17 +270,14 @@ async function main(): Promise<void> {
     args.article ? [args.country, ADDITION_TYPE, args.article] : [args.country, ADDITION_TYPE, channel, channel],
   );
   if (!rows.results.length) {
-    console.log(args.article ? `Article ${args.article} is not a published ${args.country} article.` : "No article published in the last 24 hours — no reel today.");
+    console.log(args.article ? `Article ${args.article} is not a published ${args.country} article.` : "No article published in the last 24 hours — no reel to make.");
     return;
   }
 
-  // The most frames (most sourced data) wins; then a weekly award; then the newest.
-  const scored = rows.results.map((r) => {
-    const frames = buildFrames({ name: r.name, gender: r.gender, hometown: r.hometown, university: r.university, sport: r.sport,
-      title: r.title, brand, records: recordsOf(r.fact_sheet) });
-    return { r, frames, score: frames.length * 2 + (isWeeklyAward(r.title) ? 1 : 0) };
-  }).sort((x, y) => y.score - x.score || y.r.published_at.localeCompare(x.r.published_at));
-  const { r, frames } = scored[0];
+  // Newest first (Mikkel 2026-10-19); the query already left out articles with a reel.
+  const r = [...rows.results].sort((x, y) => y.published_at.localeCompare(x.published_at))[0];
+  const frames = buildFrames({ name: r.name, gender: r.gender, hometown: r.hometown, university: r.university, sport: r.sport,
+    title: r.title, brand, records: recordsOf(r.fact_sheet) });
   console.log(`Article ${r.id}: ${r.title}\n  ${frames.length} frames: ${frames.map((f) => f.kind).join(" → ")}`);
 
   const dir = args.out ?? path.join(process.env.RUNNER_TEMP ?? "/tmp", `reel-${r.id}`);

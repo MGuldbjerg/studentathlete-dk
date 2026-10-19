@@ -1,20 +1,19 @@
 name: Reels (UK)
 
-# One text-only Instagram reel a day for student-athlete.co.uk (PLAN-reels.md).
+# Text-only Instagram reels for student-athlete.co.uk, one an hour (PLAN-reels.md).
 # Mikkel 2026-10-08: UK first, no athlete tags yet, silent. GitHub starts these runs hours
-# late, so any run between 08:30 and 21:00 UK time may post (once a day).
+# late, so any run between 08:30 and 21:00 UK time may post. Mikkel 2026-10-19: at most one
+# an hour, newest article without a reel first, max age 24 hours.
 #
-# Two cron times cover 9 AM in both BST (07:50 UTC = 08:50) and GMT
-# (08:50 UTC = 08:50); `--scheduled` keeps only a run inside 08:30–11:00 UK
-# time and only one reel a day, so the other run is a no-op.
+# Hourly 07:20–20:20 UTC covers 08:30–21:00 UK in both BST and GMT; `--scheduled`
+# keeps only a run inside that window and 55+ minutes after the last reel.
 #
 # Scheduled runs post only while the repository variable REELS_ENABLED_UK is
 # 'true' — that variable is the on/off switch. A manual run defaults to
 # render-only (an MP4 as a run artifact, nothing posted, nothing written).
 on:
   schedule:
-    - cron: '50 7 * * *'
-    - cron: '50 8 * * *'
+    - cron: '20 7-20 * * *'
   workflow_dispatch:
     inputs:
       mode:
