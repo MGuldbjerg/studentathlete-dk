@@ -1,5 +1,5 @@
 /**
- * Text-only reels, at most one an hour per site (PLAN-reels.md, Mikkel 2026-10-08: UK first,
+ * Text-only reels, at most one an hour and 6 per 24 hours per site (PLAN-reels.md, Mikkel 2026-10-08: UK first,
  * no athlete tags yet, silent; 2026-10-19: hourly, newest unreeled article first).
  * ============================================================================
  *
@@ -93,6 +93,8 @@ function londonNow(now = new Date()): { minutes: number; day: string } {
  */
 /** Minimum minutes between two reels. */
 const MIN_GAP_MINUTES = 55;
+/** Reels per rolling 24 hours. Mikkel 2026-10-19: 6 at most for the first month — revisit 2026-11-19. */
+const MAX_PER_DAY = 6;
 
 export function inPostingWindow(minutes: number): boolean {
   return minutes >= 8 * 60 + 30 && minutes < 21 * 60;
@@ -247,11 +249,17 @@ async function main(): Promise<void> {
       return;
     }
     // 55, not 60: a run that GitHub starts a few minutes earlier than last hour's must still post.
-    const recent = await db.query<{ n: number }>(
-      `SELECT COUNT(*) AS n FROM social_posts WHERE channel = ? AND status = 'posted' AND posted_at >= datetime('now', '-${MIN_GAP_MINUTES} minutes')`,
+    const recent = await db.query<{ day_n: number; gap_n: number }>(
+      `SELECT COUNT(*) AS day_n, COALESCE(SUM(posted_at >= datetime('now', '-${MIN_GAP_MINUTES} minutes')), 0) AS gap_n
+         FROM social_posts WHERE channel = ? AND status = 'posted' AND posted_at >= datetime('now', '-24 hours')`,
       [channel],
     );
-    if ((recent.results[0]?.n ?? 0) > 0) {
+    const { day_n = 0, gap_n = 0 } = recent.results[0] ?? {};
+    if (day_n >= MAX_PER_DAY) {
+      console.log(`${day_n} reels in the last 24 hours (max ${MAX_PER_DAY}) — nothing to do.`);
+      return;
+    }
+    if (gap_n > 0) {
       console.log(`A reel went out in the last ${MIN_GAP_MINUTES} minutes (${day}) — nothing to do.`);
       return;
     }
