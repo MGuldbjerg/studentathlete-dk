@@ -19,7 +19,7 @@ const row: ShortDraft = {
 };
 
 expect("clean short draft goes up", whyNot(row), null);
-expect("long draft is not a line", whyNot({ ...row, content: "word ".repeat(140) }), "not under the word floor");
+expect("long draft is not a line", whyNot({ ...row, content: "word ".repeat(220) }), "not under the word floor");
 expect("no source, no line", whyNot({ ...row, source_url: null }), "no source to link to");
 expect("sensitive stays", whyNot({ ...row, sensitive: "personal" }), "flagged sensitive (personal)");
 expect("invented number stays", whyNot({ ...row, title: "Jane Doe scores twice in 3-0 win" })?.startsWith("mechanical check"), true);

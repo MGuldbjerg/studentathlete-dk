@@ -143,8 +143,10 @@ export const uk: CountryProfile = {
   // Mikkel 2026-10-12: public from 1 article, indexed from 2 (PLAN-adsense-uk.md).
   profilePublicMinArticles: 1,
   profileIndexMinArticles: 2,
-  // Mikkel 2026-10-12: 100; 2026-10-13: 130, the same as .dk.
-  standaloneMinWords: 130,
+  // Mikkel 2026-10-12: 100; 2026-10-13: 130, the same as .dk; 2026-10-22: 200
+  // after the second AdSense rejection (.dk stays 130). The enrichment lines
+  // (pipeline/generate/enrich.ts) add sourced facts, so fuller stories pass.
+  standaloneMinWords: 200,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
   demonym: "UK",

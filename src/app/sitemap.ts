@@ -1,3 +1,4 @@
+import { LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 import type { MetadataRoute } from "next";
 import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs, getCoveredSchoolSlugs } from "@/lib/db";
 import { getSportSlugs } from "@/lib/sport-content";
@@ -70,6 +71,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${base}${routePath("stats", lang)}`,
+      changeFrequency: "daily",
+      priority: 0.6,
+    },
+    {
+      url: `${base}${routePath("stats", lang)}/${LEADERBOARD_SLUG[lang] ?? LEADERBOARD_SLUG.en}`,
       changeFrequency: "daily",
       priority: 0.6,
     },
