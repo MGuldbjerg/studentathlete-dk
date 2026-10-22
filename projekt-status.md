@@ -112,11 +112,14 @@ data-driven material instead of reapplying soon (#30–#32):
   linked from the leaderboard + sitemap. No page if nothing moved. First: Mon 3 Nov (needs
   a history day ≥7 days back; history began 22 Oct). Soccer/field hockey seasons end Nov–Dec,
   so only a handful this season. Auto-published like the leaderboard itself.
-- **Next collecting countries (proposed 2026-10-22, not decided):** catalogue counts (active):
-  Italy 736, Norway 394 (247 soccer/field hockey), Netherlands 370 (field hockey), Brazil 814,
-  Mexico 567, Japan 450, New Zealand 399, Ireland 228. Proposal: Norway, Netherlands, Italy;
-  NZ/Ireland as cheap English options. Needs a HometownProfile each (US-collision cities!) and
-  the LIA draft section D extended.
+- **Eight more collecting countries (#38, 2026-10-22, Mikkel's choice):** NO, NL, IT, NZ, IE,
+  BR, MX, AR join AU/DE/SE/ES/FR (13 in all). Athletes arrive with the nightly roster scrapes
+  (22:00, JS 03:00, Sunday 04:00). Traps handled in `collecting.ts`: US look-alike cities left
+  out; «New Mexico», «Gulf of Mexico», «Northern Ireland» are false positives; «MEX»/«Mex.» is a
+  US-state token to the guard, so those rosters are missed (never misfiled). stats-daily
+  timeout 25 → 50 min (fill took 10 min for ~460 teams before collecting). Check in a few days:
+  `SELECT home_country, COUNT(*) FROM athletes GROUP BY 1` and the stats-daily duration.
+  LIA draft section D updated to list all 13 + season stats — still awaiting Mikkel.
 - **Workers CPU (#36):** projected 150 % of the allowance (~151 ms CPU/request; prefetch
   ~30 %, SemrushBot ~26 %). `prefetch={false}` on every `<Link>`; robots.txt disallows 8
   SEO-tool bots. Re-run `pipeline/checks/platform-limits.ts` ~25 Oct. Next levers if needed:
