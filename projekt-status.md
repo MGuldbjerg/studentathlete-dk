@@ -1,6 +1,58 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-10-12 (where we are — read this section first)
+**Sidst opdateret**: 2026-10-22 (where we are — read this section first)
+
+---
+
+## 📷 Photo-permission outreach, 2026-10-22 — BUILT, NOTHING SENT YET
+
+Goal (Mikkel): ONE school-wide permission per school covering the photos that accompany
+articles about ALL international student-athletes, ALL sports, so a new market never means a
+second ask. Mail goes to the athletics **communications office** (not a sport's contact); first
+paragraph asks them to forward it if they are not the right person. Only DK + UK are live; the
+mail says so and says he hopes to add more. It does NOT claim our stories draw on their material
+(could be misread) and offers to elaborate. Credits the photographer by name where the school's
+site gives one + «{School} Athletics» + link to the source article. Signed «Mikkel Guldbjerg
+Jensen», sent via Brevo from info@studentathlete.dk (Mikkel already uses Brevo for GFC), replyTo
+the same address. Plain text, 3 per run, 8–15 min apart, no automatic follow-ups. **Mikkel must
+see and approve the emails before anything is sent.**
+
+- **Code** (`pipeline/photos/`): `permission-email.ts` (the text), `permission-state.ts` (ledger
+  rules, 90-day per-address cooldown), `request-permission.ts` (modes: `--import`, dry run,
+  `--send --limit N`, `--status`, `--respond "School" granted|conditional|declined|forwarded|
+  bounced|do-not-contact|note --note "…"`). Tests `_permission-email-test.ts` (21) and
+  `_permission-state-test.ts` (12), both in CI. Needs `CLOUDFLARE_*` env (`. ~/.bashrc`) and
+  `BREVO_API_KEY` for `--send`.
+- **Ledger** (migration 068, APPLIED to live D1 2026-10-22): `schools.sid_email/sid_name/
+  photo_permission/photo_permission_at/photo_permission_note` + table `photo_events` (every send,
+  reply, bounce, note). A school is never mailed if it has any state, or a send not cancelled by
+  a bounce. `--status` prints who was contacted when and what they answered.
+- **Contacts**: `pipeline/photos/contacts/south-atlantic-conference.csv` — 7 D2 schools, every
+  email read on an official page (title + source URL in the file). **Not yet imported** into D1
+  and not yet approved by Mikkel. Open point: Lincoln Memorial's Adam Haley has email
+  `christopher.haley@lmunet.edu` (name/email mismatch; alternative `john.dunn@lmunet.edu`).
+  Mikkel asked to start in LOWER divisions, not the Ivy League; Ivy findings (partial: Columbia,
+  Cornell, Penn, Brown have emails; Harvard, Yale, Princeton, Dartmouth don't) are not saved.
+- **Prior permissions**: `contacts/prior-permissions.csv`. Fresno State (Joshua Mitchell,
+  2023-02-02, «Yes you can. Credit to Fresno State Athletics.») is recorded as `granted` in the
+  ledger; Mikkel reads it as covering all foreign athletes. Mikkel found a few more but they were
+  sport- or athlete-specific, so they do not count.
+- **How to find emails** (learned): the fetch tool returns empty shells on Sidearm athletics
+  sites. `curl -sL -A "Mozilla/5.0" https://<site>/staff-directory` + Python parsing of the raw
+  HTML works for most (emails are built from JS `firstHalf`/`secondHalf` in the same row as the
+  name). Harvard and Yale keep staff emails out of the HTML. Never infer an address from a
+  pattern. Subagent web-research can do a conference at a time (3 agents for ~7 schools).
+- **Blockers before the first send** (Mikkel's side): (1) approve wording + the 7 contacts;
+  (2) Brevo: `BREVO_API_KEY` (repo secret + `~/.bashrc`), authenticate `studentathlete.dk`
+  (SPF/DKIM) and verify info@studentathlete.dk as sender; (3) **check the site actually shows a
+  photo credit with a source-article link next to each photo — the email promises it, not
+  verified**. Then: import CSV → dry run → show Mikkel → `--send --limit 3`.
+- **Influxer** (NIL merchandise platform, Dallas, founded 2022, 600+ schools, works with
+  international athletes; CEO Steve McLean, founder Tyler Jaynes, VP Keith Miller): Mikkel
+  suggested asking them who handles photo rights at schools. No contact route found; offered to
+  draft a note to the press contact on a partner announcement. Undecided.
+- **Next**: after the pilot works, go conference by conference (D2/D3/NAIA first; schools with
+  our athletes are listed by conference in D1: `schools.conference`).
 
 ---
 
