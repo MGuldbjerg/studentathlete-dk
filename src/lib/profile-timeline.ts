@@ -17,6 +17,7 @@
  */
 import { awardLabel, type AthleteEventRow } from "./athlete-events";
 import { timelineLine } from "./timeline-entry";
+import { milestoneEvent } from "./leaderboard";
 
 export interface TimelineRow {
   key: string;
@@ -44,6 +45,17 @@ export function buildTimeline(
 
   for (const e of events) {
     if (e.article_id != null && listed.has(e.article_id)) continue;
+    // A milestone is rendered from its key in the READER's language, not from
+    // the stored sentence — a market launched later reads its own language.
+    const ms = /^milestone:(goals|assists|shutouts):(\d+)$/.exec(e.award_name ?? "");
+    if (ms) {
+      rows.push({
+        key: `e${e.id}`, date: e.occurred_on ? e.occurred_on.slice(0, 10) : null, season: e.season,
+        text: milestoneEvent(ms[1] as "goals" | "assists" | "shutouts", Number(ms[2]), lang).summary,
+        href: e.source_url, external: true, honor: false,
+      });
+      continue;
+    }
     // A kept line carries its own sentence; a harvested honour only its name.
     const own = e.summary && e.summary !== e.award_name;
     rows.push({
