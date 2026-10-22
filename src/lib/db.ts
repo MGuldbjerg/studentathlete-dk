@@ -1207,6 +1207,36 @@ export async function getAwardTally(country: string): Promise<import("./award-ta
   }
 }
 
+/** One weekly update of the leaderboard (src/lib/leaderboard-week.ts), by its Monday. One row. */
+export async function getLeaderboardWeek(country: string, day: string): Promise<import("./leaderboard-week").LeaderboardWeek | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const row = (await db
+      .prepare("SELECT value FROM stats_cache WHERE key = ? AND country = ?")
+      .bind(`leaderboard_week:${day}`, country)
+      .first()) as { value: string } | null;
+    return row ? (JSON.parse(row.value) as import("./leaderboard-week").LeaderboardWeek) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The days of the weekly updates on a site, newest first. A key range, so the primary key serves it. */
+export async function getLeaderboardWeekDays(country: string): Promise<string[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const rows = (await db
+      .prepare("SELECT key FROM stats_cache WHERE key >= 'leaderboard_week:' AND key < 'leaderboard_week;' AND country = ? ORDER BY key DESC")
+      .bind(country)
+      .all()).results as Array<{ key: string }>;
+    return rows.map((r) => r.key.slice("leaderboard_week:".length));
+  } catch {
+    return [];
+  }
+}
+
 /** The national leaderboard (src/lib/leaderboard.ts), computed daily by the stats fill. One row. */
 export async function getLeaderboard(country: string): Promise<import("./leaderboard").Leaderboard | null> {
   const db = await getDB();

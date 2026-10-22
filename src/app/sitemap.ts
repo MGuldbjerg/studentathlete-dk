@@ -1,7 +1,7 @@
 import { LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 import { AWARDS_SLUG } from "@/components/AwardsView";
 import type { MetadataRoute } from "next";
-import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs, getCoveredSchoolSlugs } from "@/lib/db";
+import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs, getCoveredSchoolSlugs, getLeaderboardWeekDays } from "@/lib/db";
 import { getSportSlugs } from "@/lib/sport-content";
 import { getArticleUrl, getAthleteUrl, getSchoolUrl } from "@/lib/seo";
 import { getGuideSlugs } from "@/lib/viden-content";
@@ -85,6 +85,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.6,
     },
+    ...(await getLeaderboardWeekDays(site.code)).map((d) => ({
+      url: `${base}${routePath("stats", lang)}/${LEADERBOARD_SLUG[lang] ?? LEADERBOARD_SLUG.en}/${d}`,
+      lastModified: new Date(`${d}T08:00:00Z`),
+      changeFrequency: "yearly" as const,
+      priority: 0.5,
+    })),
     // The UK site splits the stats by home nation (/statistics/scotland …).
     ...(site.code === "UK"
       ? NATIONS.map((n) => ({
