@@ -11,6 +11,7 @@ import { buildLeaderboard, crossed, milestoneEvent, rankRows, shortDivision, typ
 import { buildAwardTally, dedupeAwards, previousMonth, type AwardInput } from "../../src/lib/award-tally";
 import { captionFor, tagsFor, winnerLines, type Winner } from "../social/post-award-roundup";
 import { tagPositions } from "../social/channels/instagram";
+import { buildLeaderboardWeek, plain, weekHeadline, weekSections } from "../../src/lib/leaderboard-week";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -150,6 +151,30 @@ const cap = captionFor(ws, "2026-10", "en");
 ok(cap.startsWith("October 2026: 4 awards for 3 British athletes") && cap.includes("W1 (@ann.b) — 2× Player of the Week, Big Ten") && cap.endsWith("link in bio."), "caption");
 ok(captionFor(ws, "2026-10", "da").startsWith("Oktober 2026: 4 priser til 3 danske atleter"), "Danish caption");
 ok(tagPositions(Array.from({ length: 25 }, (_, i) => `u${i}`)).length === 20 && tagPositions(["a"])[0].y >= 0.5, "max 20 tags, in the lower half");
+
+// The weekly update of the leaderboard (src/lib/leaderboard-week.ts).
+{
+  const now = [bi(1, 9), bi(2, 7), bi(3, 7), bi(6, 5), bi(5, 3, { gender: "f" }), bi(9, 0, { kind: "keeper", shutouts: 4 })];
+  const before = [bi(1, 6), bi(2, 7), bi(6, 0), bi(5, 1, { gender: "f" }), bi(9, 0, { kind: "keeper", shutouts: 3 })];
+  const wk = buildLeaderboardWeek("UK", "2026-10-27", "2026-11-03", now, before,
+    [{ name: "P1", slug: "p1", school: "U", stat: "goals", n: 5 }])!;
+  const menGoals = wk.leaders.find((l) => l.gender === "m" && l.stat === "goals")!;
+  ok(menGoals.slug === "p1" && menGoals.isNew && menGoals.gained === 3, "a new leader, with the week's gain");
+  ok(!wk.leaders.find((l) => l.gender === "f")!.isNew, "a kept lead is not new");
+  ok(wk.climbers.some((c) => c.slug === "p6" && c.prevRank === null), "known a week ago at 0 → entered the top 10");
+  ok(!wk.climbers.some((c) => c.slug === "p3"), "first seen this week → not «new», we just had not read them");
+  ok(wk.best.goals!.map((b) => `${b.slug}:${b.gained}`).join(" ") === "p6:5 p1:3 p5:2" && wk.best.shutouts![0].gained === 1, "the best week per stat");
+  ok(wk.active === 4, "players who added to a total");
+  const en = weekSections(wk, "en").map((s) => `${s.heading}|${s.lines.map(plain).join(" / ")}`);
+  ok(en[0].includes("P1 (U) went top of the men's") && en[0].includes("with 9 goals, 3 of them this week."), "leader sentence");
+  ok(en.some((s) => s.includes("P6 (U) entered the top 10 of the men's")), "climber sentence");
+  ok(en.some((s) => s.startsWith("Milestones|P1 (U) reached 5 goals for the season.")), "milestone sentence");
+  const da = weekSections(wk, "da").map((s) => s.lines.map(plain).join(" / ")).join(" / ");
+  ok(da.includes("P1 (U) overtog førstepladsen for mål i herrernes") && da.includes("Flest mål i ugen: P6"), "Danish sentences");
+  ok(weekHeadline(wk, "en").startsWith("P1 goes top in men's"), "headline: the new leader");
+  ok(buildLeaderboardWeek("UK", "2026-10-27", "2026-11-03", before, before, []) === null, "nothing moved → no page");
+  if (process.env.SHOW) console.log(en.join("\n"));
+}
 
 console.log(`records: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);

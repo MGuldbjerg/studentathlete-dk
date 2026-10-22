@@ -20,6 +20,7 @@
  *
  *   npx tsx pipeline/stats/fill-season-stats.ts [--dry-run] [--country UK] [--limit N]
  */
+import { buildLeaderboardWeek, WEEK_DAY, WEEK_KEY_PREFIX, type WeekMilestone } from "../../src/lib/leaderboard-week";
 import { createD1Client } from "../lib/d1-client";
 import { robotsAllows } from "../lib/robots";
 import { pipelineUserAgent } from "../../src/lib/site";
@@ -257,7 +258,39 @@ async function storeLeaderboards(db: ReturnType<typeof createD1Client>, season: 
       [LEADERBOARD_KEY, country, JSON.stringify(board)],
     );
     console.log(`leaderboard ${country}: ${board.tables.length} tables${weekAgoDay ? `, movement against ${weekAgoDay}` : ""}`);
+    if (previous && weekAgoDay && new Date(`${today}T12:00:00Z`).getUTCDay() === WEEK_DAY) {
+      await storeLeaderboardWeek(db, season, country, weekAgoDay, today, mine, previous);
+    }
   }
+}
+
+/**
+ * Mondays: the weekly update of the leaderboard (src/lib/leaderboard-week.ts),
+ * one stats_cache row per site and week. A rerun the same day replaces it
+ * with the fuller numbers; a week where nothing moved writes nothing.
+ */
+async function storeLeaderboardWeek(
+  db: ReturnType<typeof createD1Client>, season: string, country: string,
+  from: string, to: string, current: BoardInput[], previous: BoardInput[],
+): Promise<void> {
+  const milestones: WeekMilestone[] = (await db.query<{ name: string; slug: string; school: string; award_name: string }>(
+    `SELECT a.name, a.slug, st.school, e.award_name
+       FROM athlete_events e JOIN athletes a ON a.id = e.athlete_id
+       JOIN athlete_season_stats st ON st.athlete_id = e.athlete_id AND st.season = e.season
+      WHERE e.kind = 'milestone' AND e.season = ? AND e.occurred_on > ? AND e.occurred_on <= ? AND a.home_country = ?
+      ORDER BY e.occurred_on, a.name`,
+    [season, from, to, country])).results.flatMap((r) => {
+      const m = /^milestone:(goals|assists|shutouts):(\d+)$/.exec(r.award_name);
+      return m ? [{ name: r.name, slug: r.slug, school: r.school, stat: m[1] as WeekMilestone["stat"], n: Number(m[2]) }] : [];
+    });
+  const week = buildLeaderboardWeek(country, from, to, current, previous, milestones);
+  if (!week) { console.log(`weekly update ${country}: nothing moved since ${from}, no page`); return; }
+  await db.execute(
+    `INSERT INTO stats_cache (key, country, value, computed_at) VALUES (?, ?, ?, datetime('now'))
+     ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, computed_at = excluded.computed_at`,
+    [WEEK_KEY_PREFIX + to, country, JSON.stringify(week)],
+  );
+  console.log(`weekly update ${country}: ${week.active} players added to a total, ${week.climbers.length} climbers, ${week.milestones.length} milestones`);
 }
 
 if (/fill-season-stats\.ts$/.test(process.argv[1] ?? "")) {
