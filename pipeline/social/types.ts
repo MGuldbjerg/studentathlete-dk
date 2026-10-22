@@ -35,6 +35,12 @@ export interface PostContent {
   imageUrl: string;
   /** Instagram only: usernames invited as collaborators (collab.ts picks them). */
   collaborators?: string[];
+  /**
+   * Instagram only: usernames TAGGED in the image (max 20). Only the monthly
+   * honours roundup uses it (Mikkel 2026-10-22: «Tag them»); everyday posts do
+   * not tag (2026-09-24). A refused tag never costs the post.
+   */
+  userTags?: string[];
 }
 
 export interface PostResult {
@@ -43,6 +49,8 @@ export interface PostResult {
   mediaId?: string | null;
   /** The collaborators the post actually went out with (Instagram may refuse them). */
   collaborators?: string[];
+  /** The users actually tagged (Instagram may refuse them). */
+  userTags?: string[];
 }
 
 export interface SocialChannel {

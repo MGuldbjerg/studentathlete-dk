@@ -29,6 +29,7 @@ import type { D1Client } from "../lib/d1-client";
 import { siteCountrySql } from "../../src/lib/countries";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import { NATIONALITY, rosterLabel } from "./records";
+import { dedupeAwards } from "../../src/lib/award-tally";
 
 export interface EAthlete {
   id: number; name: string; university: string; sport: string; gender: string | null;
@@ -59,9 +60,9 @@ export async function loadEnrichData(db: D1Client, now = new Date()): Promise<En
         goals: r.kind === "outfield" ? num(c["g"]) : 0, assists: r.kind === "outfield" ? num(c["a"]) : 0,
         shutouts: r.kind === "keeper" ? num((c["sho"] ?? c["sho/cbo"] ?? "").split(/[-/]/)[0]) : 0 };
     });
-  const awards = (await db.query<EAward>(
+  const awards = dedupeAwards((await db.query<EAward & { athlete_id: number }>(
     `SELECT athlete_id, award_name, kind, occurred_on, summary FROM athlete_events
-      WHERE season = ? AND kind IN ('award', 'milestone') AND award_name IS NOT NULL`, [season])).results;
+      WHERE season = ? AND kind IN ('award', 'milestone') AND award_name IS NOT NULL`, [season])).results);
   const schools = (await db.query<ESchool>(`SELECT name, common_name FROM schools`)).results;
   return { athletes, stats, awards, schools, season, seasonStart };
 }

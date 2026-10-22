@@ -6,6 +6,7 @@ import type { Nation } from "@/lib/home-nation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { StatsView } from "./StatsView";
 import { LEADERBOARD_SLUG } from "@/components/LeaderboardView";
+import { AWARDS_SLUG } from "@/components/AwardsView";
 
 /** Shared frame for the stats pages: crumbs, heading, disclaimer, numbers. */
 export async function StatsShell({
@@ -49,6 +50,10 @@ export async function StatsShell({
         <p className="text-sm mb-6">
           <a href={`${routePath("stats", lang)}/${LEADERBOARD_SLUG[lang] ?? LEADERBOARD_SLUG.en}`} className="font-semibold hover:underline" style={{ color: "#BF0A30" }}>
             {t("board.link", lang)}
+          </a>
+          {" · "}
+          <a href={`${routePath("stats", lang)}/${AWARDS_SLUG[lang] ?? AWARDS_SLUG.en}`} className="font-semibold hover:underline" style={{ color: "#BF0A30" }}>
+            {t("awards.link", lang)}
           </a>
         </p>
       )}

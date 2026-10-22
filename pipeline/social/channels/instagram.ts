@@ -185,6 +185,22 @@ export async function publishWithRetry(graph: string, igUserId: string, creation
   return null;
 }
 
+/** Meta's limit on tagged users in one image. */
+export const MAX_USER_TAGS = 20;
+
+/**
+ * Where each tag sits on the image (0–1 from the top left): a grid over the
+ * card's lower half, so the tags do not cover the headline. Pure, tested.
+ */
+export function tagPositions(usernames: string[]): Array<{ username: string; x: number; y: number }> {
+  const cols = 4;
+  return usernames.slice(0, MAX_USER_TAGS).map((username, i) => ({
+    username,
+    x: Math.round((0.15 + (i % cols) * 0.23) * 100) / 100,
+    y: Math.round((0.5 + Math.floor(i / cols) * 0.09) * 100) / 100,
+  }));
+}
+
 /**
  * One country's account. Each is its own channel with its own secrets — Meta
  * links an Instagram account 1:1 to a Facebook page, so the UK needs both its
@@ -208,7 +224,7 @@ export function createInstagramChannel(country: string): SocialChannel {
 
       // Trin 1: containeren. Her henter Meta billedet — en fejl her er typisk
       // billedet (utilgængeligt, forkert format, forkert formforhold), ikke teksten.
-      const createContainer = (collaborators: string[]) =>
+      const createContainer = (collaborators: string[], tags: string[]) =>
         fetch(`${graph}/${igUserId}/media`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -216,18 +232,28 @@ export function createInstagramChannel(country: string): SocialChannel {
             image_url: content.imageUrl,
             caption: content.text,
             ...(collaborators.length ? { collaborators } : {}),
+            ...(tags.length ? { user_tags: tagPositions(tags) } : {}),
             access_token: token,
           }),
         });
       let collaborators = content.collaborators ?? [];
-      let createRes = await createContainer(collaborators);
+      let userTags = (content.userTags ?? []).slice(0, MAX_USER_TAGS);
+      let createRes = await createContainer(collaborators, userTags);
+      // An unknown or untaggable username makes Meta refuse the container. A
+      // tag must never cost the post: try again without the tags.
+      if (!createRes.ok && userTags.length && !authFailed(createRes.status)) {
+        const body = await createRes.text();
+        console.log(`  instagram: refused with ${userTags.length} user tags — posting without (${createRes.status}): ${body.slice(0, 200)}`);
+        userTags = [];
+        createRes = await createContainer(collaborators, userTags);
+      }
       // A private or unknown collaborator makes Meta refuse the whole container.
       // An invite must never cost the post: try once more without them.
       if (!createRes.ok && collaborators.length && !authFailed(createRes.status)) {
         const body = await createRes.text();
         console.log(`  instagram: refused with collaborators ${collaborators.join(", ")} — posting without (${createRes.status}): ${body.slice(0, 200)}`);
         collaborators = [];
-        createRes = await createContainer(collaborators);
+        createRes = await createContainer(collaborators, userTags);
       }
       if (!createRes.ok) {
         const body = await createRes.text();
@@ -252,9 +278,9 @@ export function createInstagramChannel(country: string): SocialChannel {
       // endnu — media-id'et er ikke slået igennem. Det er sekunder, ikke minutter,
       // så vi prøver igen her frem for at bruge et kø-forsøg på det.
       const mediaId = await publishWithRetry(graph, igUserId, creationId, token);
-      if (!mediaId) return { postUrl: null, mediaId: null, collaborators };
+      if (!mediaId) return { postUrl: null, mediaId: null, collaborators, userTags };
 
-      return { postUrl: await fetchPermalink(graph, mediaId, token), mediaId, collaborators };
+      return { postUrl: await fetchPermalink(graph, mediaId, token), mediaId, collaborators, userTags };
     },
   };
 }
