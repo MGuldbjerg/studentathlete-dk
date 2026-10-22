@@ -48,7 +48,7 @@ export async function StatsShell({
       {!nation && (
         <p className="text-sm mb-6">
           <a href={`${routePath("stats", lang)}/${LEADERBOARD_SLUG[lang] ?? LEADERBOARD_SLUG.en}`} className="font-semibold hover:underline" style={{ color: "#BF0A30" }}>
-            {lang === "da" ? "Danske topscorere denne sæson →" : "This season's British leaderboard →"}
+            {t("board.link", lang)}
           </a>
         </p>
       )}
