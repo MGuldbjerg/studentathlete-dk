@@ -28,7 +28,10 @@ ok(rosterLine("Lucas Martin", 4, "UK", "Fort Lewis College", "soccer", "m", asOf
   "the national angle, dated");
 ok(rosterLine("Lucas Martin", 1, "UK", "Fort Lewis College", "soccer", "m", asOf) === null, "one is just the athlete: no line");
 ok(rosterLine("Toke Amtrup", 2, "DK", "Utah Valley University", "soccer", "m", asOf)?.includes("2 Danish players") === true, "Danish");
-ok(rosterLine("X", 3, "DE", "Y", "soccer", "m", asOf) === null, "a collecting country without a site gets no line");
+// Collecting countries have their nationality ready for launch (2026-10-22);
+// articles are only written for site countries (generate-articles, siteCountrySql).
+ok(rosterLine("X", 3, "DE", "Y", "soccer", "m", asOf)?.includes("3 German players") === true, "a collecting country is ready for launch");
+ok(rosterLine("X", 3, "NO", "Y", "soccer", "m", asOf) === null, "a country we do not collect gets no line");
 
 const sheet = (date: string | null): FactSheet => ({
   has_substance: true, event: { type: null, date, opponent: null, competition: null }, result: null,

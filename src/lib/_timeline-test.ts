@@ -94,5 +94,11 @@ ok(sourceUrlDate("https://x.edu/news/2026/13/40/y") === null, "impossible date i
 ok(timelineParams({ athlete_id: 1, athlete_name: "A B", title: "A B scores", fact_sheet: null,
   source_url: "https://x.edu/news/2026/10/6/y.aspx" }, "2026-10-13T10:00:00Z")[1] === "2026-10-06", "URL date beats publish date");
 
+// Milestones render from their key in the reader's language (profile-timeline.ts).
+const msRow = (lang: string) => buildTimeline(
+  [ev({ id: 9, kind: "milestone", award_name: "milestone:goals:10", summary: "Reached 10 goals for the season", occurred_on: "2026-10-23", significance: "notable" })],
+  [], "X", lang, () => "")[0];
+ok(msRow("en").text === "Reached 10 goals for the season" && msRow("da").text === "Nåede 10 mål i sæsonen", "milestone in the reader's language");
+
 console.log(`\ntimeline: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
