@@ -9,7 +9,7 @@ function heading(tb: BoardTable, lang: string): string {
   const sport = sportLabel(tb.sport, lang);
   const stat = t(`board.${tb.stat}` as const, lang);
   const key = tb.gender === "m" ? "board.heading_m" : tb.gender === "f" ? "board.heading_f" : "board.heading";
-  return t(key, lang, { sport: tb.gender && lang === "en" ? sport.toLowerCase() : sport, stat });
+  return t(key, lang, { sport: tb.gender ? sport.toLowerCase() : sport, stat });
 }
 
 function movement(rank: number, prev: number | null, lang: string): string {
