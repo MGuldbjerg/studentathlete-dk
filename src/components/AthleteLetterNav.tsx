@@ -27,7 +27,7 @@ export function AthleteLetterNav({
       <p className="text-xs text-muted mb-2">{t("athletes.letter_nav_label", lang)}</p>
       <ul className="flex flex-wrap gap-1.5">
         <li>
-          <Link
+          <Link prefetch={false}
             href={routePath("athletes", lang)}
             aria-current={active === null ? "page" : undefined}
             className={`inline-flex min-w-9 items-center justify-center rounded-md border px-2.5 py-1.5
@@ -63,7 +63,7 @@ export function AthleteLetterNav({
 
           return (
             <li key={letter}>
-              <Link
+              <Link prefetch={false}
                 href={getAthleteLetterUrl(letter, lang)}
                 aria-current={isActive ? "page" : undefined}
                 title={t("athletes.letter_count", lang, { n: String(n) })}

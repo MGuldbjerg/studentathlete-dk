@@ -41,7 +41,7 @@ export async function Footer() {
           </h5>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
             {sportNav(lang).filter((s) => s.key !== "other").map((sport) => (
-              <Link
+              <Link prefetch={false}
                 key={sport.slug}
                 href={`/${sport.slug}`}
                 className="text-white/60 text-sm hover:text-white transition-colors"
@@ -59,59 +59,59 @@ export async function Footer() {
           </h5>
           <ul className="space-y-1.5">
             <li>
-              <Link href={archivePath(lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={archivePath(lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.all_articles", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("athletes", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("athletes", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.all_athletes", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("schools", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("schools", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.universities", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("stats", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("stats", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.stats", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("guides", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("guides", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.knowledge", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("about", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("about", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.about_site", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("contact", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("contact", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.contact", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("aiUse", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("aiUse", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.ai_use", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("editorial", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("editorial", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.press_ethics", lang)}
               </Link>
             </li>
             <li>
-              <Link href={routePath("cookiePolicy", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+              <Link prefetch={false} href={routePath("cookiePolicy", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.cookies", lang)}
               </Link>
             </li>
             {/* Only where the site has published its privacy page (profile flag). */}
             {site.hasPrivacyPage && (
               <li>
-                <Link href={routePath("privacy", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+                <Link prefetch={false} href={routePath("privacy", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                   {t("footer.privacy", lang)}
                 </Link>
               </li>

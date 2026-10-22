@@ -16,7 +16,7 @@ export async function AdminEditButton({
 }) {
   if (!(await isAdmin(await headers()))) return null;
   return (
-    <Link
+    <Link prefetch={false}
       href={href}
       title={label}
       aria-label={label}

@@ -9,7 +9,7 @@ import { isAdmin } from "@/lib/admin-auth";
 export async function AdminBarLink() {
   if (!(await isAdmin(await headers()))) return null;
   return (
-    <Link
+    <Link prefetch={false}
       href="/admin"
       className="flex items-center gap-1.5 rounded-md bg-white/15 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/25 transition-colors whitespace-nowrap"
     >

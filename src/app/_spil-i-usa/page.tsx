@@ -45,25 +45,25 @@ export default function SpilIUsaPage() {
         </h2>
         <ul className="list-disc pl-6 mb-8 space-y-2 text-base text-ink leading-relaxed">
           <li>
-            <Link href="/viden/hvad-er-ncaa" className="underline hover:text-flag-blue">
+            <Link prefetch={false} href="/viden/hvad-er-ncaa" className="underline hover:text-flag-blue">
               Hvad er NCAA?
             </Link>{" "}
             — den store sammenslutning bag amerikansk college-sport
           </li>
           <li>
-            <Link href="/viden/ncaa-divisioner" className="underline hover:text-flag-blue">
+            <Link prefetch={false} href="/viden/ncaa-divisioner" className="underline hover:text-flag-blue">
               Divisionerne
             </Link>{" "}
             — D1, D2 og D3 er meget forskellige veje
           </li>
           <li>
-            <Link href="/viden/akademiske-krav" className="underline hover:text-flag-blue">
+            <Link prefetch={false} href="/viden/akademiske-krav" className="underline hover:text-flag-blue">
               De akademiske krav
             </Link>{" "}
             — karakterer og tests tæller lige så meget som sporten
           </li>
           <li>
-            <Link href="/viden/redshirt-og-eligibility" className="underline hover:text-flag-blue">
+            <Link prefetch={false} href="/viden/redshirt-og-eligibility" className="underline hover:text-flag-blue">
               Spilleberettigelse
             </Link>{" "}
             — reglerne for hvor længe du kan konkurrere

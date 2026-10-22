@@ -426,7 +426,7 @@ export default async function DynamicPage({
       return (
         <main className="max-w-5xl mx-auto px-4 md:px-8 py-10">
           <p className="mb-4 text-sm">
-            <Link href={routePath("athletes", lang)} className="text-muted hover:text-ink hover:underline">
+            <Link prefetch={false} href={routePath("athletes", lang)} className="text-muted hover:text-ink hover:underline">
               ← {t("athletes.letter_back", lang)}
             </Link>
           </p>

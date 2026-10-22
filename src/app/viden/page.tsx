@@ -76,7 +76,7 @@ export default async function VidenPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {inCat.map((guide) => (
-                <Link
+                <Link prefetch={false}
                   key={guide.slug}
                   href={`${routePath("guides", lang)}/${guide.slug}`}
                   className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group"
@@ -101,7 +101,7 @@ export default async function VidenPage() {
           {t("guides.lookup_heading", lang)}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link href={routePath("schools", lang)} className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
+          <Link prefetch={false} href={routePath("schools", lang)} className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
             <h3 className="text-base font-bold text-ink mb-1 group-hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
               {t("guides.schools_card_title", lang)}
             </h3>
@@ -109,7 +109,7 @@ export default async function VidenPage() {
               {t("guides.schools_card_body", lang)}
             </p>
           </Link>
-          <Link href={routePath("athletes", lang)} className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
+          <Link prefetch={false} href={routePath("athletes", lang)} className="block p-5 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group">
             <h3 className="text-base font-bold text-ink mb-1 group-hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
               {t("guides.athletes_card_title", lang)}
             </h3>
@@ -129,7 +129,7 @@ export default async function VidenPage() {
           {sportEntries.map(([slug, content]) => {
             const color = getSportColor(slug);
             return (
-              <Link
+              <Link prefetch={false}
                 key={slug}
                 href={`/${slug}`}
                 className="flex items-center gap-3 p-4 rounded-lg border border-border bg-paper hover:bg-surface transition-colors group"

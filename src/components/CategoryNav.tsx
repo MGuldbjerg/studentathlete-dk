@@ -141,7 +141,7 @@ export function CategoryNav({ lang, allLabel }: { lang: string; allLabel?: strin
           if (!sport.slug) {
             const isActive = !activeSport;
             return (
-              <Link
+              <Link prefetch={false}
                 key="alle"
                 href="/"
                 className="relative flex items-center gap-2 px-4 py-3 text-sm whitespace-nowrap transition-colors"
@@ -163,7 +163,7 @@ export function CategoryNav({ lang, allLabel }: { lang: string; allLabel?: strin
 
           // Sportsgrene linker til /{sport}
           return (
-            <Link
+            <Link prefetch={false}
               key={sport.slug}
               href={`/${sport.slug}`}
               className="relative flex items-center gap-2 px-4 py-3 text-sm whitespace-nowrap transition-colors"

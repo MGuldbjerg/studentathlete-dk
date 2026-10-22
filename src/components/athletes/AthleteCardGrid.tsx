@@ -12,7 +12,7 @@ import { t } from "@/lib/i18n";
 
 export function AthleteCard({ athlete, faded, lang }: { athlete: Athlete; faded?: boolean; lang: string }) {
   return (
-    <Link
+    <Link prefetch={false}
       href={getAthleteUrl(athlete.slug, lang)}
       className={`flex items-center gap-4 p-4 rounded-lg border border-border
                  bg-paper hover:bg-surface transition-colors group
