@@ -4,7 +4,8 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 import { routePath, t } from "@/lib/i18n";
 import { NATIONS, type Nation } from "@/lib/home-nation";
 import { StatsShell } from "../StatsShell";
-import { getLeaderboard } from "@/lib/db";
+import { getLeaderboard, getLeaderboardWeekDays } from "@/lib/db";
+import { formatDate } from "@/lib/seo";
 import { LeaderboardView, LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 import { AwardsView, AWARDS_SLUG } from "@/components/AwardsView";
 import { getAwardTally } from "@/lib/db";
@@ -21,7 +22,8 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 async function leaderboardFor(params: Promise<{ nation: string }>) {
   const [{ nation }, site, lang] = await Promise.all([params, currentSite(), currentLanguage()]);
   if (nation !== LEADERBOARD_SLUG[lang]) return null;
-  return { site, lang, board: await getLeaderboard(site.code) };
+  const [board, weeks] = await Promise.all([getLeaderboard(site.code), getLeaderboardWeekDays(site.code)]);
+  return { site, lang, board, weeks };
 }
 
 const seasonOf = (asOf: string | undefined) => {
@@ -101,6 +103,19 @@ export default async function NationStatsPage({ params }: { params: Promise<{ na
         ]} />
         <h1 className="text-3xl font-bold text-ink mt-6 mb-3" style={{ fontFamily: "var(--font-serif)" }}>{title}</h1>
         <p className="text-sm text-ink/80 mb-3 max-w-2xl border-l-4 pl-3" style={{ borderColor: "#BF0A30" }}>{t("board.intro", lb.lang)}</p>
+        {lb.weeks.length > 0 && (
+          <p className="text-sm mt-4">
+            <span className="font-semibold text-ink">{t("board.weeks", lb.lang)}:</span>{" "}
+            {lb.weeks.map((d, i) => (
+              <span key={d}>
+                {i > 0 && " · "}
+                <a href={`${routePath("stats", lb.lang)}/${LEADERBOARD_SLUG[lb.lang]}/${d}`} className="hover:underline" style={{ color: "#BF0A30" }}>
+                  {formatDate(d, lb.lang, { day: "numeric", month: "short" })}
+                </a>
+              </span>
+            ))}
+          </p>
+        )}
         <LeaderboardView board={lb.board} lang={lb.lang} />
       </main>
     );
