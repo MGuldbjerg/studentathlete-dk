@@ -74,7 +74,7 @@ export default async function SkolerPage() {
       </h1>
       <p className="text-muted text-base mb-3 max-w-2xl">
         {t("schools.intro_before", lang)}
-        <Link
+        <Link prefetch={false}
           href={`${routePath("guides", lang)}/${t("guides.divisions_slug", lang)}`}
           className="underline"
           style={{ color: "#BF0A30" }}
@@ -107,7 +107,7 @@ export default async function SkolerPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {list.map((s) => (
-                <Link
+                <Link prefetch={false}
                   key={s.id}
                   href={getSchoolUrl(s.slug, lang)}
                   className="flex items-start justify-between gap-3 p-4 rounded-lg border border-border

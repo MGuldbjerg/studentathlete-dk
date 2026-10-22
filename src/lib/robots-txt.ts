@@ -47,8 +47,15 @@ export function robotsRules(darkLaunch: boolean): RobotsRule[] {
       allow: [OG_IMAGE_PATH, "/"],
       disallow: ["/admin/", "/api/"],
     },
+    // SEO-tool crawlers (2026-10-22): a quarter of the sampled Worker CPU went
+    // to SemrushBot alone, rendering pages for a tool we do not use. They obey
+    // robots.txt; search engines, social previews and Meta's fetcher are not here.
+    ...SEO_TOOL_BOTS.map((userAgent) => ({ userAgent, disallow: ["/"] })),
   ];
 }
+
+/** Crawlers of commercial SEO tools — no search engine, no link preview. */
+export const SEO_TOOL_BOTS = ["SemrushBot", "AhrefsBot", "MJ12bot", "DotBot", "PetalBot", "BLEXBot", "DataForSeoBot", "Bytespider"];
 
 /** Rendér til robots.txt-syntaks. Bruges af testen — Next renderer selv ruten. */
 export function renderRobotsTxt(rules: RobotsRule[]): string {

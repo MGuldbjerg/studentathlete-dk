@@ -137,7 +137,7 @@ export function StatsView({
           {[null, ...NATIONS].map((n) => {
             const active = n === nation;
             return (
-              <Link
+              <Link prefetch={false}
                 key={n ?? "all"}
                 href={n ? `${base}/${n}` : base}
                 aria-current={active ? "page" : undefined}

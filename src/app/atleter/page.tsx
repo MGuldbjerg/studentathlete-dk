@@ -79,7 +79,7 @@ export default async function AtleterPage() {
 
           {/* Akse 2: hele listen, sorterbar. */}
           <p className="mb-8">
-            <Link
+            <Link prefetch={false}
               href={athletesAllPath(lang)}
               className="inline-flex items-center gap-2 rounded-md border border-border bg-paper
                          px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface"
