@@ -105,6 +105,18 @@ data-driven material instead of reapplying soon (#30–#32):
   the reader's language — add de/es/fr wording when those sites are built. First full fill
   2026-10-22: 2,683 athletes, 697/706 stats pages read, 2,112 stats + history rows;
   leaderboard UK 36 tables, DK 23.
+- **Weekly leaderboard update (#37):** Mondays the stats fill writes `stats_cache`
+  'leaderboard_week:<date>' (`src/lib/leaderboard-week.ts`): leaders (new/kept + week's gain),
+  best week per stat, climbers, milestones; sentences rendered from the numbers in the
+  reader's language. Page `/statistics/leaderboard/<date>`, `/statistik/topscorere/<date>`,
+  linked from the leaderboard + sitemap. No page if nothing moved. First: Mon 3 Nov (needs
+  a history day ≥7 days back; history began 22 Oct). Soccer/field hockey seasons end Nov–Dec,
+  so only a handful this season. Auto-published like the leaderboard itself.
+- **Next collecting countries (proposed 2026-10-22, not decided):** catalogue counts (active):
+  Italy 736, Norway 394 (247 soccer/field hockey), Netherlands 370 (field hockey), Brazil 814,
+  Mexico 567, Japan 450, New Zealand 399, Ireland 228. Proposal: Norway, Netherlands, Italy;
+  NZ/Ireland as cheap English options. Needs a HometownProfile each (US-collision cities!) and
+  the LIA draft section D extended.
 - **Workers CPU (#36):** projected 150 % of the allowance (~151 ms CPU/request; prefetch
   ~30 %, SemrushBot ~26 %). `prefetch={false}` on every `<Link>`; robots.txt disallows 8
   SEO-tool bots. Re-run `pipeline/checks/platform-limits.ts` ~25 Oct. Next levers if needed:
