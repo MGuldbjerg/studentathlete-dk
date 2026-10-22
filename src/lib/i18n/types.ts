@@ -307,6 +307,7 @@ export type UiKey =
   | "profile.facts"
   | "profile.articles"
   | "profile.timeline"
+  | "board.by_division"
   | "board.goals"
   | "board.assists"
   | "board.shutouts"

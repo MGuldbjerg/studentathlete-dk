@@ -578,6 +578,7 @@ const ui: LanguagePack["ui"] = {
   "profile.facts": "Facts",
   "profile.articles": "Articles",
   "profile.timeline": "Timeline",
+  "board.by_division": "By division",
   "board.goals": "Goals",
   "board.assists": "Assists",
   "board.shutouts": "Clean sheets",
