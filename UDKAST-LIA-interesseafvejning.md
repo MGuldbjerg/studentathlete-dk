@@ -126,11 +126,15 @@ A og C helt over i medieansvarsregi).
 
 ## D. Collecting countries (DRAFT ADDITION 2026-09-30 — for Mikkel to approve)
 
-**Processing.** For Australia, Germany, Sweden and Spain (`src/lib/countries/collecting.ts`), the
+**Processing.** For Australia, Germany, Sweden, Spain, France (added 2026-10-08), and Norway, the
+Netherlands, Italy, New Zealand, Ireland, Brazil, Mexico and Argentina (added 2026-10-22)
+(`src/lib/countries/collecting.ts`), the
 same roster scrape as in A now also classifies these nationalities, so their athletes are stored in
 `athletes` (not only in the catalogue in B). Discovery attaches public news items from the schools'
 own sites (`stories`), and the honours scraper records awards from the schools' athlete pages
-(`athlete_events`). Nothing is published: there is no domain, no article, no profile text, no social
+(`athlete_events`). Since 2026-10-22 the daily stats fill also stores their season statistics from
+the schools' own stats pages (`athlete_season_stats` and its daily history), and derives season
+milestones from them. Nothing is published: there is no domain, no article, no profile text, no social
 post and no LLM processing for these countries.
 
 **1. Purpose.** To have a sourced history (awards, results, news during the season) in place when an
