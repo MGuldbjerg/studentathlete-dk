@@ -70,6 +70,30 @@ pages still promise a person reads every article.
 ---
 
 
+## 📊 Leaderboard, milestones, enrichment motor (2026-10-22)
+
+AdSense rejected .co.uk a second time (2026-10-22, same «low value content»). Diagnosis:
+the bulk is AI rewrites of school releases (~12/day) and the site is young with little
+traffic; AdSense is worth ~10 kr/month at today's volume. Mikkel chose to build original,
+data-driven material instead of reapplying soon (#30–#32):
+- **Word floors:** UK 200, DK 150 (`standaloneMinWords`). Shorter drafts → timeline line.
+- **History:** `athlete_season_stats_history` (migration 069), a daily copy of totals.
+- **Milestones:** the stats fill records 1st/5th/10th… goal, assist, clean sheet as
+  `athlete_events` kind 'milestone' (only when yesterday's row exists).
+- **Leaderboard:** `/statistics/leaderboard`, `/statistik/topscorere` — national table per
+  sport/gender/stat plus folded per-division tables, movement vs a week ago. Computed by the
+  fill into `stats_cache` key 'leaderboard'; the page reads one row.
+- **Enrichment motor** `pipeline/generate/enrich.ts`: up to 4 computed lines per article —
+  rank among our players «with stats on file» (never «the most by a British player»), the
+  team's British players, the opponent's British players, hometown and first-year counts,
+  conference awards, recent milestones. Data read once per generate run.
+- **Next (agreed):** season-leaderboard update (from ~29 Oct, needs a week of history),
+  monthly award tally, honours roundup on IG with athletes TAGGED (user_tags), end-of-season
+  honours list, «Weekly check-in with [athlete]» (candidates from the data, DM template).
+  Dropped: class-of-the-year report, choosing-a-division page.
+- Leftover uncommitted work from 19–20 Oct (Danish calque proposal, model bake-off) moved
+  to branch `wip-danish-calques` to unblock deploys.
+
 ## 💷 AdSense .co.uk: reworked, review requested 2026-10-12
 
 Rejected 2026-10-09 for «low value content». `PLAN-adsense-uk.md` has the plan; done
