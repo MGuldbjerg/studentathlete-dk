@@ -15,7 +15,7 @@ export async function AiDisclaimer() {
       style={{ borderLeftColor: "#BF0A30" }}
     >
       {settings["disclaimer.ai"]}{" "}
-      <Link
+      <Link prefetch={false}
         href={routePath("aiUse", lang)}
         className="text-ink hover:underline decoration-flag-red"
       >

@@ -53,7 +53,7 @@ function SortTabs({ sort, lang }: { sort: SortMode; lang: string }) {
       {SORT_OPTIONS.map((o) => {
         const active = o.key === sort;
         return (
-          <Link
+          <Link prefetch={false}
             key={o.key}
             href={`${athletesAllPath(lang)}?sort=${o.key}`}
             scroll={false}

@@ -120,7 +120,7 @@ export async function SportLandingPage({ sport, content, articles, athletes, cou
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {athletes.map((athlete) => (
-              <Link
+              <Link prefetch={false}
                 key={athlete.id}
                 href={getAthleteUrl(athlete.slug, lang)}
                 data-track="internal"
@@ -158,7 +158,7 @@ export async function SportLandingPage({ sport, content, articles, athletes, cou
 
           {total > athletes.length && (
             <div className="mt-4 text-center">
-              <Link
+              <Link prefetch={false}
                 href={routePath("athletes", lang)}
                 className="text-sm text-muted hover:text-ink transition-colors"
               >

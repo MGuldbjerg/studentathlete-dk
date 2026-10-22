@@ -22,7 +22,7 @@ export default async function NotFound() {
         <p className="text-[var(--color-muted)] mb-6">
           {t("notfound.body", lang)}
         </p>
-        <Link
+        <Link prefetch={false}
           href="/"
           className="inline-block px-5 py-2.5 text-sm font-medium text-white"
           style={{ backgroundColor: "#00205B" }}

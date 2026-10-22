@@ -68,7 +68,7 @@ export function CookieConsent({ enabled, lang }: { enabled: boolean; lang: strin
       <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center gap-3">
         <p className="text-sm text-ink leading-relaxed flex-1">
           {t("cookies.banner", lang)}
-          <Link href="/cookies" className="underline" style={{ color: "#BF0A30" }}>
+          <Link prefetch={false} href="/cookies" className="underline" style={{ color: "#BF0A30" }}>
             {t("cookies.policy_link", lang)}
           </Link>
           .
