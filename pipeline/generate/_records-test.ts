@@ -8,6 +8,9 @@ import { recordsNote } from "./draft-dossier";
 import { earlierLines, rosterLabel, rosterLine, withRecords } from "./records";
 import { awardsLine, classLine, enrichmentLines, homeLine, milestoneLine, nation, opponentLine, rankLine, schoolKey, teamLine, town, type EAthlete, type EnrichData } from "./enrich";
 import { buildLeaderboard, crossed, milestoneEvent, rankRows, shortDivision, type BoardInput } from "../../src/lib/leaderboard";
+import { buildAwardTally, dedupeAwards, previousMonth, type AwardInput } from "../../src/lib/award-tally";
+import { captionFor, tagsFor, winnerLines, type Winner } from "../social/post-award-roundup";
+import { tagPositions } from "../social/channels/instagram";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -119,6 +122,31 @@ const split = buildLeaderboard("UK", "2026-10-22", [bi(1, 9), bi(2, 7, { divisio
 const menGoals = split.tables.filter((t) => t.gender === "m" && t.stat === "goals");
 ok(menGoals.map((t) => t.division ?? "national").join(",") === "national,D1,D2", "national table, then each division");
 ok(menGoals[2].rows.map((r) => `${r.rank}:${r.slug}`).join(" ") === "1:p2 2:p3", "a division ranks on its own");
+
+// ─── Awards: tally, duplicates, the Instagram roundup ──────────────────────
+const aw = (athlete_id: number, award_name: string, occurred_on: string, o: Partial<AwardInput> = {}): AwardInput => ({
+  athlete_id, name: `A${athlete_id}`, slug: `a${athlete_id}`, school: "S", conference: "Patriot League", sport: "field-hockey",
+  gender: "f", award_name, occurred_on, source_url: null, ...o,
+});
+const dup = dedupeAwards([aw(1, "Rookie of the Week/Month", "2026-10-07"), aw(1, "Rookie of the Week/Month", "2026-10-05"), aw(1, "Rookie of the Week/Month", "2026-10-19")]);
+ok(dup.length === 2 && dup[0].occurred_on === "2026-10-05", "release and our article within 4 days: one award, the earliest kept");
+ok(dedupeAwards([aw(1, "Player of the Week", "2026-10-05"), aw(2, "Player of the Week", "2026-10-05")]).length === 2, "two athletes the same week: two awards");
+const tally = buildAwardTally("UK", "2026-27", "2026-10-22", [aw(1, "Player of the Week", "2026-10-05"), aw(1, "Player of the Week", "2026-10-06"),
+  aw(2, "All-American", "2026-09-30", { conference: "Ivy League" }), aw(3, "Player of the Year", "", { occurred_on: null })]);
+ok(tally.total === 3 && tally.athletes === 3, "counted after the merge; an undated award counts");
+ok(tally.months.map((m) => `${m.month}:${m.count}`).join(",") === "2026-10:1,2026-09:1", "months newest first, undated left out");
+ok(tally.byConference[0].conference === "Patriot League" && tally.byConference[0].count === 2, "by conference (the undated award counts too)");
+ok(previousMonth(new Date("2026-11-01T09:00:00Z")) === "2026-10" && previousMonth(new Date("2027-01-01T09:00:00Z")) === "2026-12", "the roundup's month");
+const win = (athlete_id: number, award_name: string, handle: string | null, occurred_on = "2026-10-05"): Winner =>
+  ({ athlete_id, name: `W${athlete_id}`, school: "S", conference: "Big Ten", award_name, occurred_on, handle });
+const ws = [win(1, "Player of the Week", "@Ann.B"), win(1, "Player of the Week", "ann.b", "2026-10-12"), win(2, "All-American", null), win(3, "Player of the Week", "bad handle!")];
+ok(JSON.stringify(tagsFor(ws)) === '["ann.b"]', "tags: own handles, normalised, unique, invalid dropped");
+const wl = winnerLines(ws, "en");
+ok(wl[0].name === "W2" && wl[1].awards === "2× Player of the Week", "biggest honour first; repeats merged");
+const cap = captionFor(ws, "2026-10", "en");
+ok(cap.startsWith("October 2026: 4 awards for 3 British athletes") && cap.includes("W1 (@ann.b) — 2× Player of the Week, Big Ten") && cap.endsWith("link in bio."), "caption");
+ok(captionFor(ws, "2026-10", "da").startsWith("Oktober 2026: 4 priser til 3 danske atleter"), "Danish caption");
+ok(tagPositions(Array.from({ length: 25 }, (_, i) => `u${i}`)).length === 20 && tagPositions(["a"])[0].y >= 0.5, "max 20 tags, in the lower half");
 
 console.log(`records: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);

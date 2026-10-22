@@ -165,6 +165,17 @@ export async function GET(req: NextRequest) {
     return new Response("No reel", { status: 404 });
   }
 
+  // The monthly honours roundup's card (pipeline/social/post-award-roundup.ts),
+  // parked for Instagram to fetch. Only keys of that exact shape.
+  if (type === "roundup") {
+    const key = searchParams.get("key") ?? "";
+    if (/^roundup-[a-z]{2}-\d{4}-\d{2}$/.test(key)) {
+      const blob = await getCardBlob(key);
+      if (blob) return blob;
+    }
+    return new Response("No roundup", { status: 404 });
+  }
+
   // Instagram-kortet: 1080×1350 JPEG, pre-rendret i pipelinen.
   //
   // INGEN fallback her, med vilje. Det liggende fallback ville være forkert
