@@ -114,6 +114,11 @@ const men = board.tables.find((t) => t.gender === "m" && t.stat === "goals")!;
 ok(men.rows.map((r) => `${r.rank}${r.tied ? "=" : ""}:${r.slug}`).join(" ") === "1:p1 2=:p2 2=:p3", "ranked, tied, zero left out");
 ok(men.rows[0].prevRank === 2 && men.rows[1].prevRank === 1 && men.rows[2].prevRank === null, "movement against last week");
 ok(board.tables.some((t) => t.gender === "f") && !board.tables.some((t) => t.stat === "assists"), "one table per gender; empty stats skipped");
+ok(board.tables.every((t) => t.division === null), "one division only: no division tables");
+const split = buildLeaderboard("UK", "2026-10-22", [bi(1, 9), bi(2, 7, { division: "NCAA D2" }), bi(3, 5, { division: "NCAA D2" })], null, null);
+const menGoals = split.tables.filter((t) => t.gender === "m" && t.stat === "goals");
+ok(menGoals.map((t) => t.division ?? "national").join(",") === "national,D1,D2", "national table, then each division");
+ok(menGoals[2].rows.map((r) => `${r.rank}:${r.slug}`).join(" ") === "1:p2 2:p3", "a division ranks on its own");
 
 console.log(`records: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);
