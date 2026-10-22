@@ -1192,6 +1192,21 @@ export async function schoolHasCoverage(schoolName: string, country?: string): P
  * into site_stats (migration 059). Null until the first run — or before the
  * migration — and the page says so instead of failing.
  */
+/** This season's award tally (src/lib/award-tally.ts), computed daily by build-stats. One row. */
+export async function getAwardTally(country: string): Promise<import("./award-tally").AwardTally | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const row = (await db
+      .prepare("SELECT value FROM stats_cache WHERE key = 'awards' AND country = ?")
+      .bind(country)
+      .first()) as { value: string } | null;
+    return row ? (JSON.parse(row.value) as import("./award-tally").AwardTally) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The national leaderboard (src/lib/leaderboard.ts), computed daily by the stats fill. One row. */
 export async function getLeaderboard(country: string): Promise<import("./leaderboard").Leaderboard | null> {
   const db = await getDB();
