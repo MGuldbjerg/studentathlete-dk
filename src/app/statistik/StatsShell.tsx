@@ -5,6 +5,7 @@ import { routePath, t } from "@/lib/i18n";
 import type { Nation } from "@/lib/home-nation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { StatsView } from "./StatsView";
+import { LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 
 /** Shared frame for the stats pages: crumbs, heading, disclaimer, numbers. */
 export async function StatsShell({
@@ -44,6 +45,13 @@ export async function StatsShell({
       <p className="text-sm text-ink/80 mb-3 max-w-2xl border-l-4 pl-3" style={{ borderColor: "#BF0A30" }}>
         {t("stats.disclaimer", lang)}
       </p>
+      {!nation && (
+        <p className="text-sm mb-6">
+          <a href={`${routePath("stats", lang)}/${LEADERBOARD_SLUG[lang] ?? LEADERBOARD_SLUG.en}`} className="font-semibold hover:underline" style={{ color: "#BF0A30" }}>
+            {lang === "da" ? "Danske topscorere denne sæson →" : "This season's British leaderboard →"}
+          </a>
+        </p>
+      )}
       {data ? (
         <StatsView stats={data.stats} computedAt={data.computedAt} lang={lang} country={country} nation={nation} />
       ) : (

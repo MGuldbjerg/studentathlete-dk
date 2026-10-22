@@ -23,7 +23,8 @@
 import { createD1Client } from "../lib/d1-client";
 import { robotsAllows } from "../lib/robots";
 import { pipelineUserAgent } from "../../src/lib/site";
-import { siteCountrySql } from "../../src/lib/countries";
+import { siteCountrySql, siteCountryCodes } from "../../src/lib/countries";
+import { LEADERBOARD_KEY, buildLeaderboard, crossed, milestoneEvent, type BoardInput } from "../../src/lib/leaderboard";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import { currentSeasonStart } from "../generate/timeline";
 import { STATS_SPORTS, nameKey, pageSeason, parseSeasonTables, parseTennisTables, seasonLine, statsUrl, tennisLine, tennisRecord, type SeasonTables, type StatsRow } from "./season-stats";
@@ -110,6 +111,8 @@ async function main(): Promise<void> {
   for (const g of todo) { const h = new URL(g.url!).host; byHost.set(h, [...(byHost.get(h) ?? []), g]); }
   const hosts = [...byHost.keys()];
   const writes: Array<{ sql: string; params: unknown[] }> = [];
+  /** Today's season totals per athlete, for the history, milestones and leaderboard. */
+  const totals = new Map<number, { athlete: Athlete; kind: "outfield" | "keeper"; games: number; goals: number; assists: number; shutouts: number; url: string }>();
   let fetched = 0, failed = 0, found = 0, missing = 0;
 
   let next = 0;
@@ -151,6 +154,13 @@ async function main(): Promise<void> {
               params: [a.id, season, a.sport, hit.kind, num(hit.row.cells["gp"]), JSON.stringify(hit.row.cells),
                 seasonLine(a.name, g.school!, tables, now), g.school, g.url, today],
             });
+            const c = hit.row.cells;
+            totals.set(a.id, {
+              athlete: a, kind: hit.kind, games: num(c["gp"]), url: g.url!,
+              goals: hit.kind === "outfield" ? num(c["g"]) : 0,
+              assists: hit.kind === "outfield" ? num(c["a"]) : 0,
+              shutouts: hit.kind === "keeper" ? num((c["sho"] ?? c["sho/cbo"] ?? "").split(/[-/]/)[0]) : 0,
+            });
           }
         } catch {
           failed++;
@@ -161,9 +171,91 @@ async function main(): Promise<void> {
   }));
 
   console.log(`stats pages read: ${fetched} · not readable/allowed: ${failed} · athletes found with games: ${found} · not on the page or no games: ${missing}`);
+
+  // ── Milestones: yesterday's stored totals against today's ─────────────────
+  // Only for an athlete we already had a row for: on first sight we cannot
+  // know WHEN a total was crossed, and a line dated today would be false.
+  const before = new Map<number, { goals: number; assists: number; shutouts: number }>();
+  for (const r of (await db.query<{ athlete_id: number; goals: number; assists: number; shutouts: number }>(
+    `SELECT h.athlete_id, h.goals, h.assists, h.shutouts FROM athlete_season_stats_history h
+      WHERE h.season = ? AND h.day = (SELECT MAX(day) FROM athlete_season_stats_history WHERE season = ? AND day < ?)`,
+    [season, season, today])).results) before.set(r.athlete_id, r);
+  const milestoneWrites: Array<{ sql: string; params: unknown[] }> = [];
+  for (const [id, t] of totals) {
+    const b = before.get(id);
+    if (!b) continue;
+    const lang = t.athlete.home_country === "DK" ? "da" : "en";
+    for (const stat of ["goals", "assists", "shutouts"] as const) {
+      for (const n of crossed(b[stat], t[stat])) {
+        const m = milestoneEvent(stat, n, lang);
+        milestoneWrites.push({
+          sql: `INSERT OR IGNORE INTO athlete_events
+                  (athlete_id, occurred_on, season, kind, award_name, summary, significance, source_url, article_id, created_at)
+                VALUES (?, ?, ?, 'milestone', ?, ?, 'notable', ?, NULL, datetime('now'))`,
+          params: [id, today, season, m.award, m.summary, t.url],
+        });
+      }
+    }
+  }
+  console.log(`milestones crossed since the last fill: ${milestoneWrites.length}`);
+
+  const historyWrites = [...totals].map(([id, t]) => ({
+    sql: `INSERT INTO athlete_season_stats_history (athlete_id, season, day, games, goals, assists, shutouts)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(athlete_id, season, day) DO UPDATE SET games = excluded.games, goals = excluded.goals,
+            assists = excluded.assists, shutouts = excluded.shutouts`,
+    params: [id, season, today, t.games, t.goals, t.assists, t.shutouts],
+  }));
+
   if (DRY) { console.log("[dry-run] nothing written"); return; }
-  for (let i = 0; i < writes.length; i += 50) await db.batch(writes.slice(i, i + 50));
-  console.log(`written: ${writes.length} rows`);
+  const all = [...writes, ...historyWrites, ...milestoneWrites];
+  for (let i = 0; i < all.length; i += 50) await db.batch(all.slice(i, i + 50));
+  console.log(`written: ${writes.length} stats rows, ${historyWrites.length} history rows, ${milestoneWrites.length} milestones`);
+
+  await storeLeaderboards(db, season, today);
+}
+
+/**
+ * The national leaderboard per site (src/lib/leaderboard.ts), from what is
+ * stored now — so a partial fetch day still ranks everyone — against the
+ * history snapshot nearest a week back. One stats_cache row per site.
+ */
+async function storeLeaderboards(db: ReturnType<typeof createD1Client>, season: string, today: string): Promise<void> {
+  const weekAgoDay = (await db.query<{ day: string | null }>(
+    `SELECT MAX(day) AS day FROM athlete_season_stats_history WHERE season = ? AND day <= date(?, '-7 days')`,
+    [season, today])).results[0]?.day ?? null;
+  const rows = (await db.query<BoardInput & { home_country: string; cells: string }>(
+    `SELECT st.athlete_id, a.name, a.slug, a.university, st.school, a.sport, a.gender, sc.division, st.kind, st.games,
+            st.cells, a.home_country, 0 AS goals, 0 AS assists, 0 AS shutouts
+       FROM athlete_season_stats st JOIN athletes a ON a.id = st.athlete_id
+       LEFT JOIN schools sc ON sc.name = a.university
+      WHERE st.season = ? AND st.kind IN ('outfield', 'keeper') AND ${siteCountrySql("a.home_country")}`,
+    [season])).results.map((r) => {
+      const c = JSON.parse(r.cells) as Record<string, string>;
+      return { ...r,
+        goals: r.kind === "outfield" ? num(c["g"]) : 0,
+        assists: r.kind === "outfield" ? num(c["a"]) : 0,
+        shutouts: r.kind === "keeper" ? num((c["sho"] ?? c["sho/cbo"] ?? "").split(/[-/]/)[0]) : 0 };
+    });
+  const prev = weekAgoDay ? (await db.query<{ athlete_id: number; goals: number; assists: number; shutouts: number; games: number }>(
+    `SELECT athlete_id, goals, assists, shutouts, games FROM athlete_season_stats_history WHERE season = ? AND day = ?`,
+    [season, weekAgoDay])).results : null;
+  for (const country of siteCountryCodes()) {
+    const mine = rows.filter((r) => r.home_country === country);
+    const previous = prev
+      ? mine.filter((r) => prev.some((p) => p.athlete_id === r.athlete_id)).map((r) => {
+          const p = prev.find((x) => x.athlete_id === r.athlete_id)!;
+          return { ...r, goals: p.goals, assists: p.assists, shutouts: p.shutouts, games: p.games };
+        })
+      : null;
+    const board = buildLeaderboard(country, today, mine, previous, weekAgoDay);
+    await db.execute(
+      `INSERT INTO stats_cache (key, country, value, computed_at) VALUES (?, ?, ?, datetime('now'))
+       ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, computed_at = excluded.computed_at`,
+      [LEADERBOARD_KEY, country, JSON.stringify(board)],
+    );
+    console.log(`leaderboard ${country}: ${board.tables.length} tables${weekAgoDay ? `, movement against ${weekAgoDay}` : ""}`);
+  }
 }
 
 if (/fill-season-stats\.ts$/.test(process.argv[1] ?? "")) {

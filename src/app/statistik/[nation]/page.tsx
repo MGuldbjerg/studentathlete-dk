@@ -4,6 +4,30 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 import { routePath, t } from "@/lib/i18n";
 import { NATIONS, type Nation } from "@/lib/home-nation";
 import { StatsShell } from "../StatsShell";
+import { getLeaderboard } from "@/lib/db";
+import { LeaderboardView, LEADERBOARD_SLUG } from "@/components/LeaderboardView";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
+
+/** The leaderboard lives under the stats page; its slug is the site language's. */
+async function leaderboardFor(params: Promise<{ nation: string }>) {
+  const [{ nation }, site, lang] = await Promise.all([params, currentSite(), currentLanguage()]);
+  if (nation !== LEADERBOARD_SLUG[lang]) return null;
+  return { site, lang, board: await getLeaderboard(site.code) };
+}
+
+const BOARD_TITLE: Record<string, (season: string) => string> = {
+  en: (s) => `British leaderboard: college soccer and field hockey ${s}`,
+  da: (s) => `Danske topscorere i college-fodbold og hockey ${s}`,
+};
+const BOARD_INTRO: Record<string, string> = {
+  en: "Our athletes ranked on this season's numbers from the schools' own stats pages, updated every morning. Players at schools whose stats pages we cannot read are not included, so read it as the best British numbers we can verify — not an official ranking.",
+  da: "Vores atleter rangeret efter sæsonens tal fra skolernes egne statistiksider, opdateret hver morgen. Spillere på skoler, hvis statistiksider vi ikke kan læse, er ikke med — så læs det som de bedste danske tal, vi kan efterprøve, ikke en officiel rangliste.",
+};
+const seasonOf = (asOf: string | undefined) => {
+  const d = asOf ? new Date(asOf) : new Date();
+  const y = d.getUTCMonth() + 1 >= 7 ? d.getUTCFullYear() : d.getUTCFullYear() - 1;
+  return `${y}-${String((y + 1) % 100).padStart(2, "0")}`;
+};
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +39,16 @@ async function resolve(params: Promise<{ nation: string }>): Promise<{ nation: N
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ nation: string }> }): Promise<Metadata> {
+  const lb = await leaderboardFor(params);
+  if (lb) {
+    if (!lb.board) return {};
+    const title = BOARD_TITLE[lb.lang](seasonOf(lb.board.asOf));
+    return {
+      title: `${title} | ${lb.site.brand}`,
+      description: BOARD_INTRO[lb.lang],
+      alternates: { canonical: `${routePath("stats", lb.lang)}/${LEADERBOARD_SLUG[lb.lang]}` },
+    };
+  }
   const r = await resolve(params);
   if (!r) return {};
   const site = await currentSite();
@@ -27,6 +61,23 @@ export async function generateMetadata({ params }: { params: Promise<{ nation: s
 }
 
 export default async function NationStatsPage({ params }: { params: Promise<{ nation: string }> }) {
+  const lb = await leaderboardFor(params);
+  if (lb) {
+    if (!lb.board || !lb.board.tables.length) notFound();
+    const title = BOARD_TITLE[lb.lang](seasonOf(lb.board.asOf));
+    return (
+      <main className="max-w-4xl mx-auto px-4 md:px-8 py-10">
+        <Breadcrumb crumbs={[
+          { label: t("crumb.home", lb.lang), href: "/" },
+          { label: t("stats.crumb", lb.lang), href: routePath("stats", lb.lang) },
+          { label: title },
+        ]} />
+        <h1 className="text-3xl font-bold text-ink mt-6 mb-3" style={{ fontFamily: "var(--font-serif)" }}>{title}</h1>
+        <p className="text-sm text-ink/80 mb-3 max-w-2xl border-l-4 pl-3" style={{ borderColor: "#BF0A30" }}>{BOARD_INTRO[lb.lang]}</p>
+        <LeaderboardView board={lb.board} lang={lb.lang} />
+      </main>
+    );
+  }
   const r = await resolve(params);
   if (!r) notFound();
   const name = t(`stats.nation.${r.nation}` as const, r.lang);
