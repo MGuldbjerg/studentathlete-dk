@@ -183,6 +183,7 @@ export const dk: CountryProfile = {
   profilePublicMinArticles: 0,
   profileIndexMinArticles: 0,
   // Mikkel, 2026-10-13: a thin story is a profile line, not an article.
-  // 130 words, as the UK (10 of 57 published DK articles were under).
-  standaloneMinWords: 130,
+  // 130 words, as the UK (10 of 57 published DK articles were under);
+  // 2026-10-22: 150 (the UK went to 200).
+  standaloneMinWords: 150,
 };
