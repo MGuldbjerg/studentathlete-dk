@@ -25,6 +25,10 @@ import { MULTI_DAY_SPORTS, SIBLING_DAYS, foldEarlierReports, holdDecision, type 
 import { PARENT_DAYS, cleanSection, findParent, isWeeklyAward, sectionPrompt } from "./award-section";
 import { ADDITION_TYPE, appendAddition } from "../../src/lib/article-addition";
 import { earlierLines, rosterLine, withRecords } from "./records";
+import { enrichmentLines, loadEnrichData, type EnrichData } from "./enrich";
+
+/** The enrichment motor's tables, read once per run (enrich.ts). */
+let enrichData: EnrichData | null = null;
 import { MAX_AGE_DAYS, ncaaDivision, ncaaSport, rankingLines, schoolKeys, type StoredRanking } from "../stats/ncaa-rankings";
 import { STATS_SPORTS, parseSeasonTables, seasonLine, statsUrl } from "../stats/season-stats";
 import { robotsAllows } from "../lib/robots";
@@ -732,6 +736,17 @@ async function main(): Promise<void> {
         ).results[0]?.n ?? 0;
         const roster = rosterLine(story.athlete_name, count, cc, story.university, story.sport, story.gender, new Date());
         if (roster) lines.push(roster);
+        // The enrichment motor (enrich.ts): ranks, the team's contingent, the
+        // opponent's players, hometown and class counts, awards, milestones.
+        // Its data is read once per run; per story it is arithmetic.
+        try {
+          enrichData ??= await loadEnrichData(db);
+          let opponent: string | null = null;
+          try { opponent = (JSON.parse(story.fact_sheet) as FactSheet).event?.opponent ?? null; } catch { /* none */ }
+          lines.push(...enrichmentLines(story.athlete_id ?? -1, typeof opponent === "string" ? opponent : null, enrichData));
+        } catch {
+          /* no enrichment: the other records still go in */
+        }
         // National top-10 placings from NCAA.com (ncaa-rankings.ts), exact
         // school match only, and only from a table through games of the last
         // MAX_AGE_DAYS — an older one is out of season.
