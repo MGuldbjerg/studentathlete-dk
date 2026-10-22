@@ -93,6 +93,22 @@ data-driven material instead of reapplying soon (#30–#32):
   Dropped: class-of-the-year report, choosing-a-division page.
 - Leftover uncommitted work from 19–20 Oct (Danish calque proposal, model bake-off) moved
   to branch `wip-danish-calques` to unblock deploys.
+- **Awards page + IG roundup (#34):** `/statistics/awards`, `/statistik/priser` from
+  `stats_cache` key 'awards' (build-stats). `dedupeAwards` (same athlete+award within 4 days =
+  one; UK season 186→172). `award-roundup.yml` posts on the 1st (first: 1 Nov, for October),
+  up to 20 winners tagged by name-matched handles; retries untagged if refused.
+  Open: profile timelines can still show an award twice (release + article row) — dedupe at
+  harvest or in `profile-timeline.ts`.
+- **New markets (#35):** the stats fill also covers collecting countries (AU, DE, SE, ES, FR)
+  so their profiles start with stats, history and milestones; nothing shows until a site
+  exists. Honours already harvested for all countries. Milestones render from their key in
+  the reader's language — add de/es/fr wording when those sites are built. First full fill
+  2026-10-22: 2,683 athletes, 697/706 stats pages read, 2,112 stats + history rows;
+  leaderboard UK 36 tables, DK 23.
+- **Workers CPU (#36):** projected 150 % of the allowance (~151 ms CPU/request; prefetch
+  ~30 %, SemrushBot ~26 %). `prefetch={false}` on every `<Link>`; robots.txt disallows 8
+  SEO-tool bots. Re-run `pipeline/checks/platform-limits.ts` ~25 Oct. Next levers if needed:
+  longer edge TTL for stable pages, cheap 404s for removed profiles, render cost itself.
 
 ## 💷 AdSense .co.uk: reworked, review requested 2026-10-12
 
