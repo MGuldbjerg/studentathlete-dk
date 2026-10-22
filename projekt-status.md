@@ -43,8 +43,9 @@ see and approve the emails before anything is sent.**
   name). Harvard and Yale keep staff emails out of the HTML. Never infer an address from a
   pattern. Subagent web-research can do a conference at a time (3 agents for ~7 schools).
 - **Blockers before the first send** (Mikkel's side): (1) approve wording + the 7 contacts;
-  (2) Brevo: `BREVO_API_KEY` (repo secret + `~/.bashrc`), authenticate `studentathlete.dk`
-  (SPF/DKIM) and verify info@studentathlete.dk as sender; (3) **check the site actually shows a
+  (2) Brevo: `BREVO_API_KEY` (repo secret + `~/.bashrc`) — domain auth DONE 2026-10-22
+  (brevo-code, DKIM brevo1/2, DMARC p=none, SPF includes spf.brevo.com; Gmail "Send mail as"
+  info@ now goes via smtp-relay.brevo.com:587 — Cloudflare Email Routing is receive-only); (3) **check the site actually shows a
   photo credit with a source-article link next to each photo — the email promises it, not
   verified**. Then: import CSV → dry run → show Mikkel → `--send --limit 3`.
 - **Influxer** (NIL merchandise platform, Dallas, founded 2022, 600+ schools, works with
