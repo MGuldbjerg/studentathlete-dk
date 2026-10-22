@@ -82,13 +82,10 @@ const MISTRAL_CANDIDATES = [
  *   Senior Day) — both genuine stories about the right person.
  */
 const OPENROUTER_CANDIDATES = [
-  // New free models since the 2026-09-10 run (checked 2026-09-30).
-  "qwen/qwen3.8-27b:free",
-  "dots-studio/dots-3-note-preview:free",
-  "nvidia/nemotron-3-ultra-550b-a55b:free",
-  "thinkingmachines/inkling:free",
-  "thinkingmachines/inkling-small:free",
-  "stealth/space-bunny-alpha",
+  // New free models since the 2026-09-30 run (checked 2026-10-19).
+  "xingchen-agi/xing4.0-29b-a4b:free",
+  "nvidia/nemotron-3.5-super-vl:free",
+  "stealth/ox-alpha",
 ];
 
 interface Row {
