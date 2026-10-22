@@ -14,7 +14,9 @@ on:
 jobs:
   stats:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # 50, not 25 (2026-10-22): the season stats fill now covers 13 collecting
+    # countries as well as the sites; it took 10 min for ~460 teams on site countries only.
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

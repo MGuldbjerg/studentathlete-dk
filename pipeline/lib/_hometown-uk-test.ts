@@ -149,12 +149,21 @@ for (const [h, want] of [
   ["Paris, Texas", null], ["Versailles, Ky.", null], ["Marseilles, Ill.", null], ["Lyon County, Nev.", null],
   ["London, England", "UK"], ["Aarhus, Denmark", "DK"],
   ["Berlin, N.H.", null], ["Hamburg, N.Y.", null], ["Valencia, Venezuela", null], ["New Berlin, Wis.", null],
+  // 2026-10-22: eight more
+  ["Oslo, Norway", "NO"], ["Bergen, Norway", "NO"], ["Trondheim", "NO"], ["Norway, Maine", null], ["Norway, Mich.", null],
+  ["Utrecht, Netherlands", "NL"], ["Amsterdam, The Netherlands", "NL"], ["Amsterdam, N.Y.", null], ["Holland, Mich.", null],
+  ["Milan, Italy", "IT"], ["Roma", "IT"], ["Italy, Texas", null], ["Rome, Ga.", null], ["Naples, Fla.", null],
+  ["Auckland, New Zealand", "NZ"], ["Christchurch, NZ", "NZ"], ["Tauranga", "NZ"], ["Wellington, Fla.", null],
+  ["Dublin, Ireland", "IE"], ["Cork", "IE"], ["Dublin, Ohio", null], ["Omagh, Ireland", "UK"], ["Lisburn, Northern Ireland", "UK"],
+  ["Sao Paulo, Brazil", "BR"], ["Curitiba, Paraná", "BR"], ["Brazil, Ind.", null],
+  ["Monterrey, Mexico", "MX"], ["Guadalajara", "MX"], ["Albuquerque, New Mexico", null], ["Las Cruces New Mexico", null], ["Mexico, Mo.", null],
+  ["Buenos Aires, Argentina", "AR"], ["Mendoza", "AR"], ["Córdoba, Argentina", "AR"],
 ] as [string, string | null][]) {
   const got = collect(h);
   if (got === want) passed++;
   else { failed++; console.log(`  ✗ collecting: classifyHometown("${h}") = ${got}, forventede ${want}`); }
 }
-if (activeCountries().some((c) => ["AU", "DE", "SE", "ES", "FR"].includes(c.code))) { failed++; console.log("  ✗ a collecting country leaked into the site list"); } else passed++;
+if (activeCountries().some((c) => ["AU", "DE", "SE", "ES", "FR", "NO", "NL", "IT", "NZ", "IE", "BR", "MX", "AR"].includes(c.code))) { failed++; console.log("  ✗ a collecting country leaked into the site list"); } else passed++;
 
 console.log(`\nisUkHometown: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);

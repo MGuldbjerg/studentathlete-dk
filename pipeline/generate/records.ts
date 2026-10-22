@@ -24,6 +24,8 @@ export const NATIONALITY: Record<string, string> = {
   UK: "British", DK: "Danish",
   // Collecting countries, ready for launch (2026-10-22); no articles are written for them yet.
   AU: "Australian", DE: "German", SE: "Swedish", ES: "Spanish", FR: "French",
+  NO: "Norwegian", NL: "Dutch", IT: "Italian", NZ: "New Zealand", IE: "Irish",
+  BR: "Brazilian", MX: "Mexican", AR: "Argentine",
 };
 
 /** «women's soccer», «men's golf», «field hockey» — what a roster is called. */
