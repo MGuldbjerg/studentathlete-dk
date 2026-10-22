@@ -20,7 +20,11 @@
  */
 import type { FactSheet } from "./build-factsheet";
 
-export const NATIONALITY: Record<string, string> = { UK: "British", DK: "Danish" };
+export const NATIONALITY: Record<string, string> = {
+  UK: "British", DK: "Danish",
+  // Collecting countries, ready for launch (2026-10-22); no articles are written for them yet.
+  AU: "Australian", DE: "German", SE: "Swedish", ES: "Spanish", FR: "French",
+};
 
 /** «women's soccer», «men's golf», «field hockey» — what a roster is called. */
 export function rosterLabel(sport: string, gender: string | null): string {

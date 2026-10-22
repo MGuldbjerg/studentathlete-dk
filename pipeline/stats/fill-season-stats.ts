@@ -23,7 +23,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { robotsAllows } from "../lib/robots";
 import { pipelineUserAgent } from "../../src/lib/site";
-import { siteCountrySql, siteCountryCodes } from "../../src/lib/countries";
+import { classifierCountries, siteCountrySql, siteCountryCodes } from "../../src/lib/countries";
 import { LEADERBOARD_KEY, buildLeaderboard, crossed, milestoneEvent, type BoardInput } from "../../src/lib/leaderboard";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import { currentSeasonStart } from "../generate/timeline";
@@ -73,10 +73,12 @@ async function main(): Promise<void> {
   const today = now.toISOString().slice(0, 10);
 
   const athletes = (await db.query<Athlete>(
-    // Only countries with a SITE: a collecting country's athletes are shown
-    // nowhere, so their numbers would be fetches and personal data for nothing.
+    // Sites AND collecting countries (Mikkel 2026-10-22, reversing 2026-10-12):
+    // a market that launches later starts with a season of stats, history and
+    // milestones on its profiles. Nothing of a collecting country is SHOWN —
+    // the site rules decide that; the leaderboard below is per site only.
     `SELECT id, name, university, sport, gender, home_country FROM athletes
-      WHERE active = 1 AND ${siteCountrySql("home_country")} AND university IS NOT NULL
+      WHERE active = 1 AND home_country IN (${classifierCountries().map((c) => `'${c.code}'`).join(",")}) AND university IS NOT NULL
         AND sport IN (${sports.map(() => "?").join(",")})${ONLY_COUNTRY ? " AND home_country = ?" : ""}`,
     ONLY_COUNTRY ? [...sports, ONLY_COUNTRY] : sports,
   )).results;
