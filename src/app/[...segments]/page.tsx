@@ -537,19 +537,21 @@ export default async function DynamicPage({
       const school = await getSchoolBySlug(slug);
       if (school) {
         const site = await currentSite();
-        const [athletes, articles, total, season, mix] = await Promise.all([
+        const [athletes, anyPublic, articles, total, season, mix] = await Promise.all([
           getAthletesByUniversity(school.name, 20, undefined, { listed: true }),
+          // The 404 rule is about PUBLIC athletes; the roster lists only those over the word floor.
+          getAthletesByUniversity(school.name, 1),
           getArticlesByUniversity(school.name, 6),
           countAthletesAtUniversity(school.name),
           getSchoolSeason(school.name),
           getSchoolMix(school.name),
         ]);
         // A school with no public athlete is a 404 where profiles need an article.
-        if (site.profilePublicMinArticles > 0 && athletes.length === 0) notFound();
+        if (site.profilePublicMinArticles > 0 && anyPublic.length === 0) notFound();
         // Skolerne er fælles for alle sites, atleterne er ikke. Har sitet ingen
         // atleter dér, er siden tom — og en tom side skal 404'e, ikke findes på
         // hvert domæne.
-        if (athletes.length === 0 && articles.length === 0) notFound();
+        if (anyPublic.length === 0 && articles.length === 0) notFound();
         return (
           <>
             <SchoolProfilePage school={school} athletes={athletes} articles={articles} totalAthletes={total} season={season} mix={mix} />
