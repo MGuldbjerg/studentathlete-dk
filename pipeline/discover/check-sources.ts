@@ -6,14 +6,33 @@
  * og match mod ALLE danske atleter på den skole.
  */
 
-import { storyHash } from "../lib/story-url";
 import { createD1Client } from "../lib/d1-client";
 import {
   extractStoriesForSchool,
   matchAthletes,
   type SchoolStoryMatch,
   fetchStoryContent,
+  fetchArticle,
+  listFeedItems,
+  matchArticle,
+  storyMeta,
 } from "./extract-story";
+import { normalizeSourceUrl, storyHash } from "../lib/story-url";
+import { createHash } from "node:crypto";
+
+/**
+ * The article-body pass (2026-10-26, Mikkel: «Fix»). The title pass below
+ * found 2 of 32 stories on 7 measured schools. Each new feed item is opened
+ * ONCE (feed_items_seen) and read for the school's player tags and full names
+ * in the story text (extract-story.ts extractArticle/matchArticle).
+ * Budgets: a run opens at most BODY_FETCHES pages (the first runs work through
+ * every feed's backlog) and adds at most BODY_STORIES stories this way.
+ */
+const BODY_FETCHES = Number(process.env.BODY_FETCHES ?? 600);
+const BODY_STORIES = Number(process.env.BODY_STORIES ?? 80);
+/** Older items are not opened: a story from last month is not news for the draft queue. */
+const BODY_MAX_AGE_DAYS = 21;
+const itemHash = (url: string) => createHash("sha256").update(normalizeSourceUrl(url)).digest("hex").slice(0, 32);
 
 interface SchoolWithFeed {
   id: number;
@@ -73,6 +92,8 @@ async function checkSchoolFeeds(
 
   let totalChecked = 0;
   let totalFound = 0;
+  let bodyFetches = 0;
+  let bodyStories = 0;
 
   for (const school of schools) {
     try {
@@ -97,6 +118,7 @@ async function checkSchoolFeeds(
         school.news_feed_type,
         athletes,
       );
+      const titleMatched = new Set(stories.map((s) => normalizeSourceUrl(s.url)));
 
       // Gruppér per URL. Matcheren udsender ÉN post pr. (artikel, atlet), så en
       // artikel der nævner to holdkammerater gav før to gennemløb — og dermed to
@@ -178,6 +200,39 @@ async function checkSchoolFeeds(
         }
       }
 
+      // ── The body pass: new items the title pass did not catch ──────────────
+      if (bodyFetches < BODY_FETCHES && bodyStories < BODY_STORIES) {
+        const cutoff = Date.now() - BODY_MAX_AGE_DAYS * 86_400_000;
+        const items = (await listFeedItems(school.news_feed_url, school.news_feed_type))
+          .filter((i) => !titleMatched.has(normalizeSourceUrl(i.link)) && (!i.pubDate || i.pubDate.getTime() >= cutoff));
+        const hashes = items.map((i) => itemHash(i.link));
+        const seen = new Set(hashes.length
+          ? (await db.query<{ url_hash: string }>(
+              `SELECT url_hash FROM feed_items_seen WHERE url_hash IN (${hashes.map(() => "?").join(",")})`, hashes)).results.map((r) => r.url_hash)
+          : []);
+        for (const [n, item] of items.entries()) {
+          if (seen.has(hashes[n])) continue;
+          if (bodyFetches >= BODY_FETCHES || bodyStories >= BODY_STORIES) break;
+          bodyFetches++;
+          const article = await fetchArticle(item.link);
+          await new Promise((r) => setTimeout(r, 500));
+          if (!article) continue;          // not reachable now: tried again next run
+          for (const m of matchArticle(article, athletes)) {
+            const meta = storyMeta(item.title, item.description, m.relevance_score);
+            const res = await db.execute(
+              `INSERT OR IGNORE INTO stories
+               (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [m.athlete.id, item.link, storyHash(m.athlete.id, item.link), item.title, item.description || null,
+                article.text, `school_feed_${school.news_feed_type}`, meta.relevance_score, meta.sensitive],
+            );
+            if (res.meta.changes > 0) { foundInSchool++; totalFound++; bodyStories++; }
+          }
+          await db.execute(`INSERT OR IGNORE INTO feed_items_seen (url_hash, school_id, seen_at) VALUES (?, ?, datetime('now'))`,
+            [hashes[n], school.id]);
+        }
+      }
+
       // Opdatér news_last_checked_at
       await db.execute(
         `UPDATE schools SET news_last_checked_at = datetime('now') WHERE id = ?`,
@@ -199,6 +254,7 @@ async function checkSchoolFeeds(
     }
   }
 
+  console.log(`Brødtekst: ${bodyFetches} artikler åbnet, ${bodyStories} nye historier (loft ${BODY_FETCHES}/${BODY_STORIES} pr. kørsel)`);
   return { checked: totalChecked, found: totalFound };
 }
 
