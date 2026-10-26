@@ -8,10 +8,16 @@
  *
  * Flags:
  *   status   anything but 200 (a 404 linked from a page is a dead end for the reviewer)
- *   thin     under --min-words words in <main> (scripts, nav and footer excluded)
+ *   thin     under --min-words words in <main> (scripts, nav and footer excluded),
+ *            counted by the floor rule below (PLAN-content-floor-uk.md)
  *   danish   Danish UI words on the English site (the «Seneste nyheder» kind)
  *   junk     "undefined", "NaN", "[object Object]", "null" as visible text
  *   empty    the site's own empty-state sentences («No articles yet.»)
+ *
+ * The floor rule (Mikkel, 2026-10-26): table and fact-list cells (td, th, dt,
+ * dd) count only when they hold prose — at least 5 words ending in . ! or ?,
+ * or at least 10 words. «Goals» and «12» are not content; a sentence in a table
+ * is. Everything outside cells counts as before. `rawWords` keeps the old count.
  *
  * Run:  npx tsx scripts/site-check.ts                     (student-athlete.co.uk)
  *       npx tsx scripts/site-check.ts --site dk --min-words 120
@@ -28,7 +34,7 @@ const args = process.argv.slice(2);
 const val = (f: string, d: string) => { const i = args.indexOf(f); return i >= 0 && args[i + 1] ? args[i + 1] : d; };
 const SITE = val("--site", "uk").toLowerCase();
 const BASE = SITE === "dk" ? "https://studentathlete.dk" : "https://student-athlete.co.uk";
-const MIN_WORDS = Number(val("--min-words", "150"));
+const MIN_WORDS = Number(val("--min-words", "200"));
 const CONCURRENCY = Number(val("--concurrency", "4"));
 const LINKS = !args.includes("--no-links");
 const MAX_LINKS = Number(val("--max-links", "2000"));
@@ -49,13 +55,23 @@ interface Page {
   url: string;
   status: number;
   words: number;
+  rawWords: number;
   robots: string | null;
   flags: string[];
   danish?: string;
   linkedFrom?: string;
 }
 
-function visibleMain(html: string): string {
+const wordCount = (t: string) => (t ? t.split(" ").length : 0);
+
+/** A cell's text if it is prose by the floor rule, else nothing. */
+function proseCell(inner: string): string {
+  const t = inner.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const n = wordCount(t);
+  return n >= 10 || (n >= 5 && /[.!?]$/.test(t)) ? t : "";
+}
+
+function visibleMain(html: string, cells: "all" | "prose"): string {
   // Streamed pages send a «Loading…» <main> first and the real one later in
   // the same response: read every <main>, not the first.
   const mains = html.match(/<main[\s\S]*?<\/main>/gi);
@@ -64,6 +80,8 @@ function visibleMain(html: string): string {
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<(nav|footer|header)[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<(td|th|dt|dd)\b[^>]*>([\s\S]*?)<\/\1>/gi, (_m, _tag, inner: string) =>
+      ` ${cells === "all" ? inner : proseCell(inner)} `)
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/g, " ")
     .replace(/&amp;/g, "&").replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"')
@@ -86,9 +104,9 @@ async function check(path: string, from?: string): Promise<{ page: Page; links: 
   try {
     const res = await fetch(url, { headers: { "User-Agent": UA }, redirect: "follow" });
     const html = res.ok ? await res.text() : "";
-    const text = visibleMain(html);
+    const text = visibleMain(html, "all");
     const page: Page = {
-      url: path, status: res.status, words: text ? text.split(" ").length : 0,
+      url: path, status: res.status, words: wordCount(visibleMain(html, "prose")), rawWords: wordCount(text),
       robots: /<meta name="robots" content="([^"]*)"/.exec(html)?.[1] ?? null, flags: [], linkedFrom: from,
     };
     if (res.status !== 200) page.flags.push("status");
@@ -101,7 +119,7 @@ async function check(path: string, from?: string): Promise<{ page: Page; links: 
     if (EMPTY.test(text)) page.flags.push("empty");
     return { page, links: res.ok ? internalLinks(html) : [] };
   } catch (err) {
-    return { page: { url: path, status: 0, words: 0, robots: null, flags: ["status"], linkedFrom: from,
+    return { page: { url: path, status: 0, words: 0, rawWords: 0, robots: null, flags: ["status"], linkedFrom: from,
       danish: err instanceof Error ? err.message : String(err) }, links: [] };
   }
 }
@@ -150,7 +168,7 @@ async function main(): Promise<void> {
   const ok = pages.filter((p) => p.status === 200);
   const indexed = ok.filter((p) => !(p.robots ?? "").includes("noindex"));
   const words = indexed.map((p) => p.words).sort((a, b) => a - b);
-  console.log(`\n${pages.length} pages checked · ${ok.length} answered 200 · ${indexed.length} indexable · median ${words[Math.floor(words.length / 2)] ?? 0} words in <main>`);
+  console.log(`\n${pages.length} pages checked · ${ok.length} answered 200 · ${indexed.length} indexable · median ${words[Math.floor(words.length / 2)] ?? 0} words in <main> by the floor rule`);
 
   mkdirSync("logs", { recursive: true });
   const file = `logs/site-check-${SITE}-${new Date().toISOString().slice(0, 10)}.json`;
