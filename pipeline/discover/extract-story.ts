@@ -299,7 +299,7 @@ export interface SchoolStoryMatch extends ExtractedStory {
   sensitive: string | null;
 }
 
-interface AthleteRef {
+export interface AthleteRef {
   id: number;
   name: string;
   sport?: string;
@@ -545,4 +545,116 @@ export async function extractStoriesForSchool(
   }
 
   return results;
+}
+
+// ─── The article body (2026-10-26) ──────────────────────────────────────────
+//
+// Matching on the feed's title and summary missed most stories: a release is
+// titled «Golden Eagles Battle Frostburg State» and names our player in the
+// third paragraph. Measured on 7 schools: 63 feed items, titles matched 2, the
+// bodies 32. So a new feed item is opened once and read for two things:
+//   · the school's own TAGS — Sidearm links a player it mentions to the
+//     player's roster page (`rel="smarttag"`), and lists them under «Players
+//     Mentioned». A tag is the school saying «this person is in this story»;
+//   · the article TEXT with the page's other boxes taken out — «Related
+//     News», next-game promos, share bars, navigation. A name in a related
+//     story's headline is another story (Poppy Martin on the Abramowicz page).
+
+/** Boxes on a story page that are not the story. */
+const NOT_THE_STORY = [
+  "nav", "header", "footer", "aside", "script", "style", "iframe", "noscript",
+  "[class*='s-stories']", "[class*='related']", "[class*='Related']", "[class*='sidebar']",
+  "[class*='next-game']", "[class*='promo']", "[class*='s-share']", "[class*='social']",
+  "[class*='s-people']", "[class*='players-mentioned']", "[class*='advert']", ".ad", ".advertisement",
+].join(", ");
+
+export interface StoryArticle {
+  /** The story's own text, without the page's other boxes. */
+  text: string | null;
+  /** Players the school tagged in the story (smarttags, «Players Mentioned»). */
+  tagged: string[];
+}
+
+/** «Players Mentioned» / smarttag names: the link text of links to a roster page, cleaned. */
+function rosterLinkName(text: string): string {
+  return text.replace(/\s+/g, " ").replace(/\d+'\s*\d*"?.*$/, "").trim();
+}
+
+export function extractArticle(html: string): StoryArticle {
+  const $ = cheerio.load(html);
+  const tagged = new Set<string>();
+  // The school's tags in the text.
+  $("a[rel='smarttag']").each((_, el) => { const n = rosterLinkName($(el).text()); if (n) tagged.add(n); });
+  // «Players Mentioned»: the heading's section, its links to roster pages.
+  $("h2, h3, h4, .heading, [class*='heading']").each((_, el) => {
+    if (!/^\s*players mentioned\s*$/i.test($(el).text())) return;
+    let box = $(el).parent();
+    for (let up = 0; up < 4 && box.find("a[href*='/roster/']").length === 0; up++) box = box.parent();
+    box.find("a[href*='/roster/']").each((_, a) => { const n = rosterLinkName($(a).text()); if (n && /\s/.test(n)) tagged.add(n); });
+  });
+  $(NOT_THE_STORY).remove();
+  const selectors = [".storyPageContentBody", ".sidearm-story-template", "article", '[role="main"]', ".article-body", ".story-body", ".entry-content", "main"];
+  let text: string | null = null;
+  for (const sel of selectors) {
+    const t = $(sel).first().text().replace(/\s+/g, " ").trim();
+    if (t.length > 200) { text = t; break; }
+  }
+  if (!text) {
+    const body = $("body").text().replace(/\s+/g, " ").trim();
+    text = body.length > 200 ? body : null;
+  }
+  return { text, tagged: [...tagged] };
+}
+
+export async function fetchArticle(url: string): Promise<StoryArticle | null> {
+  if (isBlockedDomain(url)) return null;
+  const html = await fetchPage(url);
+  return html ? extractArticle(html) : null;
+}
+
+const taggedKey = (name: string) => name.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z' -]/g, " ").replace(/\s+/g, " ").trim();
+
+/**
+ * Our athletes in an article: a TAG (95) or the FULL name in the text (90).
+ * A surname alone stands in every line-up and box score — not a story about
+ * the person — so nothing less is taken from a body.
+ */
+export function matchArticle(article: StoryArticle, athletes: AthleteRef[]): Array<{ athlete: AthleteRef; relevance_score: number }> {
+  const tags = new Set(article.tagged.map(taggedKey));
+  const out: Array<{ athlete: AthleteRef; relevance_score: number }> = [];
+  for (const a of athletes) {
+    if (tags.has(taggedKey(a.name))) { out.push({ athlete: a, relevance_score: 95 }); continue; }
+    if (!article.text) continue;
+    const m = matchAthletes(article.text, [a]).find((x) => x.relevance_score >= 90);
+    if (m) out.push({ athlete: a, relevance_score: 90 });
+  }
+  return out;
+}
+
+export interface FeedItem { title: string; link: string; description: string; pubDate: Date | null }
+
+/** Every item of a school's feed (RSS/Atom or an HTML news page), with its date when the feed gives one. */
+export async function listFeedItems(feedUrl: string, feedType: "rss" | "html"): Promise<FeedItem[]> {
+  const body = await fetchPage(feedUrl);
+  if (!body) return [];
+  if (feedType !== "rss") return parseHtmlLinks(body, feedUrl).map((i) => ({ ...i, pubDate: null }));
+  const $ = cheerio.load(body, { xml: true });
+  const items: FeedItem[] = [];
+  $("item").each((_, el) => {
+    const link = $(el).find("link").text().trim();
+    if (link) items.push({ title: $(el).find("title").text().trim(), link, description: $(el).find("description").text().trim(), pubDate: parsePubDate($(el).find("pubDate").text().trim()) });
+  });
+  $("entry").each((_, el) => {
+    const link = $(el).find('link[rel="alternate"]').attr("href") || $(el).find("link").attr("href") || "";
+    if (link) items.push({ title: $(el).find("title").text().trim(), link, description: $(el).find("summary").text().trim(),
+      pubDate: parsePubDate($(el).find("published").text().trim() || $(el).find("updated").text().trim()) });
+  });
+  return items;
+}
+
+/** Ranking and the press-ethics flag for a story, from its title and summary — as extractStoriesForSchool sets them. */
+export function storyMeta(title: string, description: string, score: number): { relevance_score: number; sensitive: string | null } {
+  const text = `${title} ${description}`;
+  const kind = detectStoryKind(text, detectHonor(text) !== null);
+  return { relevance_score: Math.min(100, score + relevanceAdjustment(kind.kind)), sensitive: detectSensitive(text)?.type ?? null };
 }
