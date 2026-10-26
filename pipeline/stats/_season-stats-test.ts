@@ -11,6 +11,7 @@ import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs, type 
 import type { BoardInput } from "../../src/lib/leaderboard";
 import { bioParagraph, heightCm } from "../../src/lib/bio-facts";
 import { parseBioFacts } from "../profiles/bio-facts";
+import { honoursParagraph } from "../../src/lib/honours-summary";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -199,6 +200,25 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
     === "Before Lindsey Wilson, Setters attended Thornden School and then Algoma University. Setters is studying Finance at Lindsey Wilson.", "previous school and major");
   ok(bioParagraph({ highSchool: null, previousSchool: null, major: null, height: null }, "X Y", "Z", null, "en") === "", "nothing → no paragraph");
   ok(bioParagraph(f, "Ben Boxall", "Furman", null, "da") === "Før Furman gik Boxall på Epsom H.S. Furmans spillertrup opgiver Boxall til 1,70 m.", "Danish");
+}
+
+// Honours and milestones in prose (P5, 2026-10-26).
+{
+  const ev = (id: number, o: object) => ({ id, season: "2026-27", kind: "award", award_name: null, summary: "", significance: "notable" as const, source_url: null, occurred_on: null, ...o });
+  const events = [
+    ev(1, { award_name: "Player of the Week", occurred_on: "2026-09-28" }),
+    ev(2, { award_name: "Player of the Week", occurred_on: "2026-10-05" }),
+    ev(3, { award_name: "Player of the Week", occurred_on: "2026-10-07" }),
+    ev(4, { award_name: "All-Conference", season: "2025-26", occurred_on: "2025-11-02" }),
+    ev(5, { award_name: "Player of the Week", season: "2024-25", occurred_on: "2024-11-01" }),
+    ev(6, { kind: "milestone", award_name: "milestone:goals:5", occurred_on: "2026-10-03" }),
+    ev(7, { kind: "milestone", award_name: "milestone:goals:1", occurred_on: "2026-08-30" }),
+  ];
+  const en = honoursParagraph(events, "Evie Craven", "2026-27", "en");
+  ok(en.startsWith("This season Craven has been named Player of the Week twice (28 September and 5 October)."), "this season's honours, twins counted once");
+  ok(en.includes("Earlier honours on file: All-Conference (2025) and Player of the Week (2024).") && en.endsWith("Milestones this season: first goal on 30 August and 5 goals on 3 October."), "earlier honours by season; milestones in order");
+  ok(honoursParagraph([], "X", "2026-27", "en") === "", "nothing → no paragraph");
+  ok(honoursParagraph(events, "Evie Craven", "2026-27", "da").startsWith("I denne sæson er Craven blevet kåret til"), "Danish");
 }
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);
