@@ -4,26 +4,32 @@
 
 ---
 
-## 🧹 Quality sweep 2026-10-26 — fixed in code (#49), decisions open
+## 🧹 Quality sweep 2026-10-26 — all five decisions carried out (Mikkel same day)
 
-- **Heights as position (1,117 athletes, all countries):** Sidearm prints the height inside the
-  position element; rosters without positions (tennis 580, golf 197, athletics 105, rowing 98,
-  swimming 36) gave the height. `cleanPosition` rejects heights/weights; profiles and school
-  rosters show the cleaned value (hidden now, no data write). OPEN: bulk `UPDATE athletes SET
-  position = NULL` for those rows — Mikkel's OK.
-- **JS roster path** (`scrape-js-rosters.ts`) saved names/positions raw → now cleaned like
-  scrape-rosters. OPEN: the 29 existing double-spaced names (`trim(replace(name,'  ',' '))`) —
-  Mikkel's OK (shown in the profile heading).
-- **«tavse-feeds» was a broken check** (per athlete, not per school: 518 false hits). Fixed: 192
-  schools with no story for ANY athlete in 90 days. Sample of 12: 5 dead feeds (Berkeley, USF,
-  Jacksonville State, Illinois: 200 with 0 items; Belmont Abbey 403), 7 live feeds whose items
-  never match our athletes. OPEN: a feed re-discovery pass.
-- **Class-year conflicts (164 fact sheets, 72 with published articles):** most are a teammate's
-  class word; ~5 of 12 read are about the athlete (Blyth «junior» vs So., Armes «sophomore» vs
-  Jr., Heeps, two DK). Who is right needs the source. OPEN: a review pack.
-- **Risk draft #793** (DK, high fabrication risk, >3 days) — Mikkel decides (reject?).
-- **307 stale profile texts** (DK examples) — queued for approval by the sweep workflow's
-  `queue-stale-profiles --apply`; Mikkel's queue in /admin/profiler.
+- **Cleanup done:** 1,121 heights out of `position`, 29 double-spaced names fixed
+  (`db/fix-2026-10-26-positions-names.sql`). Code keeps them out (`cleanPosition`, JS roster path).
+- **Draft #793 rejected** (review_log row, via apply-draft-decisions).
+- **Schools: 40 overwritten by another school's row — repaired** (found via the stale profiles):
+  the CSV importer matched by SLUG, so «Cornell College» → «Cornell» gave Cornell University the
+  Rams of Mount Vernon (Georgetown «Tigers», Washington «Shoremen», Florida «Falcons» …).
+  `pipeline/seed/repair-school-collisions.ts` restored each school's own CSV values (only where
+  the current ones were exactly the colliding row's); importer now matches by exact name.
+  Old seed rows University of Texas/Illinois, Indiana University got team name + city back.
+- **Stale profile texts:** rule-based refresh publishes only when it ADDS a name/number (team,
+  city, year); rewording/removal → approval queue. 88 published, 88 queued (2026-10-26). Site
+  countries only. Weekly in quality-sweep.yml.
+- **Class year across seasons:** `classYearConflict` steps the roster class by the academic years
+  between story and roster (`shiftClass`). Review pack `pipeline/checks/class-year-pack.ts` →
+  `logs/review/class-year-2026-10-26.md`: 12 articles — errors in #261 (Mortensen «freshman», is
+  So.), #280 (Heeps «redshirt freshman», So.), #674 (Beasley «junior»; bio + roster Sr., release
+  said Jr.); roster stale for Lasse Bjørn Jensen (bio So.) and Evie Brooks (bio Sr.); **Lauren
+  Blyth transferred CBU → Nova Southeastern** (our record still CBU — transfers with an existing
+  slug are not moved by the scrapers: OPEN); 6 teammate/historical mentions. OPEN: correct
+  #261/#280/#674 (Mikkel's OK).
+- **Dead feeds:** `pipeline/discover/repair-feeds.ts` (weekly in quality-sweep, job timeout 40):
+  87 dead, 48 repaired (Sidearm /rss.aspx → /rss); 39 still dead, mostly a college's general news
+  feed with no known athletics site — next: `find-athletics-site.ts` for them. Also open: 7 live
+  feeds whose items never match our athletes (UT, South Carolina, LIU …).
 
 ---
 
