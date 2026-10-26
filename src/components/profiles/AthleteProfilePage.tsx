@@ -1,6 +1,7 @@
 import type { Athlete, Article } from "@/lib/types";
 import { careerParagraph, careerRows, type CareerSeason } from "@/lib/career";
 import { readStanding, standingSentences } from "@/lib/standing";
+import { bioParagraph, readBioFacts } from "@/lib/bio-facts";
 import { readTeamContext, teamParagraphs } from "@/lib/team-context";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
@@ -95,6 +96,10 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
   // Where the player ranks among the site's players with stats on file (P3).
   const standing = seasonStats ? readStanding(seasonStats.standing) : null;
   const standingText = standing ? standingSentences(standing, athlete.name, lang).join(" ") : "";
+  // Background from the bio page's labelled facts (P4) — never the bio prose.
+  const bio = readBioFacts(athlete.bio_facts);
+  const bioSchool = seasonStats?.school ?? athlete.university ?? "";
+  const bioText = bio && bioSchool ? bioParagraph(bio, athlete.name, bioSchool, athlete.previous_school ?? null, lang) : "";
   const teamText = teamCtx && seasonStats && seasonStats.kind !== "tennis"
     ? teamParagraphs(teamCtx, { name: athlete.name, kind: seasonStats.kind, cells: safeCells(seasonStats.cells) }, lang)
     : [];
@@ -298,6 +303,15 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                     {t("profile.stats_source", lang, { school: seasonStats.school, date: formatDateShort(seasonStats.fetched_on, lang) })} ↗
                   </a>
                 </p>
+              </section>
+            )}
+
+            {bioText && (
+              <section className="mb-10">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">
+                  {t("profile.background", lang)}
+                </p>
+                <p className="text-base text-ink/90 leading-relaxed">{bioText}</p>
               </section>
             )}
 

@@ -610,6 +610,7 @@ const ui: LanguagePack["ui"] = {
   "school.teams_heading": "Holdene",
   "school.col_player": "Spiller",
   "school.col_sport": "Sport",
+  "profile.background": "Baggrund",
   "board.goals": "Mål",
   "board.assists": "Assists",
   "board.shutouts": "Clean sheets",

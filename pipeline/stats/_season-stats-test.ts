@@ -9,6 +9,8 @@ import { careerParagraph, careerRows, seasonsBack } from "../../src/lib/career";
 import { computeStandings, readStanding, standingSentences } from "../../src/lib/standing";
 import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs, type SchoolPlayer } from "../../src/lib/school-season";
 import type { BoardInput } from "../../src/lib/leaderboard";
+import { bioParagraph, heightCm } from "../../src/lib/bio-facts";
+import { parseBioFacts } from "../profiles/bio-facts";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -182,6 +184,21 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
   ok(teams.length === 1 && teams[0].startsWith("Drexel's men's football team have played 16 games this season: 6 wins, 8 defeats and 2 draws (4-5-0 in conference play).") && teams[0].includes("a 0-1 defeat at Hofstra on 24 October"), "one paragraph per team");
   ok(schoolStatsParagraph([], facts, "UK", "en") === "" && schoolTeamParagraphs([], facts, "en").length === 0, "no players → no paragraphs");
   ok(schoolFactsParagraph(facts, mix, "danske", "da").includes("Vi følger 3 danske atleter på Drexel: 2 i fodbold og 1 i field hockey."), "Danish facts");
+}
+
+// Background facts from the bio page (P4, 2026-10-26).
+{
+  const page = `<ul><li><span>Position</span><span>MF</span></li><li><span>Height</span><span>5-7</span></li>
+<li><span>Hometown</span><span>Cobham, England</span></li><li><span>High School</span><span>Epsom H.S.</span></li>
+<li><span>Major</span><span>Personal:</span></li></ul>`;
+  const f = parseBioFacts(page);
+  ok(f.highSchool === "Epsom H.S." && f.height === "5-7" && f.major === null, "labelled facts; a heading is no value");
+  ok(heightCm("5-7")?.cm === 170 && heightCm(`6'1"`)?.cm === 185 && heightCm("1.85m")?.ft === 6 && heightCm("tall") === null && heightCm("5-14") === null, "heights");
+  ok(bioParagraph(f, "Ben Boxall", "Furman", null, "en") === "Before Furman, Boxall attended Epsom H.S. Furman's roster lists Boxall at 5 ft 7 in (1.70 m).", "background sentence");
+  ok(bioParagraph({ highSchool: "Thornden School", previousSchool: null, major: "Finance", height: null }, "David Setters", "Lindsey Wilson", "Algoma University", "en")
+    === "Before Lindsey Wilson, Setters attended Thornden School and then Algoma University. Setters is studying Finance at Lindsey Wilson.", "previous school and major");
+  ok(bioParagraph({ highSchool: null, previousSchool: null, major: null, height: null }, "X Y", "Z", null, "en") === "", "nothing → no paragraph");
+  ok(bioParagraph(f, "Ben Boxall", "Furman", null, "da") === "Før Furman gik Boxall på Epsom H.S. Furmans spillertrup opgiver Boxall til 1,70 m.", "Danish");
 }
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);

@@ -66,6 +66,10 @@ export interface Athlete {
   has_article?: number;
   /** Published articles about or naming the athlete (getAthleteBySlug, getAllAthleteSlugs). */
   article_count?: number;
+  /** The college before this one, from the roster (when it says). */
+  previous_school?: string | null;
+  /** Labelled facts from the bio page (src/lib/bio-facts.ts), migration 072. */
+  bio_facts?: string | null;
   /** 1 when this season's stats are on file (athlete_season_stats). */
   has_stats?: number;
   /** Skolens stavemåde af navnet (matchnøgle for scraperen, migration-032). */
