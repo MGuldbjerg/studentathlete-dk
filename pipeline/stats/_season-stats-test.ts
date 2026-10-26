@@ -124,6 +124,10 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
   ok(seasonsBack("R-So.") === 2 && seasonsBack("4th Year") === 3 && seasonsBack("Sr. (4th)") === 3 && seasonsBack("FY") === 0 && seasonsBack(null) === 0 && seasonsBack("Rf.") === 0, "redshirts, «4th Year», unknown → 0");
   ok(archiveYear("<title>\n\t2024 Men's Soccer Cumulative Statistics - Adelphi University</title>") === 2024, "archive year from the title");
   ok(archiveYear("<title>2026 Men's Soccer Schedule - Furman University</title>") === null, "a schedule page is no archive");
+  ok(archiveYear("<title>Field Hockey Cumulative Statistics</title><h1>2025 Field Hockey Cumulative Statistics</h1>") === 2025, "year from the heading");
+  const games = (y: string) => `<title>Field Hockey Cumulative Statistics</title><table><tr><th>Date</th><th>Opponent</th><th>W/L</th><th>Score</th></tr>` +
+    ["09/01", "09/05", "10/10"].map((d) => `<tr><td>${d}/${y}</td><td>at X</td><td>W</td><td>2-1</td></tr>`).join("") + `</table>`;
+  ok(archiveYear(games("2025")) === 2025 && archiveYear(games("2025").replace("10/10/2025", "10/10/2026")) === null, "year from the game dates, only when they agree");
   const past = [
     { season: "2024-25", kind: "outfield" as const, games: 19, cells: { gp: "19", gs: "2", g: "1", a: "3" }, school: "Adelphi", record: { w: 9, l: 6, t: 4 } },
     { season: "2025-26", kind: "outfield" as const, games: 17, cells: { gp: "17", gs: "11", g: "2", a: "3" }, school: "Adelphi", record: { w: 9, l: 6, t: 4 } },
