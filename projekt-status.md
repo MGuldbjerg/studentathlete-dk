@@ -18,6 +18,18 @@ pages under 200 words — profiles 936/949 (median 77), schools 104/104.
   profiles median 77 → 138 words (gain median +59, p10 +43, p90 +90); profiles under 200
   936 → 815; all indexable pages under 200 1,117 → 996. Profiles now: 277 at 150–199, 464 at
   100–149, 74 under 100. Schools unchanged (104/104 under, median 96). No other flags.
+- **Step 2 done (#41, #42, live 3db54ae):** P1 earlier seasons. `pipeline/stats/backfill-career.ts`
+  reads each team's archived stats page per earlier season (year from title, «YYYY … Cumulative
+  Statistics» heading, or ≥3 game dates in one year), for returning players by class year
+  (`seasonsBack`), walking back and stopping at the first season an athlete is missing. Rows in
+  athlete_season_stats under the past season key; team-seasons read are remembered in
+  stats_cache 'career_checked' (country 'ALL') and never refetched. NOT scheduled: rerun by hand
+  for new returning players (a remembered team-season is not reread for an athlete added later).
+  Result: 766 earlier seasons, 448 UK + 37 DK athletes. Profile block «Earlier seasons».
+  **Measured:** profiles median 138 → 166 words, under 200: 815 → 654 (297 now over, from 13 this
+  morning); all indexable pages under 200: 996 → 835 of 1,635. No other flags.
+- **Next:** step 3 — P3 (leaderboard rank on profiles) and S1–S3 (school pages: stats table +
+  facts + team results, all with prose).
 - **Loose ends checked:** the 502 on the Marissa MacLean article was transient (200 ×3).
   UK stats rows 944 → 908: no code deletes rows, every UK row was refreshed 25 Oct, and history
   shows 904–907 since 22 Oct. The gap most likely is the tennis rows counted in «944 on day one»
