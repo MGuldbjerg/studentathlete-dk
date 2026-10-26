@@ -193,7 +193,9 @@ export async function SchoolProfilePage({ school, athletes, articles, totalAthle
                   </a>
                 ))}
               </div>
-            ) : (
+            ) : total > 0 ? null : (
+              // Athletes here, none listed (all under the word floor): the
+              // paragraph above already says how many we follow.
               <p className="text-muted text-sm">{t("school.no_athletes", lang)}</p>
             )}
             {athletes.length > 0 && more > 0 && (
