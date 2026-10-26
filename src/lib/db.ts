@@ -691,6 +691,8 @@ export interface SeasonStatsRow {
   fetched_on: string;
   /** Team context JSON (src/lib/team-context.ts), migration 070; null before the first fill. */
   team: string | null;
+  /** Rank among the site's players (src/lib/standing.ts), migration 071. */
+  standing: string | null;
 }
 
 /**
@@ -717,6 +719,45 @@ export async function getCareerSeasons(athleteId: number): Promise<import("./car
   } catch { return []; }
 }
 
+/**
+ * This season's stats of the site's players at one school (S1/S3 on the school
+ * page). The athletes by university (indexed), then their stats by primary key.
+ */
+export async function getSchoolSeason(university: string, country?: string): Promise<import("./school-season").SchoolPlayer[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const code = await siteCountry(country);
+    const rows = ((await db
+      .prepare(
+        `SELECT a.name, a.slug, a.sport, a.gender, st.kind, st.games, st.cells, st.team FROM athletes a
+           JOIN athlete_season_stats st ON st.athlete_id = a.id AND st.season = ? AND st.games > 0
+          WHERE a.university = ? AND a.home_country = ? AND a.active = 1 AND st.kind IN ('outfield', 'keeper')
+          ORDER BY a.name`,
+      )
+      .bind(seasonFromDate(null), university, code)
+      .all()).results ?? []) as Array<{ name: string; slug: string; sport: string; gender: string | null; kind: "outfield" | "keeper"; games: number; cells: string; team: string | null }>;
+    return rows.map((r) => {
+      let cells: Record<string, string> = {};
+      try { cells = JSON.parse(r.cells); } catch { /* none */ }
+      return { name: r.name, slug: r.slug, sport: r.sport, gender: r.gender, kind: r.kind, games: r.games, cells, team: r.team };
+    });
+  } catch { return []; }
+}
+
+/** Sport and class year of every active athlete of the site's country at a school — counts only, no names. */
+export async function getSchoolMix(university: string, country?: string): Promise<Array<{ sport: string; class_year: string | null }>> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const code = await siteCountry(country);
+    return ((await db
+      .prepare(`SELECT sport, class_year FROM athletes WHERE university = ? AND home_country = ? AND active = 1`)
+      .bind(university, code)
+      .all()).results ?? []) as Array<{ sport: string; class_year: string | null }>;
+  } catch { return []; }
+}
+
 /** This season's stats row for the athlete (athlete_season_stats), or null. Primary-key lookup. */
 export async function getSeasonStats(athleteId: number): Promise<SeasonStatsRow | null> {
   const db = await getDB();
@@ -724,7 +765,7 @@ export async function getSeasonStats(athleteId: number): Promise<SeasonStatsRow 
   try {
     return ((await db
       .prepare(
-        `SELECT kind, games, cells, line, school, source_url, fetched_on, team FROM athlete_season_stats
+        `SELECT kind, games, cells, line, school, source_url, fetched_on, team, standing FROM athlete_season_stats
           WHERE athlete_id = ? AND season = ? AND games > 0`,
       )
       .bind(athleteId, seasonFromDate(null))

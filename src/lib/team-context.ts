@@ -184,6 +184,11 @@ function meDa(c: TeamContext, s: TeamSubject): string[] {
   return out;
 }
 
+/** The team sentences alone (record, goals, latest game) — the school page uses them per team. */
+export function teamSummary(c: TeamContext, lang: string): string {
+  return (lang === "da" ? teamSentencesDa(c) : teamSentencesEn(c)).join(" ");
+}
+
 /**
  * Two paragraphs: the team, then the athlete on it. Draws are named only when
  * the team has drawn at all; field hockey records are wins and defeats.
