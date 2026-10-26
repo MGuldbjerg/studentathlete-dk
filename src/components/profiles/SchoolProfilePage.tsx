@@ -3,6 +3,7 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 import type { School, Athlete, Article } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { cleanPosition } from "@/lib/roster-clean";
 import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs, type SchoolFacts, type SchoolPlayer } from "@/lib/school-season";
 
 interface Props {
@@ -187,7 +188,7 @@ export async function SchoolProfilePage({ school, athletes, articles, totalAthle
                         {a.name}
                       </p>
                       <p className="text-xs text-muted mt-0.5">
-                        {[a.sport ? sportLabel(a.sport, lang) : null, a.position].filter(Boolean).join(" · ")}
+                        {[a.sport ? sportLabel(a.sport, lang) : null, cleanPosition(a.position)].filter(Boolean).join(" · ")}
                       </p>
                     </div>
                   </a>

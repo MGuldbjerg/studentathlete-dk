@@ -32,6 +32,7 @@ import { buildTimeline } from "../../src/lib/profile-timeline";
 import { schoolFactsParagraph, schoolPageWords, schoolStatsParagraph, schoolTeamParagraphs, type SchoolPlayer } from "../../src/lib/school-season";
 import type { SeasonStatsRow } from "../../src/lib/db";
 import type { CareerSeason } from "../../src/lib/career";
+import { cleanPosition } from "../../src/lib/roster-clean";
 
 const args = process.argv.slice(2);
 const val = (f: string) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] ?? null : null; };
@@ -146,7 +147,7 @@ export async function countPages(db: DB, country: string): Promise<Counts> {
       factsText: schoolFactsParagraph(facts, all.map((a) => ({ sport: a.sport, class_year: a.class_year })), site.demonym, lang),
       statsText: schoolStatsParagraph(players, facts, site.demonym, lang),
       teamTexts: schoolTeamParagraphs(players, facts, lang),
-      roster: roster.map((a) => ({ name: a.name, sport: a.sport, position: a.position })),
+      roster: roster.map((a) => ({ name: a.name, sport: a.sport, position: cleanPosition(a.position) })),
       more: Math.max(all.length, roster.length) - roster.length,
       articles: news,
     }, lang);
