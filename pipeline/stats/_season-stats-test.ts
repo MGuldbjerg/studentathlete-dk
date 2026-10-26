@@ -14,6 +14,7 @@ import { parseBioFacts } from "../profiles/bio-facts";
 import { honoursParagraph } from "../../src/lib/honours-summary";
 import { schoolPageWords } from "../../src/lib/school-season";
 import { cleanPosition } from "../../src/lib/roster-clean";
+import { onlyAdds } from "../profiles/queue-stale-profiles";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -238,6 +239,13 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
 // A height or weight is no position (quality sweep, 2026-10-26).
 ok(cleanPosition(`6'3"`) === null && cleanPosition("5-11") === null && cleanPosition("6′ 1″") === null && cleanPosition("185 lbs") === null && cleanPosition("6'") === null, "heights and weights are not positions");
 ok(cleanPosition("MF") === "MF" && cleanPosition("Goalkeeper") === "Goalkeeper" && cleanPosition("F/MF\n6'1\"") === "F/MF" && cleanPosition("1st Singles") === "1st Singles" && cleanPosition("400") === "400", "positions stay; a bare number (an event) is not a weight");
+
+// A rule-based profile refresh publishes only when it ADDS (Mikkel 2026-10-26).
+ok(onlyAdds("Luke Atkinson plays football for University of Charleston in Charleston.", "Luke Atkinson plays football for the University of Charleston Golden Eagles in Charleston."), "a team name added → refresh");
+ok(!onlyAdds("Nicole svømmer butterfly/individuel medley.", "Nicole svømmer som butterfly/individuel medley."), "a word of grammar added is no fact → the queue");
+ok(!onlyAdds("X played for the Cornell Big Red in Ithaca, New York.", "X played for the Cornell Rams in Mount Vernon, New York."), "a team name changed → the queue");
+ok(!onlyAdds("Lewis played for the Texas Longhorns in Austin, Texas.", "Lewis played for University of Texas."), "information removed → the queue");
+ok(!onlyAdds("Elam rows for the Harvard Crimson.", "Elam has rowed for the Harvard Crimson since 2024."), "reworded → the queue");
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);
