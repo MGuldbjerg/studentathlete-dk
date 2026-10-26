@@ -49,10 +49,10 @@ jobs:
           path: /tmp/sweep.txt
           retention-days: 30
 
-      # Kun manuelt, og kun når Mikkel sætter flueben: lægger forslag i
-      # godkendelseskøen. Overskriver ALDRIG en godkendt tekst.
-      - name: Læg forældede profiltekster i køen
-        if: inputs.queue_stale_profiles
+      # Hver mandag (Mikkel 2026-10-26: «Rule based for this is fine»):
+      # skabelonens egne tekster opdateres direkte; en tekst der afviger
+      # (muligvis håndredigeret) lægges i godkendelseskøen som før.
+      - name: Opdatér forældede profiltekster
         run: npx tsx pipeline/profiles/queue-stale-profiles.ts --apply
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

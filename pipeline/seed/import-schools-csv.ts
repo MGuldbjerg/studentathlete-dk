@@ -162,17 +162,25 @@ async function main(): Promise<void> {
 
     const commonName = row.common_name || row.name.replace(/ University| College/g, "").trim() || row.name;
     const division = DIVISION_MAP[row.division] ?? row.division;
-    const slug = generateSlug(commonName);
+    let slug = generateSlug(commonName);
     const website = row.athletics_url || null;
 
     divisionCounts[division] = (divisionCounts[division] ?? 0) + 1;
 
     try {
-      // Tjek om skolen allerede eksisterer (via slug)
+      // Tjek om skolen allerede eksisterer — på det EKSAKTE navn, ikke på slug.
+      // Slug-opslaget gav Cornell University Cornell Colleges Rams fra Mount
+      // Vernon: «Cornell College» uden kaldenavn → «Cornell» → samme slug
+      // (40 skoler, fundet 2026-10-26; repair-school-collisions.ts rettede dem).
       const existing = await db.query<{ id: number }>(
-        "SELECT id FROM schools WHERE slug = ?",
-        [slug],
+        "SELECT id FROM schools WHERE name = ?",
+        [row.name],
       );
+      // En ny skole hvis slug er taget af en ANDEN skole får sit fulde navn som slug.
+      if (existing.results.length === 0) {
+        const taken = await db.query<{ id: number }>("SELECT id FROM schools WHERE slug = ?", [slug]);
+        if (taken.results.length > 0) slug = generateSlug(row.name);
+      }
 
       let schoolId: number;
 

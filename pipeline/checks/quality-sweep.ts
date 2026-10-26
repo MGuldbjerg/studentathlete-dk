@@ -18,7 +18,7 @@
 import { createD1Client } from "../lib/d1-client";
 import { type BaselineAthlete } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
-import { countryProfile } from "../../src/lib/countries";
+import { countryProfile, siteCountrySql } from "../../src/lib/countries";
 import { correctionFromText, looksTransliterated } from "./danish-names";
 import { classYearConflict } from "./factsheet-attribution";
 
@@ -130,7 +130,7 @@ async function main(): Promise<void> {
     "a.profile_summary, s.common_name AS university_common_name, s.city AS university_city, s.nickname AS university_nickname, a.gender";
   const profiles = await db.query<BaselineAthlete & { id: number; profile_summary: string }>(
     `SELECT ${profCols} FROM athletes a LEFT JOIN schools s ON s.name = a.university
-     WHERE a.active = 1 AND a.profile_summary IS NOT NULL AND length(a.profile_summary) <= 400`);
+     WHERE a.active = 1 AND ${siteCountrySql("a.home_country")} AND a.profile_summary IS NOT NULL AND length(a.profile_summary) <= 400`);
   const stale = profiles.results.filter((p) => {
     const lang = countryProfile(p.home_country ?? undefined).language;
     return profileBuilder(lang)(p) !== p.profile_summary;
