@@ -63,13 +63,50 @@ export interface AttributionFlag {
  * Kun ord der faktisk står i faktaarket tælles, og kun når rosteren HAR en
  * årgang at sammenligne med — uden den ved vi ingenting og siger ingenting.
  */
+/** The academic year a date falls in: August onwards is the new season. */
+export function academicYear(d: Date): number {
+  return d.getUTCMonth() >= 7 ? d.getUTCFullYear() : d.getUTCFullYear() - 1;
+}
+
+const LADDER = ["Fr.", "So.", "Jr.", "Sr.", "Gr."];
+
+/**
+ * The roster's class code moved `seasons` academic years (−1 = a season
+ * earlier). A So. now was a Fr. last season and will be a Jr. next; «R-» stays.
+ * Null when the step leaves the ladder (before college, past a graduate year)
+ * or the code is not one we can step («4th Year», «2nd»): then nothing is
+ * known and nothing is claimed.
+ */
+export function shiftClass(code: string, seasons: number): string | null {
+  if (seasons === 0) return code;
+  const m = /^(R-)?(Fr|Fy|FY|So|Jr|Sr|Gr)\.?$/i.exec(code.trim());
+  if (!m) return null;
+  const base = m[2].toLowerCase() === "fy" ? "Fr." : `${m[2][0].toUpperCase()}${m[2].slice(1).toLowerCase()}.`;
+  const i = LADDER.indexOf(base) + seasons;
+  if (i < 0 || i >= LADDER.length) return null;
+  return `${m[1] && LADDER[i] !== "Gr." ? "R-" : ""}${LADDER[i]}`;
+}
+
+/**
+ * `opts.claimDate` is when the fact sheet's source spoke (the story's date);
+ * `opts.rosterDate` when the roster's class code was true (default: today —
+ * the scrapers refresh it every season). A story from another season is
+ * compared with the class the athlete HAD then (Mikkel, 2026-10-26: «a year
+ * from now, a sophomore will be a junior — that must be checkable without
+ * being flagged for not matching the current state»).
+ */
 export function classYearConflict(
   factSheetText: string | null | undefined,
   rosterClassYear: string | null | undefined,
+  opts: { claimDate?: string | Date | null; rosterDate?: Date } = {},
 ): AttributionFlag | null {
   const text = stripNonClaims((factSheetText ?? "").trim());
-  const roster = (rosterClassYear ?? "").trim();
-  if (!text || !roster) return null;
+  const rosterNow = (rosterClassYear ?? "").trim();
+  if (!text || !rosterNow) return null;
+  const claim = opts.claimDate ? new Date(opts.claimDate) : null;
+  const seasons = claim && !isNaN(claim.getTime()) ? academicYear(claim) - academicYear(opts.rosterDate ?? new Date()) : 0;
+  const roster = shiftClass(rosterNow, seasons);
+  if (!roster) return null;
 
   for (const { re, codes, label } of CLASS_TERMS) {
     if (!re.test(text)) continue;

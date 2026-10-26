@@ -2,7 +2,7 @@
  * Tests for mis-tilskrevne kendsgerninger i faktaarket.
  * Kør: npx tsx pipeline/checks/_factsheet-attribution-test.ts
  */
-import { classYearConflict } from "./factsheet-attribution";
+import { classYearConflict, shiftClass } from "./factsheet-attribution";
 
 let passed = 0, failed = 0;
 function eq<T>(a: T, b: T, msg: string): void {
@@ -58,6 +58,23 @@ eq(classYearConflict("Senior", "Jr."), { claimed: "senior", roster: "Jr." },
    "«Senior» alene i faktaarket er en påstand — sagen der udløste kontrollen (#2774)");
 eq(classYearConflict("The senior defender marshalled the back line", "Jr."),
    { claimed: "senior", roster: "Jr." }, "påstand i prosa tæller");
+
+// ── Over sæsoner (Mikkel 2026-10-26): årgangen DENGANG, ikke i dag ────────
+eq(shiftClass("So.", 1), "Jr.", "en So. i dag er Jr. næste sæson");
+eq(shiftClass("So.", -1), "Fr.", "og var Fr. sidste sæson");
+eq(shiftClass("R-Jr.", 1), "R-Sr.", "redshirt bliver stående");
+eq(shiftClass("Sr.", 1), "Gr.", "en Sr. næste år er graduate");
+eq(shiftClass("Fr.", -1), null, "før college: ukendt");
+eq(shiftClass("4th Year", 1), null, "ukendt kode flyttes ikke");
+const now = new Date("2026-10-26T12:00:00Z");
+eq(classYearConflict("the sophomore scored", "Jr.", { claimDate: "2025-10-10", rosterDate: now }), null,
+   "sidste sæsons «sophomore» om en der er Jr. i dag: ingen konflikt");
+eq(classYearConflict("the junior scored", "So.", { claimDate: "2027-09-15", rosterDate: now }), null,
+   "om et år er en So. junior: ingen konflikt");
+eq(classYearConflict("the junior scored", "Jr.", { claimDate: "2025-10-10", rosterDate: now }), { claimed: "junior", roster: "So." },
+   "men «junior» sidste sæson om en der er Jr. i dag ER en konflikt");
+eq(classYearConflict("the freshman scored", "Fr.", { claimDate: "2025-10-10", rosterDate: now }), null,
+   "før college kan ikke efterprøves → intet flag");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
