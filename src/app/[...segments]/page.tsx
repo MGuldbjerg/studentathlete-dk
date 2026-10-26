@@ -19,6 +19,7 @@ import {
   countTeamCompatriots,
   getLatestRecords,
   getSeasonStats,
+  getCareerSeasons,
   getArticlesByUniversity,
   getArticleBySlug,
   getAthletesBySport,
@@ -494,13 +495,14 @@ export default async function DynamicPage({
         // ekstra ville en profil kunne stå med fire landsmænd på skolen, hvor
         // der er fem. Opslaget er indekseret (idx_athletes_university) og
         // returnerer en håndfuld rækker — ingen CPU, én rundtur.
-        const [articles, events, schoolmatesRaw, teamCount, records, seasonStats] = await Promise.all([
+        const [articles, events, schoolmatesRaw, teamCount, records, seasonStats, career] = await Promise.all([
           getArticlesByAthleteId(athlete.id, 10),
           getAthleteEvents(athlete.id),
           getAthletesByUniversity(athlete.university, 6),
           countTeamCompatriots(athlete),
           getLatestRecords(athlete.id),
           getSeasonStats(athlete.id),
+          getCareerSeasons(athlete.id),
         ]);
         const schoolmates = schoolmatesRaw.filter((a) => a.id !== athlete.id).slice(0, 5);
         return (
@@ -513,6 +515,7 @@ export default async function DynamicPage({
               teamCount={teamCount}
               records={records}
               seasonStats={seasonStats}
+              career={career}
             />
             <AdminEditButton href={`/admin/atleter/${athlete.id}`} label="Rediger atlet" />
           </>

@@ -1,4 +1,5 @@
 import type { Athlete, Article } from "@/lib/types";
+import { careerParagraph, careerRows, type CareerSeason } from "@/lib/career";
 import { readTeamContext, teamParagraphs } from "@/lib/team-context";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
@@ -25,6 +26,8 @@ interface Props {
   records?: string[];
   /** This season's stats from the school's page (athlete_season_stats). */
   seasonStats?: SeasonStatsRow | null;
+  /** Earlier seasons at the school (src/lib/career.ts), newest first. */
+  career?: CareerSeason[];
 }
 
 const STAT_ROWS = (a: Athlete, lang: string, teamCount = 0) => [
@@ -70,7 +73,7 @@ function safeCells(json: string): Record<string, string> {
   try { return JSON.parse(json) as Record<string, string>; } catch { return {}; }
 }
 
-export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [], teamCount = 0, records = [], seasonStats = null }: Props) {
+export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [], teamCount = 0, records = [], seasonStats = null, career = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   // The records lines are English with English sources: the English site only.
@@ -83,6 +86,11 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
   const statsTable = seasonStats ? statColumns(seasonStats.kind, seasonStats.cells, lang) : [];
   // Team context in sentences (PLAN-content-floor-uk.md P2): the table cells above do not count as text.
   const teamCtx = seasonStats ? readTeamContext(seasonStats.team) : null;
+  // Career by season (PLAN-content-floor-uk.md P1): one sentence per earlier season, beside the table.
+  const careerText = careerParagraph(career,
+    seasonStats && seasonStats.kind !== "tennis" ? { kind: seasonStats.kind, games: seasonStats.games, cells: safeCells(seasonStats.cells), school: seasonStats.school } : null,
+    athlete.name, lang);
+  const careerTable = careerText ? careerRows(career, lang) : [];
   const teamText = teamCtx && seasonStats && seasonStats.kind !== "tennis"
     ? teamParagraphs(teamCtx, { name: athlete.name, kind: seasonStats.kind, cells: safeCells(seasonStats.cells) }, lang)
     : [];
@@ -286,6 +294,38 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                     {t("profile.stats_source", lang, { school: seasonStats.school, date: formatDateShort(seasonStats.fetched_on, lang) })} ↗
                   </a>
                 </p>
+              </section>
+            )}
+
+            {careerText && (
+              <section className="mb-10">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-4">
+                  {t("profile.career", lang)}
+                </p>
+                <p className="text-base text-ink/90 leading-relaxed mb-4">{careerText}</p>
+                <div className="overflow-x-auto">
+                  <table className="text-sm border-collapse">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #E2E0DC" }}>
+                        <th className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-5">{t("profile.career_season", lang)}</th>
+                        {careerTable[0].cells.map(([label]) => (
+                          <th key={label} className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-5">{label}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {careerTable.map((row) => (
+                        <tr key={row.season} style={{ borderBottom: "1px solid #F0EEEA" }}>
+                          <td className="py-2 pr-5 font-semibold text-ink">{row.season}</td>
+                          {row.cells.map(([label, value]) => (
+                            <td key={label} className="py-2 pr-5 text-ink">{value}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-muted mt-2">{t("profile.career_source", lang, { school: career[0].school })}</p>
               </section>
             )}
 
