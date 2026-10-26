@@ -13,8 +13,11 @@ pages under 200 words — profiles 936/949 (median 77), schools 104/104.
   `athlete_season_stats.team` (migration 070, applied) from the same stats page: record +
   conference record, goals for/against, latest game, the athlete's rank on the team
   (g/a/pts/gs/min), games scored in. `src/lib/team-context.ts` writes two paragraphs (en/da) under
-  the stats table. Filled by the next stats-daily run; measure with
-  `npx tsx scripts/site-check.ts` afterwards. S4: school pages show «Football»/«Tennis», not keys.
+  the stats table. S4: school pages show «Football»/«Tennis», not keys.
+  **Measured 26 Oct after a manual fill** (team context on 902/902 UK stats rows, record on 891):
+  profiles median 77 → 138 words (gain median +59, p10 +43, p90 +90); profiles under 200
+  936 → 815; all indexable pages under 200 1,117 → 996. Profiles now: 277 at 150–199, 464 at
+  100–149, 74 under 100. Schools unchanged (104/104 under, median 96). No other flags.
 - **Loose ends checked:** the 502 on the Marissa MacLean article was transient (200 ×3).
   UK stats rows 944 → 908: no code deletes rows, every UK row was refreshed 25 Oct, and history
   shows 904–907 since 22 Oct. The gap most likely is the tennis rows counted in «944 on day one»
