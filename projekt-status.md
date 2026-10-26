@@ -1,6 +1,27 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-10-22 (where we are — read this section first)
+**Sidst opdateret**: 2026-10-26 (where we are — read this section first)
+
+---
+
+## 📏 UK 200-word floor (`PLAN-content-floor-uk.md`), 2026-10-26 — step 1 done
+
+AdSense rejected .co.uk a second time; Mikkel approved the plan (decisions in the plan). Site-check
+26 Oct by the new counting rule (table/dl cells count only as prose): 1,117 of 1,632 indexable
+pages under 200 words — profiles 936/949 (median 77), schools 104/104.
+- **Step 1 done (#39, live d4f3816):** P2 team context. The fill now stores
+  `athlete_season_stats.team` (migration 070, applied) from the same stats page: record +
+  conference record, goals for/against, latest game, the athlete's rank on the team
+  (g/a/pts/gs/min), games scored in. `src/lib/team-context.ts` writes two paragraphs (en/da) under
+  the stats table. Filled by the next stats-daily run; measure with
+  `npx tsx scripts/site-check.ts` afterwards. S4: school pages show «Football»/«Tennis», not keys.
+- **Loose ends checked:** the 502 on the Marissa MacLean article was transient (200 ×3).
+  UK stats rows 944 → 908: no code deletes rows, every UK row was refreshed 25 Oct, and history
+  shows 904–907 since 22 Oct. The gap most likely is the tennis rows counted in «944 on day one»
+  and deleted 12 Oct (63 incl. DK and collecting) — inferred, not proven.
+- **Next:** P1 career-by-season backfill — first verify that Sidearm really serves archive
+  seasons at `/stats/2025` (the fill's own comment says it serves the CURRENT season for an
+  unknown year; `pageSeason()` must confirm each page), dry run on 20 teams.
 
 ---
 
