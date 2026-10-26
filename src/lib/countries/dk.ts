@@ -186,4 +186,5 @@ export const dk: CountryProfile = {
   // 130 words, as the UK (10 of 57 published DK articles were under);
   // 2026-10-22: 150 (the UK went to 200).
   standaloneMinWords: 150,
+  indexMinWords: 0,
 };

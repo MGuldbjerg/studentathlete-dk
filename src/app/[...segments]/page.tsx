@@ -22,6 +22,8 @@ import {
   getCareerSeasons,
   getSchoolSeason,
   getSchoolMix,
+  getSchoolIndexWords,
+  meetsWordFloor,
   getArticlesByUniversity,
   getArticleBySlug,
   getAthletesBySport,
@@ -197,7 +199,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             url,
           },
           alternates: { canonical: url },
-          robots: await siteRobots(),
+          // Navigation, not content: noindex, follow where the word floor applies (Mikkel 2026-10-26).
+          robots: await profileRobots(!(site.indexMinWords > 0)),
         };
       }
     }
@@ -234,7 +237,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [ogImage],
           },
           alternates: { canonical: `${base}${getAthleteUrl(slug, lang)}` },
-          robots: await profileRobots((athlete.article_count ?? 0) >= site.profileIndexMinArticles || athlete.has_stats === 1),
+          robots: await profileRobots(
+            ((athlete.article_count ?? 0) >= site.profileIndexMinArticles || athlete.has_stats === 1) &&
+            meetsWordFloor(athlete.index_words, site.code),
+          ),
         };
       }
     }
@@ -257,7 +263,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           },
           alternates: { canonical: `${base}${getSchoolUrl(slug, lang)}` },
           robots: await profileRobots(
-            site.profileIndexMinArticles === 0 || (await countSchoolArticles(school.name)) >= site.profileIndexMinArticles,
+            (site.profileIndexMinArticles === 0 || (await countSchoolArticles(school.name)) >= site.profileIndexMinArticles) &&
+            meetsWordFloor(await getSchoolIndexWords(school.id), site.code),
           ),
         };
       }
@@ -316,7 +323,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           images: [ogImage],
         },
         alternates: { canonical: canonicalUrl },
-        robots: await siteRobots(),
+        robots: await profileRobots(meetsWordFloor(article.index_words, site.code)),
       };
     }
   }
@@ -531,7 +538,7 @@ export default async function DynamicPage({
       if (school) {
         const site = await currentSite();
         const [athletes, articles, total, season, mix] = await Promise.all([
-          getAthletesByUniversity(school.name),
+          getAthletesByUniversity(school.name, 20, undefined, { listed: true }),
           getArticlesByUniversity(school.name, 6),
           countAthletesAtUniversity(school.name),
           getSchoolSeason(school.name),

@@ -12,7 +12,9 @@
  * Every sentence is a number or a fact we hold; a paragraph with nothing to
  * say is left out. The site's demonym («UK», «danske») names our athletes.
  */
-import { sportLabel } from "./i18n";
+import { sportLabel, t, articleTypeLabel } from "./i18n";
+import { formatDateShort } from "./seo";
+import { words } from "./profile-prose";
 import { readTeamContext, teamSummary } from "./team-context";
 import { seasonsBack } from "./career";
 
@@ -153,4 +155,39 @@ export function schoolTeamParagraphs(players: SchoolPlayer[], s: SchoolFacts, la
     if (text) out.push(text.charAt(0).toUpperCase() + text.slice(1));
   }
   return out;
+}
+
+export interface SchoolPageFacts {
+  name: string;
+  brand: string;
+  factsText: string;
+  statsText: string;
+  teamTexts: string[];
+  roster: Array<{ name: string; sport: string; position: string | null }>;
+  more: number;            // athletes of ours at the school not on the roster
+  articles: Array<{ title: string; article_type: string; published_at: string | null }>;
+}
+
+/**
+ * Every word site-check counts on a school page (step 6): the title, the
+ * three paragraphs and their headings, the roster («Name» and «Sport ·
+ * Position»), the «plus N more» line, the latest news with type and date.
+ * Built from the page's own labels; checked against site-check.
+ */
+export function schoolPageWords(f: SchoolPageFacts, lang: string): number {
+  let n = words(`${f.name} | ${f.brand}`) + words(f.factsText);
+  if (f.statsText) n += words(t("school.season_heading", lang)) + words(f.statsText);
+  if (f.teamTexts.length) n += words(t("school.teams_heading", lang)) + f.teamTexts.reduce((s, x) => s + words(x), 0);
+  n += words(t("school.athletes_heading", lang, { school: f.name }));
+  if (f.roster.length) {
+    n += f.roster.reduce((s, a) => s + words(a.name) + words([sportLabel(a.sport, lang), a.position].filter(Boolean).join(" · ")), 0);
+    if (f.more > 0) n += words(f.more === 1 ? t("school.more_athletes_one", lang, { school: f.name }) : t("school.more_athletes", lang, { n: String(f.more), school: f.name }));
+  } else {
+    n += words(t("school.no_athletes", lang));
+  }
+  if (f.articles.length) {
+    n += words(t("news.latest", lang));
+    n += f.articles.reduce((s, a) => s + words(articleTypeLabel(a.article_type, lang)) + words(a.title) + words(formatDateShort(a.published_at, lang)), 0);
+  }
+  return n;
 }

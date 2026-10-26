@@ -147,6 +147,7 @@ export const uk: CountryProfile = {
   // after the second AdSense rejection (.dk stays 130). The enrichment lines
   // (pipeline/generate/enrich.ts) add sourced facts, so fuller stories pass.
   standaloneMinWords: 200,
+  indexMinWords: 200,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
   demonym: "UK",
