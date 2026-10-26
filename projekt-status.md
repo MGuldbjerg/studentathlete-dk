@@ -28,8 +28,19 @@ pages under 200 words — profiles 936/949 (median 77), schools 104/104.
   Result: 766 earlier seasons, 448 UK + 37 DK athletes. Profile block «Earlier seasons».
   **Measured:** profiles median 138 → 166 words, under 200: 815 → 654 (297 now over, from 13 this
   morning); all indexable pages under 200: 996 → 835 of 1,635. No other flags.
-- **Next:** step 3 — P3 (leaderboard rank on profiles) and S1–S3 (school pages: stats table +
-  facts + team results, all with prose).
+- **Step 3 done (#43, #44, live 3473c4b):** P3 `src/lib/standing.ts` — the fill ranks every player
+  among the site's players of the same sport/gender with stats on file, nationally and in the
+  division, into `athlete_season_stats.standing` (migration 071, applied); one sentence per stat
+  («… among the 122 UK players in women's football with a goal on file»). S1–S3
+  `src/lib/school-season.ts` — school facts + division line + our athletes by sport/freshmen;
+  season sentence + table; one team paragraph per team (from the stored team context).
+  **Measured:** all indexable pages under 200: 835 → 623 of 1,635 (morning 1,117). Profiles under
+  200: 654 → 518 (median 187; 207 at 150–199, 266 at 100–149, 45 under 100). Schools under 200:
+  104 → 28 (median 231). Other thin pages ~77: older short articles (football 17, golf 17,
+  athletics 8, tennis 7, field hockey 4), /athletes letter pages 8, /statistics 7, guides 4.
+  Note: CI typechecks `pipeline/` with its own tsconfig — run `npx tsc -p pipeline/tsconfig.json
+  --noEmit` locally too.
+- **Next:** step 4 — P4 bio facts on a 50-bio sample; then P5 longer summaries; step 6 gate.
 - **Loose ends checked:** the 502 on the Marissa MacLean article was transient (200 ×3).
   UK stats rows 944 → 908: no code deletes rows, every UK row was refreshed 25 Oct, and history
   shows 904–907 since 22 Oct. The gap most likely is the tennis rows counted in «944 on day one»
