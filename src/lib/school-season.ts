@@ -182,7 +182,7 @@ export function schoolPageWords(f: SchoolPageFacts, lang: string): number {
   if (f.roster.length) {
     n += f.roster.reduce((s, a) => s + words(a.name) + words([sportLabel(a.sport, lang), a.position].filter(Boolean).join(" · ")), 0);
     if (f.more > 0) n += words(f.more === 1 ? t("school.more_athletes_one", lang, { school: f.name }) : t("school.more_athletes", lang, { n: String(f.more), school: f.name }));
-  } else {
+  } else if (f.more === 0) {
     n += words(t("school.no_athletes", lang));
   }
   if (f.articles.length) {
