@@ -331,6 +331,7 @@ export type UiKey =
   | "school.teams_heading"
   | "school.col_player"
   | "school.col_sport"
+  | "profile.background"
   | "board.goals"
   | "board.assists"
   | "board.shutouts"
