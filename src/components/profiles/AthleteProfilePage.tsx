@@ -2,6 +2,8 @@ import type { Athlete, Article } from "@/lib/types";
 import { careerParagraph, careerRows, type CareerSeason } from "@/lib/career";
 import { readStanding, standingSentences } from "@/lib/standing";
 import { bioParagraph, readBioFacts } from "@/lib/bio-facts";
+import { honoursParagraph } from "@/lib/honours-summary";
+import { seasonFromDate } from "@/lib/athlete-events";
 import { readTeamContext, teamParagraphs } from "@/lib/team-context";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
@@ -106,6 +108,8 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
   // A fact sheet's season line is older than the table: keep only its ranking line then.
   const hub = lang === "en" ? hubLines(records).filter((h) => !(seasonStats && h.source.includes("stats page"))) : [];
   const timeline = buildTimeline(events, articles, athlete.name, lang, (a) => getArticleUrl(a as Article, lang));
+  // The timeline's honours and milestones in prose (P5): the table above does not count as text.
+  const honoursText = honoursParagraph(events, athlete.name, seasonFromDate(null), lang);
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -368,6 +372,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-2">
                   {t("profile.timeline", lang)}
                 </p>
+                {honoursText && <p className="text-base text-ink/90 leading-relaxed mb-3">{honoursText}</p>}
                 <p className="text-xs text-muted mb-4">{t("profile.timeline_note", lang)}</p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
