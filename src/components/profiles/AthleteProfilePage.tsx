@@ -1,4 +1,5 @@
 import type { Athlete, Article } from "@/lib/types";
+import { cleanPosition } from "@/lib/roster-clean";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
@@ -37,7 +38,7 @@ const STAT_ROWS = (a: Athlete, lang: string, teamCount = 0) => [
     value: sportLabel(a.sport, lang),
     href: `/${sportSlug(a.sport, lang)}`,
   },
-  { label: t("fact.position", lang),  value: a.position },
+  { label: t("fact.position", lang),  value: cleanPosition(a.position) },
   // Skolens stavemåde ("Copenhagen, Denmark") er data; læseren skal se byen
   // som den hedder på sitets sprog ("København").
   { label: t("fact.hometown", lang),   value: localizeHometown(a.hometown, countryProfile(a.home_country ?? undefined)) },
@@ -151,7 +152,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
             </h1>
 
             <p className="text-white/55 text-base mt-3 tracking-wide">
-              {[athlete.position, athlete.university,
+              {[cleanPosition(athlete.position), athlete.university,
                 athlete.university_state && `${athlete.university_state}, USA`]
                 .filter(Boolean).join(" · ")}
             </p>

@@ -205,16 +205,19 @@ async function main(): Promise<void> {
   // vores atleter (feedet er 10 indslag bredt for hele afdelingen), men et
   // helt kvartal uden ét eneste hit peger på feedet, ikke på tavshed.
   const silent = await db.query<{ name: string; url: string; atleter: number }>(
+    // The NOT EXISTS belongs to the SCHOOL: no story for ANY of its athletes.
+    // Per athlete it counted «5 athletes without a story of their own», true
+    // of nearly every school once 13 countries were collected (518 false hits,
+    // 2026-10-26; 192 real ones).
     `SELECT s.name, s.news_feed_url AS url, COUNT(a.id) AS atleter
      FROM schools s
      JOIN athletes a ON a.university = s.name AND a.active = 1
      WHERE s.news_feed_url IS NOT NULL
-       AND NOT EXISTS (
-         SELECT 1 FROM stories st
-         WHERE st.athlete_id = a.id AND st.discovered_at >= date('now', '-90 days')
-       )
      GROUP BY s.id
-     HAVING atleter >= 5
+     HAVING atleter >= 5 AND NOT EXISTS (
+       SELECT 1 FROM stories st JOIN athletes a2 ON a2.id = st.athlete_id
+       WHERE a2.university = s.name AND st.discovered_at >= date('now', '-90 days')
+     )
      ORDER BY atleter DESC`);
   add({
     key: "tavse-feeds",

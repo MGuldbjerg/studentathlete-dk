@@ -14,6 +14,7 @@ import { classifyHometown } from "../../src/lib/hometown";
 import { classifierCountries } from "../../src/lib/countries";
 import { sportKeyFromSource } from "../../src/lib/sports";
 import { generateSlug } from "../../src/lib/slug";
+import { cleanPosition, cleanRosterName } from "../../src/lib/roster-clean";
 import { resolveClassYear, getAcademicYear } from "../lib/class-year";
 import { renderPage, isBrowserRenderAvailable, BrowserRenderError } from "../lib/browser-render";
 
@@ -152,7 +153,12 @@ async function main(): Promise<void> {
 
     const academicYear = getAcademicYear();
     let athletesInCheck = 0;
-    for (const { entry: athlete, country: homeCountry } of matchedAthletes) {
+    for (const { entry: raw, country: homeCountry } of matchedAthletes) {
+      // Same hygiene as scrape-rosters.ts: «Archie  Cook» and a height as position
+      // came in through this path (quality sweep, 2026-10-26).
+      const name = cleanRosterName(raw.name);
+      if (!name) continue;
+      const athlete = { ...raw, name, position: cleanPosition(raw.position) };
       const slug = generateSlug(athlete.name);
       const sportKey = sportKeyFromSource(check.sport);
       const { classYear, expectedGraduation, yearEnrolled } =
