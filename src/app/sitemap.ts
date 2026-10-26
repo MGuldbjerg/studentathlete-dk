@@ -1,7 +1,7 @@
 import { LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 import { AWARDS_SLUG } from "@/components/AwardsView";
 import type { MetadataRoute } from "next";
-import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs, getCoveredSchoolSlugs, getLeaderboardWeekDays } from "@/lib/db";
+import { getAllArticleSlugs, getAllAthleteSlugs, getAllSchoolSlugs, getCoveredSchoolSlugs, getLeaderboardWeekDays, meetsWordFloor } from "@/lib/db";
 import { getSportSlugs } from "@/lib/sport-content";
 import { getArticleUrl, getAthleteUrl, getSchoolUrl } from "@/lib/seo";
 import { getGuideSlugs } from "@/lib/viden-content";
@@ -165,7 +165,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Profiles below the site's index bar are `noindex` (profileRobots) — a
   // sitemap must not ask Google for pages it is told not to index.
   const athletePages: MetadataRoute.Sitemap = athletes
-    .filter((a) => a.article_count >= site.profileIndexMinArticles || a.has_stats === 1)
+    .filter((a) => (a.article_count >= site.profileIndexMinArticles || a.has_stats === 1) && meetsWordFloor(a.index_words, site.code))
     .map((a) => ({
     url: `${base}${getAthleteUrl(a.slug, lang)}`,
     lastModified: new Date(a.updated_at),

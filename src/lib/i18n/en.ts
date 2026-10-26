@@ -626,8 +626,8 @@ const ui: LanguagePack["ui"] = {
   "profile.timeline_note": "Honours as the schools list them, and what we have reported. ↗ opens the source.",
   "school.athletes": "Athletes",
   "school.no_athletes": "No athletes registered yet.",
-  "school.more_athletes": "Plus {n} more UK athletes at {school} we have not written about yet.",
-  "school.more_athletes_one": "Plus one more UK athlete at {school} we have not written about yet.",
+  "school.more_athletes": "Plus {n} more UK athletes at {school}.",
+  "school.more_athletes_one": "Plus one more UK athlete at {school}.",
   "news.latest": "Latest news",
   "meta.sport_title": "{sport} – UK athletes in the NCAA",
   "meta.athlete_description":

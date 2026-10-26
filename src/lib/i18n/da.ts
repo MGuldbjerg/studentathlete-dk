@@ -634,8 +634,8 @@ const ui: LanguagePack["ui"] = {
   "profile.timeline_note": "Æresbevisninger som skolerne selv lister dem, og det vi har skrevet om. ↗ åbner kilden.",
   "school.athletes": "Danske atleter",
   "school.no_athletes": "Ingen registrerede atleter endnu.",
-  "school.more_athletes": "Plus {n} danske atleter mere på {school}, som vi ikke har skrevet om endnu.",
-  "school.more_athletes_one": "Plus én dansk atlet mere på {school}, som vi ikke har skrevet om endnu.",
+  "school.more_athletes": "Plus {n} danske atleter mere på {school}.",
+  "school.more_athletes_one": "Plus én dansk atlet mere på {school}.",
   "news.latest": "Seneste nyheder",
   "meta.sport_title": "{sport} – danske atleter i NCAA",
   "meta.athlete_description":
