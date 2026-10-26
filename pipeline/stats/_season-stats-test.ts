@@ -7,7 +7,7 @@ import { readTeamContext, teamParagraphs } from "../../src/lib/team-context";
 import { archiveYear } from "./season-stats";
 import { careerParagraph, careerRows, seasonsBack } from "../../src/lib/career";
 import { computeStandings, readStanding, standingSentences } from "../../src/lib/standing";
-import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs } from "../../src/lib/school-season";
+import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs, type SchoolPlayer } from "../../src/lib/school-season";
 import type { BoardInput } from "../../src/lib/leaderboard";
 
 let pass = 0, fail = 0;
@@ -172,7 +172,7 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
   ok(f.includes("We follow 3 UK athletes at Drexel: 2 in football and 1 in field hockey. 1 of them is a freshman this season."), "athletes by sport, freshmen");
   const team = JSON.stringify({ team: "Drexel", games: 16, record: { w: 6, l: 8, t: 2 }, conf: { w: 4, l: 5, t: 0 }, goals: 20, against: 19,
     last: { date: "2026-10-24", opponent: "Hofstra", away: true, result: "L", us: 0, them: 1 }, ranks: {}, scoredIn: null });
-  const players = [
+  const players: SchoolPlayer[] = [
     { name: "Ann Lee", slug: "ann-lee", sport: "soccer", gender: "m", kind: "outfield" as const, games: 16, cells: { g: "5", a: "2" }, team },
     { name: "Bo Ray", slug: "bo-ray", sport: "soccer", gender: "m", kind: "outfield" as const, games: 12, cells: { g: "1", a: "3" }, team },
     { name: "Cy Gold", slug: "cy-gold", sport: "soccer", gender: "m", kind: "keeper" as const, games: 14, cells: { sho: "4" }, team },
