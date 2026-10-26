@@ -119,8 +119,8 @@ data-driven material instead of reapplying soon (#30–#32):
   `stats_cache` key 'awards' (build-stats). `dedupeAwards` (same athlete+award within 4 days =
   one; UK season 186→172). `award-roundup.yml` posts on the 1st (first: 1 Nov, for October),
   up to 20 winners tagged by name-matched handles; retries untagged if refused.
-  Open: profile timelines can still show an award twice (release + article row) — dedupe at
-  harvest or in `profile-timeline.ts`.
+  Fixed 2026-10-26 (#40): the timeline shows an award announced twice (conference + school
+  release within 4 days) once; an article on the profile stands for it.
 - **New markets (#35):** the stats fill also covers collecting countries (AU, DE, SE, ES, FR)
   so their profiles start with stats, history and milestones; nothing shows until a site
   exists. Honours already harvested for all countries. Milestones render from their key in
