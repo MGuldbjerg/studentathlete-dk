@@ -88,7 +88,7 @@ async function main(): Promise<void> {
   for (const f of fixes.slice(0, 15)) console.log(`  ✓ ${f.name}: ${f.from} → ${f.to} (${f.items} items)`);
   const why = stillDead.reduce((m, x) => m.set(x.why, (m.get(x.why) ?? 0) + 1), new Map<string, number>());
   console.log("still dead by reason:", Object.fromEntries(why));
-  for (const d of stillDead.slice(0, 15)) console.log(`  ✗ ${d.name}: ${d.url} (${d.why})`);
+  for (const d of stillDead.slice(0, process.argv.includes("--list") ? Infinity : 15)) console.log(`  ✗ ${d.name}: ${d.url} (${d.why})`);
   if (!apply) { console.log("report only — --apply writes the replacements"); return; }
   const writes = fixes.map((f) => ({ sql: `UPDATE schools SET news_feed_url = ?, news_feed_type = 'rss' WHERE id = ?`, params: [f.to, f.id] }));
   for (let i = 0; i < writes.length; i += 50) await db.batch(writes.slice(i, i + 50));
