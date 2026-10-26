@@ -606,7 +606,7 @@ const ui: LanguagePack["ui"] = {
   "profile.career": "Tidligere sæsoner",
   "profile.career_season": "Sæson",
   "profile.career_source": "Kilde: {school}s arkiverede sæsonstatistik",
-  "school.season_heading": "Denne sæson",
+  "school.season_heading": "Sæsonens tal",
   "school.teams_heading": "Holdene",
   "school.col_player": "Spiller",
   "school.col_sport": "Sport",

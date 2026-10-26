@@ -598,7 +598,7 @@ const ui: LanguagePack["ui"] = {
   "profile.career": "Earlier seasons",
   "profile.career_season": "Season",
   "profile.career_source": "Source: {school}'s archived season statistics",
-  "school.season_heading": "This season",
+  "school.season_heading": "Season stats",
   "school.teams_heading": "The teams",
   "school.col_player": "Player",
   "school.col_sport": "Sport",
