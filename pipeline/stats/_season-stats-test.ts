@@ -13,6 +13,7 @@ import { bioParagraph, heightCm } from "../../src/lib/bio-facts";
 import { parseBioFacts } from "../profiles/bio-facts";
 import { honoursParagraph } from "../../src/lib/honours-summary";
 import { schoolPageWords } from "../../src/lib/school-season";
+import { cleanPosition } from "../../src/lib/roster-clean";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -233,6 +234,10 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
   // 5 title + 9 facts + 6 heading + 2 name + 4 «Ice Hockey · Forward» + 2 «Latest news» + 2 type + 5 title + 3 date
   ok(n === 38, `school page words (${n})`);
 }
+
+// A height or weight is no position (quality sweep, 2026-10-26).
+ok(cleanPosition(`6'3"`) === null && cleanPosition("5-11") === null && cleanPosition("6′ 1″") === null && cleanPosition("185 lbs") === null && cleanPosition("6'") === null, "heights and weights are not positions");
+ok(cleanPosition("MF") === "MF" && cleanPosition("Goalkeeper") === "Goalkeeper" && cleanPosition("F/MF\n6'1\"") === "F/MF" && cleanPosition("1st Singles") === "1st Singles" && cleanPosition("400") === "400", "positions stay; a bare number (an event) is not a weight");
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);

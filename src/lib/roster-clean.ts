@@ -7,6 +7,13 @@
 export function cleanPosition(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const firstLine = raw.split(/[\r\n]/)[0].replace(/\s+/g, " ").trim();
+  // A height («6'3"», «5-11», «6′ 1″») or weight («185 lbs») is no position.
+  // Sidearm prints the height inside the position element, and on a roster
+  // without positions (tennis, golf, rowing, swimming, athletics) the first
+  // text read is the height: 1,117 athletes carried one (quality sweep,
+  // 2026-10-26).
+  if (/^\d\s*(?:'|′|’|-|ft\.?)\s*\d{0,2}\s*(?:"|″|''|in\.?)?$/i.test(firstLine)) return null;
+  if (/^\d{2,3}\s*(?:lbs?\.?|kg)$/i.test(firstLine)) return null;
   return firstLine || null;
 }
 
