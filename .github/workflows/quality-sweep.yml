@@ -49,6 +49,16 @@ jobs:
           path: /tmp/sweep.txt
           retention-days: 30
 
+      # Døde skolefeeds → en virkende adresse på samme atletiksite (Mikkel
+      # 2026-10-26: «fix the dead feeds»). Sidearm flyttede /rss.aspx til /rss;
+      # 48 af 87 døde feeds blev rettet første gang. Et levende feed røres aldrig.
+      - name: Ret døde skolefeeds
+        run: npx tsx pipeline/discover/repair-feeds.ts --apply
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
       # Hver mandag (Mikkel 2026-10-26: «Rule based for this is fine»):
       # skabelonens egne tekster opdateres direkte; en tekst der afviger
       # (muligvis håndredigeret) lægges i godkendelseskøen som før.
