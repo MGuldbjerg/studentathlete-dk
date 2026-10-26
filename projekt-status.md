@@ -40,7 +40,29 @@ pages under 200 words — profiles 936/949 (median 77), schools 104/104.
   athletics 8, tennis 7, field hockey 4), /athletes letter pages 8, /statistics 7, guides 4.
   Note: CI typechecks `pipeline/` with its own tsconfig — run `npx tsc -p pipeline/tsconfig.json
   --noEmit` locally too.
-- **Next:** step 4 — P4 bio facts on a 50-bio sample; then P5 longer summaries; step 6 gate.
+- **Step 4 done (#45):** P4 `pipeline/profiles/bio-facts.ts` reads the bio page's LABELLED fields
+  (high school, previous school, major, height — never the prose) into `athletes.bio_facts`
+  (migration 072), read once per athlete; «Background» paragraph. All 1,005 UK+DK stats profiles:
+  969 pages about the athlete; height 812, high school 465, major 183, previous school 47.
+  NOT scheduled — rerun `--write` for new stats profiles.
+- **Step 5 done (#46):** P5 as `src/lib/honours-summary.ts` — this season's honours (how often,
+  when), earlier honours by season, milestones, in prose above the timeline table. NOT a rewrite
+  of profile_summary (867 have approved summaries; repeating other blocks adds words, not facts).
+- **Step 6 done (#47, #48, live 25f7a0a):** the floor in code. `src/lib/profile-prose.ts` builds
+  the profile prose for both the page and `pipeline/report/index-words.ts` (daily in stats-daily
+  after the fill), which reproduces site-check's count EXACTLY (914/914 profiles) and school pages
+  within 1–3 words (none on the wrong side). Writes `athletes.index_words` and `school_index`
+  (migration 073); `CountryProfile.indexMinWords` UK 200, DK 0. Under the floor: noindex,follow +
+  out of sitemap, /athletes, letter pages, sport pages, school rosters; back automatically when a
+  page grows. Letter pages noindex,follow. Old articles' words from the site-check log once
+  (56 under 200 → noindex); new ones pass the publish floor. School 404 rule reads PUBLIC
+  athletes, not the filtered roster (#48 fixed 57 404s).
+  **Result 2026-10-26:** 1,064 indexable pages, 14 under 200 (1.3%) — /statistics ×7, /guides ×4,
+  /athletes, /articles, /editorial-standards. Indexed: 497 profiles, 67 schools; 708 noindex.
+  0 broken links, no Danish/junk/empty flags.
+- **Next (step 7 / before reapplying):** prose for the 14 hub pages (/athletes and /articles
+  intros need Mikkel's read), then wait ~2 weeks for recrawl, then one review request. Optional:
+  enrich the 56 old short articles (enrich.ts) so they can return to the index.
 - **Loose ends checked:** the 502 on the Marissa MacLean article was transient (200 ×3).
   UK stats rows 944 → 908: no code deletes rows, every UK row was refreshed 25 Oct, and history
   shows 904–907 since 22 Oct. The gap most likely is the tennis rows counted in «944 on day one»
