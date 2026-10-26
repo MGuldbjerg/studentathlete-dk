@@ -4,6 +4,8 @@
  */
 import { nameKey, pageSeason, parseSeasonTables, parseTeamPage, parseTennisTables, scorersOf, seasonLine, statsUrl, teamContextFor, tennisLine, tennisRecord, winLoss } from "./season-stats";
 import { readTeamContext, teamParagraphs } from "../../src/lib/team-context";
+import { archiveYear } from "./season-stats";
+import { careerParagraph, careerRows, seasonsBack } from "../../src/lib/career";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -114,6 +116,28 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
   const fh = parseTeamPage(`<table><tr><th>#</th><th>Player</th><th>GP</th><th>G</th><th>A</th><th>PTS</th></tr>
 <tr><td>Total</td><td></td><td>14</td><td>17</td><td>17</td><td>51</td></tr></table>`);
   ok(fh.total?.["g"] === "17", "«Total» in the # cell (field hockey layout)");
+}
+
+// Career by season (P1, 2026-10-26).
+{
+  ok(seasonsBack("Fr.") === 0 && seasonsBack("So.") === 1 && seasonsBack("Jr.") === 2 && seasonsBack("Sr.") === 3 && seasonsBack("Gr.") === 4, "class year → seasons back");
+  ok(seasonsBack("R-So.") === 2 && seasonsBack("4th Year") === 3 && seasonsBack("Sr. (4th)") === 3 && seasonsBack("FY") === 0 && seasonsBack(null) === 0 && seasonsBack("Rf.") === 0, "redshirts, «4th Year», unknown → 0");
+  ok(archiveYear("<title>\n\t2024 Men's Soccer Cumulative Statistics - Adelphi University</title>") === 2024, "archive year from the title");
+  ok(archiveYear("<title>2026 Men's Soccer Schedule - Furman University</title>") === null, "a schedule page is no archive");
+  const past = [
+    { season: "2024-25", kind: "outfield" as const, games: 19, cells: { gp: "19", gs: "2", g: "1", a: "3" }, school: "Adelphi", record: { w: 9, l: 6, t: 4 } },
+    { season: "2025-26", kind: "outfield" as const, games: 17, cells: { gp: "17", gs: "11", g: "2", a: "3" }, school: "Adelphi", record: { w: 9, l: 6, t: 4 } },
+  ];
+  const now = { kind: "outfield", games: 12, cells: { gp: "12", g: "5", a: "1" }, school: "Adelphi" };
+  const en = careerParagraph(past, now, "Matthew Murphy", "en");
+  ok(en.startsWith("Over 3 seasons at Adelphi (2024–2026), Murphy has 8 goals and 7 assists in 48 games."), "career total, this season included");
+  ok(en.includes("This season's 5 goals are already more than in any earlier season (previous best: 2 in 2025).") && en.indexOf("In 2025") < en.indexOf("In 2024"), "season best; newest season first");
+  ok(en.includes("In 2025 Murphy played 17 games (11 as a starter) with 2 goals and 3 assists, as Adelphi went 9-6-4."), "a season in one sentence");
+  const quiet = careerParagraph([{ season: "2025-26", kind: "outfield", games: 4, cells: { gs: "2", g: "0", a: "0" }, school: "Ashland", record: null }], null, "Noah Brock", "en");
+  ok(quiet === "Over 1 season at Ashland (2025), Brock has played 4 games. In 2025 Brock played 4 games (2 as a starter).", "no «0 goals and 0 assists»");
+  ok(careerParagraph(past, now, "Matthew Murphy", "da").includes("I 2025 spillede Murphy 17 kampe (11 fra start) med 2 mål og 3 assists, mens Adelphi endte på 9-6-4."), "Danish");
+  ok(careerParagraph([], now, "X", "en") === "", "no earlier season → no block");
+  ok(careerRows(past, "en")[0].season === "2025" && careerRows(past, "en")[0].cells.map((c) => c[1]).join(",") === "17,11,2,3,,9-6-4", "table rows newest first");
 }
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);

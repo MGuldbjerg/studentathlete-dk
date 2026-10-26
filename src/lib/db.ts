@@ -693,6 +693,30 @@ export interface SeasonStatsRow {
   team: string | null;
 }
 
+/**
+ * The athlete's EARLIER seasons (pipeline/stats/backfill-career.ts), newest
+ * first, as src/lib/career.ts reads them. Primary-key range on athlete_id.
+ */
+export async function getCareerSeasons(athleteId: number): Promise<import("./career").CareerSeason[]> {
+  const db = await getDB();
+  if (!db) return [];
+  try {
+    const rows = ((await db
+      .prepare(
+        `SELECT season, kind, games, cells, school, team FROM athlete_season_stats
+          WHERE athlete_id = ? AND season < ? AND games > 0 AND kind IN ('outfield', 'keeper') ORDER BY season DESC`,
+      )
+      .bind(athleteId, seasonFromDate(null))
+      .all()).results ?? []) as Array<{ season: string; kind: "outfield" | "keeper"; games: number; cells: string; school: string; team: string | null }>;
+    return rows.map((r) => {
+      let cells: Record<string, string> = {}, record = null;
+      try { cells = JSON.parse(r.cells); } catch { /* no cells */ }
+      try { record = r.team ? (JSON.parse(r.team)?.record ?? null) : null; } catch { /* no record */ }
+      return { season: r.season, kind: r.kind, games: r.games, cells, school: r.school, record };
+    });
+  } catch { return []; }
+}
+
 /** This season's stats row for the athlete (athlete_season_stats), or null. Primary-key lookup. */
 export async function getSeasonStats(athleteId: number): Promise<SeasonStatsRow | null> {
   const db = await getDB();
