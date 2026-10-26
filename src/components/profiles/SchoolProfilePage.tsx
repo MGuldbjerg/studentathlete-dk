@@ -3,6 +3,7 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 import type { School, Athlete, Article } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs, type SchoolFacts, type SchoolPlayer } from "@/lib/school-season";
 
 interface Props {
   school: School;
@@ -11,13 +12,27 @@ interface Props {
   articles: Article[];
   /** Every active athlete from this site's country at the school — a number, no names. */
   totalAthletes?: number;
+  /** This season's stats of the site's players here (S1/S3, src/lib/school-season.ts). */
+  season?: SchoolPlayer[];
+  /** Sport and class year of every athlete of ours here — counts only (S2). */
+  mix?: Array<{ sport: string; class_year: string | null }>;
 }
 
-export async function SchoolProfilePage({ school, athletes, articles, totalAthletes }: Props) {
+export async function SchoolProfilePage({ school, athletes, articles, totalAthletes, season = [], mix = [] }: Props) {
   const total = Math.max(totalAthletes ?? athletes.length, athletes.length);
   const more = total - athletes.length;
   const lang = await currentLanguage();
   const site = await currentSite();
+  // The page's own text (PLAN-content-floor-uk.md S1–S3): prose, because table cells do not count.
+  const facts: SchoolFacts = {
+    name: school.name, short: school.common_name?.split("/")[0].trim() || school.name,
+    nickname: school.nickname ?? null, city: school.city ?? null, state: school.state,
+    division: school.division, conference: school.conference,
+  };
+  const factsText = schoolFactsParagraph(facts, mix, site.demonym, lang);
+  const statsText = schoolStatsParagraph(season, facts, site.demonym, lang);
+  const teamTexts = schoolTeamParagraphs(season, facts, lang);
+  const sho = (c: Record<string, string>) => (c["sho"] ?? c["sho/cbo"] ?? "").split(/[-/]/)[0];
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -98,8 +113,50 @@ export async function SchoolProfilePage({ school, athletes, articles, totalAthle
         ]} />
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-12 mt-8">
-          {/* Venstre: atleter */}
+          {/* Venstre: sæsonen og atleter */}
           <section>
+            {factsText && <p className="text-base text-ink/90 leading-relaxed mb-6">{factsText}</p>}
+            {statsText && (
+              <div className="mb-8">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
+                  {t("school.season_heading", lang)}
+                </p>
+                <p className="text-base text-ink/90 leading-relaxed mb-4">{statsText}</p>
+                <div className="overflow-x-auto">
+                  <table className="text-sm border-collapse w-full">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #E2E0DC" }}>
+                        {["school.col_player", "school.col_sport", "board.games", "board.goals", "board.assists", "board.shutouts"].map((k) => (
+                          <th key={k} className="text-left font-semibold text-muted text-xs tracking-wide py-2 pr-4">{t(k as "board.games", lang)}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {season.map((p) => (
+                        <tr key={p.slug} style={{ borderBottom: "1px solid #F0EEEA" }}>
+                          <td className="py-2 pr-4 font-semibold"><a href={getAthleteUrl(p.slug, lang)} className="text-ink hover:underline">{p.name}</a></td>
+                          <td className="py-2 pr-4 text-muted">{sportLabel(p.sport, lang)}</td>
+                          <td className="py-2 pr-4">{p.games}</td>
+                          <td className="py-2 pr-4">{p.kind === "outfield" ? p.cells["g"] ?? "" : ""}</td>
+                          <td className="py-2 pr-4">{p.kind === "outfield" ? p.cells["a"] ?? "" : ""}</td>
+                          <td className="py-2 pr-4">{p.kind === "keeper" ? sho(p.cells) : ""}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {teamTexts.length > 0 && (
+              <div className="mb-8">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
+                  {t("school.teams_heading", lang)}
+                </p>
+                {teamTexts.map((txt, i) => (
+                  <p key={i} className="text-base text-ink/90 leading-relaxed mb-3">{txt}</p>
+                ))}
+              </div>
+            )}
             <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-5">
               {t("school.athletes_heading", lang, { school: school.name })}
             </p>
