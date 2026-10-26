@@ -11,7 +11,10 @@
  *     without the athlete's name, dated, link to the source;
  *   · one of our articles → its headline without the name, linking to the article.
  * An honour harvested FROM one of the listed articles is the same fact twice, so
- * the article's row stands for it.
+ * the article's row stands for it. So is the same award announced twice — the
+ * conference's release and the school's a day or two later (2026-10-26: 14
+ * pairs on 13 UK profiles): within AWARD_TWIN_DAYS it is one award, as in
+ * award-tally.ts `dedupeAwards`. The article-backed one wins, else the earliest.
  *
  * Pure: the page passes the URL builder, so this can be tested without a site.
  */
@@ -33,6 +36,10 @@ export interface TimelineRow {
 
 interface ArticleLike { id: number; title: string; published_at: string | null }
 
+/** Same athlete, same award, this many days apart or less: one award. */
+const AWARD_TWIN_DAYS = 4;
+const daysApart = (a: string, b: string) => Math.abs(Date.parse(a.slice(0, 10)) - Date.parse(b.slice(0, 10))) / 86_400_000;
+
 export function buildTimeline(
   events: Array<AthleteEventRow & { article_id?: number | null }>,
   articles: ArticleLike[],
@@ -43,8 +50,23 @@ export function buildTimeline(
   const listed = new Set(articles.map((a) => a.id));
   const rows: TimelineRow[] = [];
 
+  const isAward = (e: (typeof events)[number]) => e.kind === "award" && !!e.award_name && !!e.occurred_on;
+  const twins = (a: (typeof events)[number], b: (typeof events)[number]) =>
+    a.award_name === b.award_name && daysApart(a.occurred_on!, b.occurred_on!) <= AWARD_TWIN_DAYS;
+  // Awards an article on this profile stands for.
+  const covered = events.filter((e) => isAward(e) && e.article_id != null && listed.has(e.article_id));
+  const keptAwards: typeof events = [];
+  const byDate = [...events].sort((x, y) => (x.occurred_on ?? "").localeCompare(y.occurred_on ?? ""));
+  const skip = new Set<number>();
+  for (const e of byDate) {
+    if (!isAward(e) || covered.includes(e)) continue;
+    if (covered.some((c) => twins(c, e)) || keptAwards.some((k) => twins(k, e))) skip.add(e.id);
+    else keptAwards.push(e);
+  }
+
   for (const e of events) {
     if (e.article_id != null && listed.has(e.article_id)) continue;
+    if (skip.has(e.id)) continue;
     // A milestone is rendered from its key in the READER's language, not from
     // the stored sentence — a market launched later reads its own language.
     const ms = /^milestone:(goals|assists|shutouts):(\d+)$/.exec(e.award_name ?? "");
