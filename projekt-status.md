@@ -4,6 +4,29 @@
 
 ---
 
+## 🧹 Quality sweep 2026-10-26 — fixed in code (#49), decisions open
+
+- **Heights as position (1,117 athletes, all countries):** Sidearm prints the height inside the
+  position element; rosters without positions (tennis 580, golf 197, athletics 105, rowing 98,
+  swimming 36) gave the height. `cleanPosition` rejects heights/weights; profiles and school
+  rosters show the cleaned value (hidden now, no data write). OPEN: bulk `UPDATE athletes SET
+  position = NULL` for those rows — Mikkel's OK.
+- **JS roster path** (`scrape-js-rosters.ts`) saved names/positions raw → now cleaned like
+  scrape-rosters. OPEN: the 29 existing double-spaced names (`trim(replace(name,'  ',' '))`) —
+  Mikkel's OK (shown in the profile heading).
+- **«tavse-feeds» was a broken check** (per athlete, not per school: 518 false hits). Fixed: 192
+  schools with no story for ANY athlete in 90 days. Sample of 12: 5 dead feeds (Berkeley, USF,
+  Jacksonville State, Illinois: 200 with 0 items; Belmont Abbey 403), 7 live feeds whose items
+  never match our athletes. OPEN: a feed re-discovery pass.
+- **Class-year conflicts (164 fact sheets, 72 with published articles):** most are a teammate's
+  class word; ~5 of 12 read are about the athlete (Blyth «junior» vs So., Armes «sophomore» vs
+  Jr., Heeps, two DK). Who is right needs the source. OPEN: a review pack.
+- **Risk draft #793** (DK, high fabrication risk, >3 days) — Mikkel decides (reject?).
+- **307 stale profile texts** (DK examples) — queued for approval by the sweep workflow's
+  `queue-stale-profiles --apply`; Mikkel's queue in /admin/profiler.
+
+---
+
 ## 📏 UK 200-word floor (`PLAN-content-floor-uk.md`), 2026-10-26 — step 1 done
 
 AdSense rejected .co.uk a second time; Mikkel approved the plan (decisions in the plan). Site-check
