@@ -2,7 +2,8 @@
  * Season statistics from a school's stats page: tables, names, the line.
  * Run: npx tsx pipeline/stats/_season-stats-test.ts
  */
-import { nameKey, pageSeason, parseSeasonTables, parseTennisTables, seasonLine, statsUrl, tennisLine, tennisRecord, winLoss } from "./season-stats";
+import { nameKey, pageSeason, parseSeasonTables, parseTeamPage, parseTennisTables, scorersOf, seasonLine, statsUrl, teamContextFor, tennisLine, tennisRecord, winLoss } from "./season-stats";
+import { readTeamContext, teamParagraphs } from "../../src/lib/team-context";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -75,6 +76,45 @@ ok(tennisRecord("Someone Else", tt) === null, "not on the page → nothing");
 ok(JSON.stringify(winLoss("12-4")) === "[12,4]" && JSON.stringify(winLoss("—")) === "[0,0]", "win-loss parse");
 ok(tennisLine("Andrea Albiero", "Adelphi", rec!.cells, d).endsWith("Andrea Albiero has a 3-0 singles record and 2-1 in doubles"), "tennis line");
 ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "the page's own season");
+
+// Team context (P2, 2026-10-26): Total/Opponent rows and the results table on the same page.
+{
+  const page = `
+<table><caption>Individual Overall Offensive Statistics</caption>
+<tr><th>#</th><th>Player</th><th>GP</th><th>GS</th><th>MIN</th><th>G</th><th>A</th><th>PTS</th></tr>
+<tr><td>9</td><td><a>Bustamante, Wilfer</a></td><td>14</td><td>5</td><td>667</td><td>10</td><td>3</td><td>23</td></tr>
+<tr><td>7</td><td><a>Hernandez, Diego</a></td><td>13</td><td>11</td><td>779</td><td>5</td><td>3</td><td>13</td></tr>
+<tr><td>4</td><td><a>Stout, Connor</a></td><td>14</td><td>14</td><td>1200</td><td>1</td><td>6</td><td>8</td></tr>
+<tr><td></td><td>Total</td><td>14</td><td>-</td><td>13860</td><td>29</td><td>29</td><td>87</td></tr>
+<tr><td></td><td>Opponent</td><td>14</td><td>-</td><td>13747</td><td>20</td><td>14</td><td>54</td></tr>
+</table>
+<table><caption>Game-By-Game Game Results Statistics</caption>
+<tr><th>Date</th><th>Opponent</th><th>W/L</th><th>Score</th><th>Overall</th><th>Conference</th><th>Attend</th><th>Goals Scored [Assist]</th></tr>
+<tr><td>08/20/2026</td><td>at #12 Clemson</td><td>L</td><td>1-5</td><td>(0-1-0, 0-0-0)</td><td>0-0-0</td><td>4323</td><td>Diego Hernandez (1) (Trip Campbell)</td></tr>
+<tr><td>10/20/2026</td><td>vs USC Upstate *</td><td>W</td><td>7-1</td><td>(6-3-4, 2-1-0)</td><td>2-1-0</td><td>757</td><td>Wilfer Bustamante (9) (Connor Stout) Wilfer Bustamante (10) (Grayson Travis)</td></tr>
+<tr><td>10/24/2026</td><td>at ETSU</td><td>T</td><td>0-0</td><td>(6-3-5, 2-1-1)</td><td>2-1-1</td><td>145</td><td></td></tr>
+<tr><td>10/31/2026</td><td>vs Mercer</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>`;
+  const tp = parseTeamPage(page);
+  ok(tp.total?.["g"] === "29" && tp.opponent?.["g"] === "20", "Total and Opponent rows");
+  ok(tp.results.length === 3 && tp.results[0].opponent === "Clemson" && tp.results[0].away && !tp.results[1].away && tp.results[1].opponent === "USC Upstate", "played games only; opponent cleaned");
+  ok(JSON.stringify(scorersOf("Wilfer Bustamante (9) (Connor Stout) Landon Hill (1)")) === JSON.stringify([nameKey("Wilfer Bustamante"), nameKey("Landon Hill")]), "scorers, not assisters");
+  const ctx = teamContextFor("Wilfer Bustamante", "Furman", parseSeasonTables(page), tp)!;
+  ok(ctx.games === 14 && ctx.record?.w === 6 && ctx.record?.t === 5 && ctx.conf?.l === 1 && ctx.goals === 29 && ctx.against === 20, "team record and totals");
+  ok(ctx.ranks.g?.rank === 1 && !ctx.ranks.g?.tied && ctx.ranks.min?.rank === 3 && ctx.scoredIn?.games === 1, "ranks on the team; a brace is one game");
+  const en = teamParagraphs(ctx, { name: "Wilfer Bustamante", kind: "outfield", cells: { gp: "14" } }, "en");
+  ok(en[0] === "Furman have played 14 games this season: 6 wins, 3 defeats and 5 draws (2-1-1 in conference play). They have scored 29 and conceded 20. Their most recent game was a 0-0 draw at ETSU on 24 October.", "team sentences");
+  ok(en[1].startsWith("Wilfer Bustamante has 10 of the team's 29 goals (34%), the most on the team. Bustamante has scored in 1 of Furman's 14 games, most recently against USC Upstate on 20 October."), "athlete sentences");
+  ok(en[1].includes("started 5 of 14 appearances and logged 667 minutes, 3rd on the team."), "starts and minutes");
+  const da = teamParagraphs(ctx, { name: "Wilfer Bustamante", kind: "outfield", cells: { gp: "14" } }, "da").join(" ");
+  ok(da.includes("6 sejre, 3 nederlag og 5 uafgjorte") && da.includes("Seneste kamp endte 0-0 ude mod ETSU den 24. oktober."), "Danish");
+  const quiet = teamContextFor("Connor Stout", "Furman", parseSeasonTables(page), tp)!;
+  ok(quiet.scoredIn === null && !teamParagraphs(quiet, { name: "Connor Stout", kind: "outfield", cells: { gp: "14" } }, "en")[1].includes("scored in"), "no goals → no «scored in» sentence");
+  ok(readTeamContext("{") === null && readTeamContext(null) === null && readTeamContext(JSON.stringify(ctx))?.team === "Furman", "stored JSON read defensively");
+  const fh = parseTeamPage(`<table><tr><th>#</th><th>Player</th><th>GP</th><th>G</th><th>A</th><th>PTS</th></tr>
+<tr><td>Total</td><td></td><td>14</td><td>17</td><td>17</td><td>51</td></tr></table>`);
+  ok(fh.total?.["g"] === "17", "«Total» in the # cell (field hockey layout)");
+}
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);
 if (fail > 0) process.exit(1);

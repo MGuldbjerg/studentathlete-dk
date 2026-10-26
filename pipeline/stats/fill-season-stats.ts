@@ -28,7 +28,7 @@ import { classifierCountries, siteCountrySql, siteCountryCodes } from "../../src
 import { LEADERBOARD_KEY, buildLeaderboard, crossed, milestoneEvent, type BoardInput } from "../../src/lib/leaderboard";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import { currentSeasonStart } from "../generate/timeline";
-import { STATS_SPORTS, nameKey, pageSeason, parseSeasonTables, parseTennisTables, seasonLine, statsUrl, tennisLine, tennisRecord, type SeasonTables, type StatsRow } from "./season-stats";
+import { STATS_SPORTS, nameKey, pageSeason, parseSeasonTables, parseTeamPage, parseTennisTables, seasonLine, statsUrl, teamContextFor, tennisLine, tennisRecord, type SeasonTables, type StatsRow } from "./season-stats";
 
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry-run");
@@ -40,11 +40,11 @@ const HOSTS_AT_ONCE = 6;
 interface Athlete { id: number; name: string; university: string; sport: string; gender: string | null; home_country: string }
 interface Group { university: string; sport: string; gender: string | null; athletes: Athlete[]; url?: string; school?: string }
 
-const UPSERT_SQL = `INSERT INTO athlete_season_stats (athlete_id, season, sport, kind, games, cells, line, school, source_url, fetched_on)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+const UPSERT_SQL = `INSERT INTO athlete_season_stats (athlete_id, season, sport, kind, games, cells, line, school, source_url, fetched_on, team)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(athlete_id, season) DO UPDATE SET sport = excluded.sport, kind = excluded.kind,
     games = excluded.games, cells = excluded.cells, line = excluded.line, school = excluded.school,
-    source_url = excluded.source_url, fetched_on = excluded.fetched_on`;
+    source_url = excluded.source_url, fetched_on = excluded.fetched_on, team = excluded.team`;
 
 const num = (v: string | undefined) => (v && /^\d+$/.test(v.trim()) ? Number(v) : 0);
 
@@ -142,12 +142,13 @@ async function main(): Promise<void> {
               writes.push({
                 sql: UPSERT_SQL,
                 params: [a.id, season, a.sport, "tennis", rec.matches, JSON.stringify(rec.cells),
-                  tennisLine(a.name, g.school!, rec.cells, now), g.school, g.url, today],
+                  tennisLine(a.name, g.school!, rec.cells, now), g.school, g.url, today, null],
               });
             }
             continue;
           }
           const tables = parseSeasonTables(html);
+          const teamPage = parseTeamPage(html);
           for (const a of g.athletes) {
             const hit = findRow(a.name, tables);
             if (!hit) { missing++; continue; }
@@ -155,7 +156,8 @@ async function main(): Promise<void> {
             writes.push({
               sql: UPSERT_SQL,
               params: [a.id, season, a.sport, hit.kind, num(hit.row.cells["gp"]), JSON.stringify(hit.row.cells),
-                seasonLine(a.name, g.school!, tables, now), g.school, g.url, today],
+                seasonLine(a.name, g.school!, tables, now), g.school, g.url, today,
+                JSON.stringify(teamContextFor(a.name, g.school!, tables, teamPage))],
             });
             const c = hit.row.cells;
             totals.set(a.id, {

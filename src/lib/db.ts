@@ -689,6 +689,8 @@ export interface SeasonStatsRow {
   school: string;
   source_url: string;
   fetched_on: string;
+  /** Team context JSON (src/lib/team-context.ts), migration 070; null before the first fill. */
+  team: string | null;
 }
 
 /** This season's stats row for the athlete (athlete_season_stats), or null. Primary-key lookup. */
@@ -698,7 +700,7 @@ export async function getSeasonStats(athleteId: number): Promise<SeasonStatsRow 
   try {
     return ((await db
       .prepare(
-        `SELECT kind, games, cells, line, school, source_url, fetched_on FROM athlete_season_stats
+        `SELECT kind, games, cells, line, school, source_url, fetched_on, team FROM athlete_season_stats
           WHERE athlete_id = ? AND season = ? AND games > 0`,
       )
       .bind(athleteId, seasonFromDate(null))

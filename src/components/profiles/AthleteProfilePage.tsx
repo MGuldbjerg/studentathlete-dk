@@ -1,4 +1,5 @@
 import type { Athlete, Article } from "@/lib/types";
+import { readTeamContext, teamParagraphs } from "@/lib/team-context";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
@@ -65,6 +66,10 @@ const STAT_ROWS = (a: Athlete, lang: string, teamCount = 0) => [
   },
 ].filter((r) => r.value);
 
+function safeCells(json: string): Record<string, string> {
+  try { return JSON.parse(json) as Record<string, string>; } catch { return {}; }
+}
+
 export async function AthleteProfilePage({ athlete, articles, events = [], schoolmates = [], teamCount = 0, records = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
@@ -76,6 +81,11 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
   const statsLineRaw = lang === "en" && seasonStats?.line ? seasonHubLine(seasonStats.line) : null;
   const statsLine = statsLineRaw && !/^0 goals\b/.test(statsLineRaw.text) ? statsLineRaw : null;
   const statsTable = seasonStats ? statColumns(seasonStats.kind, seasonStats.cells, lang) : [];
+  // Team context in sentences (PLAN-content-floor-uk.md P2): the table cells above do not count as text.
+  const teamCtx = seasonStats ? readTeamContext(seasonStats.team) : null;
+  const teamText = teamCtx && seasonStats && seasonStats.kind !== "tennis"
+    ? teamParagraphs(teamCtx, { name: athlete.name, kind: seasonStats.kind, cells: safeCells(seasonStats.cells) }, lang)
+    : [];
   // A fact sheet's season line is older than the table: keep only its ranking line then.
   const hub = lang === "en" ? hubLines(records).filter((h) => !(seasonStats && h.source.includes("stats page"))) : [];
   const timeline = buildTimeline(events, articles, athlete.name, lang, (a) => getArticleUrl(a as Article, lang));
@@ -268,6 +278,9 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                     </tbody>
                   </table>
                 </div>
+                {teamText.map((para, i) => (
+                  <p key={i} className="text-base text-ink/90 leading-relaxed mt-4">{para}</p>
+                ))}
                 <p className="text-xs text-muted mt-2">
                   <a href={seasonStats.source_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
                     {t("profile.stats_source", lang, { school: seasonStats.school, date: formatDateShort(seasonStats.fetched_on, lang) })} ↗
