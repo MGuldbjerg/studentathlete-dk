@@ -230,3 +230,155 @@ export function pageSeason(html: string): string | null {
   const m = /<h1[^>]*>[^<]*?(\d{4}-\d{2})\b[^<]*?Statistics/i.exec(html) ?? /(\d{4}-\d{2})[^<]{0,60}?Cumulative Statistics/i.exec(html);
   return m ? m[1] : null;
 }
+
+// ─── Team context (PLAN-content-floor-uk.md P2, 2026-10-26) ─────────────────
+//
+// The same page also carries the team: «Total» and «Opponent(s)» rows under
+// the overall offensive table, and a game-by-game results table (Date,
+// Opponent, W/L, Score, Overall «(6-3-5, 2-1-1)», …, «Goals Scored [Assist]»
+// as «Wilfer Bustamante (10) (Connor Stout)»). Read from the same HTML the
+// fill already holds; src/lib/team-context.ts writes the sentences.
+
+export interface GameResult {
+  date: string;            // YYYY-MM-DD
+  opponent: string;
+  away: boolean;
+  result: "W" | "L" | "T";
+  us: number;
+  them: number;
+  overall: WLTParsed | null;
+  conf: WLTParsed | null;
+  scorers: string[];       // name keys, one per goal entry
+}
+type WLTParsed = { w: number; l: number; t: number };
+
+export interface TeamPage {
+  total: Record<string, string> | null;
+  opponent: Record<string, string> | null;
+  results: GameResult[];   // played games only, in page order
+}
+
+/** «6-3-5» / «7-7» → {w, l, t}. */
+function parseWlt(s: string | undefined): WLTParsed | null {
+  const m = /(\d+)-(\d+)(?:-(\d+))?/.exec(s ?? "");
+  return m ? { w: Number(m[1]), l: Number(m[2]), t: Number(m[3] ?? 0) } : null;
+}
+
+/** «at #12 Duke *» → «Duke», away. */
+function cleanOpponent(raw: string): { opponent: string; away: boolean } {
+  const away = /^(at|@)\s/i.test(raw);
+  const opponent = raw
+    .replace(/^(at|vs\.?|@)\s+/i, "")
+    .replace(/#\d+\s*/g, "")
+    .replace(/\s*\([^)]*\)\s*/g, " ")
+    .replace(/[*^]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return { opponent, away };
+}
+
+/** «Wilfer Bustamante (10) (Connor Stout) Landon Hill (1)» → the scorers' name keys. */
+export function scorersOf(cell: string): string[] {
+  return [...cell.matchAll(/([^()]+?)\s*\((\d+)\)(?:\s*\([^()]*\))?/g)]
+    .map((m) => nameKey(m[1].replace(/^[\s,;]+/, "")))
+    .filter(Boolean);
+}
+
+export function parseTeamPage(html: string): TeamPage {
+  let total: Record<string, string> | null = null;
+  let opponent: Record<string, string> | null = null;
+  const results: GameResult[] = [];
+  for (const t of html.match(/<table[\s\S]*?<\/table>/gi) ?? []) {
+    const headers = [...t.matchAll(/<th[^>]*>([\s\S]*?)<\/th>/gi)].map((m) => text(m[1]).toLowerCase());
+    const rows = (t.match(/<tr[\s\S]*?<\/tr>/gi) ?? []).map((tr) => [...tr.matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((m) => text(m[1])));
+    // The overall offensive table: its Total and Opponent rows (the first such table only).
+    if (!total && headers.includes("player") && ["gp", "g", "a", "pts"].every((h) => headers.includes(h))) {
+      const at = headers.indexOf("player");
+      for (const cells of rows) {
+        if (cells.length !== headers.length) continue;
+        const asRow = () => Object.fromEntries(headers.map((h, i) => [h, cells[i]]));
+        // «Total» sits in the Player cell on some pages, in the «#» cell on others (Bucknell field hockey).
+        const label = `${cells[at] ?? ""} ${cells[0] ?? ""}`.trim();
+        if (/^total\b/i.test(label)) total = asRow();
+        else if (/^opponents?\b/i.test(label)) opponent = asRow();
+      }
+      continue;
+    }
+    // The results table, recognised by its columns (the new layout has no captions).
+    if (!results.length && ["date", "opponent", "w/l", "score"].every((h) => headers.includes(h))) {
+      const ix = (h: string) => headers.indexOf(h);
+      const goalsAt = headers.findIndex((h) => h.startsWith("goals scored") || h === "goals");
+      for (const cells of rows) {
+        if (cells.length !== headers.length) continue;
+        const d = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(cells[ix("date")] ?? "");
+        const res = (cells[ix("w/l")] ?? "").trim().toUpperCase();
+        const sc = /^(\d+)-(\d+)/.exec(cells[ix("score")] ?? "");
+        if (!d || !sc || !["W", "L", "T"].includes(res)) continue;
+        const overallCell = cells[ix("overall")];
+        const confCell = ix("conference") >= 0 ? cells[ix("conference")] : undefined;
+        results.push({
+          date: `${d[3]}-${d[1].padStart(2, "0")}-${d[2].padStart(2, "0")}`,
+          ...cleanOpponent(cells[ix("opponent")] ?? ""),
+          result: res as GameResult["result"],
+          us: Number(sc[1]), them: Number(sc[2]),
+          overall: parseWlt(overallCell),
+          conf: parseWlt(confCell) ?? parseWlt((overallCell ?? "").split(",")[1]),
+          scorers: goalsAt >= 0 ? scorersOf(cells[goalsAt] ?? "") : [],
+        });
+      }
+    }
+  }
+  return { total, opponent, results };
+}
+
+/** Competition rank of `mine` among the team's values (higher is better). */
+function teamRank(values: number[], mine: number): { rank: number; tied: boolean } {
+  return { rank: values.filter((v) => v > mine).length + 1, tied: values.filter((v) => v === mine).length > 1 };
+}
+
+/** «949» or «34:08» → minutes as a number. */
+function minutes(v: string | undefined): number {
+  const s = (v ?? "").trim();
+  const mm = /^(\d+):\d{2}$/.exec(s);
+  if (mm) return Number(mm[1]);
+  return /^\d+$/.test(s) ? Number(s) : 0;
+}
+
+/**
+ * The stored team context for one athlete (src/lib/team-context.ts), or null
+ * when the page gives no team facts at all.
+ */
+export function teamContextFor(athleteName: string, school: string, tables: SeasonTables, page: TeamPage): import("../../src/lib/team-context").TeamContext | null {
+  const int = (v: string | undefined) => (v && /^\d+$/.test(v.trim()) ? Number(v) : null);
+  const played = page.results;
+  const latest = played[played.length - 1] ?? null;
+  const key = nameKey(athleteName);
+  const me = tables.outfield.find((r) => nameKey(r.name) === key);
+  const ranks: import("../../src/lib/team-context").TeamContext["ranks"] = {};
+  if (me) {
+    const cols: Array<["g" | "a" | "pts" | "gs", string]> = [["g", "g"], ["a", "a"], ["pts", "pts"], ["gs", "gs"]];
+    for (const [k, col] of cols) {
+      const mine = int(me.cells[col]);
+      if (!mine) continue;
+      ranks[k] = { value: mine, ...teamRank(tables.outfield.map((r) => int(r.cells[col]) ?? 0), mine) };
+    }
+    const myMin = minutes(me.cells["min"]);
+    if (myMin) ranks.min = { value: myMin, ...teamRank(tables.outfield.map((r) => minutes(r.cells["min"])), myMin) };
+  }
+  const scored = played.filter((g) => g.scorers.includes(key));
+  const anyScorers = played.some((g) => g.scorers.length > 0);
+  const ctx = {
+    team: school,
+    games: int(page.total?.["gp"]) ?? (played.length || null),
+    record: latest?.overall ?? null,
+    conf: latest?.conf ?? null,
+    goals: int(page.total?.["g"]),
+    against: int(page.opponent?.["g"]),
+    last: latest ? { date: latest.date, opponent: latest.opponent, away: latest.away, result: latest.result, us: latest.us, them: latest.them } : null,
+    ranks,
+    scoredIn: anyScorers && scored.length
+      ? { games: scored.length, last: { date: scored[scored.length - 1].date, opponent: scored[scored.length - 1].opponent } }
+      : null,
+  };
+  return ctx.games || ctx.record || ctx.last ? ctx : null;
+}

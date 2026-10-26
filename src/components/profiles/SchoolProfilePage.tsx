@@ -1,4 +1,4 @@
-import { t, articleTypeLabel } from "@/lib/i18n";
+import { t, articleTypeLabel, sportLabel } from "@/lib/i18n";
 import { currentLanguage, currentSite } from "@/lib/site-server";
 import type { School, Athlete, Article } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
@@ -130,7 +130,7 @@ export async function SchoolProfilePage({ school, athletes, articles, totalAthle
                         {a.name}
                       </p>
                       <p className="text-xs text-muted mt-0.5">
-                        {[a.sport, a.position].filter(Boolean).join(" · ")}
+                        {[a.sport ? sportLabel(a.sport, lang) : null, a.position].filter(Boolean).join(" · ")}
                       </p>
                     </div>
                   </a>
