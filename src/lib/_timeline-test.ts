@@ -100,5 +100,21 @@ const msRow = (lang: string) => buildTimeline(
   [], "X", lang, () => "")[0];
 ok(msRow("en").text === "Reached 10 goals for the season" && msRow("da").text === "Nåede 10 mål i sæsonen", "milestone in the reader's language");
 
+// The same award announced twice (conference, then school): one row (2026-10-26).
+{
+  const twin = buildTimeline(
+    [
+      ev({ id: 20, award_name: "Player of the Week", summary: "Player of the Week", occurred_on: "2026-10-05" }),
+      ev({ id: 21, award_name: "Player of the Week", summary: "Player of the Week", occurred_on: "2026-10-07", article_id: 543 }),
+      ev({ id: 22, award_name: "Player of the Week", summary: "Player of the Week", occurred_on: "2026-10-19" }),
+      ev({ id: 23, award_name: "Rookie of the Week/Month", summary: "Rookie of the Week/Month", occurred_on: "2026-09-01" }),
+      ev({ id: 24, award_name: "Rookie of the Week/Month", summary: "Rookie of the Week/Month", occurred_on: "2026-09-03" }),
+    ],
+    [{ id: 543, title: "X named Player of the Week", published_at: "2026-10-07 10:00:00" }],
+    "X", "en", (a) => `/f/${a.id}`,
+  );
+  ok(twin.map((r) => r.key).join(",") === "e22,a543,e23", "conference + school release = one award; the article stands for it; a later week stays");
+}
+
 console.log(`\ntimeline: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
