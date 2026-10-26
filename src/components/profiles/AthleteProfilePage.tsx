@@ -1,5 +1,6 @@
 import type { Athlete, Article } from "@/lib/types";
 import { careerParagraph, careerRows, type CareerSeason } from "@/lib/career";
+import { readStanding, standingSentences } from "@/lib/standing";
 import { readTeamContext, teamParagraphs } from "@/lib/team-context";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
@@ -91,6 +92,9 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
     seasonStats && seasonStats.kind !== "tennis" ? { kind: seasonStats.kind, games: seasonStats.games, cells: safeCells(seasonStats.cells), school: seasonStats.school } : null,
     athlete.name, lang);
   const careerTable = careerText ? careerRows(career, lang) : [];
+  // Where the player ranks among the site's players with stats on file (P3).
+  const standing = seasonStats ? readStanding(seasonStats.standing) : null;
+  const standingText = standing ? standingSentences(standing, athlete.name, lang).join(" ") : "";
   const teamText = teamCtx && seasonStats && seasonStats.kind !== "tennis"
     ? teamParagraphs(teamCtx, { name: athlete.name, kind: seasonStats.kind, cells: safeCells(seasonStats.cells) }, lang)
     : [];
@@ -286,7 +290,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                     </tbody>
                   </table>
                 </div>
-                {teamText.map((para, i) => (
+                {[...teamText, standingText].filter(Boolean).map((para, i) => (
                   <p key={i} className="text-base text-ink/90 leading-relaxed mt-4">{para}</p>
                 ))}
                 <p className="text-xs text-muted mt-2">

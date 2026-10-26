@@ -6,6 +6,9 @@ import { nameKey, pageSeason, parseSeasonTables, parseTeamPage, parseTennisTable
 import { readTeamContext, teamParagraphs } from "../../src/lib/team-context";
 import { archiveYear } from "./season-stats";
 import { careerParagraph, careerRows, seasonsBack } from "../../src/lib/career";
+import { computeStandings, readStanding, standingSentences } from "../../src/lib/standing";
+import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs } from "../../src/lib/school-season";
+import type { BoardInput } from "../../src/lib/leaderboard";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -142,6 +145,43 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
   ok(careerParagraph(past, now, "Matthew Murphy", "da").includes("I 2025 spillede Murphy 17 kampe (11 fra start) med 2 mål og 3 assists, mens Adelphi endte på 9-6-4."), "Danish");
   ok(careerParagraph([], now, "X", "en") === "", "no earlier season → no block");
   ok(careerRows(past, "en")[0].season === "2025" && careerRows(past, "en")[0].cells.map((c) => c[1]).join(",") === "17,11,2,3,,9-6-4", "table rows newest first");
+}
+
+// Standing among the site's players (P3) and the school page (S1–S3), 2026-10-26.
+{
+  const bi = (id: number, goals: number, assists: number, division = "NCAA D2", o: Partial<BoardInput> = {}): BoardInput => ({
+    athlete_id: id, name: `P${id}`, slug: `p${id}`, university: "U", school: "U", sport: "soccer", gender: "m",
+    division, kind: "outfield", games: 10, goals, assists, shutouts: 0, ...o,
+  });
+  const rows = [bi(1, 9, 1), bi(2, 4, 3, "NCAA D1"), bi(3, 4, 0), bi(4, 0, 2), bi(5, 0, 0), bi(6, 0, 0, "NCAA D2", { kind: "keeper", shutouts: 3 })];
+  const st = computeStandings("UK", "UK", rows);
+  const s3 = st.get(3)!;
+  ok(s3.pool === 6 && s3.national.goals?.rank === 2 && s3.national.goals.tied && s3.national.goals.of === 3, "national rank among those with a goal, ties shared");
+  ok(s3.inDivision.goals?.rank === 2 && !s3.inDivision.goals.tied && s3.inDivision.goals.of === 2 && !s3.national.assists, "division rank; no assist, no assist rank");
+  const en = standingSentences(s3, "Ben Pike", "en");
+  ok(en.length === 1 && en[0] === "Pike's 4 goals rank joint 2nd among the 3 UK players in men's football with a goal on file (2nd of 2 in Division II).", "standing sentence");
+  ok(standingSentences(st.get(5)!, "X Y", "en").length === 0, "nothing scored → no sentence");
+  ok(standingSentences(st.get(6)!, "Kim Keeper", "en")[0] === "Keeper is the only UK player in men's football with a clean sheet on file (3 clean sheets).", "keeper alone: «the only»");
+  ok(standingSentences({ ...s3, nat: "danske" }, "Ben Pike", "da")[0].startsWith("Pikes 4 mål er delt nr. 2 blandt de 3 danske spillere i herrernes fodbold med mindst ét mål i vores tal"), "Danish");
+  ok(readStanding("{") === null && readStanding(JSON.stringify(s3))?.pool === 6, "stored JSON read defensively");
+
+  const facts = { name: "Drexel University", short: "Drexel", nickname: "Dragons", city: "Philadelphia", state: "PA", division: "NCAA D1", conference: "Coastal Athletic Association" };
+  const mix = [{ sport: "soccer", class_year: "Fr." }, { sport: "soccer", class_year: "Jr." }, { sport: "field-hockey", class_year: "So." }];
+  const f = schoolFactsParagraph(facts, mix, "UK", "en");
+  ok(f.startsWith("Drexel University (the Dragons) is in Philadelphia, PA and plays in the Coastal Athletic Association, NCAA Division I. Division I is the NCAA's top level"), "school facts");
+  ok(f.includes("We follow 3 UK athletes at Drexel: 2 in football and 1 in field hockey. 1 of them is a freshman this season."), "athletes by sport, freshmen");
+  const team = JSON.stringify({ team: "Drexel", games: 16, record: { w: 6, l: 8, t: 2 }, conf: { w: 4, l: 5, t: 0 }, goals: 20, against: 19,
+    last: { date: "2026-10-24", opponent: "Hofstra", away: true, result: "L", us: 0, them: 1 }, ranks: {}, scoredIn: null });
+  const players = [
+    { name: "Ann Lee", slug: "ann-lee", sport: "soccer", gender: "m", kind: "outfield" as const, games: 16, cells: { g: "5", a: "2" }, team },
+    { name: "Bo Ray", slug: "bo-ray", sport: "soccer", gender: "m", kind: "outfield" as const, games: 12, cells: { g: "1", a: "3" }, team },
+    { name: "Cy Gold", slug: "cy-gold", sport: "soccer", gender: "m", kind: "keeper" as const, games: 14, cells: { sho: "4" }, team },
+  ];
+  ok(schoolStatsParagraph(players, facts, "UK", "en") === "This season the 3 UK players at Drexel with stats on file have played 42 games between them with 6 goals and 5 assists. Ann Lee leads them with 5 goals. Goalkeeper Cy Gold has kept 4 clean sheets.", "school season sentence");
+  const teams = schoolTeamParagraphs(players, facts, "en");
+  ok(teams.length === 1 && teams[0].startsWith("Drexel's men's football team have played 16 games this season: 6 wins, 8 defeats and 2 draws (4-5-0 in conference play).") && teams[0].includes("a 0-1 defeat at Hofstra on 24 October"), "one paragraph per team");
+  ok(schoolStatsParagraph([], facts, "UK", "en") === "" && schoolTeamParagraphs([], facts, "en").length === 0, "no players → no paragraphs");
+  ok(schoolFactsParagraph(facts, mix, "danske", "da").includes("Vi følger 3 danske atleter på Drexel: 2 i fodbold og 1 i field hockey."), "Danish facts");
 }
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);

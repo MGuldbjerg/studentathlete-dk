@@ -21,6 +21,8 @@
  *   npx tsx pipeline/stats/fill-season-stats.ts [--dry-run] [--country UK] [--limit N]
  */
 import { buildLeaderboardWeek, WEEK_DAY, WEEK_KEY_PREFIX, type WeekMilestone } from "../../src/lib/leaderboard-week";
+import { computeStandings } from "../../src/lib/standing";
+import { countryProfile } from "../../src/lib/countries";
 import { createD1Client } from "../lib/d1-client";
 import { robotsAllows } from "../lib/robots";
 import { pipelineUserAgent } from "../../src/lib/site";
@@ -260,6 +262,14 @@ async function storeLeaderboards(db: ReturnType<typeof createD1Client>, season: 
       [LEADERBOARD_KEY, country, JSON.stringify(board)],
     );
     console.log(`leaderboard ${country}: ${board.tables.length} tables${weekAgoDay ? `, movement against ${weekAgoDay}` : ""}`);
+    // Every player's rank, not only the top 10 (src/lib/standing.ts) — one UPDATE per row, batched.
+    const standings = computeStandings(country, countryProfile(country).demonym, mine);
+    const updates = [...standings].map(([id, st]) => ({
+      sql: `UPDATE athlete_season_stats SET standing = ? WHERE athlete_id = ? AND season = ?`,
+      params: [JSON.stringify(st), id, season],
+    }));
+    for (let i = 0; i < updates.length; i += 50) await db.batch(updates.slice(i, i + 50));
+    console.log(`standings ${country}: ${updates.length} players`);
     if (previous && weekAgoDay && new Date(`${today}T12:00:00Z`).getUTCDay() === WEEK_DAY) {
       await storeLeaderboardWeek(db, season, country, weekAgoDay, today, mine, previous);
     }
