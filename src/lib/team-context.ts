@@ -14,6 +14,8 @@
  * No pronouns: the athlete is named, then called by surname.
  */
 
+import { languagePack } from "./i18n";
+
 export interface WLT { w: number; l: number; t: number }
 
 export interface LastGame {
@@ -57,7 +59,7 @@ function ordinalEn(k: number): string {
 }
 
 function dateText(iso: string, lang: string): string {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString(lang === "da" ? "da-DK" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString(languagePack(lang).locale, { day: "numeric", month: "long", timeZone: "UTC" });
 }
 
 function count(k: number, one: string, many: string): string {
@@ -146,7 +148,7 @@ function meEn(c: TeamContext, s: TeamSubject): string[] {
   if (gp && (gs || min)) {
     const parts: string[] = [];
     if (gs) parts.push(gs.value === gp ? `started all ${count(gp, "appearance", "appearances")}` : `started ${gs.value} of ${count(gp, "appearance", "appearances")}`);
-    if (min) parts.push(`logged ${min.value.toLocaleString("en-GB")} minutes${min.rank <= 5 ? `, ${rankEn(min).replace("the most", "the most")}` : ""}`);
+    if (min) parts.push(`logged ${min.value.toLocaleString(languagePack("en").locale)} minutes${min.rank <= 5 ? `, ${rankEn(min).replace("the most", "the most")}` : ""}`);
     out.push(`${who} has ${parts.join(" and ")}.`);
   }
   return out;
@@ -176,7 +178,7 @@ function meDa(c: TeamContext, s: TeamSubject): string[] {
   if (gp && (gs || min)) {
     const parts: string[] = [];
     if (gs) parts.push(gs.value === gp ? `startet inde i alle ${count(gp, "kamp", "kampe")}` : `startet inde i ${gs.value} af ${count(gp, "kamp", "kampe")}`);
-    if (min) parts.push(`spillet ${min.value.toLocaleString("da-DK")} minutter${min.rank <= 5 ? `, ${rankDa(min)}` : ""}`);
+    if (min) parts.push(`spillet ${min.value.toLocaleString(languagePack("da").locale)} minutter${min.rank <= 5 ? `, ${rankDa(min)}` : ""}`);
     out.push(`${who} har ${parts.join(" og ")}.`);
   }
   return out;
