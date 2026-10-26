@@ -177,14 +177,15 @@ async function main(): Promise<void> {
   // ── 8. Faktaark der tilskriver atleten en anden persons kendsgerning ──
   // Fase 2 kan ikke fange det: artiklen ER dækket af sit faktaark. Fejlen sad
   // i grundsandheden. Vi sammenligner derfor med det VI selv ved — rosteren.
-  const sheets = await db.query<{ id: number; name: string; class_year: string | null; fact_sheet: string; article_id: number | null }>(
-    `SELECT s.id, a.name, a.class_year, s.fact_sheet,
+  const sheets = await db.query<{ id: number; name: string; class_year: string | null; fact_sheet: string; article_id: number | null; discovered_at: string }>(
+    `SELECT s.id, a.name, a.class_year, s.fact_sheet, s.discovered_at,
             (SELECT ar.id FROM articles ar WHERE ar.story_id = s.id LIMIT 1) AS article_id
      FROM stories s JOIN athletes a ON a.id = s.athlete_id
      WHERE s.fact_status = 'built' AND s.fact_sheet IS NOT NULL
        AND s.discovered_at >= date('now', '-60 days')`);
   const conflicts = sheets.results
-    .map((r) => ({ r, flag: classYearConflict(r.fact_sheet, r.class_year) }))
+    // Compared with the class the athlete had WHEN the source spoke (a sophomore then is a junior now).
+    .map((r) => ({ r, flag: classYearConflict(r.fact_sheet, r.class_year, { claimDate: r.discovered_at }) }))
     .filter((x) => x.flag);
   add({
     key: "faktaark-tilskrivning",
