@@ -113,7 +113,7 @@ export async function cachedStat<T>(
 }
 
 export const ARTICLE_SELECT = `
-  a.id, a.title, a.slug, a.summary, a.content, a.article_type,
+  a.id, a.title, a.slug, a.summary, a.content, a.article_type, a.index_words,
   a.author, a.author_role, a.cover_image_url, a.published, a.published_at,
   a.created_at, a.updated_at, a.athlete_id, a.source_url,
   a.model_used, a.llm_provider, a.original_content, a.featured,
@@ -552,6 +552,40 @@ function publicAthleteClause(code: string, t = "a"): string {
 const hasStatsSql = (t: string) =>
   `EXISTS (SELECT 1 FROM athlete_season_stats st WHERE st.athlete_id = ${t}.id AND st.season = '${seasonFromDate(null)}' AND st.games > 0)`;
 
+/**
+ * The word floor on indexable pages (PLAN-content-floor-uk.md, step 6;
+ * CountryProfile.indexMinWords, 0 = none). `index_words` is counted daily by
+ * pipeline/report/index-words.ts with the page's own text builder; NULL = not
+ * counted yet, judged by the older rules alone.
+ */
+export function meetsWordFloor(words: number | null | undefined, code: string): boolean {
+  const floor = countryProfile(code).indexMinWords ?? 0;
+  return floor <= 0 || words == null || words >= floor;
+}
+
+/** SQL: the row `t` (an athlete or an article) meets the word floor — listings and the sitemap. */
+function listedClause(code: string, t = "a"): string {
+  const floor = countryProfile(code).indexMinWords ?? 0;
+  return floor > 0 ? `AND (${t}.index_words IS NULL OR ${t}.index_words >= ${floor})` : "";
+}
+
+/** SQL: school `t` is not counted under the floor on this site (school_index). */
+function listedSchoolClause(code: string, t = "schools"): string {
+  const floor = countryProfile(code).indexMinWords ?? 0;
+  return floor > 0 ? `AND ${t}.id NOT IN (SELECT school_id FROM school_index WHERE country = '${code}' AND words < ${floor})` : "";
+}
+
+/** A school page's counted words on a site (school_index), or null. Primary-key lookup. */
+export async function getSchoolIndexWords(schoolId: number, country?: string): Promise<number | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const r = (await db.prepare(`SELECT words FROM school_index WHERE country = ? AND school_id = ?`)
+      .bind(await siteCountry(country), schoolId).first()) as { words: number } | null;
+    return r?.words ?? null;
+  } catch { return null; }
+}
+
 /** Stats cached per site must not mix the filtered and the unfiltered answer. */
 const publicKey = (key: string, code: string) =>
   countryProfile(code).profilePublicMinArticles > 0 ? `${key}_public` : key;
@@ -637,7 +671,7 @@ export async function getAthleteSlugByAlias(slug: string): Promise<string | null
 }
 
 export async function getAthletesByUniversity(
-  university: string, limit = 20, country?: string
+  university: string, limit = 20, country?: string, opts: { listed?: boolean } = {},
 ): Promise<Athlete[]> {
   const db = await getDB();
   if (!db) {
@@ -651,7 +685,7 @@ export async function getAthletesByUniversity(
     const r = await db
       .prepare(
         `SELECT a.* FROM athletes a WHERE a.university = ? AND a.home_country = ? AND a.active = 1
-           ${publicAthleteClause(code)} ORDER BY a.name LIMIT ?`
+           ${publicAthleteClause(code)} ${opts.listed ? listedClause(code) : ""} ORDER BY a.name LIMIT ?`
       )
       .bind(university, code, limit)
       .all();
@@ -824,7 +858,7 @@ export async function getAllAthletes(country?: string, opts: { publicOnly?: bool
     const code = await siteCountry(country);
     const r = await db
       .prepare(`SELECT a.* FROM athletes a WHERE a.home_country = ? AND a.active = 1
-                ${opts.publicOnly ? publicAthleteClause(code) : ""} ORDER BY a.sport, a.name`)
+                ${opts.publicOnly ? `${publicAthleteClause(code)} ${listedClause(code)}` : ""} ORDER BY a.sport, a.name`)
       .bind(code)
       .all();
     return (r.results ?? []) as Athlete[];
@@ -855,7 +889,7 @@ export async function getAthletesByLetter(
         `SELECT a.* FROM athletes a
          WHERE a.home_country = ? AND a.active = 1
            AND (substr(a.name, 1, 1) = ? OR substr(a.name, 1, 1) = ?)
-           ${publicAthleteClause(code)}
+           ${publicAthleteClause(code)} ${listedClause(code)}
          ORDER BY a.name`,
       )
       .bind(code, upper, lower)
@@ -881,13 +915,13 @@ export async function getAthleteInitialCounts(
   const code = await siteCountry(country);
   try {
     return await cachedStat<Array<{ initial: string; n: number }>>(
-      publicKey("initials", code),
+      `${publicKey("initials", code)}_listed`,
       code,
       async () => {
         const r = await db
           .prepare(
             `SELECT substr(a.name, 1, 1) AS initial, COUNT(*) AS n
-             FROM athletes a WHERE a.home_country = ? AND a.active = 1 ${publicAthleteClause(code)}
+             FROM athletes a WHERE a.home_country = ? AND a.active = 1 ${publicAthleteClause(code)} ${listedClause(code)}
              GROUP BY initial`,
           )
           .bind(code)
@@ -956,7 +990,7 @@ export async function getAthletesBySport(
     const code = await siteCountry(country);
     const r = await db
       .prepare(`SELECT a.* FROM athletes a WHERE a.sport = ? AND a.home_country = ? AND a.active = 1
-                ${publicAthleteClause(code)} ORDER BY a.name LIMIT ?`)
+                ${publicAthleteClause(code)} ${listedClause(code)} ORDER BY a.name LIMIT ?`)
       .bind(sport, code, limit)
       .all();
     return (r.results ?? []) as Athlete[];
@@ -1048,7 +1082,7 @@ export async function getSchoolsWithAthletes(country?: string): Promise<
          ) c
          JOIN schools s ON s.name = c.university
          ${onlyPublic ? `WHERE c.university IN (SELECT a.university FROM athletes a
-           WHERE a.home_country = ? AND a.active = 1 ${onlyPublic})` : ""}
+           WHERE a.home_country = ? AND a.active = 1 ${onlyPublic}) ${listedSchoolClause(code, "s")}` : ""}
          ORDER BY s.division ASC, c.athlete_count DESC, s.name ASC`,
       )
       // The count stays every athlete (a number, no names); the list only has
@@ -1098,7 +1132,7 @@ export async function getAllArticleSlugs(country?: string): Promise<
         `SELECT a.slug, at.sport, a.updated_at
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
-         WHERE a.published = 1 AND a.country = ?
+         WHERE a.published = 1 AND a.country = ? ${listedClause(await siteCountry(country))}
          ORDER BY a.published_at DESC`
       )
       .bind(await siteCountry(country))
@@ -1131,24 +1165,24 @@ export async function getAllArticleSlugs(country?: string): Promise<
  * udlede hvilke BOGSTAVSIDER der findes (kun bogstaver med aktive atleter).
  */
 export async function getAllAthleteSlugs(country?: string): Promise<
-  { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number; has_stats: number }[]
+  { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number; has_stats: number; index_words: number | null }[]
 > {
   const db = await getDB();
   if (!db) {
     return MOCK_ATHLETES
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((a) => ({ slug: a.slug, updated_at: a.updated_at, name: a.name, active: a.active, has_article: 1, article_count: 1, has_stats: 0 }));
+      .map((a) => ({ slug: a.slug, updated_at: a.updated_at, name: a.name, active: a.active, has_article: 1, article_count: 1, has_stats: 0, index_words: null }));
   }
   try {
     // Public profiles only: the sitemap and the alphabet must not point at a 404.
     const code = await siteCountry(country);
     const r = await db
-      .prepare(`SELECT a.slug, a.updated_at, a.name, a.active, ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
+      .prepare(`SELECT a.slug, a.updated_at, a.name, a.active, a.index_words, ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
                        ${articleCountSql("a")} AS article_count
                   FROM athletes a WHERE a.home_country = ? ${publicAthleteClause(code)} ORDER BY a.name`)
       .bind(code)
       .all();
-    return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number; has_stats: number }[];
+    return (r.results ?? []) as { slug: string; updated_at: string; name: string; active: number; has_article: number; article_count: number; has_stats: number; index_words: number | null }[];
   } catch (err) { rethrowDbError(err, "atlet-slugs til sitemap"); }
 }
 
@@ -1177,7 +1211,7 @@ export async function getAllSchoolSlugs(country?: string): Promise<{ slug: strin
          WHERE name IN (
            SELECT university FROM athletes
            WHERE home_country = ? AND active = 1
-         )
+         ) ${listedSchoolClause(await siteCountry(country))}
          ORDER BY name`,
       )
       .bind(await siteCountry(country))
@@ -1205,7 +1239,7 @@ export async function getCoveredSchoolSlugs(country?: string): Promise<{ slug: s
            SELECT a.university FROM articles ar JOIN athletes a ON a.id = ar.athlete_id
            WHERE a.home_country = ? AND ar.published = 1 AND ar.country = ?
            GROUP BY a.university HAVING COUNT(*) >= ?
-         )
+         ) ${listedSchoolClause(code)}
          ORDER BY name`,
       )
       .bind(code, code, min)

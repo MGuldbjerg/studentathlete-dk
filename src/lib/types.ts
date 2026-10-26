@@ -1,5 +1,7 @@
 export interface Article {
   id: number;
+  /** Words on the page by the floor rule (migration 073); NULL = not counted. */
+  index_words?: number | null;
   title: string;
   slug: string;
   summary: string | null;
@@ -68,6 +70,8 @@ export interface Athlete {
   article_count?: number;
   /** The college before this one, from the roster (when it says). */
   previous_school?: string | null;
+  /** Words on the profile by the floor rule (pipeline/report/index-words.ts), migration 073. */
+  index_words?: number | null;
   /** Labelled facts from the bio page (src/lib/bio-facts.ts), migration 072. */
   bio_facts?: string | null;
   /** 1 when this season's stats are on file (athlete_season_stats). */

@@ -54,6 +54,18 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
 
+      # The word floor (PLAN-content-floor-uk.md step 6): every public profile
+      # and school page counted with the page's own text builders, after the
+      # fill has changed the numbers. Pages under CountryProfile.indexMinWords
+      # are noindex and out of the sitemap and listings until they grow.
+      - name: Index words
+        continue-on-error: true
+        run: npx tsx pipeline/report/index-words.ts
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
       - name: Discord ved fejl
         if: failure()
         env:

@@ -12,6 +12,7 @@ import type { BoardInput } from "../../src/lib/leaderboard";
 import { bioParagraph, heightCm } from "../../src/lib/bio-facts";
 import { parseBioFacts } from "../profiles/bio-facts";
 import { honoursParagraph } from "../../src/lib/honours-summary";
+import { schoolPageWords } from "../../src/lib/school-season";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -219,6 +220,18 @@ ok(pageSeason(tennis) === "2026-27" && pageSeason("<h1>Stats</h1>") === null, "t
   ok(en.includes("Earlier honours on file: All-Conference (2025) and Player of the Week (2024).") && en.endsWith("Milestones this season: first goal on 30 August and 5 goals on 3 October."), "earlier honours by season; milestones in order");
   ok(honoursParagraph([], "X", "2026-27", "en") === "", "nothing → no paragraph");
   ok(honoursParagraph(events, "Evie Craven", "2026-27", "da").startsWith("I denne sæson er Craven blevet kåret til"), "Danish");
+}
+
+// The school page's words as site-check counts them (step 6, 2026-10-26).
+{
+  const n = schoolPageWords({
+    name: "Keene State College", brand: "Student-Athlete.co.uk",
+    factsText: "Keene State College (the Owls) is in Keene, NH.", statsText: "", teamTexts: [],
+    roster: [{ name: "Ellie Patrick", sport: "ice-hockey", position: "Forward" }], more: 0,
+    articles: [{ title: "Ellie Patrick named alternate captain", article_type: "season_update", published_at: "2026-09-16 10:00:00" }],
+  }, "en");
+  // 5 title + 9 facts + 6 heading + 2 name + 4 «Ice Hockey · Forward» + 2 «Latest news» + 2 type + 5 title + 3 date
+  ok(n === 38, `school page words (${n})`);
 }
 
 console.log(`season-stats: ${pass} ok, ${fail} failed`);

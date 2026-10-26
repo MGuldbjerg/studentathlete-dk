@@ -83,6 +83,13 @@ export interface CountryProfile {
    * results were a sixth of the site's articles. DK 130 (2026-10-13).
    */
   standaloneMinWords: number;
+  /**
+   * An indexable page has at least this many words by site-check's floor rule
+   * (PLAN-content-floor-uk.md, step 6): profiles, school pages and articles
+   * below it are noindex and left out of the sitemap and listings. 0 = no
+   * floor. UK 200 (Mikkel, 2026-10-26); DK 0.
+   */
+  indexMinWords: number;
 }
 
 /**
