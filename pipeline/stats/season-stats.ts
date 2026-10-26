@@ -384,11 +384,21 @@ export function teamContextFor(athleteName: string, school: string, tables: Seas
 }
 
 /**
- * The year an archived stats page covers, from its <title> («2025 Men's Soccer
- * Cumulative Statistics - Furman University»), or null. Sidearm answers an
- * unknown year with another page (the schedule), so the title is the check.
+ * The year an archived stats page covers, or null. Sidearm answers an unknown
+ * year with another page (the schedule), so the page itself must say it:
+ *   1. the <title> («2025 Men's Soccer Cumulative Statistics - Furman»);
+ *   2. a heading («<h1>2025 Field Hockey Cumulative Statistics</h1>» — many
+ *      field hockey pages title themselves without the year, 2026-10-26);
+ *   3. the game-by-game results: at least three played games, all dated in
+ *      the same year. A current-season page has this year's dates, so it can
+ *      never pass for an archive.
  */
 export function archiveYear(html: string): number | null {
-  const m = /<title>\s*(\d{4})(?:-\d{2})?\s[^<]*?statistics/i.exec(html);
-  return m ? Number(m[1]) : null;
+  const title = /<title>\s*(\d{4})(?:-\d{2})?\s[^<]*?statistics/i.exec(html);
+  if (title) return Number(title[1]);
+  const heading = /<h[1-3][^>]*>\s*(\d{4})(?:-\d{2})?\s[^<]*?cumulative statistics\s*<\/h[1-3]>/i.exec(html);
+  if (heading) return Number(heading[1]);
+  const played = parseTeamPage(html).results;
+  const years = new Set(played.map((r) => r.date.slice(0, 4)));
+  return played.length >= 3 && years.size === 1 ? Number([...years][0]) : null;
 }
