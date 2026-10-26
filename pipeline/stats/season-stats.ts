@@ -382,3 +382,13 @@ export function teamContextFor(athleteName: string, school: string, tables: Seas
   };
   return ctx.games || ctx.record || ctx.last ? ctx : null;
 }
+
+/**
+ * The year an archived stats page covers, from its <title> («2025 Men's Soccer
+ * Cumulative Statistics - Furman University»), or null. Sidearm answers an
+ * unknown year with another page (the schedule), so the title is the check.
+ */
+export function archiveYear(html: string): number | null {
+  const m = /<title>\s*(\d{4})(?:-\d{2})?\s[^<]*?statistics/i.exec(html);
+  return m ? Number(m[1]) : null;
+}
