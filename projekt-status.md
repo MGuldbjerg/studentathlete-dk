@@ -25,11 +25,17 @@
   said Jr.); roster stale for Lasse Bjørn Jensen (bio So.) and Evie Brooks (bio Sr.); **Lauren
   Blyth transferred CBU → Nova Southeastern** (our record still CBU — transfers with an existing
   slug are not moved by the scrapers: OPEN); 6 teammate/historical mentions. OPEN: correct
-  #261/#280/#674 (Mikkel's OK).
+  #261/#280/#674 — DONE 2026-10-26 with correction notes (`pipeline/fix/correct-published.ts`).
 - **Dead feeds:** `pipeline/discover/repair-feeds.ts` (weekly in quality-sweep, job timeout 40):
-  87 dead, 48 repaired (Sidearm /rss.aspx → /rss); 39 still dead, mostly a college's general news
-  feed with no known athletics site — next: `find-athletics-site.ts` for them. Also open: 7 live
-  feeds whose items never match our athletes (UT, South Carolina, LIU …).
+  87 dead, 51 repaired (Sidearm /rss.aspx → /rss); 39 still dead — 38 of them at schools with NO
+  active athlete (no coverage lost). **The real gap is matching, not feeds:** discovery
+  (`check-sources.ts` → `extract-story.ts`) matches a feed item on TITLE + SUMMARY only and fetches
+  the body only after a hit. 190 schools with ≥5 athletes had no story in 90 days (166 with UK/DK
+  athletes) although their feeds are live. Measured 2026-10-26 on 7 of them (Berkeley, USF,
+  Charleston, Queens, Wheeling, Missouri State, Trinity): 63 items, titles matched 2, BODIES matched
+  32 (20 with UK/DK athletes). Some body hits are sidebars/«players mentioned» lists and common
+  names. OPEN (Mikkel decides — more stories = more drafts): body matching for unseen items, main
+  article text only, with a daily cap.
 
 ---
 
