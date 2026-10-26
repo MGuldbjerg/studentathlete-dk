@@ -34,8 +34,13 @@
   athletes) although their feeds are live. Measured 2026-10-26 on 7 of them (Berkeley, USF,
   Charleston, Queens, Wheeling, Missouri State, Trinity): 63 items, titles matched 2, BODIES matched
   32 (20 with UK/DK athletes). Some body hits are sidebars/«players mentioned» lists and common
-  names. OPEN (Mikkel decides — more stories = more drafts): body matching for unseen items, main
-  article text only, with a daily cap.
+  names. **FIXED (#53, Mikkel «Fix»):** each NEW feed item is opened once (`feed_items_seen`,
+  migration 074) and read for the school's own tags (Sidearm `rel="smarttag"` roster links, the
+  «Players Mentioned» box: score 95) and FULL names in the story text with sidebars/related
+  news/promos removed (90); a surname alone never counts. Items >21 days not opened; caps 600
+  pages + 80 stories per run (env BODY_FETCHES/BODY_STORIES); discover-daily timeout 50. Trial on
+  the 7 schools: 42 stories (21 UK/DK) vs 3 from titles. Watch the first runs: story volume and
+  the DK draft queue.
 
 ---
 
