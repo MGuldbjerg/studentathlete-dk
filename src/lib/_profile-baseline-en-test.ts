@@ -173,8 +173,8 @@ function okEq(label: string, got: unknown, want: unknown): void {
   };
   const now = baselineProfileEn(t, fall26);
   okEq("transfer: not 'since 2024'", now.includes("since 2024"), false);
-  okEq("transfer this season", /transferred from Oregon State University to .* in the autumn of 2026/.test(now), true);
-  okEq("transfer last season", /since transferring from Oregon State University in 2026\./.test(baselineProfileEn(t, new Date(Date.UTC(2027, 9, 15)))), true);
+  okEq("transfer: started at the old school, then moved", /and started at Oregon State University in 2024\. In 2026 Jane transferred to /.test(now), true);
+  okEq("transfer: she", baselineProfileEn({ ...t, gender: "f" }, fall26).includes("In 2026 she transferred to"), true);
 }
 
 console.log(`\nprofile-baseline-en: ${passed} bestået, ${failed} fejlet`);

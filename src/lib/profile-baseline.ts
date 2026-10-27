@@ -340,10 +340,18 @@ export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): str
     main = `${fullName} ${withObject(v.preteritum, v.object)} for ${where}${posSuffix} og dimitterede i ${a.expected_graduation}.`;
   } else if (!a.active) {
     main = `${fullName} ${v.preteritum} tidligere${v.object ? ` ${v.object}` : ""} for ${where}${posSuffix}.`;
-  } else if (moved && moved.year >= currentSeasonStart(now)) {
-    main = `${fullName} skiftede i efteråret ${moved.year} fra ${moved.from} til ${school} og ${withObject(v.present, v.object)}${posSuffix}.`;
   } else if (moved) {
-    main = `${fullName} har siden ${moved.year} ${withObject(v.participle, v.object)} for ${where}${posSuffix} efter et skifte fra ${moved.from}.`;
+    // Mikkel, 2026-10-27: «Elisa Mehyar spiller basketball og startede på Oregon
+    // State University i 2024. Hun skiftede … til Middle Tennessee … i 2026.»
+    // «Startede på X i {år}» kun når første college-år ligger FØR skiftet: vi
+    // kender kun de skifter vi selv har set, og et år efter skiftet ville betyde
+    // at X ikke var første skole.
+    const who = a.gender === "f" ? "hun" : a.gender === "m" ? "han" : firstName;
+    const started = a.year_enrolled != null && a.year_enrolled < moved.year
+      ? ` og startede på ${moved.from} i ${a.year_enrolled}` : "";
+    main = started
+      ? `${fullName} ${withObject(v.present, v.object)}${posSuffix}${started}. I ${moved.year} skiftede ${who} til ${where}.`
+      : `${fullName} ${withObject(v.present, v.object)}${posSuffix}. I ${moved.year} skiftede ${who} fra ${moved.from} til ${where}.`;
   } else if (a.year_enrolled != null && a.year_enrolled >= currentSeasonStart(now)) {
     // Freshman-vindue: optaget i den igangværende (eller kommende) sæson.
     main = `${fullName} startede på ${school} i efteråret ${a.year_enrolled} og ${withObject(v.present, v.object)}${posSuffix}.`;
