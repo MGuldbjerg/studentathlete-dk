@@ -10,6 +10,8 @@ import {
   REJECT_DELETE_SQL,
   REJECT_LOG_SQL,
   rejectLogParams,
+  rejectSnapshot,
+  type RejectableDraft,
   type RejectWhy,
 } from "./review-snapshot";
 import type { Article, Athlete } from "./types";
@@ -342,6 +344,46 @@ export async function deleteArticle(id: number, why?: RejectWhy): Promise<void> 
   // Rækkefølgen er børn før forælder, i én batch, så en halv sletning ikke kan
   // efterlade en gennemgang uden artikel.
   await db.batch(REJECT_DELETE_SQL.map((sql) => db.prepare(sql).bind(id)));
+}
+
+/**
+ * A draft reviewed too late becomes a line on the profile instead of an
+ * article (Mikkel, 2026-10-27: «I need an option to turn it into a line on the
+ * profile if I review it too late»). Same row as a short draft gets at publish
+ * (timeline-entry.ts), with the line text the reviewer saw and could edit; the
+ * draft goes, and review_log keeps it as decision 'to_line'.
+ * False when the draft is gone, published, or has no athlete to stand on.
+ */
+export async function draftToLine(id: number, line: string | null): Promise<boolean> {
+  const db = await getDB();
+  if (!db) return false;
+  const d = (await db
+    .prepare(
+      `SELECT a.title, a.article_type, a.fabrication_risk, a.athlete_id, a.story_id, a.source_url,
+              a.original_content, a.content, a.claude_fixed_content, a.published,
+              at.name AS athlete_name, s.fact_sheet, s.sensitive
+         FROM articles a LEFT JOIN athletes at ON a.athlete_id = at.id LEFT JOIN stories s ON a.story_id = s.id
+        WHERE a.id = ?`,
+    )
+    .bind(id)
+    .first()) as (RejectableDraft & { published: number; source_url: string | null; athlete_name: string | null; fact_sheet: string | null }) | null;
+  if (!d || d.published === 1 || !d.athlete_id) return false;
+  const text = line?.trim() || d.title || "";
+  if (!text) return false;
+  const { snapshot, fixed } = rejectSnapshot(d);
+  await db.batch([
+    db.prepare(TIMELINE_INSERT_SQL).bind(...timelineParams({
+      athlete_id: d.athlete_id, athlete_name: d.athlete_name ?? "",
+      title: text, source_url: d.source_url, fact_sheet: d.fact_sheet,
+    })),
+    db.prepare(
+      `INSERT INTO review_log (article_id, decision, article_type, fabrication_risk, sensitive,
+         content_snapshot, title_snapshot, story_id, athlete_id, fixed_snapshot, reject_note)
+       VALUES (?, 'to_line', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(id, d.article_type, d.fabrication_risk, d.sensitive, snapshot, d.title, d.story_id, d.athlete_id, fixed, text),
+    ...TIMELINE_DELETE_SQL.map((sql) => db.prepare(sql).bind(id)),
+  ]);
+  return true;
 }
 
 export async function getArticleById(id: number): Promise<Article | null> {
@@ -1812,6 +1854,9 @@ export async function getCatalogueCounts(): Promise<CatalogueCounts | null> {
 // ─── Check view (/admin/tjek/<id>) ──────────────────────────────────────────
 
 export interface CheckData {
+  /** The draft's own athlete — the profile a «Profillinje» lands on. */
+  athlete_id: number | null;
+  athlete_name: string | null;
   id: number;
   title: string;
   content: string;
@@ -1840,7 +1885,8 @@ export async function getCheckData(id: number): Promise<CheckData | null> {
     .prepare(
       // Day reports of a tournament folded into this article (merged_into,
       // migration 063) are part of its source: their facts are in the draft.
-      `SELECT a.id, a.title, a.content, a.published, a.country, a.source_url,
+      `SELECT a.id, a.title, a.content, a.published, a.country, a.source_url, a.athlete_id,
+              (SELECT name FROM athletes WHERE id = a.athlete_id) AS athlete_name,
               NULLIF(COALESCE(s.content_raw, '') ||
                 COALESCE((SELECT group_concat(char(10) || char(10) || '=== Earlier report: ' ||
                                   COALESCE(m.headline, '') || ' ===' || char(10) || COALESCE(m.content_raw, ''), '')

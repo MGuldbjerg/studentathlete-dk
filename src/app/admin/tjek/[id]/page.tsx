@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCheckData } from "@/lib/admin";
 import { buildCheckModel, type CheckFinding } from "@/lib/check-view";
 import { AdminActions } from "../../[id]/AdminActions";
+import { timelineLine } from "@/lib/timeline-entry";
 import { CheckView } from "./CheckView";
 
 function parseFindings(json: string | null, label = ""): CheckFinding[] {
@@ -86,7 +87,7 @@ export default async function CheckPage({ params }: { params: Promise<{ id: stri
         <CheckView model={model} />
       </div>
 
-      {data.published ? null : <AdminActions articleId={data.id} afterHref={nextHref} />}
+      {data.published ? null : <AdminActions articleId={data.id} afterHref={nextHref} defaultLine={data.athlete_id ? timelineLine(data.title, data.athlete_name ?? "") : null} />}
     </main>
   );
 }

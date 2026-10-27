@@ -4,6 +4,7 @@ import { getArticleById } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminActions } from "./AdminActions";
+import { timelineLine } from "@/lib/timeline-entry";
 
 import { ADMIN_LANG, sportLabel } from "@/lib/i18n";
 export default async function AdminArticlePage({
@@ -88,7 +89,7 @@ export default async function AdminArticlePage({
       </div>
 
       {/* Sticky knapper i bunden */}
-      <AdminActions articleId={article.id} />
+      <AdminActions articleId={article.id} defaultLine={article.published || !article.athlete_id ? null : timelineLine(article.title, article.athlete_name ?? "")} />
     </main>
   );
 }
