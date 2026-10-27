@@ -2,9 +2,21 @@ name: Discovery (token-fri)
 
 on:
   schedule:
-    # Hver 6. time: 00:00, 06:00, 12:00, 18:00 UTC
-    - cron: '0 */6 * * *'
+    # Every 2 hours at :17 (Mikkel, 2026-10-27: «ramp up the processes»).
+    # Was every 6 h on the hour, which GitHub delayed and dropped to ~3 runs a
+    # day: 200 schools a run reached ~600 of the 776 feeds a day, and 177 had
+    # not been checked for over 24 h. A school is still read at most every 6 h
+    # (check-sources.ts), so more runs means every school gets its turn, and a
+    # story reaches the desk sooner (freshness: 1 day for a goal or assist).
+    # :17, not :00 — the top of the hour is where GitHub delays and drops.
+    # Cost: GitHub minutes (public repo: free) and a few thousand D1 rows a run.
+    - cron: '17 */2 * * *'
   workflow_dispatch:
+
+# A slow run (the body pass opens up to 600 pages) must not overlap the next.
+concurrency:
+  group: discover
+  cancel-in-progress: false
 
 jobs:
   discover:
