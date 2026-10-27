@@ -343,6 +343,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         heading: "Out of season is not off season",
         body: [
           "Even outside the competitive window, athletes train with the programme, lift, and take part in limited organised practice. The NCAA caps the hours, but the year is close to continuous.",
+          "Each sport ends with its own NCAA championship in each division, so a Division II player's season can finish at a different time and place from a Division I player's in the same sport. Junior colleges and NAIA schools have championships of their own, outside the NCAA.",
         ],
       },
     ],
@@ -584,6 +585,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         body: [
           "Sixty-eight teams qualify, some by winning their conference and the rest by selection. They are seeded and drawn into a bracket, and from there it is straight knockout — one defeat and the season is over.",
           "The last four teams meet at the Final Four, and the winners contest the national championship.",
+          "The women's tournament runs alongside the men's and has also had 68 teams since 2022. It has grown fast: in 2024 the women's final drew a larger television audience in the United States than the men's.",
         ],
       },
       {
@@ -613,14 +615,15 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
     title: "The College Football Playoff explained",
     metaTitle: "College Football Playoff explained — how the champion is decided",
     description:
-      "American college football decides its champion through a play-off that expanded to twelve teams in 2024.",
+      "American college football decides its champion through a twelve-team play-off, seeded by ranking since 2025 and set to grow to 24 teams in 2027.",
     intro:
       "College football took an unusually long time to adopt a play-off, and the current twelve-team format arrived only in 2024. Before that, the champion was decided by polls and then by a four-team bracket.",
     sections: [
       {
         heading: "How it works now",
         body: [
-          "Since 2024 the play-off has had twelve teams, selected by a committee, with the highest-ranked conference champions receiving byes. It runs through December and January and ends with the national championship.",
+          "Twelve teams take part, picked and ranked by a selection committee. Since the 2025 season the bracket follows that ranking directly: the four highest-ranked teams receive a bye into the quarter-finals, and seeds five to twelve meet in first-round games at the home ground of the higher seed. The five highest-ranked conference champions are guaranteed a place, but no longer a bye. The quarter-finals and semi-finals are played at the major bowl games, and the national championship follows in January.",
+          "The twelve-team format continues in the 2026 season. From 2027 the play-off is set to expand again, to 24 teams: the conferences and the broadcaster have agreed it in principle, with the final approval and the exact format still to come.",
         ],
       },
       {
@@ -634,15 +637,19 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
       { label: "The NCAA season calendar", href: "/guides/season-calendar" },
       { label: "Conferences explained", href: "/guides/conferences" },
     ],
-    sources: [{ label: "College Football Playoff — official site", url: "https://collegefootballplayoff.com/" }],
-    updated: "2026-08-04",
+    sources: [
+      { label: "College Football Playoff — official site", url: "https://collegefootballplayoff.com/" },
+      { label: "NCAA.com (2026). College Football Playoff bracket, schedule, scores, rankings", url: "https://www.ncaa.com/news/football/article/2026-01-08/college-football-playoff-bracket-schedule-scores-rankings" },
+      { label: "NBC Sports (2026). College Football Playoff finalizing an expansion to a 24-team field for 2027", url: "https://www.nbcsports.com/college-football/news/report-college-football-playoff-finalizing-an-expansion-to-24-team-field-for-2027-season" },
+    ],
+    updated: "2026-10-27",
   },
 
   {
     slug: "signing-day-and-nli",
     category: "saeson",
-    title: "Signing Day and the National Letter of Intent",
-    metaTitle: "Signing Day and the National Letter of Intent explained",
+    title: "Signing Day: from the National Letter of Intent to aid agreements",
+    metaTitle: "Signing Day explained — the end of the National Letter of Intent",
     description:
       "The point at which a verbal promise becomes a binding agreement between athlete and university.",
     intro:
@@ -655,10 +662,10 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         ],
       },
       {
-        heading: "The National Letter of Intent",
+        heading: "From letter of intent to aid agreement",
         body: [
-          "The NLI is the agreement between athlete and institution. Signing it commits the athlete to that university, and commits the university to providing the agreed financial aid for a full academic year.",
-          "The signing windows differ by sport, and the December period has become the main one for American football.",
+          "For sixty years the formal step was the National Letter of Intent, which bound the athlete to one university for a year. The NCAA abolished it in October 2024. Its place has been taken by a written offer of athletics aid. Once the athlete signs it, the university must honour the aid and may reduce or cancel it only in the few circumstances NCAA rules allow, and other schools that offer athletics aid must stop recruiting the athlete.",
+          "The signing dates themselves did not change and still differ by sport. No written offer of athletics aid may be made before 1 August of the athlete's final school year. Athletes transferring through the Transfer Portal can sign at any time.",
         ],
       },
       {
@@ -670,15 +677,18 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
     ],
     faqs: [
       {
-        q: "Can I get out of an NLI?",
-        a: "There is a release process, but it is not automatic and can carry consequences. Take advice before signing rather than afterwards.",
+        q: "Does the National Letter of Intent still exist?",
+        a: "No. The NCAA ended it in October 2024; athletes now sign a written athletics aid agreement instead. Check the rules for your own division and sport.",
       },
     ],
     related: [
       { label: "Academic requirements & eligibility", href: "/guides/academic-requirements" },
       { label: "Transfer portal explained", href: "/guides/transfer-portal" },
     ],
-    sources: [{ label: "NCAA — National Letter of Intent", url: "https://www.ncaa.org/sports/2014/9/15/national-letter-of-intent.aspx" }],
-    updated: "2026-08-04",
+    sources: [
+      { label: "ESPN (2024). NCAA approves elimination of National Letter of Intent program", url: "https://www.espn.com/college-sports/story/_/id/41702974/ncaa-approves-elimination-national-letter-intent-program" },
+      { label: "Husch Blackwell (2024). NCAA eliminates National Letter of Intent program", url: "https://www.huschblackwell.com/newsandinsights/ncaa-eliminates-national-letter-of-intent-program" },
+    ],
+    updated: "2026-10-27",
   },
 ];

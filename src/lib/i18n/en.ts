@@ -460,7 +460,7 @@ const ui: LanguagePack["ui"] = {
   "article.source": "Source",
   "article.season": "Season {season}",
   "athletes.intro":
-    "Every athlete has their own page with their university, sport and any articles we have written about them. If the list runs long, jump in at an initial.",
+    "Every athlete has their own page with their university, sport and any articles we have written about them. If the list runs long, jump in at an initial. Student-Athlete.co.uk follows UK athletes on the rosters of American colleges, from NCAA Division I to junior colleges, in football, golf, athletics, rowing and many other sports. An athlete appears here once we have written about them. Their page then gathers what the public sources say: the school and team, the position or event, season statistics where the school publishes them, honours such as Player of the Week, and every article that mentions them. Pages grow through the season. If you are on a roster and missing, or something about you is wrong, tell us via the contact page.",
   "athletes.letter_nav_label": "Browse by initial",
   "athletes.letter_all": "All",
   "athletes.letter_h1": "UK athletes whose name begins with {letter}",
