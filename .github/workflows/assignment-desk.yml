@@ -1,4 +1,4 @@
-name: Assignment desk (shadow)
+name: Assignment desk
 
 # Mikkel, 2026-10-27: Claude as the editor who decides what each incoming story
 # becomes: article, profile line, fold, skip or hold (pipeline/editor/assignment-desk.ts,
@@ -78,6 +78,10 @@ jobs:
           fi
           npx tsx pipeline/editor/assignment-desk.ts $ARGS
         env:
+          # LIVE since 2026-10-27 (Mikkel: «switch on the editor»): lines go on the
+          # profile, skips/folds/holds leave the queue, generate drafts only the
+          # articles. Repo variable DESK_MODE=shadow turns the acting off.
+          DESK_MODE: ${{ vars.DESK_MODE || 'live' }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
