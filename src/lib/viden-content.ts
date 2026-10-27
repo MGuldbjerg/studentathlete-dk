@@ -642,7 +642,7 @@ export const VIDEN_GUIDES: VidenGuide[] = [
         heading: "Hvad er CFP?",
         body: [
           "College Football Playoff er slutspillet, der kårer den nationale mester i Division I [football](/football). Et udvalg rangerer de bedste hold, der derefter spiller om titlen. Fra 2024-sæsonen blev feltet udvidet til 12 hold.",
-          "12-holdsformatet fortsætter til og med 2026-sæsonen — med to justeringer, der sikrer alle fire Power Four-mestre adgang og giver Notre Dame en plads ved en top 12-placering. En yderligere udvidelse til 14 eller 16 hold diskuteres for tiden for 2027 og frem, så tjek den aktuelle struktur.",
+          "12-holdsformatet fortsætter til og med 2026-sæsonen — med to justeringer, der sikrer alle fire Power Four-mestre adgang og giver Notre Dame en plads ved en top 12-placering. Fra 2027 skal slutspillet udvides igen, til 24 hold: konferencerne og tv-stationen er enige i princippet, mens den endelige godkendelse og det præcise format endnu mangler.",
         ],
       },
       {
@@ -666,6 +666,7 @@ export const VIDEN_GUIDES: VidenGuide[] = [
     sources: [
       { label: "Wikipedia. (n.d.). College Football Playoff. Hentet juni 2026.", url: "https://en.wikipedia.org/wiki/College_Football_Playoff" },
       { label: "Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.", url: "https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026" },
+      { label: "NBC Sports. (2026). College Football Playoff finalizing an expansion to a 24-team field for 2027.", url: "https://www.nbcsports.com/college-football/news/report-college-football-playoff-finalizing-an-expansion-to-24-team-field-for-2027-season" },
     ],
     updated: UPDATED,
   },
