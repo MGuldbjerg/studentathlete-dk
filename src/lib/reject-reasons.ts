@@ -9,6 +9,7 @@ export const REJECT_REASONS = [
   { code: "not_news", label: "Ikke en historie om atleten (rolle for lille)" },
   { code: "line_only", label: "Kun en profillinje (liste, placering, kampdeltagelse)" },
   { code: "preview", label: "Forhåndsomtale — er ikke sket endnu" },
+  { code: "stale", label: "Forældet — ikke længere en nyhed (overvej «Profillinje»)" },
   { code: "unfinished", label: "Turneringen er ikke slut" },
   { code: "duplicate", label: "Dublet af en anden artikel" },
   { code: "wrong_athlete", label: "Forkert atlet eller identitet" },
