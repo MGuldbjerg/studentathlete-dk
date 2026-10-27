@@ -42,6 +42,7 @@ import { createD1Client, type D1Client } from "../lib/d1-client";
 import { notify, COLOR } from "../lib/notify";
 import { countryProfile, siteCountrySql } from "../../src/lib/countries";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
+import { normalizeSourceUrl } from "../lib/story-url";
 
 const MODEL = process.env.DESK_MODEL || "opus";
 /** Stories per model call. An athlete's stories are never split across calls. */
@@ -53,7 +54,8 @@ const WINDOW_DAYS = 3;
 
 export const DECISIONS = ["article", "line", "fold", "skip", "hold"] as const;
 export type Decision = (typeof DECISIONS)[number];
-const TYPES = ["season_update", "news", "recruiting", "feature"];
+/** Never `feature`: we don't build articles from a school's narrative prose (Mikkel, 2026-10-27). */
+const TYPES = ["season_update", "news", "recruiting"];
 
 export interface DeskStory {
   id: number;
@@ -90,29 +92,57 @@ export interface DeskVerdict {
   fold_into: string | null;
   /** How long an honest article the material carries (article and line). */
   words: number | null;
+  /** The day the event happened, YYYY-MM-DD (article and line); null if the source has no date. */
+  event_date: string | null;
+  /** Big news on thin material: what a human could ask to make it an article. */
+  follow_up: string | null;
   reason: string;
 }
 
 /**
- * Mikkel, 2026-10-27: «stories over 250 words should always be posted,
- * 200-249 … based on how big the story is». Applied here as well as in the
- * brief, so a model that asks for an article on 150 words of material is
- * overruled, not trusted. Only DOWN: an article becomes a line (it carries its
- * line). A line the model sized at 250+ stays a line — it has no type or angle
- * to write from — and the report counts those as answers to look at.
+ * Mikkel's rule, 2026-10-27, qualified by his answers to 20 hypotheticals
+ * (pipeline/editor/brief.md): «stories over 250 words should always be posted,
+ * 200-249 … based on how big the story is», and «simple scoring/assisting/
+ * placement should probably be 1 day, bigger stuff should be 3 days».
+ *
+ * Applied in code as well as in the brief, so a model that asks for an article
+ * on 150 words, or on a nine-day-old match, is overruled, not trusted. Only
+ * DOWN: an article becomes a line (it carries its line). A line the model sized
+ * at 250+ stays a line — it has no type or angle to write from — and the report
+ * counts those as answers to look at.
+ *
+ * Freshness is measured to the day the story was FOUND, not to the desk run:
+ * our own pipeline's delay must not age a story (measured 2026-10-27: 13% of
+ * stories are found the day the school posts, 74% the day after, 9% two days after).
  */
 export const ALWAYS_ARTICLE_WORDS = 250;
 export const MIN_ARTICLE_WORDS = 200;
-export const BIG_STORY_PRIORITY = 4;
+/** Priority from which 200-249 words is an article: a distinctive individual contribution. */
+export const ARTICLE_PRIORITY = 3;
+/** Priority from which a story stays fresh for BIG_FRESH_DAYS instead of SMALL_FRESH_DAYS. */
+export const BIG_PRIORITY = 4;
+export const SMALL_FRESH_DAYS = 1;
+export const BIG_FRESH_DAYS = 3;
 
-export function applyLengthRule(v: DeskVerdict): DeskVerdict {
+/** Whole days from the event to the day the story was found; null when either date is missing. */
+export function ageDays(eventDate: string | null, foundOn: string): number | null {
+  if (!eventDate || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) return null;
+  const a = Date.parse(eventDate), b = Date.parse(foundOn.slice(0, 10));
+  return Number.isFinite(a) && Number.isFinite(b) ? Math.round((b - a) / 86_400_000) : null;
+}
+
+export function applyRules(v: DeskVerdict, foundOn: string): DeskVerdict {
   if (v.decision !== "article" || v.words === null) return v;
+  const toLine = (why: string): DeskVerdict =>
+    ({ ...v, decision: "line", article_type: null, angle: null, reason: `${why}; the desk said article: ${v.reason}` });
+  const age = ageDays(v.event_date, foundOn);
+  const fresh = (v.priority ?? 0) >= BIG_PRIORITY ? BIG_FRESH_DAYS : SMALL_FRESH_DAYS;
+  if (age !== null && age > fresh) return toLine(`freshness rule: the event was ${age} days before the story was found (limit ${fresh})`);
   if (v.words >= ALWAYS_ARTICLE_WORDS) return v;
-  if (v.words >= MIN_ARTICLE_WORDS && (v.priority ?? 0) >= BIG_STORY_PRIORITY) return v;
-  const why = v.words < MIN_ARTICLE_WORDS
-    ? `${v.words} words is under ${MIN_ARTICLE_WORDS}`
-    : `${v.words} words and priority ${v.priority} is not a big story`;
-  return { ...v, decision: "line", article_type: null, angle: null, reason: `length rule: ${why}; the desk said article: ${v.reason}` };
+  if (v.words >= MIN_ARTICLE_WORDS && (v.priority ?? 0) >= ARTICLE_PRIORITY) return v;
+  return toLine(v.words < MIN_ARTICLE_WORDS
+    ? `length rule: ${v.words} words is under ${MIN_ARTICLE_WORDS}`
+    : `length rule: ${v.words} words at priority ${v.priority} is under the bar`);
 }
 
 // ── the prompt ──────────────────────────────────────────────────────────────
@@ -129,6 +159,8 @@ const day = (s: string | null) => (s ?? "").slice(0, 10);
 export function buildDeskPack(
   groups: { stories: DeskStory[]; ctx: AthleteContext }[],
   brief: string,
+  /** Story id → our OTHER athletes in the same source (one joint article). */
+  alsoOurs: Map<number, string[]> = new Map(),
 ): string {
   const athletes = groups.map(({ stories, ctx }) => {
     const a = stories[0];
@@ -145,8 +177,9 @@ export function buildDeskPack(
     const news = stories
       .map((s) => {
         const text = clip((s.content_raw || s.summary || "").replace(/\s+/g, " ").trim(), SOURCE_CHARS);
+        const others = alsoOurs.get(s.id) ?? [];
         return `### story:${s.id} (found ${day(s.discovered_at)}${s.sensitive ? `, flagged sensitive: ${s.sensitive}` : ""})
-Headline: ${s.headline ?? ""}
+Headline: ${s.headline ?? ""}${others.length ? `\nAlso ours in this source: ${others.join(", ")}` : ""}
 Source: ${s.source_url ?? ""}
 ${text || "(no text: headline only)"}`;
       })
@@ -180,8 +213,9 @@ ${athletes.join("\n\n---\n\n")}
 Decide EVERY new story above (${groups.reduce((n, g) => n + g.stories.length, 0)} of them). Answer with ONLY a JSON array, nothing
 before or after it, one object per story:
 
-[{"story_id":123,"decision":"article","words":320,"article_type":"season_update","priority":3,"angle":"one sentence","line":"the profile sentence","reason":"one sentence"},
- {"story_id":124,"decision":"line","words":90,"priority":2,"line":"the profile sentence","reason":"one sentence"},
+[{"story_id":123,"decision":"article","words":320,"priority":3,"event_date":"2026-10-24","article_type":"season_update","angle":"one sentence","line":"the profile sentence","reason":"one sentence"},
+ {"story_id":124,"decision":"line","words":90,"priority":2,"event_date":"2026-10-24","line":"the profile sentence","reason":"one sentence"},
+ {"story_id":128,"decision":"line","words":170,"priority":5,"event_date":"2026-10-23","line":"the profile sentence","follow_up":"what to ask, one sentence","reason":"one sentence"},
  {"story_id":125,"decision":"fold","fold_into":"story:123","reason":"one sentence"},
  {"story_id":126,"decision":"skip","reason":"one sentence"},
  {"story_id":127,"decision":"hold","reason":"one sentence"}]
@@ -215,7 +249,7 @@ export function parseDesk(text: string, asked: number[]): DeskVerdict[] {
     const decision = o.decision as Decision;
     const reason = str("reason");
     if (!want.has(id) || out.has(id) || !DECISIONS.includes(decision) || !reason) continue;
-    const v: DeskVerdict = { story_id: id, decision, article_type: null, priority: null, angle: null, line: null, fold_into: null, words: null, reason };
+    const v: DeskVerdict = { story_id: id, decision, article_type: null, priority: null, angle: null, line: null, fold_into: null, words: null, event_date: null, follow_up: null, reason };
     if (decision === "article" || decision === "line") {
       // Both carry a profile line, a size and a priority: the length rule needs
       // all three to turn an article into a line.
@@ -225,6 +259,12 @@ export function parseDesk(text: string, asked: number[]): DeskVerdict[] {
       if (!v.line || !(priority >= 1 && priority <= 5) || !(words >= 0 && words <= 5000)) continue;
       v.priority = Math.round(priority);
       v.words = Math.round(words);
+      // A date that is there must be a date; a missing one is allowed (some
+      // sources give none) and then freshness can't be judged.
+      const date = str("event_date");
+      if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      v.event_date = date;
+      v.follow_up = decision === "line" ? str("follow_up") : null;
     }
     if (decision === "article") {
       const type = str("article_type");
@@ -242,8 +282,8 @@ export function parseDesk(text: string, asked: number[]): DeskVerdict[] {
 }
 
 /** A sensitive-flagged story is never decided by the machine, whatever it answered. */
-export function guardDesk(v0: DeskVerdict, s: Pick<DeskStory, "sensitive">): DeskVerdict {
-  const v = applyLengthRule(v0);
+export function guardDesk(v0: DeskVerdict, s: Pick<DeskStory, "sensitive" | "discovered_at">): DeskVerdict {
+  const v = applyRules(v0, s.discovered_at);
   if (!s.sensitive || v.decision === "hold" || v.decision === "skip") return v;
   return { ...v, decision: "hold", article_type: null, priority: null, angle: null, line: null, fold_into: null,
     reason: `flagged sensitive (${s.sensitive}); the desk said ${v.decision}: ${v.reason}` };
@@ -357,7 +397,8 @@ async function report(db: D1Client, mode: string, days: number, file?: string) {
   const verdicts: (DeskVerdict & { country?: string })[] = file
     ? JSON.parse(readFileSync(file, "utf8"))
     : (await db.query<DeskVerdict & { country: string }>(
-        `SELECT d.story_id, d.decision, d.article_type, d.priority, d.angle, d.line, d.fold_into, d.est_words AS words, d.reason, a.home_country AS country
+        `SELECT d.story_id, d.decision, d.article_type, d.priority, d.angle, d.line, d.fold_into, d.est_words AS words,
+                d.event_date, d.follow_up, d.reason, a.home_country AS country
            FROM desk_decisions d JOIN stories s ON s.id = d.story_id JOIN athletes a ON a.id = s.athlete_id
           WHERE d.mode = ? AND d.decided_at >= datetime('now', ?)`, [mode, `-${days} days`])).results;
   const got = await outcomes(db, verdicts.map((v) => v.story_id));
@@ -375,9 +416,10 @@ async function report(db: D1Client, mode: string, days: number, file?: string) {
     const arts = mine.filter((v) => v.decision === "article");
     const byPrio = [5, 4, 3, 2, 1].map((p) => `${p}: ${arts.filter((v) => v.priority === p).length}`).join(" · ");
     if (arts.length) console.log(`  article priorities  ${byPrio}`);
-    const demoted = mine.filter((v) => v.decision === "line" && v.reason.startsWith("length rule")).length;
-    const longLines = mine.filter((v) => v.decision === "line" && (v.words ?? 0) >= ALWAYS_ARTICLE_WORDS).length;
-    console.log(`  length rule turned ${demoted} article(s) into lines · ${longLines} line(s) sized at ${ALWAYS_ARTICLE_WORDS}+ words (look at these)`);
+    const by = (rule: string) => mine.filter((v) => v.decision === "line" && v.reason.startsWith(rule)).length;
+    const longLines = mine.filter((v) => v.decision === "line" && (v.words ?? 0) >= ALWAYS_ARTICLE_WORDS && !v.reason.startsWith("freshness")).length;
+    const follow = mine.filter((v) => v.follow_up).length;
+    console.log(`  articles turned into lines: ${by("length rule")} by length, ${by("freshness rule")} by freshness · ${longLines} line(s) sized at ${ALWAYS_ARTICLE_WORDS}+ words without a freshness reason (look at these) · ${follow} follow-up(s)`);
   }
   console.log(`\nRead: "rejected" in the article row and "published" in the skip row are the disagreements to look at.`);
 }
@@ -418,6 +460,18 @@ async function main() {
   if (!stories.length) return;
 
   const brief = briefText();
+  // Two of ours in one source make ONE joint article (Mikkel, 2026-10-27);
+  // the desk is told who else is in it, so it doesn't fold one into the other.
+  const bySource = new Map<string, DeskStory[]>();
+  for (const s of stories) if (s.source_url) {
+    const k = normalizeSourceUrl(s.source_url);
+    bySource.set(k, [...(bySource.get(k) ?? []), s]);
+  }
+  const alsoOurs = new Map<number, string[]>();
+  for (const group of bySource.values()) for (const s of group) {
+    const others = [...new Set(group.filter((o) => o.athlete_id !== s.athlete_id).map((o) => o.athlete_name))];
+    if (others.length) alsoOurs.set(s.id, others);
+  }
   const decided: (DeskVerdict & { country: string })[] = [];
   const key = backtest ? (s: DeskStory) => `${s.athlete_id}:${day(s.discovered_at)}` : undefined;
   for (const batch of batches(stories, BATCH_STORIES, key)) {
@@ -427,7 +481,7 @@ async function main() {
       groups.push({ stories: g, ctx: await contextFor(db, g[0].athlete_id, asOf, g.map((s) => s.id)) });
     }
     const asked = batch.flat();
-    const pack = buildDeskPack(groups, brief);
+    const pack = buildDeskPack(groups, brief, alsoOurs);
     if (dump) { appendFileSync(dump, `${pack}\n===== end of pack =====\n`); continue; }
     const answer = askModel(pack);
     const verdicts = answer ? parseDesk(answer, asked.map((s) => s.id)) : [];
@@ -438,9 +492,9 @@ async function main() {
       console.log(`  story ${v.story_id}: ${v.decision}${v.priority ? ` p${v.priority}` : ""}`);
       if (dry) continue;
       await db.execute(
-        `INSERT OR IGNORE INTO desk_decisions (story_id, decision, article_type, priority, angle, line, fold_into, est_words, reason, model, mode)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [v.story_id, v.decision, v.article_type, v.priority, v.angle, v.line, v.fold_into, v.words, v.reason, MODEL, mode]);
+        `INSERT OR IGNORE INTO desk_decisions (story_id, decision, article_type, priority, angle, line, fold_into, est_words, event_date, follow_up, reason, model, mode)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [v.story_id, v.decision, v.article_type, v.priority, v.angle, v.line, v.fold_into, v.words, v.event_date, v.follow_up, v.reason, MODEL, mode]);
     }
     const missing = asked.length - verdicts.length;
     if (missing) console.log(`  ! ${missing} of ${asked.length} without a valid decision: tried again next run`);
@@ -459,6 +513,10 @@ async function main() {
       .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
       .map((v) => clip(`**p${v.priority}** ${name(v.story_id)}: ${v.angle}`, 200))
       .join("\n");
+    const follows = decided
+      .filter((v) => v.country === country && v.follow_up)
+      .map((v) => clip(`${name(v.story_id)}: ${v.follow_up}`, 200))
+      .join("\n");
     const holds = decided
       .filter((v) => v.country === country && v.decision === "hold")
       .map((v) => clip(`${name(v.story_id)}: ${v.reason}`, 200))
@@ -471,6 +529,7 @@ async function main() {
         fields: [
           ...(arts ? [{ name: "Would assign as articles", value: clip(arts, 1024) }] : []),
           ...(holds ? [{ name: "Would hold for you", value: clip(holds, 1024) }] : []),
+          ...(follows ? [{ name: "Worth a follow-up (big news, thin material)", value: clip(follows, 1024) }] : []),
         ],
       },
       country,
