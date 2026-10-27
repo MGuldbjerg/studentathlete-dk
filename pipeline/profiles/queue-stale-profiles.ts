@@ -26,7 +26,7 @@
  *   npx tsx pipeline/profiles/queue-stale-profiles.ts --apply
  */
 import { createD1Client } from "../lib/d1-client";
-import { type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { type BaselineAthlete, TRANSFER_EVENT_SQL } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { countryProfile, siteCountrySql } from "../../src/lib/countries";
 
@@ -34,7 +34,7 @@ const MAX_CHARS = 400;
 
 const COLS =
   "a.id, a.name, a.preferred_name, a.university, a.university_state, a.sport, a.position, " +
-  "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, " +
+  "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country," + TRANSFER_EVENT_SQL + ", " +
   "a.profile_summary, s.common_name AS university_common_name, s.city AS university_city, s.nickname AS university_nickname, a.gender";
 
 const words = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, " ").split(/\s+/).filter(Boolean);
