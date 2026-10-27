@@ -16,7 +16,7 @@
  *   npx tsx pipeline/profiles/refresh-position-drafts.ts --apply   # læg i kø
  */
 import { createD1Client } from "../lib/d1-client";
-import { type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { type BaselineAthlete, TRANSFER_EVENT_SQL } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { countryProfile } from "../../src/lib/countries";
 
@@ -49,8 +49,8 @@ async function main() {
   const r = await db.query<Row>(
     `SELECT id, slug, name, preferred_name, university, university_state, sport,
             position, hometown, year_enrolled, expected_graduation, active,
-            home_country, profile_summary, profile_draft
-     FROM athletes
+            home_country, profile_summary, profile_draft, ${TRANSFER_EVENT_SQL}
+     FROM athletes a
      WHERE profile_summary IS NOT NULL AND profile_draft IS NULL`,
   );
 

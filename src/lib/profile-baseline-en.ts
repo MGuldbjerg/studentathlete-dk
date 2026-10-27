@@ -18,6 +18,7 @@ import {
   meaningfulPosition,
   currentSeasonStart,
   tidyName,
+  transferInto,
   type BaselineAthlete,
 } from "./profile-baseline";
 import { localizeHometown } from "./hometown";
@@ -230,11 +231,18 @@ export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): s
   const hasGraduated =
     a.expected_graduation != null && now >= new Date(a.expected_graduation, 5, 1);
 
+  // A transfer we saw: the start at THIS school is the move (profile-baseline.ts).
+  const moved = transferInto(a);
+
   let main: string;
   if (hasGraduated) {
     main = `${fullName} ${withObject(v.past, v.object)} for ${where}${posSuffix} and graduated in ${a.expected_graduation}.`;
   } else if (!a.active) {
     main = `${fullName} previously ${withObject(v.past, v.object)} for ${where}${posSuffix}.`;
+  } else if (moved && moved.year >= currentSeasonStart(now)) {
+    main = `${fullName} transferred from ${moved.from} to ${school} in the autumn of ${moved.year} and ${withObject(v.present, v.object)}${posSuffix}.`;
+  } else if (moved) {
+    main = `${fullName} has ${withObject(v.participle, v.object)} for ${where}${posSuffix} since transferring from ${moved.from} in ${moved.year}.`;
   } else if (a.year_enrolled != null && a.year_enrolled >= currentSeasonStart(now)) {
     main = `${fullName} started at ${school} in the autumn of ${a.year_enrolled} and ${withObject(v.present, v.object)}${posSuffix}.`;
   } else if (a.year_enrolled != null) {

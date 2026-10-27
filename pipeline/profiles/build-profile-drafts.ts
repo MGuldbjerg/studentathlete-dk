@@ -25,7 +25,7 @@
  */
 import { createD1Client, D1Client } from "../lib/d1-client";
 import { ProviderChain } from "../lib/llm/provider-chain";
-import { type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { type BaselineAthlete, TRANSFER_EVENT_SQL } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { countryProfile, siteCountrySql } from "../../src/lib/countries";
 
@@ -59,7 +59,7 @@ export interface EventRow {
 
 const ATHLETE_COLS =
   "a.id, a.name, a.preferred_name, a.university, a.university_state, a.sport, a.position, " +
-  "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, a.profile_summary, " +
+  "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, a.profile_summary," + TRANSFER_EVENT_SQL + ", " +
   // Skolens brugsnavn. LEFT JOIN: en atlet hvis skole ikke findes i `schools`
   // skal stadig få et udkast — så falder navnet tilbage på det officielle.
   "s.common_name AS university_common_name, s.city AS university_city, s.nickname AS university_nickname, a.gender";

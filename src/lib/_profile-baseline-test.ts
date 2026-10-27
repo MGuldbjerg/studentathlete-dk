@@ -300,5 +300,24 @@ okEq("hjemby: rigtig region beholdes", localizeHometown("Dartford, Kent", dk), "
 okEq("hjemby: tom streng er stadig tom", localizeHometown("", dk), "");
 
 
+// ── Skifte (Mikkel, 2026-10-27): Elisa Mehyar «har siden 2024 spillet for Middle
+// Tennessee», men hun var på Oregon State til 2026. Starten på DEN skole er skiftet.
+{
+  const mehyar: BaselineAthlete = {
+    ...base, name: "Elisa Mehyar", sport: "basketball", position: "F/C", hometown: "Copenhagen, Denmark",
+    university: "Middle Tennessee State University", university_state: "Tennessee", year_enrolled: 2024, expected_graduation: 2028,
+    transfer_event: "Skiftede fra Oregon State University til Middle Tennessee State University.|2026-08-18",
+  };
+  const fall26 = new Date(Date.UTC(2026, 9, 15));
+  const t = baselineProfile(mehyar, fall26);
+  okEq("skifte: ikke 'siden 2024'", t.includes("siden 2024"), false);
+  okEq("skifte i år: skiftede i efteråret 2026 fra den gamle skole", /skiftede i efteråret 2026 fra Oregon State University til /.test(t), true);
+  const fall27 = new Date(Date.UTC(2027, 9, 15));
+  okEq("skifte sidste år: har siden 2026 … efter et skifte fra", /har siden 2026 .* efter et skifte fra Oregon State University\./.test(baselineProfile(mehyar, fall27)), true);
+  okEq("skifte til en ANDEN skole tæller ikke", baselineProfile({ ...mehyar, transfer_event: "Skiftede fra A University til B University.|2026-08-18" }, fall27).includes("siden 2024"), true);
+  okEq("engelsk hændelse læses også", baselineProfile({ ...mehyar, transfer_event: "Transferred from Oregon State University to Middle Tennessee State University.|2026-08-18" }, fall26).includes("fra Oregon State University"), true);
+  okEq("ingen hændelse: som før", baselineProfile({ ...mehyar, transfer_event: null }, fall26).includes("siden 2024"), true);
+}
+
 console.log(`\nprofile-baseline: ${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

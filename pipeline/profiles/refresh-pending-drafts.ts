@@ -26,7 +26,7 @@
  *   npx tsx pipeline/profiles/refresh-pending-drafts.ts --published-since 2026-08-29 --apply
  */
 import { createD1Client } from "../lib/d1-client";
-import { type BaselineAthlete } from "../../src/lib/profile-baseline";
+import { type BaselineAthlete, TRANSFER_EVENT_SQL } from "../../src/lib/profile-baseline";
 import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { countryProfile } from "../../src/lib/countries";
 
@@ -41,7 +41,7 @@ interface Row extends BaselineAthlete {
 
 const COLS =
   "a.id, a.name, a.preferred_name, a.university, a.university_state, a.sport, a.position, " +
-  "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country, " +
+  "a.hometown, a.year_enrolled, a.expected_graduation, a.active, a.home_country," + TRANSFER_EVENT_SQL + ", " +
   "s.common_name AS university_common_name, s.city AS university_city, s.nickname AS university_nickname, a.gender";
 
 async function main(): Promise<void> {

@@ -159,5 +159,23 @@ expectText({ ...base, sport: "fodbold", position: null }, fall26,
   "Oliver Smith has competed in other for Ohio State University in Ohio since 2025. Oliver is from Aldershot.",
   "efterladt dansk værdi → 'other' (synlig fejl, samme kontrakt som da)");
 
+function okEq(label: string, got: unknown, want: unknown): void {
+  if (got === want) passed++;
+  else { failed++; console.error(`  ✗ ${label}: got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`); }
+}
+
+// Transfers (2026-10-27): the start at the CURRENT school is the move, not year_enrolled.
+{
+  const t: BaselineAthlete = {
+    ...base, name: "Jane Doe", university: "Middle Tennessee State University", university_state: "Tennessee",
+    year_enrolled: 2024, expected_graduation: 2028,
+    transfer_event: "Transferred from Oregon State University to Middle Tennessee State University.|2026-08-18",
+  };
+  const now = baselineProfileEn(t, fall26);
+  okEq("transfer: not 'since 2024'", now.includes("since 2024"), false);
+  okEq("transfer this season", /transferred from Oregon State University to .* in the autumn of 2026/.test(now), true);
+  okEq("transfer last season", /since transferring from Oregon State University in 2026\./.test(baselineProfileEn(t, new Date(Date.UTC(2027, 9, 15)))), true);
+}
+
 console.log(`\nprofile-baseline-en: ${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

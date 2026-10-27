@@ -74,8 +74,37 @@ export interface BaselineAthlete {
   year_enrolled: number | null;
   expected_graduation: number | null;
   active: number;
+  /**
+   * The latest kind='transfer' athlete_event as "summary|occurred_on" — the
+   * roster scraper writes it when an athlete moves between our schools. Without
+   * it, a transfer's `year_enrolled` (their FIRST college year) was written as
+   * the start at the NEW school: «har siden 2024 spillet for Middle Tennessee»
+   * about Elisa Mehyar, who was at Oregon State until 2026 (Mikkel, 2026-10-27).
+   */
+  transfer_event?: string | null;
   /** Atletens land (athletes.home_country) — styrer bystavemåde og landestrip. */
   home_country?: string | null;
+}
+
+/** SQL for `transfer_event` on athlete row `a` (callers add it to their columns). */
+export const TRANSFER_EVENT_SQL =
+  "(SELECT e.summary || '|' || e.occurred_on FROM athlete_events e WHERE e.athlete_id = a.id AND e.kind = 'transfer' " +
+  "ORDER BY e.occurred_on DESC, e.id DESC LIMIT 1) AS transfer_event";
+
+/**
+ * The move into the athlete's CURRENT school, or null: the event must name that
+ * school as the destination (an older move, or a stale row, says nothing about
+ * where they are now). The year is the season the move was seen in.
+ */
+export function transferInto(a: Pick<BaselineAthlete, "transfer_event" | "university">): { from: string; year: number } | null {
+  if (!a.transfer_event) return null;
+  const cut = a.transfer_event.lastIndexOf("|");
+  const summary = (cut >= 0 ? a.transfer_event.slice(0, cut) : a.transfer_event).trim();
+  const on = cut >= 0 ? a.transfer_event.slice(cut + 1) : "";
+  const m = /^(?:Skiftede fra|Transferred from) (.+?) (?:til|to) (.+?)\.?$/.exec(summary);
+  const d = new Date(on);
+  if (!m || Number.isNaN(d.getTime()) || m[2].trim() !== a.university.trim()) return null;
+  return { from: m[1].trim(), year: currentSeasonStart(d) };
 }
 
 /** Aktuel akademisk sæsons startår (US college-år løber aug–jul). */
@@ -303,11 +332,18 @@ export function baselineProfile(a: BaselineAthlete, now: Date = new Date()): str
   const hasGraduated =
     a.expected_graduation != null && now >= new Date(a.expected_graduation, 5, 1);
 
+  // A transfer we saw: the start at THIS school is the move, not year_enrolled.
+  const moved = transferInto(a);
+
   let main: string;
   if (hasGraduated) {
     main = `${fullName} ${withObject(v.preteritum, v.object)} for ${where}${posSuffix} og dimitterede i ${a.expected_graduation}.`;
   } else if (!a.active) {
     main = `${fullName} ${v.preteritum} tidligere${v.object ? ` ${v.object}` : ""} for ${where}${posSuffix}.`;
+  } else if (moved && moved.year >= currentSeasonStart(now)) {
+    main = `${fullName} skiftede i efteråret ${moved.year} fra ${moved.from} til ${school} og ${withObject(v.present, v.object)}${posSuffix}.`;
+  } else if (moved) {
+    main = `${fullName} har siden ${moved.year} ${withObject(v.participle, v.object)} for ${where}${posSuffix} efter et skifte fra ${moved.from}.`;
   } else if (a.year_enrolled != null && a.year_enrolled >= currentSeasonStart(now)) {
     // Freshman-vindue: optaget i den igangværende (eller kommende) sæson.
     main = `${fullName} startede på ${school} i efteråret ${a.year_enrolled} og ${withObject(v.present, v.object)}${posSuffix}.`;
