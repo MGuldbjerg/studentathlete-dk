@@ -142,7 +142,7 @@ async function main() {
       if (DRY) continue;
       // review_log first: the row must survive the article it describes.
       if (row.original_content) {
-        await db.execute(REJECT_LOG_SQL, rejectLogParams(d.id, row));
+        await db.execute(REJECT_LOG_SQL, rejectLogParams(d.id, row, { reason: "claude_editor", note: d.reason ?? null }));
       }
       await db.batch(REJECT_DELETE_SQL.map((sql) => ({ sql, params: [d.id] })));
       rejected++;

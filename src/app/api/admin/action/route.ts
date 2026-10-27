@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { publishArticle, deleteArticle, announcePublishedArticle } from "@/lib/admin";
 import { isAdmin } from "@/lib/admin-auth";
+import { cleanNote, isRejectReason } from "@/lib/reject-reasons";
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,9 +9,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
     }
     const body = await req.json();
-    const { id, action } = body as {
+    const { id, action, reason, note } = body as {
       id: number;
       action: string;
+      reason?: unknown;
+      note?: unknown;
     };
 
     if (!id || !["publish", "reject"].includes(action)) {
@@ -23,7 +26,9 @@ export async function POST(req: NextRequest) {
       // bagefter, har vi fortalt verden om en side der ikke findes.
       await announcePublishedArticle(id);
     } else {
-      await deleteArticle(id);
+      // The reason is asked for in /admin (Mikkel, 2026-10-27), but an old tab
+      // without the dropdown must still be able to reject: unknown → null.
+      await deleteArticle(id, { reason: isRejectReason(reason) ? reason : null, note: cleanNote(note) });
     }
 
     return NextResponse.json({ success: true });

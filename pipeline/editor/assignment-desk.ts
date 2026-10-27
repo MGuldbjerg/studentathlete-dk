@@ -88,7 +88,31 @@ export interface DeskVerdict {
   angle: string | null;
   line: string | null;
   fold_into: string | null;
+  /** How long an honest article the material carries (article and line). */
+  words: number | null;
   reason: string;
+}
+
+/**
+ * Mikkel, 2026-10-27: «stories over 250 words should always be posted,
+ * 200-249 … based on how big the story is». Applied here as well as in the
+ * brief, so a model that asks for an article on 150 words of material is
+ * overruled, not trusted. Only DOWN: an article becomes a line (it carries its
+ * line). A line the model sized at 250+ stays a line — it has no type or angle
+ * to write from — and the report counts those as answers to look at.
+ */
+export const ALWAYS_ARTICLE_WORDS = 250;
+export const MIN_ARTICLE_WORDS = 200;
+export const BIG_STORY_PRIORITY = 4;
+
+export function applyLengthRule(v: DeskVerdict): DeskVerdict {
+  if (v.decision !== "article" || v.words === null) return v;
+  if (v.words >= ALWAYS_ARTICLE_WORDS) return v;
+  if (v.words >= MIN_ARTICLE_WORDS && (v.priority ?? 0) >= BIG_STORY_PRIORITY) return v;
+  const why = v.words < MIN_ARTICLE_WORDS
+    ? `${v.words} words is under ${MIN_ARTICLE_WORDS}`
+    : `${v.words} words and priority ${v.priority} is not a big story`;
+  return { ...v, decision: "line", article_type: null, angle: null, reason: `length rule: ${why}; the desk said article: ${v.reason}` };
 }
 
 // ── the prompt ──────────────────────────────────────────────────────────────
@@ -156,8 +180,8 @@ ${athletes.join("\n\n---\n\n")}
 Decide EVERY new story above (${groups.reduce((n, g) => n + g.stories.length, 0)} of them). Answer with ONLY a JSON array, nothing
 before or after it, one object per story:
 
-[{"story_id":123,"decision":"article","article_type":"season_update","priority":3,"angle":"one sentence","reason":"one sentence"},
- {"story_id":124,"decision":"line","line":"the profile sentence","reason":"one sentence"},
+[{"story_id":123,"decision":"article","words":320,"article_type":"season_update","priority":3,"angle":"one sentence","line":"the profile sentence","reason":"one sentence"},
+ {"story_id":124,"decision":"line","words":90,"priority":2,"line":"the profile sentence","reason":"one sentence"},
  {"story_id":125,"decision":"fold","fold_into":"story:123","reason":"one sentence"},
  {"story_id":126,"decision":"skip","reason":"one sentence"},
  {"story_id":127,"decision":"hold","reason":"one sentence"}]
@@ -191,18 +215,22 @@ export function parseDesk(text: string, asked: number[]): DeskVerdict[] {
     const decision = o.decision as Decision;
     const reason = str("reason");
     if (!want.has(id) || out.has(id) || !DECISIONS.includes(decision) || !reason) continue;
-    const v: DeskVerdict = { story_id: id, decision, article_type: null, priority: null, angle: null, line: null, fold_into: null, reason };
+    const v: DeskVerdict = { story_id: id, decision, article_type: null, priority: null, angle: null, line: null, fold_into: null, words: null, reason };
+    if (decision === "article" || decision === "line") {
+      // Both carry a profile line, a size and a priority: the length rule needs
+      // all three to turn an article into a line.
+      const priority = Number(o.priority);
+      const words = Number(o.words);
+      v.line = str("line");
+      if (!v.line || !(priority >= 1 && priority <= 5) || !(words >= 0 && words <= 5000)) continue;
+      v.priority = Math.round(priority);
+      v.words = Math.round(words);
+    }
     if (decision === "article") {
       const type = str("article_type");
-      const priority = Number(o.priority);
       v.angle = str("angle");
-      if (!type || !TYPES.includes(type) || !(priority >= 1 && priority <= 5) || !v.angle) continue;
+      if (!type || !TYPES.includes(type) || !v.angle) continue;
       v.article_type = type;
-      v.priority = Math.round(priority);
-    }
-    if (decision === "line") {
-      v.line = str("line");
-      if (!v.line) continue;
     }
     if (decision === "fold") {
       v.fold_into = str("fold_into");
@@ -214,7 +242,8 @@ export function parseDesk(text: string, asked: number[]): DeskVerdict[] {
 }
 
 /** A sensitive-flagged story is never decided by the machine, whatever it answered. */
-export function guardDesk(v: DeskVerdict, s: Pick<DeskStory, "sensitive">): DeskVerdict {
+export function guardDesk(v0: DeskVerdict, s: Pick<DeskStory, "sensitive">): DeskVerdict {
+  const v = applyLengthRule(v0);
   if (!s.sensitive || v.decision === "hold" || v.decision === "skip") return v;
   return { ...v, decision: "hold", article_type: null, priority: null, angle: null, line: null, fold_into: null,
     reason: `flagged sensitive (${s.sensitive}); the desk said ${v.decision}: ${v.reason}` };
@@ -328,7 +357,7 @@ async function report(db: D1Client, mode: string, days: number, file?: string) {
   const verdicts: (DeskVerdict & { country?: string })[] = file
     ? JSON.parse(readFileSync(file, "utf8"))
     : (await db.query<DeskVerdict & { country: string }>(
-        `SELECT d.story_id, d.decision, d.article_type, d.priority, d.angle, d.line, d.fold_into, d.reason, a.home_country AS country
+        `SELECT d.story_id, d.decision, d.article_type, d.priority, d.angle, d.line, d.fold_into, d.est_words AS words, d.reason, a.home_country AS country
            FROM desk_decisions d JOIN stories s ON s.id = d.story_id JOIN athletes a ON a.id = s.athlete_id
           WHERE d.mode = ? AND d.decided_at >= datetime('now', ?)`, [mode, `-${days} days`])).results;
   const got = await outcomes(db, verdicts.map((v) => v.story_id));
@@ -346,6 +375,9 @@ async function report(db: D1Client, mode: string, days: number, file?: string) {
     const arts = mine.filter((v) => v.decision === "article");
     const byPrio = [5, 4, 3, 2, 1].map((p) => `${p}: ${arts.filter((v) => v.priority === p).length}`).join(" · ");
     if (arts.length) console.log(`  article priorities  ${byPrio}`);
+    const demoted = mine.filter((v) => v.decision === "line" && v.reason.startsWith("length rule")).length;
+    const longLines = mine.filter((v) => v.decision === "line" && (v.words ?? 0) >= ALWAYS_ARTICLE_WORDS).length;
+    console.log(`  length rule turned ${demoted} article(s) into lines · ${longLines} line(s) sized at ${ALWAYS_ARTICLE_WORDS}+ words (look at these)`);
   }
   console.log(`\nRead: "rejected" in the article row and "published" in the skip row are the disagreements to look at.`);
 }
@@ -406,9 +438,9 @@ async function main() {
       console.log(`  story ${v.story_id}: ${v.decision}${v.priority ? ` p${v.priority}` : ""}`);
       if (dry) continue;
       await db.execute(
-        `INSERT OR IGNORE INTO desk_decisions (story_id, decision, article_type, priority, angle, line, fold_into, reason, model, mode)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [v.story_id, v.decision, v.article_type, v.priority, v.angle, v.line, v.fold_into, v.reason, MODEL, mode]);
+        `INSERT OR IGNORE INTO desk_decisions (story_id, decision, article_type, priority, angle, line, fold_into, est_words, reason, model, mode)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [v.story_id, v.decision, v.article_type, v.priority, v.angle, v.line, v.fold_into, v.words, v.reason, MODEL, mode]);
     }
     const missing = asked.length - verdicts.length;
     if (missing) console.log(`  ! ${missing} of ${asked.length} without a valid decision: tried again next run`);

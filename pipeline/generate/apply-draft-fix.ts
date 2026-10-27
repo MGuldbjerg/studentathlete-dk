@@ -153,7 +153,7 @@ export async function rejectDraft(
   console.log(`    grund: ${reason}`);
   if (dry) return;
 
-  await db.execute(REJECT_LOG_SQL, rejectLogParams(row.id, row));
+  await db.execute(REJECT_LOG_SQL, rejectLogParams(row.id, row, { reason: "claude_editor", note: reason }));
   await db.batch(REJECT_DELETE_SQL.map((sql) => ({ sql, params: [row.id] })));
 
   // En sletning er den ene handling i natkørslen der ikke kan ses i /admin

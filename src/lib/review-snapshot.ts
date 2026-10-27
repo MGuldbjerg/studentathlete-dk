@@ -60,11 +60,21 @@ export function rejectSnapshot(row: RejectableDraft): {
 /** Rækken der skal overleve artiklen. Skrives FØR sletningen. */
 export const REJECT_LOG_SQL = `INSERT INTO review_log
     (article_id, decision, article_type, fabrication_risk, sensitive,
-     content_snapshot, title_snapshot, story_id, athlete_id, fixed_snapshot)
-  VALUES (?, 'rejected', ?, ?, ?, ?, ?, ?, ?, ?)`;
+     content_snapshot, title_snapshot, story_id, athlete_id, fixed_snapshot,
+     reject_reason, reject_note)
+  VALUES (?, 'rejected', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+/**
+ * Why it was rejected (migration 076): a code from src/lib/reject-reasons.ts
+ * and a free note. Optional — a caller that knows no reason logs null.
+ */
+export interface RejectWhy {
+  reason: string | null;
+  note: string | null;
+}
 
 /** Parametrene til `REJECT_LOG_SQL`, i samme rækkefølge. */
-export function rejectLogParams(id: number, row: RejectableDraft): unknown[] {
+export function rejectLogParams(id: number, row: RejectableDraft, why: RejectWhy = { reason: null, note: null }): unknown[] {
   const { snapshot, fixed } = rejectSnapshot(row);
   return [
     id,
@@ -76,6 +86,8 @@ export function rejectLogParams(id: number, row: RejectableDraft): unknown[] {
     row.story_id,
     row.athlete_id,
     fixed,
+    why.reason,
+    why.note,
   ];
 }
 

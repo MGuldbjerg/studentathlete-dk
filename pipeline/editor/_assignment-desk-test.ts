@@ -1,5 +1,5 @@
 /** Tests for the assignment desk's parsing and guards. Run: npx tsx pipeline/editor/_assignment-desk-test.ts */
-import { batches, briefText, buildDeskPack, guardDesk, parseDesk, type DeskStory } from "./assignment-desk";
+import { applyLengthRule, batches, briefText, buildDeskPack, guardDesk, parseDesk, type DeskStory, type DeskVerdict } from "./assignment-desk";
 
 let pass = 0, fail = 0;
 function expect(name: string, got: unknown, want: unknown) {
@@ -10,8 +10,8 @@ function expect(name: string, got: unknown, want: unknown) {
 
 // parseDesk: only complete verdicts for asked stories count
 const answer = `Here you go:
-[{"story_id":1,"decision":"article","article_type":"season_update","priority":4,"angle":"Third goal in three games","reason":"decisive"},
- {"story_id":2,"decision":"line","line":"Named to the preseason All-GSC team.","reason":"a list"},
+[{"story_id":1,"decision":"article","words":320,"article_type":"season_update","priority":4,"angle":"Third goal in three games","line":"Scored in a 2-1 win.","reason":"decisive"},
+ {"story_id":2,"decision":"line","words":60,"priority":1,"line":"Named to the preseason All-GSC team.","reason":"a list"},
  {"story_id":3,"decision":"fold","fold_into":"story:1","reason":"same match"},
  {"story_id":4,"decision":"skip","reason":"preview"},
  {"story_id":5,"decision":"hold","reason":"illness"},
@@ -22,10 +22,27 @@ expect("unasked story dropped", v.some((x) => x.story_id === 99), false);
 expect("article keeps its priority", v[0].priority, 4);
 expect("no array is no verdicts", parseDesk("I think article", [1]), []);
 expect("broken JSON is no verdicts", parseDesk('[{"story_id":1,', [1]), []);
-expect("article without angle dropped", parseDesk('[{"story_id":1,"decision":"article","article_type":"news","priority":3,"reason":"r"}]', [1]), []);
-expect("article with an unknown type dropped", parseDesk('[{"story_id":1,"decision":"article","article_type":"blog","priority":3,"angle":"a","reason":"r"}]', [1]), []);
-expect("priority out of range dropped", parseDesk('[{"story_id":1,"decision":"article","article_type":"news","priority":9,"angle":"a","reason":"r"}]', [1]), []);
-expect("line without text dropped", parseDesk('[{"story_id":1,"decision":"line","reason":"r"}]', [1]), []);
+const art = (extra: string) => `[{"story_id":1,"decision":"article","words":300,"article_type":"news","priority":3,"angle":"a","line":"l","reason":"r"${extra}}]`;
+expect("complete article parsed", parseDesk(art(""), [1])[0]?.words, 300);
+expect("article without angle dropped", parseDesk(art(',"angle":""'), [1]), []);
+expect("article with an unknown type dropped", parseDesk(art(',"article_type":"blog"'), [1]), []);
+expect("priority out of range dropped", parseDesk(art(',"priority":9'), [1]), []);
+expect("article without words dropped", parseDesk(art(',"words":"many"'), [1]), []);
+expect("article without a line dropped", parseDesk(art(',"line":""'), [1]), []);
+expect("line without text dropped", parseDesk('[{"story_id":1,"decision":"line","words":50,"priority":1,"reason":"r"}]', [1]), []);
+expect("line without words dropped", parseDesk('[{"story_id":1,"decision":"line","priority":1,"line":"l","reason":"r"}]', [1]), []);
+
+// applyLengthRule: Mikkel's 250 / 200-249-if-big / under-200 rule, only ever down
+const a = (words: number, priority: number): DeskVerdict => ({ story_id: 1, decision: "article", article_type: "season_update", priority, angle: "x", line: "l", fold_into: null, words, reason: "r" });
+expect("250 words is always an article", applyLengthRule(a(250, 1)).decision, "article");
+expect("230 words and a big story is an article", applyLengthRule(a(230, 4)).decision, "article");
+expect("230 words and a small story is a line", applyLengthRule(a(230, 3)).decision, "line");
+expect("150 words is a line, however big", applyLengthRule(a(150, 5)).decision, "line");
+expect("a demoted article keeps its line", applyLengthRule(a(150, 5)).line, "l");
+expect("a demoted article drops its type", applyLengthRule(a(150, 5)).article_type, null);
+expect("the reason says why", applyLengthRule(a(150, 5)).reason.startsWith("length rule"), true);
+expect("a line is never promoted", applyLengthRule({ ...a(400, 5), decision: "line" }).decision, "line");
+expect("guardDesk applies the length rule", guardDesk(a(120, 4), { sensitive: null }).decision, "line");
 expect("fold to a vague target dropped", parseDesk('[{"story_id":1,"decision":"fold","fold_into":"the other one","reason":"r"}]', [1]), []);
 expect("fold to an article kept", parseDesk('[{"story_id":1,"decision":"fold","fold_into":"article:812","reason":"r"}]', [1])[0]?.fold_into, "article:812");
 expect("unknown decision dropped", parseDesk('[{"story_id":1,"decision":"maybe","reason":"r"}]', [1]), []);
