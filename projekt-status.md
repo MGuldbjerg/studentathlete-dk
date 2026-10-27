@@ -41,6 +41,18 @@
   pages + 80 stories per run (env BODY_FETCHES/BODY_STORIES); discover-daily timeout 50. Trial on
   the 7 schools: 42 stories (21 UK/DK) vs 3 from titles. Watch the first runs: story volume and
   the DK draft queue.
+  **Backtest** (`pipeline/backtest/body-discovery.ts`, read-only): per day UK ~118 vs ~18 by title,
+  DK ~16 vs ~1, collecting ~318 vs ~42; 1,727 of 1,982 matches are school tags. First live night:
+  200 stories (UK 42, DK 4, collecting 154). **#54 (2026-10-27):** collecting countries' stories
+  stored as LINKS (no content_raw; Mikkel: «just store links … for the countries not launched
+  yet») and capped on their own (60/run, env COLLECTING_STORIES); UK/DK only by the page budget.
+- **DFM Mimir (Danish model, researched 2026-10-27):** 1.8B, instruction-tuned, Apache 2.0, 4k
+  context, custom HRM architecture (GGUF exists). Strong Danish benchmark mean (62.65) but idioms
+  judge 0.12 and no factuality data → NOT for writing drafts. Possible: a naturalness check on
+  sentences. Test proposed: the 59 Danish articles Mikkel edited (original_content vs content) —
+  does Mimir prefer his sentences? Not started.
+- **AdSense reapply:** not before ~10 Nov (recrawl after the 26 Oct floor) and not before the 14
+  thin hub pages have text (/athletes + /articles intros need Mikkel's read).
 
 ---
 
