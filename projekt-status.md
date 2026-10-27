@@ -1,8 +1,55 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-10-26 (where we are — read this section first)
+**Sidst opdateret**: 2026-10-27 (where we are — read this section first)
 
 ---
+
+## 🗂️ Assignment desk — Claude as editor, SHADOW MODE since 2026-10-27 (#55)
+
+Mikkel: «make you act as an actual editor for the stories coming in … lines on the profile or
+full articles». Why: the body pass finds ~118 UK / ~16 DK stories a day against ~22 / ~2 drafted
+before; nearly everything drafted got published (346 of 355 in 30 days).
+
+- `pipeline/editor/assignment-desk.ts` decides each story BEFORE drafting: article (type,
+  priority 1-5, angle) / line (profile sentence) / fold (story:<id> or article:<id>) / skip /
+  hold (health, legal, identity; sensitive flag forces hold). Per ATHLETE: their new stories +
+  earlier 14 days' stories + published articles (60 days) + timeline, batches of ≤8 stories,
+  `claude -p --model opus` on the subscription token (DESK_MODEL to change).
+- Rules: `pipeline/editor/brief.md` — **a DRAFT for Mikkel to correct**, built from 178 rejects
+  and 565 published (evidence section at its bottom is not sent to the model). DK decisions were
+  Mikkel's; UK ones were Claude's on his instruction (Opus editor since 10-10). Rejects have no
+  reasons, so the reasons are my reading of titles vs source headlines.
+- Stored in `desk_decisions` (migration 075, PK story_id+mode). Nothing reads them yet:
+  drafting is unchanged. `assignment-desk.yml` 07:05/13:05/19:05 UTC, Discord summary per site,
+  public log ids only. Off: repo variable `ASSIGNMENT_DESK=off`.
+- `--report [--backtest]` = desk decision × what happened (published/rejected/merged/queue/not
+  drafted). `--backtest --from --to` decides past stories as of their discovery (context cut at
+  that moment; per athlete AND day), mode 'backtest', no Discord; workflow_dispatch inputs.
+  `--dump-packs file` shows what the model reads (packs ~30k chars per 8 stories).
+- Not run yet: the backtest (2026-10-13..26 = 437 stories ≈ 55 Opus calls; a week ≈ half).
+- **Open for Mikkel:** correct the brief; daily article target per site; lines live or batch
+  approval; preseason lists (line everywhere or DK exception); health stories always hold?;
+  a reject-reason dropdown in /admin (gives the desk labels).
+- Next step after shadow data: generate-articles reads `desk_decisions` (article only, by
+  priority up to the target), lines → `athlete_events`.
+
+Not the same as the Opus editor (`auto-editor-uk.yml`): that one decides FINISHED UK drafts.
+
+## 🔎 Search Console check after Thomas Ulvedal's mail (2026-10-27) — findings, nothing changed
+
+Ran the mail's tips (near-rankings 5-15, low CTR, lost traffic 28 d vs previous 28 d) on both sites:
+- .dk: 124 clicks (prev 172). Near-rankings are athlete names + «ncaa» → /viden/hvad-er-ncaa
+  (157 impr, pos 7.5, CTR 1.3%: the only real CTR case — title/description, Danish text).
+- .co.uk: 302 clicks (prev 445). **Most of the UK fall is our own AdSense trade-off**: of profiles
+  with impressions, 806 are now 404 (no article, depublished 10-12; 131 clicks in the window) and
+  269 are now noindex under the 200-word floor (65 clicks), against 259 indexed (47 clicks).
+- AI search: .dk's robots.txt carries Cloudflare's managed block (ClaudeBot, GPTBot,
+  Google-Extended, Applebot-Extended … disallowed; `Content-Signal: ai-train=no, use=reference`);
+  .co.uk has none. Search/answer bots (OAI-SearchBot, Claude-SearchBot, PerplexityBot,
+  ChatGPT-User) are not named on either. The Cloudflare token can't read the zones'
+  bot settings (auth error) — «Block AI bots» must be checked in the dashboard.
+- `search-console.ts --opportunities` only covers static pages; profiles/articles and the
+  low-CTR / lost-traffic checks are not in it.
 
 ## 🧹 Quality sweep 2026-10-26 — all five decisions carried out (Mikkel same day)
 
