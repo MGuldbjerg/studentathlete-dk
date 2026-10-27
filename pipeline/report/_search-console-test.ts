@@ -25,6 +25,10 @@ import {
   formatRows,
   pct,
   type Row,
+  lowCtrPages,
+  lostPages,
+  previousWindow,
+  pageStatusOf,
 } from "./search-console";
 
 let passed = 0;
@@ -132,6 +136,27 @@ expect("grupperet pr. side", grouped.length, 2);
 expect("siden med flest visninger først", grouped[0].page, "https://x/b");
 expect("visninger lægges sammen pr. side", grouped[1].impressions, 50);
 expect("søgeord sorteret inden for siden", grouped[1].rows[0].query, "q3");
+
+// ── The weekly check (2026-10-27) ───────────────────────────────────────────
+const wr = (page: string, clicks: number, impressions: number, position: number): Row =>
+  ({ keys: [page], clicks, impressions, ctr: impressions ? clicks / impressions : 0, position });
+const low = lowCtrPages([
+  wr("/ncaa", 2, 157, 7.5), // the real case on .dk: 1.3 % at position 7.5
+  wr("/few", 0, 40, 5),     // too few impressions to say anything
+  wr("/deep", 0, 300, 25),  // too far down: a ranking problem, not a title problem
+  wr("/fine", 10, 200, 6),  // 5 % is fine
+]);
+expect("lav CTR: kun den reelle sag", low.map((r) => r.keys[0]), ["/ncaa"]);
+const lost = lostPages([wr("/a", 1, 10, 5), wr("/new", 9, 50, 3)], [wr("/a", 7, 42, 5), wr("/b", 3, 12, 6), wr("/c", 2, 5, 9)]);
+expect("tabt trafik: største fald først, forsvundne sider med", lost.map((d) => d.page), ["/a", "/b"]);
+expect("tabt trafik: en forsvundet side har 0 klik nu", lost[1].clicks, 0);
+expect("tabt trafik: under 3 klik færre tæller ikke", lost.some((d) => d.page === "/c"), false);
+expect("forrige vindue: samme længde, lige før", previousWindow({ start: "2026-09-29", end: "2026-10-26" }), { start: "2026-09-01", end: "2026-09-28" });
+expect("status: 404 er væk", pageStatusOf(404, ""), "gone");
+expect("status: 410 er væk", pageStatusOf(410, ""), "gone");
+expect("status: noindex læses", pageStatusOf(200, '<meta name="robots" content="noindex"/>'), "noindex");
+expect("status: index, follow er indekseret", pageStatusOf(200, '<meta name="robots" content="index, follow"/>'), "indexed");
+expect("status: 500 er noget andet", pageStatusOf(500, ""), "other");
 
 console.log(`\nsearch-console: ${passed} bestået, ${failed} fejlet.`);
 if (failed > 0) process.exit(1);
