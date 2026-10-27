@@ -49,7 +49,9 @@ if [ -z "${GOOGLE_SEARCH_CONSOLE_KEY:-}${GOOGLE_SEARCH_CONSOLE_KEY_JSON:-}" ]; t
 fi
 
 # ── 1. Data (begge sites; UK melder bare «ingen data» indtil det har trafik) ─
-npx tsx pipeline/report/search-console.ts --opportunities --limit=10 > "$DATA" 2>&1
+# --weekly (Mikkel, 2026-10-27): also profiles and articles in 5-15, low CTR,
+# and pages that lost traffic (checked live for 404/noindex).
+npx tsx pipeline/report/search-console.ts --opportunities --weekly --limit=10 > "$DATA" 2>&1
 DATA_STATUS=$?
 cat "$DATA"
 
@@ -59,8 +61,9 @@ if [ "$DATA_STATUS" != "0" ]; then
 fi
 
 # Ingen kandidater = ingen vurdering. Gennemgangen skal koste nul i en stille uge.
-if ! grep -q "visninger i båndet" "$DATA"; then
-  echo "  Ingen sider i position 5-15 i denne uge. Ingen vurdering nødvendig."
+# Kandidater er statiske sider i båndet ELLER en ikke-tom sektion fra ugens tjek.
+if ! grep -q "visninger i båndet" "$DATA" && ! grep -qE "^   (Profiler og artikler|Lav CTR|Tabt trafik)[^:]*: [1-9]" "$DATA"; then
+  echo "  Ingen kandidater i denne uge. Ingen vurdering nødvendig."
   exit 0
 fi
 
@@ -73,9 +76,24 @@ fi
 PROMPT="Du er SEO-rådgiver for to nyhedssites om student athletes i USA:
 StudentAthlete.dk (dansk) og Student-Athlete.co.uk (britisk).
 
-Nedenfor er ugens kandidater fra Search Console: STATISKE sider (forside,
-arkiv, sportslandingssider, guider, redaktionelle sider — ALDRIG artikler)
-med søgeord i position 5-15.
+Nedenfor er ugens data fra Search Console, i to dele:
+A. STATISKE sider (forside, arkiv, sportslandingssider, guider, redaktionelle
+   sider) med søgeord i position 5-15.
+B. «Ugens tjek» for ALLE sidetyper: profiler og artikler i position 5-15, sider
+   med lav CTR (ses ofte, klikkes sjældent), og sider der har tabt trafik mod
+   de foregående 28 dage, hver med sin status i dag.
+
+For del B gælder:
+- Artikler skrives ALDRIG om for et søgeords skyld. Profilsider er genereret
+  fra en skabelon: et forslag til dem er et forslag til SKABELONEN (titel,
+  beskrivelse, indledning), ikke til én side.
+- Lav CTR: foreslå konkret titel og/eller meta-beskrivelse. Titlen skal sige
+  hvad siden er på et halvt sekund.
+- Tabt trafik med status «gone» eller «noindex» er et bevidst valg (UK:
+  profiler uden artikel er taget ned 12/10, profiler under 200 ord er noindex
+  fra 26/10 — for AdSense). Nævn tallet, men foreslå ikke at rulle det tilbage.
+  Status «indexed» med faldende trafik er det der skal forklares: sæson, en
+  konkurrent, et AI-svar, eller en ændring på siden?
 
 MIKKELS REGLER, som du skal arbejde inden for:
 1. INDHOLDET BESTEMMER. Giver et søgeord mening teknisk, men ikke for det
@@ -88,7 +106,7 @@ MIKKELS REGLER, som du skal arbejde inden for:
 Hent gerne siden selv (URL'erne står i data) for at se hvad den faktisk
 indeholder, før du vurderer.
 
-Skriv et kort notat på DANSK, maks 400 ord:
+Skriv et kort notat på DANSK, maks 600 ord:
 - For hver kandidat-side: ét afsnit med din anbefaling — ARBEJD MED DET,
   DROP DET, eller VENT (for lidt data) — og hvorfor.
 - Vær konkret om hvad der i givet fald skulle ændres (titel, indledning, et

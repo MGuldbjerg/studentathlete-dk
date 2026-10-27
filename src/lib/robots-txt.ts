@@ -47,12 +47,43 @@ export function robotsRules(darkLaunch: boolean): RobotsRule[] {
       allow: [OG_IMAGE_PATH, "/"],
       disallow: ["/admin/", "/api/"],
     },
+    // AI SEARCH (Mikkel, 2026-10-27: «allow search bots»): the crawlers behind
+    // ChatGPT search, Claude, Perplexity and the like, named so no wider rule
+    // ever catches them. Same rules as everyone: the content, not /admin or /api.
+    ...AI_SEARCH_BOTS.map((userAgent) => ({ userAgent, allow: [OG_IMAGE_PATH, "/"], disallow: ["/admin/", "/api/"] })),
+    // AI TRAINING: closed on both sites. Until now only .dk said so, through
+    // Cloudflare's managed robots.txt on that zone; .co.uk said nothing.
+    ...AI_TRAINING_BOTS.map((userAgent) => ({ userAgent, disallow: ["/"] })),
     // SEO-tool crawlers (2026-10-22): a quarter of the sampled Worker CPU went
     // to SemrushBot alone, rendering pages for a tool we do not use. They obey
     // robots.txt; search engines, social previews and Meta's fetcher are not here.
     ...SEO_TOOL_BOTS.map((userAgent) => ({ userAgent, disallow: ["/"] })),
   ];
 }
+
+/**
+ * Crawlers that fetch pages to ANSWER a search or a user's question, citing and
+ * linking the page. Each is a separate token from its company's training
+ * crawler (OAI-SearchBot ≠ GPTBot, Claude-SearchBot ≠ ClaudeBot), so allowing
+ * these and closing training below is consistent.
+ */
+export const AI_SEARCH_BOTS = [
+  "OAI-SearchBot", "ChatGPT-User",
+  "Claude-SearchBot", "Claude-User",
+  "PerplexityBot", "Perplexity-User",
+  "MistralAI-User", "DuckAssistBot",
+];
+
+/**
+ * Crawlers that collect for model TRAINING — the list Cloudflare's managed
+ * robots.txt puts on studentathlete.dk (seen 2026-10-27), so both sites now say
+ * the same. Google-Extended closes Gemini's use only; Google Search and its AI
+ * Overviews crawl as Googlebot, which is open.
+ */
+export const AI_TRAINING_BOTS = [
+  "GPTBot", "ClaudeBot", "anthropic-ai", "Claude-Web", "CCBot", "Google-Extended", "Applebot-Extended",
+  "Amazonbot", "meta-externalagent", "cohere-ai", "Diffbot", "omgili", "Google-CloudVertexBot", "MistralAI-Training",
+];
 
 /** Crawlers of commercial SEO tools — no search engine, no link preview. */
 export const SEO_TOOL_BOTS = ["SemrushBot", "AhrefsBot", "MJ12bot", "DotBot", "PetalBot", "BLEXBot", "DataForSeoBot", "Bytespider"];

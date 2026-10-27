@@ -11,7 +11,7 @@
  * pipelinen bruger til at efterleve ANDRES robots.txt, og som implementerer
  * længste-match-reglen, Google og Meta følger — om en crawler må hente OG-billedet.
  */
-import { robotsRules, renderRobotsTxt, staticRobotsTxt, OG_IMAGE_PATH } from "../../src/lib/robots-txt";
+import { robotsRules, renderRobotsTxt, staticRobotsTxt, OG_IMAGE_PATH, AI_SEARCH_BOTS, AI_TRAINING_BOTS, SEO_TOOL_BOTS } from "../../src/lib/robots-txt";
 import { parseRobots } from "./robots";
 
 let passed = 0;
@@ -62,6 +62,19 @@ ok(
   renderRobotsTxt(robotsRules(false)).includes(`Allow: ${OG_IMAGE_PATH}`),
   "OG-stien står som eksplicit Allow",
 );
+
+// AI (2026-10-27): search bots read the content, training bots read nothing.
+for (const bot of AI_SEARCH_BOTS) {
+  const p = parseRobots(txt, `Mozilla/5.0 (compatible; ${bot}/1.0)`);
+  ok(p.allows("/atleter/toke-amtrup") && p.allows(OG_IMAGE_PATH), `${bot} må hente indhold`);
+  ok(!p.allows("/admin/") && !p.allows("/api/track"), `${bot} må IKKE hente admin/api`);
+}
+for (const bot of AI_TRAINING_BOTS) {
+  ok(!parseRobots(txt, `Mozilla/5.0 (compatible; ${bot}/1.0)`).allows("/"), `${bot} er lukket ude`);
+}
+ok(!AI_SEARCH_BOTS.some((b) => AI_TRAINING_BOTS.includes(b) || SEO_TOOL_BOTS.includes(b)), "ingen bot står på to lister");
+// Google itself stays open: Google-Extended must not catch Googlebot.
+ok(parseRobots(txt, GOOGLE).allows("/atleter/toke-amtrup"), "Googlebot er ikke ramt af Google-Extended");
 
 // The static file served to EVERY host (no Worker): the live rules, nothing
 // host-specific — and none at all while any site is dark launch, because one
