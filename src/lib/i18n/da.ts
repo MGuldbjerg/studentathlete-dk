@@ -569,6 +569,8 @@ const ui: LanguagePack["ui"] = {
   "tpl.full_profile": "Se fuld profil →",
   "tpl.byline": "Af {author}",
   "profile.official_bio": "Officiel profil hos {school} ↗",
+  "profile.merch": "Køb merchandise med {name} ↗",
+  "profile.merch_note": "Sælges gennem Influxer. Atleten får en del af hvert salg.",
   "profile.about": "Om {name}",
   "school.athletes_heading": "Danske atleter på {school}",
   "tpl.previous_updates": "Tidligere opdateringer",

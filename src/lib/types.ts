@@ -55,6 +55,8 @@ export interface Athlete {
   preferred_name: string | null;
   profile_summary: string | null;
   bio_url?: string | null;
+  /** The athlete's Influxer store, verified by name and school (migration 078). */
+  merch_url?: string | null;
   class_year: string | null;
   expected_graduation: number | null;
   /**
