@@ -29,13 +29,13 @@
  * --backtest decides past stories as of their discovery (context cut at that
  * moment) and stores them as mode 'backtest', apart from the shadow rows.
  *
- *   npx tsx pipeline/editor/assignment-desk.ts [--limit N] [--dry-run] [--out desk.json]
+ *   npx tsx pipeline/editor/assignment-desk.ts [--limit N] [--dry-run] [--out desk.json] [--dump-packs packs.txt]
  *   npx tsx pipeline/editor/assignment-desk.ts --backtest --from 2026-10-13 --to 2026-10-26 [--limit N]
  *   npx tsx pipeline/editor/assignment-desk.ts --report [--backtest] [--days 14] [--in desk.json]
  */
 
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createD1Client, type D1Client } from "../lib/d1-client";
@@ -253,20 +253,23 @@ const STORY_SELECT = `SELECT s.id, s.athlete_id, s.headline, s.summary, s.conten
 
 /**
  * What the desk knew about the athlete at `asOf`. In a backtest that is the
- * story's own discovery time: the article written FROM the story must not show
- * up as «already published», or every story would fold into itself.
+ * story's own discovery time. Either way the article written FROM one of the
+ * stories being decided is left out: shown as «already published», every story
+ * would fold into itself (seen in the first dry run: Tyler Cash, story 13220).
  */
 async function contextFor(db: D1Client, athleteId: number, asOf: string, exclude: number[]): Promise<AthleteContext> {
+  const marks = exclude.map(() => "?").join(",") || "NULL";
   const articles = (await db.query<AthleteContext["articles"][number]>(
     `SELECT ar.id, ar.title, ar.published_at FROM articles ar
       WHERE ar.published = 1 AND ar.published_at < ? AND ar.published_at >= datetime(?, '-60 days')
         AND (ar.athlete_id = ? OR ar.id IN (SELECT article_id FROM article_athletes WHERE athlete_id = ?))
+        AND (ar.story_id IS NULL OR ar.story_id NOT IN (${marks}))
       ORDER BY ar.published_at DESC LIMIT 12`,
-    [asOf, asOf, athleteId, athleteId])).results;
+    [asOf, asOf, athleteId, athleteId, ...exclude])).results;
   const earlier = (await db.query<AthleteContext["earlier"][number]>(
     `SELECT id, headline, discovered_at FROM stories
       WHERE athlete_id = ? AND discovered_at < ? AND discovered_at >= datetime(?, '-14 days')
-        AND id NOT IN (${exclude.map(() => "?").join(",") || "NULL"})
+        AND id NOT IN (${marks})
       ORDER BY discovered_at DESC LIMIT 10`,
     [athleteId, asOf, asOf, ...exclude])).results;
   const events = (await db.query<AthleteContext["events"][number]>(
@@ -358,7 +361,9 @@ async function main() {
   const mode = backtest ? "backtest" : "shadow";
   if (args.includes("--report")) return report(db, mode, Number(val("--days") ?? 14), val("--in"));
 
-  const dry = args.includes("--dry-run");
+  // --dump-packs <file>: write what the model would read, ask nothing, store nothing.
+  const dump = val("--dump-packs");
+  const dry = args.includes("--dry-run") || !!dump;
   const out = val("--out");
   const limit = Number(val("--limit") ?? 80);
   if (backtest && (!val("--from") || !val("--to"))) {
@@ -390,7 +395,9 @@ async function main() {
       groups.push({ stories: g, ctx: await contextFor(db, g[0].athlete_id, asOf, g.map((s) => s.id)) });
     }
     const asked = batch.flat();
-    const answer = askModel(buildDeskPack(groups, brief));
+    const pack = buildDeskPack(groups, brief);
+    if (dump) { appendFileSync(dump, `${pack}\n===== end of pack =====\n`); continue; }
+    const answer = askModel(pack);
     const verdicts = answer ? parseDesk(answer, asked.map((s) => s.id)) : [];
     for (const v0 of verdicts) {
       const s = asked.find((x) => x.id === v0.story_id)!;
