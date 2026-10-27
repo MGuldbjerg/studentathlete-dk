@@ -36,10 +36,9 @@
  *   npx tsx pipeline/fix/auto-editor.ts --country UK --out /tmp/decisions.json [--dry-run] [--limit N]
  */
 
-import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import { createD1Client } from "../lib/d1-client";
+import { flushUsage, runClaude } from "../lib/claude-run";
 import { notify, COLOR, adminLink } from "../lib/notify";
 import { countryProfile } from "../../src/lib/countries";
 import { dossier, dossierSelect, type DossierRow } from "../generate/draft-dossier";
@@ -215,20 +214,13 @@ export function guard(r: EditorRow, v: Verdict | null, now = Date.now()): Verdic
 
 // ── the run ─────────────────────────────────────────────────────────────────
 
+/** The editor's call: lean, on the subscription, usage kept (claude-run.ts). */
 function askModel(pack: string): string | null {
-  const res = spawnSync("claude", ["-p", "--model", MODEL, "--allowed-tools", ""], {
-    input: pack,
-    // Outside the repo, so the repo's CLAUDE.md isn't loaded into every call.
-    cwd: tmpdir(),
-    encoding: "utf8",
-    timeout: 10 * 60_000,
-    maxBuffer: 10 * 1024 * 1024,
+  return runClaude(pack, {
+    job: "auto-editor",
+    model: MODEL,
+    system: "You are the editor of a sports news site. Follow the instructions in the message and answer only with the JSON object it asks for.",
   });
-  if (res.status !== 0) {
-    console.log(`  ! claude exited ${res.status ?? res.signal}`);
-    return null;
-  }
-  return res.stdout;
 }
 
 const clip = (s: string, n: number) => (s.length <= n ? s : s.slice(0, n - 1) + "…");
@@ -277,6 +269,7 @@ async function main() {
     if (v.action === "reject") decisions.push({ id: r.id, action: "reject", reason: v.reason });
   }
 
+  await flushUsage(db);
   writeFileSync(out, JSON.stringify(decisions, null, 2));
   const n = (a: Verdict["action"]) => report.filter((x) => x.v.action === a).length;
   console.log(`publish ${n("publish")} · reject ${n("reject")} · hold ${n("hold")}`);

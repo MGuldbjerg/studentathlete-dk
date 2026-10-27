@@ -75,6 +75,7 @@ jobs:
             pipeline/discover/_extract-story-test.ts \
             pipeline/discover/_sensitive-test.ts \
             pipeline/editor/_assignment-desk-test.ts \
+            pipeline/lib/_claude-run-test.ts \
             pipeline/fix/_auto-editor-test.ts \
             pipeline/fix/_auto-timeline-test.ts \
             pipeline/discover/_honors-test.ts \
