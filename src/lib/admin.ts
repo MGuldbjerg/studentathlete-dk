@@ -10,6 +10,7 @@ import {
   REJECT_DELETE_SQL,
   REJECT_LOG_SQL,
   rejectLogParams,
+  type RejectWhy,
 } from "./review-snapshot";
 import type { Article, Athlete } from "./types";
 import { siteDefaults, SETTING_KEYS, settingScope, GLOBAL_SCOPE } from "./site-content";
@@ -292,7 +293,7 @@ export async function announcePublishedArticle(id: number): Promise<boolean> {
     return false;
   }
 }
-export async function deleteArticle(id: number): Promise<void> {
+export async function deleteArticle(id: number, why?: RejectWhy): Promise<void> {
   const db = await getDB();
   if (!db) return;
   // Review-log: sletning af en AI-kladde = afvist (rejected). Publicerede
@@ -323,7 +324,7 @@ export async function deleteArticle(id: number): Promise<void> {
       // den her kopi kendte ikke `fixed_snapshot` og tabte #238's rettede tekst.
       await db
         .prepare(REJECT_LOG_SQL)
-        .bind(...rejectLogParams(id, row))
+        .bind(...rejectLogParams(id, row, why))
         .run();
     }
   } catch {
