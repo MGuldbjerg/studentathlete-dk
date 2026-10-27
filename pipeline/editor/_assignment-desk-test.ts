@@ -1,5 +1,5 @@
 /** Tests for the assignment desk's parsing and guards. Run: npx tsx pipeline/editor/_assignment-desk-test.ts */
-import { applyLengthRule, batches, briefText, buildDeskPack, guardDesk, parseDesk, type DeskStory, type DeskVerdict } from "./assignment-desk";
+import { ageDays, applyRules, batches, briefText, buildDeskPack, guardDesk, parseDesk, type DeskStory, type DeskVerdict } from "./assignment-desk";
 
 let pass = 0, fail = 0;
 function expect(name: string, got: unknown, want: unknown) {
@@ -10,8 +10,8 @@ function expect(name: string, got: unknown, want: unknown) {
 
 // parseDesk: only complete verdicts for asked stories count
 const answer = `Here you go:
-[{"story_id":1,"decision":"article","words":320,"article_type":"season_update","priority":4,"angle":"Third goal in three games","line":"Scored in a 2-1 win.","reason":"decisive"},
- {"story_id":2,"decision":"line","words":60,"priority":1,"line":"Named to the preseason All-GSC team.","reason":"a list"},
+[{"story_id":1,"decision":"article","words":320,"priority":4,"event_date":"2026-10-19","article_type":"season_update","angle":"Third goal in three games","line":"Scored in a 2-1 win.","reason":"decisive"},
+ {"story_id":2,"decision":"line","words":60,"priority":1,"event_date":null,"line":"Named to the preseason All-GSC team.","reason":"a list"},
  {"story_id":3,"decision":"fold","fold_into":"story:1","reason":"same match"},
  {"story_id":4,"decision":"skip","reason":"preview"},
  {"story_id":5,"decision":"hold","reason":"illness"},
@@ -20,40 +20,66 @@ const v = parseDesk(answer, [1, 2, 3, 4, 5]);
 expect("all five asked parsed", v.map((x) => x.decision), ["article", "line", "fold", "skip", "hold"]);
 expect("unasked story dropped", v.some((x) => x.story_id === 99), false);
 expect("article keeps its priority", v[0].priority, 4);
+expect("article keeps its event date", v[0].event_date, "2026-10-19");
+expect("a line without a date is allowed", v[1].event_date, null);
 expect("no array is no verdicts", parseDesk("I think article", [1]), []);
 expect("broken JSON is no verdicts", parseDesk('[{"story_id":1,', [1]), []);
-const art = (extra: string) => `[{"story_id":1,"decision":"article","words":300,"article_type":"news","priority":3,"angle":"a","line":"l","reason":"r"${extra}}]`;
+const art = (extra: string) => `[{"story_id":1,"decision":"article","words":300,"priority":3,"event_date":"2026-10-19","article_type":"news","angle":"a","line":"l","reason":"r"${extra}}]`;
 expect("complete article parsed", parseDesk(art(""), [1])[0]?.words, 300);
 expect("article without angle dropped", parseDesk(art(',"angle":""'), [1]), []);
 expect("article with an unknown type dropped", parseDesk(art(',"article_type":"blog"'), [1]), []);
+expect("feature is no longer a type (no articles from a school's prose)", parseDesk(art(',"article_type":"feature"'), [1]), []);
 expect("priority out of range dropped", parseDesk(art(',"priority":9'), [1]), []);
 expect("article without words dropped", parseDesk(art(',"words":"many"'), [1]), []);
 expect("article without a line dropped", parseDesk(art(',"line":""'), [1]), []);
+expect("a date that isn't a date dropped", parseDesk(art(',"event_date":"last Saturday"'), [1]), []);
 expect("line without text dropped", parseDesk('[{"story_id":1,"decision":"line","words":50,"priority":1,"reason":"r"}]', [1]), []);
 expect("line without words dropped", parseDesk('[{"story_id":1,"decision":"line","priority":1,"line":"l","reason":"r"}]', [1]), []);
-
-// applyLengthRule: Mikkel's 250 / 200-249-if-big / under-200 rule, only ever down
-const a = (words: number, priority: number): DeskVerdict => ({ story_id: 1, decision: "article", article_type: "season_update", priority, angle: "x", line: "l", fold_into: null, words, reason: "r" });
-expect("250 words is always an article", applyLengthRule(a(250, 1)).decision, "article");
-expect("230 words and a big story is an article", applyLengthRule(a(230, 4)).decision, "article");
-expect("230 words and a small story is a line", applyLengthRule(a(230, 3)).decision, "line");
-expect("150 words is a line, however big", applyLengthRule(a(150, 5)).decision, "line");
-expect("a demoted article keeps its line", applyLengthRule(a(150, 5)).line, "l");
-expect("a demoted article drops its type", applyLengthRule(a(150, 5)).article_type, null);
-expect("the reason says why", applyLengthRule(a(150, 5)).reason.startsWith("length rule"), true);
-expect("a line is never promoted", applyLengthRule({ ...a(400, 5), decision: "line" }).decision, "line");
-expect("guardDesk applies the length rule", guardDesk(a(120, 4), { sensitive: null }).decision, "line");
+expect("a line keeps its follow-up", parseDesk('[{"story_id":1,"decision":"line","words":170,"priority":5,"line":"l","follow_up":"ask about the season","reason":"r"}]', [1])[0]?.follow_up, "ask about the season");
+expect("an article carries no follow-up", parseDesk(art(',"follow_up":"x"'), [1])[0]?.follow_up, null);
 expect("fold to a vague target dropped", parseDesk('[{"story_id":1,"decision":"fold","fold_into":"the other one","reason":"r"}]', [1]), []);
 expect("fold to an article kept", parseDesk('[{"story_id":1,"decision":"fold","fold_into":"article:812","reason":"r"}]', [1])[0]?.fold_into, "article:812");
 expect("unknown decision dropped", parseDesk('[{"story_id":1,"decision":"maybe","reason":"r"}]', [1]), []);
 expect("no reason dropped", parseDesk('[{"story_id":1,"decision":"skip"}]', [1]), []);
 expect("duplicate answer: first kept", parseDesk('[{"story_id":1,"decision":"skip","reason":"a"},{"story_id":1,"decision":"hold","reason":"b"}]', [1])[0].decision, "skip");
 
+// ageDays: from the event to the day the story was found
+expect("found the next day = 1", ageDays("2026-10-24", "2026-10-25 01:12:00"), 1);
+expect("found the same day = 0", ageDays("2026-10-24", "2026-10-24 23:00:00"), 0);
+expect("no date, no age", ageDays(null, "2026-10-25"), null);
+
+// applyRules: Mikkel's rule and his answers to the hypotheticals (brief.md, «The quiz»).
+// Story found on 2026-10-25; an event on the 24th is 1 day old.
+const FOUND = "2026-10-25 06:00:00";
+const a = (words: number, priority: number, event_date: string | null = "2026-10-24"): DeskVerdict =>
+  ({ story_id: 1, decision: "article", article_type: "season_update", priority, angle: "x", line: "l", fold_into: null, words, event_date, follow_up: null, reason: "r" });
+const rule = (x: DeskVerdict) => applyRules(x, FOUND).decision;
+expect("250 words is always an article", rule(a(250, 1)), "article");
+expect("quiz: UK goal in a 3-1 loss + coach quote, 230 words, p3 → article", rule(a(230, 3)), "article");
+expect("quiz: DK golfer T12 with the day's best round, 220 words, p3 → article", rule(a(220, 3)), "article");
+expect("quiz: UK assist in a 1-1 draw, 210 words, p2 → line", rule(a(210, 2)), "line");
+expect("quiz: DK assist in a 1-1 draw, 210 words, p3 → article", rule(a(210, 3)), "article");
+expect("7th in a track final, 220 words, p1 → line", rule(a(220, 1)), "line");
+expect("quiz: All-American on thin material, 180 words, p5 → line", rule(a(180, 5)), "line");
+expect("quiz: a goal in a win, 260 words, 9 days old → line", rule(a(260, 3, "2026-10-16")), "line");
+expect("simple stat 2 days old → line", rule(a(300, 3, "2026-10-23")), "line");
+expect("big news 3 days old → still an article", rule(a(300, 4, "2026-10-22")), "article");
+expect("big news 4 days old → line", rule(a(300, 5, "2026-10-21")), "line");
+expect("quiz: Tuesday roundup of Saturday's brace → line", applyRules(a(280, 3, "2026-10-24"), "2026-10-27 01:00:00").decision, "line");
+expect("no date: freshness can't be judged, length decides", rule(a(300, 3, null)), "article");
+expect("a demoted article keeps its line", applyRules(a(150, 5), FOUND).line, "l");
+expect("a demoted article drops its type", applyRules(a(150, 5), FOUND).article_type, null);
+expect("the length reason says why", applyRules(a(150, 5), FOUND).reason.startsWith("length rule"), true);
+expect("the freshness reason says why", applyRules(a(300, 3, "2026-10-16"), FOUND).reason.startsWith("freshness rule"), true);
+expect("a line is never promoted", rule({ ...a(400, 5), decision: "line" }), "line");
+expect("guardDesk applies the rules", guardDesk(a(120, 4), { sensitive: null, discovered_at: FOUND }).decision, "line");
+
 // guardDesk: a sensitive story is never assigned by the machine
-expect("sensitive article becomes hold", guardDesk(v[0], { sensitive: "health" }).decision, "hold");
-expect("sensitive line becomes hold", guardDesk(v[1], { sensitive: "health" }).decision, "hold");
-expect("sensitive skip stays skip", guardDesk(v[3], { sensitive: "health" }).decision, "skip");
-expect("plain story untouched", guardDesk(v[0], { sensitive: null }), v[0]);
+const S = (sensitive: string | null) => ({ sensitive, discovered_at: "2026-10-19 12:00:00" });
+expect("sensitive article becomes hold", guardDesk(v[0], S("health")).decision, "hold");
+expect("sensitive line becomes hold", guardDesk(v[1], S("health")).decision, "hold");
+expect("sensitive skip stays skip", guardDesk(v[3], S("health")).decision, "skip");
+expect("plain fresh story untouched", guardDesk(v[0], S(null)), v[0]);
 
 // batches: an athlete is never split, a batch stays under the size
 const st = (id: number, athlete_id: number, d = "2026-10-20 08:00:00") => ({ id, athlete_id, discovered_at: d });
@@ -65,6 +91,7 @@ expect("backtest key splits an athlete by day", perDay[0].length, 2);
 // the brief: the evidence section never reaches the model
 expect("evidence cut", briefText("rules\n<!-- evidence: x -->\nnumbers").includes("numbers"), false);
 expect("the real brief has the decisions", ["article", "line", "fold", "skip", "hold"].every((d) => briefText().includes(`**${d}**`)), true);
+expect("the quiz table stays out of the prompt", briefText().includes("The quiz"), false);
 
 // the pack names every story so the answer can refer to it
 const story: DeskStory = {
@@ -72,10 +99,11 @@ const story: DeskStory = {
   discovered_at: "2026-10-20 08:00:00", relevance_score: 95, sensitive: null, athlete_name: "Jane Smith", sport: "soccer",
   university: "X University", home_country: "UK", class_year: "Jr.", position: "F", hometown: "Leeds, England",
 };
-const pack = buildDeskPack([{ stories: [story], ctx: { articles: [{ id: 5, title: "Smith scores", published_at: "2026-10-12" }], earlier: [], events: [] } }], "BRIEF");
+const pack = buildDeskPack([{ stories: [story], ctx: { articles: [{ id: 5, title: "Smith scores", published_at: "2026-10-12" }], earlier: [], events: [] } }], "BRIEF", new Map([[41, ["Amy Jones"]]]));
 expect("pack names the story", pack.includes("story:41"), true);
 expect("pack names the earlier article", pack.includes("article:5"), true);
 expect("pack counts the stories", pack.includes("(1 of them)"), true);
+expect("pack names our other athlete in the same source", pack.includes("Also ours in this source: Amy Jones"), true);
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
