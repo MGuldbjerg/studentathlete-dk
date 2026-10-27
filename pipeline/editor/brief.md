@@ -138,6 +138,11 @@ One sentence: what the article is about and why now, from the complete picture.
 
 `line` (the profile sentence), `priority`, `words` and `event_date`.
 
+Write `line` in the athlete's site language: **Danish for a DK athlete,
+English for a UK athlete**, in past tense, without the athlete's name in front
+("Scorede i 2-1-sejren over Pitt", "Named CAA Defensive Player of the Week").
+Everything else (angle, reason, follow_up) in English.
+
 <!-- evidence: not sent to the model -->
 
 ## Evidence behind this draft

@@ -56,6 +56,9 @@ export interface StoryWithAthlete extends Story {
   gender: string | null;
   /** Tekniske generings-forsøg brugt på historien (migration 052). */
   gen_attempts: number | null;
+  /** The live desk's type and angle for an article (assignment-desk.ts). */
+  desk_type?: string | null;
+  desk_angle?: string | null;
 }
 
 /**
@@ -244,6 +247,14 @@ export function buildPrompt(
 // Det RIGTIGE loft er MAX_PENDING_DRAFTS nedenfor: gennemgangskøen, ikke
 // tokens. Løber kladderne op, pauser genereringen af sig selv.
 const MAX_ARTICLES_PER_RUN = 12;
+
+/**
+ * DESK_GATE=1 (generate-manual.yml): draft only stories the live assignment
+ * desk called articles (pipeline/editor/assignment-desk.ts), best first, with
+ * the desk's article type and angle. Mikkel, 2026-10-27: «switch on the
+ * editor». Off: repo variable DESK_GATE=off → the old behaviour.
+ */
+const DESK_GATE = process.env.DESK_GATE === "1";
 // Maks antal kladder der må ligge ugodkendt (pause hvis for mange hober sig op)
 const MAX_PENDING_DRAFTS = 20;
 
@@ -563,9 +574,11 @@ async function main(): Promise<void> {
     `SELECT s.*, a.name as athlete_name, a.preferred_name, a.sport, a.university, a.hometown,
             a.position, a.division, a.class_year, a.expected_graduation, a.home_country,
             a.previous_school,
-            a.gender
+            a.gender,
+            d.article_type AS desk_type, d.angle AS desk_angle
      FROM stories s
      JOIN athletes a ON s.athlete_id = a.id
+     LEFT JOIN desk_decisions d ON d.story_id = s.id AND d.mode = 'live' AND d.decision = 'article'
      WHERE s.status = 'new'
      AND s.fact_status = 'built'
      -- Only countries with a site. siteFor() falls back to DK for any other
@@ -576,7 +589,9 @@ async function main(): Promise<void> {
      AND s.relevance_score >= ?
      AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
      ${storyId ? "AND s.id = " + String(storyId) : ""}
+     ${DESK_GATE && !storyId ? "AND d.story_id IS NOT NULL" : ""}
      ORDER BY
+       ${DESK_GATE ? "d.priority DESC," : ""}
        -- Aldrig-prøvede historier først: en der allerede har brændt to forsøg
        -- må ikke tage pladsen fra en frisk (samme regel som fact_attempts).
        s.gen_attempts ASC,
@@ -902,7 +917,8 @@ async function main(): Promise<void> {
       }
     }
 
-    const articleType = selectArticleType(story);
+    // The desk read the whole source and the athlete's history; its type wins.
+    const articleType = story.desk_type ?? selectArticleType(story);
     let timeline = "";
     try {
       const evRes = await db.query<AthleteEvent>(
@@ -923,7 +939,8 @@ async function main(): Promise<void> {
     // linjeformatet hvis en provider alligevel svarer med rå markdown.
     const systemPrompt = prompts.buildSystemPrompt(corrections, { jsonOutput: true });
     const mates = companions.get(story.id) ?? [];
-    const prompt = buildPrompt(story, articleType, prompts, timeline, mates);
+    const prompt = buildPrompt(story, articleType, prompts, timeline, mates) +
+      (story.desk_angle ? `\n\nThe editor's angle for this article (use it only as far as the source supports it): ${story.desk_angle}` : "");
 
     const contentSource = story.content_raw ? "content_raw" : story.summary ? "summary" : "headline only";
     console.log(

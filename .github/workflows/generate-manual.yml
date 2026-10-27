@@ -67,6 +67,9 @@ jobs:
           echo "skip_reason=$(grep -oP '(?<=SKIP_REASON=)\S+' /tmp/generate-output.txt | tail -1 || true)" >> $GITHUB_OUTPUT
           echo "pending=$(grep -oP '(?<=pending=)\d+' /tmp/generate-output.txt | tail -1 || true)" >> $GITHUB_OUTPUT
         env:
+          # Draft only what the assignment desk assigned (generate-articles.ts
+          # DESK_GATE). Repo variable DESK_GATE=off goes back to drafting everything.
+          DESK_GATE: ${{ vars.DESK_GATE == 'off' && '0' || '1' }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
