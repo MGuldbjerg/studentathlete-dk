@@ -52,15 +52,19 @@ are quoted carries 300; a result line in a meet summary carries 60.
 ## Freshness: event_date
 
 Give `event_date`: the day the match, meet or announcement happened (YYYY-MM-DD),
-from the source; null only if the source gives no date at all. A story is fresh
-for **1 day** after the event at priority 1-3 (a goal, an assist, a placing) and
-for **3 days** at priority 4-5. A weekly roundup posted on Tuesday about
-Saturday's brace is not fresh: the event date counts, not the posting date.
+from the source; null only if the source gives no date at all. A weekly roundup
+posted on Tuesday about Saturday's brace has Saturday as its event date.
+
+**Do not judge freshness yourself.** The desk applies it in code, from your
+event_date and the day the story was found: 1 day at priority 1-3, 3 days at
+priority 4-5. You don't know today's date, and the story may be decided days
+after it was found. Decide every story as if it were fresh, by size and length
+alone, and never call a story "not fresh", "too old" or "past the window".
 
 ## The rule
 
 1. Skip, hold and fold come first (below).
-2. Not fresh: a **line**, whatever the length.
+2. (Freshness: applied by the code, see above.)
 3. **250 words or more: an article.**
 4. **200 to 249: an article at priority 3 or more**, otherwise a line.
 5. **Under 200: a line.** If the news is big (priority 4-5) but the material is

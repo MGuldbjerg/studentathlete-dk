@@ -92,6 +92,10 @@ expect("backtest key splits an athlete by day", perDay[0].length, 2);
 expect("evidence cut", briefText("rules\n<!-- evidence: x -->\nnumbers").includes("numbers"), false);
 expect("the real brief has the decisions", ["article", "line", "fold", "skip", "hold"].every((d) => briefText().includes(`**${d}**`)), true);
 expect("the quiz table stays out of the prompt", briefText().includes("The quiz"), false);
+// Backtest 2026-10-27: the model judged freshness against TODAY, not the day
+// found, and made 101 fresh stories into lines. The code applies it; the
+// brief must say so.
+expect("the brief keeps freshness out of the model's hands", briefText().includes("Do not judge freshness yourself"), true);
 
 // the pack names every story so the answer can refer to it
 const story: DeskStory = {
