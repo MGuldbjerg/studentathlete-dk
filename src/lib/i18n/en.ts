@@ -559,6 +559,8 @@ const ui: LanguagePack["ui"] = {
   "tpl.full_profile": "See full profile →",
   "tpl.byline": "By {author}",
   "profile.official_bio": "Official profile at {school} ↗",
+  "profile.merch": "Buy {name} merchandise ↗",
+  "profile.merch_note": "Sold through Influxer. The athlete gets a share of every sale.",
   "profile.about": "About {name}",
   "school.athletes_heading": "UK athletes at {school}",
   "tpl.previous_updates": "Earlier updates",

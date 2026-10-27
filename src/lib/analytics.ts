@@ -76,7 +76,10 @@ export function deviceFromUA(ua: string): "mobile" | "tablet" | "desktop" {
 }
 
 /** Tilladte klik-typer — alt andet afvises i ingest. */
-export const CLICK_KINDS = ["bio_out", "internal", "search", "ad", "outbound"] as const;
+// "merch": the athlete's Influxer store (2026-10-27; Mikkel wants the count to
+// take to Influxer). "fanatics": FanaticsAffiliateLink already tagged its
+// clicks so, but the kind was missing here and the server dropped them.
+export const CLICK_KINDS = ["bio_out", "internal", "search", "ad", "outbound", "merch", "fanatics"] as const;
 export type ClickKind = (typeof CLICK_KINDS)[number];
 
 export function isClickKind(v: unknown): v is ClickKind {

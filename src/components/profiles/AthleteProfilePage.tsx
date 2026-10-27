@@ -224,6 +224,23 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 {t("profile.official_bio", lang, { school: athlete.university })}
               </a>
             )}
+
+            {/* The athlete's own merchandise store (Influxer), verified by name
+                and school (pipeline/profiles/merch-stores.ts). Clicks are
+                counted as 'merch'; the referrer and UTM tags are kept so
+                Influxer can see the traffic too (Mikkel, 2026-10-27). */}
+            {athlete.merch_url && (
+              <div className="mt-4">
+                <a href={`${athlete.merch_url}?utm_source=studentathlete&utm_medium=referral&utm_campaign=profile`}
+                  target="_blank" rel="noopener nofollow"
+                  data-track="merch" data-track-target={athlete.slug}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.1em] uppercase hover:underline"
+                  style={{ color: "#BF0A30" }}>
+                  {t("profile.merch", lang, { name: athlete.name })}
+                </a>
+                <p className="text-[11px] text-muted mt-1">{t("profile.merch_note", lang)}</p>
+              </div>
+            )}
           </aside>
 
           {/* ── Hoved ────────────────────────────────────────────── */}

@@ -290,6 +290,8 @@ export type UiKey =
   | "tpl.full_profile"
   | "tpl.byline"
   | "profile.official_bio"
+  | "profile.merch"
+  | "profile.merch_note"
   | "profile.about"
   | "school.athletes_heading"
   | "tpl.previous_updates"
