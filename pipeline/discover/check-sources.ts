@@ -18,6 +18,7 @@ import {
   storyMeta,
 } from "./extract-story";
 import { normalizeSourceUrl, storyHash } from "../lib/story-url";
+import { siteCountryCodes } from "../../src/lib/countries";
 import { createHash } from "node:crypto";
 
 /**
@@ -26,10 +27,21 @@ import { createHash } from "node:crypto";
  * ONCE (feed_items_seen) and read for the school's player tags and full names
  * in the story text (extract-story.ts extractArticle/matchArticle).
  * Budgets: a run opens at most BODY_FETCHES pages (the first runs work through
- * every feed's backlog) and adds at most BODY_STORIES stories this way.
+ * every feed's backlog). Site countries' stories are not capped beyond that;
+ * a COLLECTING country's are, at COLLECTING_STORIES a run — the backtest of
+ * 2026-10-26 put them at ~320 a day against ~120 UK and ~16 DK, and one shared
+ * cap would have gone to them.
+ *
+ * A collecting country's story is stored as a LINK (headline, match, source
+ * URL — no content_raw; Mikkel 2026-10-27: «just store links … for the
+ * countries not launched yet»). Nothing reads their text before launch, and
+ * at launch it is fetched again from the link. ~135 MB a month saved.
  */
 const BODY_FETCHES = Number(process.env.BODY_FETCHES ?? 600);
-const BODY_STORIES = Number(process.env.BODY_STORIES ?? 80);
+const COLLECTING_STORIES = Number(process.env.COLLECTING_STORIES ?? 60);
+const SITES = new Set(siteCountryCodes());
+/** The story text, kept only for a country with a site. */
+const keepText = (country: string | null | undefined, text: string | null) => (country && SITES.has(country) ? text : null);
 /** Older items are not opened: a story from last month is not news for the draft queue. */
 const BODY_MAX_AGE_DAYS = 21;
 const itemHash = (url: string) => createHash("sha256").update(normalizeSourceUrl(url)).digest("hex").slice(0, 32);
@@ -46,6 +58,7 @@ interface AthleteRef {
   id: number;
   name: string;
   sport?: string;
+  home_country?: string | null;
 }
 
 
@@ -94,12 +107,13 @@ async function checkSchoolFeeds(
   let totalFound = 0;
   let bodyFetches = 0;
   let bodyStories = 0;
+  let collectingStories = 0;
 
   for (const school of schools) {
     try {
       // Hent alle aktive atleter på denne skole
       const athleteResult = await db.query<AthleteRef>(
-        `SELECT id, name, sport FROM athletes WHERE university = ? AND active = 1`,
+        `SELECT id, name, sport, home_country FROM athletes WHERE university = ? AND active = 1`,
         [school.name],
       );
       const athletes = athleteResult.results;
@@ -182,7 +196,7 @@ async function checkSchoolFeeds(
                 urlHash,
                 story.headline,
                 story.summary,
-                contentRaw,
+                keepText(athletes.find((a) => a.id === story.athlete_id)?.home_country, contentRaw),
                 `school_feed_${school.news_feed_type}`,
                 story.relevance_score,
                 story.sensitive,
@@ -201,7 +215,7 @@ async function checkSchoolFeeds(
       }
 
       // ── The body pass: new items the title pass did not catch ──────────────
-      if (bodyFetches < BODY_FETCHES && bodyStories < BODY_STORIES) {
+      if (bodyFetches < BODY_FETCHES) {
         const cutoff = Date.now() - BODY_MAX_AGE_DAYS * 86_400_000;
         const items = (await listFeedItems(school.news_feed_url, school.news_feed_type))
           .filter((i) => !titleMatched.has(normalizeSourceUrl(i.link)) && (!i.pubDate || i.pubDate.getTime() >= cutoff));
@@ -212,22 +226,27 @@ async function checkSchoolFeeds(
           : []);
         for (const [n, item] of items.entries()) {
           if (seen.has(hashes[n])) continue;
-          if (bodyFetches >= BODY_FETCHES || bodyStories >= BODY_STORIES) break;
+          if (bodyFetches >= BODY_FETCHES) break;
           bodyFetches++;
           const article = await fetchArticle(item.link);
           await new Promise((r) => setTimeout(r, 500));
           if (!article) continue;          // not reachable now: tried again next run
+          let held = false;                // a collecting match over the cap: the item stays unseen for a later run
           for (const m of matchArticle(article, athletes)) {
+            const country = (m.athlete as AthleteRef).home_country ?? null;
+            const site = !!country && SITES.has(country);
+            if (!site && collectingStories >= COLLECTING_STORIES) { held = true; continue; }
             const meta = storyMeta(item.title, item.description, m.relevance_score);
             const res = await db.execute(
               `INSERT OR IGNORE INTO stories
                (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
               [m.athlete.id, item.link, storyHash(m.athlete.id, item.link), item.title, item.description || null,
-                article.text, `school_feed_${school.news_feed_type}`, meta.relevance_score, meta.sensitive],
+                keepText(country, article.text), `school_feed_${school.news_feed_type}`, meta.relevance_score, meta.sensitive],
             );
-            if (res.meta.changes > 0) { foundInSchool++; totalFound++; bodyStories++; }
+            if (res.meta.changes > 0) { foundInSchool++; totalFound++; bodyStories++; if (!site) collectingStories++; }
           }
+          if (held) continue;
           await db.execute(`INSERT OR IGNORE INTO feed_items_seen (url_hash, school_id, seen_at) VALUES (?, ?, datetime('now'))`,
             [hashes[n], school.id]);
         }
@@ -254,7 +273,7 @@ async function checkSchoolFeeds(
     }
   }
 
-  console.log(`Brødtekst: ${bodyFetches} artikler åbnet, ${bodyStories} nye historier (loft ${BODY_FETCHES}/${BODY_STORIES} pr. kørsel)`);
+  console.log(`Brødtekst: ${bodyFetches} artikler åbnet (loft ${BODY_FETCHES}), ${bodyStories} nye historier, heraf ${collectingStories} for indsamlingslande som link (loft ${COLLECTING_STORIES})`);
   return { checked: totalChecked, found: totalFound };
 }
 
