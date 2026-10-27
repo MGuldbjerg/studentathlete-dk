@@ -12,7 +12,8 @@
  *  - FALLBACK: a limit (429) or login (401) answer on the main account switches
  *    to CLAUDE_CODE_OAUTH_TOKEN_FALLBACK for the rest of the run, once. The
  *    workflow's claude-account action has already picked an account that
- *    answered when the job started.
+ *    answered when the job started. The fallback runs Sonnet at medium effort
+ *    whatever the job asked for (Mikkel, 2026-10-27: «just Sonnet, medium for now»).
  *  - USAGE: every call becomes a row for claude_calls (migration 078): job,
  *    account, model, tokens, ok/failed. `flushUsage(db)` writes them;
  *    pipeline/report/claude-usage.ts reads them.
@@ -47,6 +48,11 @@ export function canSwitch(status: number, current: ClaudeAccount, fallback: stri
   return (status === 429 || status === 401) && current === "primary" && !!fallback;
 }
 
+/** The model (and effort) a call runs with on this account. */
+export function modelFor(current: ClaudeAccount, model: string): { model: string; effort?: string } {
+  return current === "fallback" ? { model: "sonnet", effort: "medium" } : { model };
+}
+
 export function runClaude(
   input: string,
   o: { job: string; model: string; system: string; timeoutMs?: number },
@@ -55,7 +61,8 @@ export function runClaude(
     const env = { ...process.env };
     delete env.ANTHROPIC_API_KEY; // with it set, the CLI would bill the API
     if (token) env.CLAUDE_CODE_OAUTH_TOKEN = token;
-    const res = spawnSync("claude", claudeCliArgs(o.model, o.system), {
+    const m = modelFor(account, o.model);
+    const res = spawnSync("claude", claudeCliArgs(m.model, o.system, m.effort), {
       input,
       cwd: tmpdir(),
       env,
@@ -70,7 +77,7 @@ export function runClaude(
     } catch (e) {
       const msg = (e instanceof Error ? e.message : String(e)).replace(/\s+/g, " ").slice(0, 200);
       const status = e instanceof LLMHttpError ? e.status : 0;
-      pending.push({ job: o.job, account, model: o.model, ok: 0, input_tokens: 0, output_tokens: 0, error: msg });
+      pending.push({ job: o.job, account, model: m.model, ok: 0, input_tokens: 0, output_tokens: 0, error: msg });
       console.log(`  ! claude (${account}): ${msg.slice(0, 160)}`);
       const fallback = process.env.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK;
       if (canSwitch(status, account, fallback)) {

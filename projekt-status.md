@@ -21,15 +21,24 @@ the fallback account, then `gh secret set CLAUDE_CODE_OAUTH_TOKEN_FALLBACK`); de
 use `pipeline/lib/claude-run.ts` (lean calls, mid-run switch, rows in `claude_calls`, migration
 078). `pipeline/report/claude-usage.ts` = claude_calls + the drafting chain's `llm_usage`
 (drafting alone: 75-81 Claude calls/day on 25-26/10). Not counted: review-drafts.sh (bash).
+**Main token dead since ~12:20 UTC 27/10** (desk 12:28 «Claude login failed»; editor 15:51 and
+review 15:31 «No Claude account answered»); limit or login unknown — the probe swallows the CLI's
+text. Fallback = mgj@groenagergaard.dk (Mikkel, 27/10), runs **Sonnet, effort medium** on every
+job (`modelFor` in claude-run.ts, `FALLBACK_MODEL` in review-drafts.sh). Secret
+`CLAUDE_CODE_OAUTH_TOKEN_FALLBACK` NOT set yet — Mikkel: `claude setup-token` as that account,
+then `gh secret set CLAUDE_CODE_OAUTH_TOKEN_FALLBACK`.
 **Influxer (#70):** `merch-stores.ts` verified 104 stores (98 UK, 6 DK) by name + the store's own
 school heading; profile link «Buy {name} merchandise ↗» with UTM + click_kind 'merch'; ~20 visible
 (UK profiles need an article). `merch-clicks.ts` for the pitch. Re-run `--all` monthly (not
 scheduled yet). CLICK_KINDS also gained 'fanatics'.
 **Impact (Fanatics):** MCP at https://mcp.impact.com/mcp, OAuth 2.1 + client ID (no dynamic
 registration) — impact.com's own docs still say «coming soon» (27/10).
-Influxer source: another session found 102 athletes with a matching store (97 UK, 5 DK) + 104 name-only
-(`/tmp/claude-1000/…/ae432e48…/scratchpad/influxer_results.json` in WSL — temp, copy before it
-goes); store URL `https://www.influxermerch.com/athletes/<name-slug>`. Awaiting Mikkel's choice.
+Influxer source: session ae432e48 (Storefront API, product tag = athlete name, + school) found
+108 name+school matches (102 UK, 6 DK) after re-checking the name-only cases with a fixed school
+compare; + 1 UK at the former school (Henry Daly, Virginia), ~17 probable (rare name, no school
+or another school — likely transfers), ~80 namesakes. Agrees with #70's 104 verified stores
+(`/tmp/claude-1000/…/ae432e48…/scratchpad/influxer_results{,2}.json` in WSL — temp); store URL
+`https://www.influxermerch.com/athletes/<name-slug>`. Awaiting Mikkel's choice.
 
 ### Shadow period (27/10, before going live)
 
@@ -285,8 +294,9 @@ see and approve the emails before anything is sent.**
   verified**. Then: import CSV → dry run → show Mikkel → `--send --limit 3`.
 - **Influxer** (NIL merchandise platform, Dallas, founded 2022, 600+ schools, works with
   international athletes; CEO Steve McLean, founder Tyler Jaynes, VP Keith Miller): Mikkel
-  suggested asking them who handles photo rights at schools. No contact route found; offered to
-  draft a note to the press contact on a partner announcement. Undecided.
+  suggested asking them who handles photo rights at schools. **Mikkel emailed Influxer
+  (2026-10-27); awaiting their answer. Photo-permission emails stay on hold until it arrives**
+  — don't set up the send before then. They carry ~102 UK / 6 DK of our athletes (see #70 above).
 - **Next**: after the pilot works, go conference by conference (D2/D3/NAIA first; schools with
   our athletes are listed by conference in D1: `schools.conference`).
 

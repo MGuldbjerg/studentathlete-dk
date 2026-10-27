@@ -1,5 +1,5 @@
 /** Tests for the fallback rule in claude-run.ts. Run: npx tsx pipeline/lib/_claude-run-test.ts */
-import { canSwitch } from "./claude-run";
+import { canSwitch, modelFor } from "./claude-run";
 
 let pass = 0, fail = 0;
 function expect(name: string, got: unknown, want: unknown) {
@@ -14,6 +14,11 @@ expect("no fallback token → no switch", canSwitch(429, "primary", undefined), 
 expect("already on the fallback → no second switch", canSwitch(429, "fallback", "tok"), false);
 expect("a broken call (500) is not the account's fault → no switch", canSwitch(500, "primary", "tok"), false);
 expect("locally (own login) → no switch", canSwitch(429, "local", "tok"), false);
+
+// Mikkel, 2026-10-27: the fallback account runs Sonnet at medium effort, whatever the job asked for.
+expect("main account keeps the job's model", modelFor("primary", "opus"), { model: "opus" });
+expect("locally keeps the job's model", modelFor("local", "opus"), { model: "opus" });
+expect("fallback → Sonnet, medium effort", modelFor("fallback", "opus"), { model: "sonnet", effort: "medium" });
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
