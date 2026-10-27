@@ -35,6 +35,9 @@ on:
       limit:
         description: 'Stories at most'
         default: '80'
+      run:
+        description: 'Backtest: a name for this run, kept apart from earlier backtests (e.g. v2)'
+        default: ''
 
 permissions:
   contents: read
@@ -71,6 +74,7 @@ jobs:
           ARGS="--limit ${{ github.event.inputs.limit || '80' }}"
           if [ -n "${{ github.event.inputs.backtest_from }}" ]; then
             ARGS="$ARGS --backtest --from ${{ github.event.inputs.backtest_from }} --to ${{ github.event.inputs.backtest_to }}"
+            if [ -n "${{ github.event.inputs.run }}" ]; then ARGS="$ARGS --run ${{ github.event.inputs.run }}"; fi
           fi
           npx tsx pipeline/editor/assignment-desk.ts $ARGS
         env:

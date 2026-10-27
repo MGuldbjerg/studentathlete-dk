@@ -432,7 +432,10 @@ async function main() {
   const db = createD1Client();
 
   const backtest = args.includes("--backtest");
-  const mode = backtest ? "backtest" : "shadow";
+  // --run NAME keeps a backtest of a changed brief apart from the earlier ones
+  // (mode 'backtest-NAME'); without it the stories already decided are skipped.
+  const run = val("--run");
+  const mode = backtest ? (run ? `backtest-${run.replace(/[^a-z0-9-]/gi, "")}` : "backtest") : "shadow";
   if (args.includes("--report")) return report(db, mode, Number(val("--days") ?? 14), val("--in"));
 
   // --dump-packs <file>: write what the model would read, ask nothing, store nothing.
