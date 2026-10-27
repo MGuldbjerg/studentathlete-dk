@@ -4,29 +4,39 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { REJECT_REASONS } from "@/lib/reject-reasons";
 
+type Action = "publish" | "reject" | "line";
+
 export function AdminActions({
   articleId,
+  defaultLine = null,
   afterHref = "/admin",
 }: {
   articleId: number;
+  /** The profile line the draft would become (timelineLine); null when there's no athlete. */
+  defaultLine?: string | null;
   /** Where to go once decided — the check view moves on to the next draft. */
   afterHref?: string;
 }) {
   const router = useRouter();
-  const [loading, setLoading] = useState<"publish" | "reject" | null>(null);
+  const [loading, setLoading] = useState<Action | null>(null);
   // Mikkel, 2026-10-27: a reject asks WHY. The reasons teach the assignment
   // desk (pipeline/editor/brief.md); 178 rejects before this had none.
-  const [rejecting, setRejecting] = useState(false);
+  // And a draft reviewed too late can become a profile line instead.
+  const [mode, setMode] = useState<"buttons" | "reject" | "line">("buttons");
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const [line, setLine] = useState(defaultLine ?? "");
 
-  async function send(action: "publish" | "reject") {
+  async function send(action: Action) {
     setLoading(action);
     try {
+      const body = action === "reject" ? { id: articleId, action, reason, note }
+        : action === "line" ? { id: articleId, action, line }
+        : { id: articleId, action };
       const res = await fetch("/api/admin/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action === "reject" ? { id: articleId, action, reason, note } : { id: articleId, action }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -48,9 +58,12 @@ export function AdminActions({
     void send("publish");
   }
 
+  const back = () => { setMode("buttons"); setReason(""); setNote(""); setLine(defaultLine ?? ""); };
+  const btn = "flex-1 max-w-48 py-3 rounded-lg font-semibold transition-opacity disabled:opacity-50";
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-paper border-t border-border p-4 z-50">
-      {rejecting && (
+      {mode === "reject" && (
         <div className="max-w-md mx-auto mb-3 flex flex-col gap-2">
           <label className="text-sm font-semibold" htmlFor="reject-reason">Hvorfor afvises den?</label>
           <select
@@ -74,43 +87,50 @@ export function AdminActions({
           />
         </div>
       )}
+      {mode === "line" && (
+        <div className="max-w-md mx-auto mb-3 flex flex-col gap-2">
+          <label className="text-sm font-semibold" htmlFor="profile-line">
+            Linjen på profilen (går live med det samme — kun positive fakta)
+          </label>
+          <input
+            id="profile-line"
+            type="text"
+            value={line}
+            onChange={(e) => setLine(e.target.value)}
+            maxLength={300}
+            className="border border-border rounded-lg p-2 bg-paper"
+          />
+        </div>
+      )}
       <div className="flex gap-3 justify-center">
-        {rejecting ? (
+        {mode === "buttons" ? (
           <>
-            <button
-              onClick={() => { setRejecting(false); setReason(""); setNote(""); }}
-              disabled={loading !== null}
-              className="flex-1 max-w-48 py-3 rounded-lg font-semibold border border-border transition-opacity disabled:opacity-50"
-            >
-              Fortryd
+            <button onClick={() => setMode("reject")} disabled={loading !== null} className={`${btn} text-white`} style={{ backgroundColor: "#BF0A30" }}>
+              Afvis…
             </button>
-            <button
-              onClick={() => void send("reject")}
-              disabled={loading !== null || !reason}
-              className="flex-1 max-w-48 py-3 rounded-lg font-semibold text-white transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: "#BF0A30" }}
-            >
-              {loading === "reject" ? "Afviser…" : "Afvis"}
+            {defaultLine !== null && (
+              <button onClick={() => setMode("line")} disabled={loading !== null} className={`${btn} border border-border`}>
+                Profillinje…
+              </button>
+            )}
+            <button onClick={publish} disabled={loading !== null} className={`${btn} text-white`} style={{ backgroundColor: "#2D5A27" }}>
+              {loading === "publish" ? "Godkender…" : "Godkend"}
             </button>
           </>
         ) : (
           <>
-            <button
-              onClick={() => setRejecting(true)}
-              disabled={loading !== null}
-              className="flex-1 max-w-48 py-3 rounded-lg font-semibold text-white transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: "#BF0A30" }}
-            >
-              Afvis…
+            <button onClick={back} disabled={loading !== null} className={`${btn} border border-border`}>
+              Fortryd
             </button>
-            <button
-              onClick={publish}
-              disabled={loading !== null}
-              className="flex-1 max-w-48 py-3 rounded-lg font-semibold text-white transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: "#2D5A27" }}
-            >
-              {loading === "publish" ? "Godkender…" : "Godkend"}
-            </button>
+            {mode === "reject" ? (
+              <button onClick={() => void send("reject")} disabled={loading !== null || !reason} className={`${btn} text-white`} style={{ backgroundColor: "#BF0A30" }}>
+                {loading === "reject" ? "Afviser…" : "Afvis"}
+              </button>
+            ) : (
+              <button onClick={() => void send("line")} disabled={loading !== null || !line.trim()} className={`${btn} text-white`} style={{ backgroundColor: "#2D5A27" }}>
+                {loading === "line" ? "Gemmer…" : "Gem som linje"}
+              </button>
+            )}
           </>
         )}
       </div>
