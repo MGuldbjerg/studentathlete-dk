@@ -359,7 +359,11 @@ function askModel(pack: string): string | null {
     maxBuffer: 10 * 1024 * 1024,
   });
   if (res.status !== 0) {
-    console.log(`  ! claude exited ${res.status ?? res.signal}`);
+    // The CLI's own words: the v2 backtest lost 29 calls to «exited 1» with no
+    // reason (2026-10-27), most likely the subscription's usage limit. One
+    // line, no pack text — the log is public.
+    const why = `${res.stderr ?? ""} ${res.stdout ?? ""}`.replace(/\s+/g, " ").trim().slice(0, 160);
+    console.log(`  ! claude exited ${res.status ?? res.signal}${why ? `: ${why}` : ""}`);
     return null;
   }
   return res.stdout;
