@@ -15,7 +15,19 @@ Claude subscription; when it hits the usage limit (as at ~12:15 on 27/10) nothin
 nothing is drafted until the next run that gets through — stories stay in the 3-day window.
 Approved texts live (#67): /athletes intro, editorial standards (D1 pages presseetik UK), four UK
 guides incl. the NLI and CFP fixes, CFP 2027 → 24 teams on both sites.
-Influxer: another session found 102 athletes with a matching store (97 UK, 5 DK) + 104 name-only
+**Claude accounts + usage (#69):** `.github/actions/claude-account` picks the main token or
+`CLAUDE_CODE_OAUTH_TOKEN_FALLBACK` (secret — Mikkel sets it with `claude setup-token` signed in as
+the fallback account, then `gh secret set CLAUDE_CODE_OAUTH_TOKEN_FALLBACK`); desk + Opus editor
+use `pipeline/lib/claude-run.ts` (lean calls, mid-run switch, rows in `claude_calls`, migration
+078). `pipeline/report/claude-usage.ts` = claude_calls + the drafting chain's `llm_usage`
+(drafting alone: 75-81 Claude calls/day on 25-26/10). Not counted: review-drafts.sh (bash).
+**Influxer (#70):** `merch-stores.ts` verified 104 stores (98 UK, 6 DK) by name + the store's own
+school heading; profile link «Buy {name} merchandise ↗» with UTM + click_kind 'merch'; ~20 visible
+(UK profiles need an article). `merch-clicks.ts` for the pitch. Re-run `--all` monthly (not
+scheduled yet). CLICK_KINDS also gained 'fanatics'.
+**Impact (Fanatics):** MCP at https://mcp.impact.com/mcp, OAuth 2.1 + client ID (no dynamic
+registration) — impact.com's own docs still say «coming soon» (27/10).
+Influxer source: another session found 102 athletes with a matching store (97 UK, 5 DK) + 104 name-only
 (`/tmp/claude-1000/…/ae432e48…/scratchpad/influxer_results.json` in WSL — temp, copy before it
 goes); store URL `https://www.influxermerch.com/athletes/<name-slug>`. Awaiting Mikkel's choice.
 
