@@ -1,0 +1,89 @@
+name: Assignment desk (shadow)
+
+# Mikkel, 2026-10-27: Claude as the editor who decides what each incoming story
+# becomes: article, profile line, fold, skip or hold (pipeline/editor/assignment-desk.ts,
+# rules in pipeline/editor/brief.md). SHADOW MODE: decisions go to D1
+# (desk_decisions) and Discord; drafting runs exactly as before, and nothing
+# reads the decisions but `assignment-desk.ts --report`.
+#
+# Runs on Mikkel's Claude subscription (CLAUDE_CODE_OAUTH_TOKEN), not an API key.
+# The repo is public, so this log is public: stdout is story ids and decisions
+# only; angles, lines and reasons go to D1 and Discord. Never add an
+# upload-artifact step here.
+#
+# Three times a day, 25 minutes before generate-manual (:30), so a decision
+# usually exists before the draft. In shadow mode the order doesn't matter.
+#
+# Manual run with backtest dates: decides past stories as of their discovery,
+# stored as mode 'backtest' and never sent to Discord.
+#
+# Off switch: repo variable ASSIGNMENT_DESK = off.
+
+on:
+  schedule:
+    - cron: '5 7,13,19 * * *'
+  workflow_dispatch:
+    inputs:
+      backtest_from:
+        description: 'Backtest: first discovery date (YYYY-MM-DD); empty = a normal shadow run'
+        default: ''
+      backtest_to:
+        description: 'Backtest: last discovery date (YYYY-MM-DD)'
+        default: ''
+      limit:
+        description: 'Stories at most'
+        default: '80'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: assignment-desk
+  cancel-in-progress: false
+
+jobs:
+  desk:
+    if: vars.ASSIGNMENT_DESK != 'off'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm install -g @anthropic-ai/claude-code
+
+      - name: Check Claude login
+        run: |
+          OUT=$(claude -p "Reply with exactly: OK" --allowed-tools "" 2>&1 || true)
+          if ! echo "$OUT" | grep -q "OK"; then
+            echo "! Claude login failed — run 'claude setup-token' again and update CLAUDE_CODE_OAUTH_TOKEN"; exit 1
+          fi
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      - name: The desk decides
+        run: |
+          ARGS="--limit ${{ github.event.inputs.limit || '80' }}"
+          if [ -n "${{ github.event.inputs.backtest_from }}" ]; then
+            ARGS="$ARGS --backtest --from ${{ github.event.inputs.backtest_from }} --to ${{ github.event.inputs.backtest_to }}"
+          fi
+          npx tsx pipeline/editor/assignment-desk.ts $ARGS
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_UK: ${{ secrets.DISCORD_WEBHOOK_UK }}
+
+      - name: Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
+            -d "{\"embeds\":[{\"title\":\"❌ Assignment desk failed\",\"description\":\"[See the log]($RUN_URL).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
