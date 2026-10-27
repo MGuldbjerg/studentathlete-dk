@@ -33,9 +33,23 @@ before; nearly everything drafted got published (346 of 355 in 30 days).
   the bottom of brief.md; the mechanical ones are unit tests. `applyRules` enforces length +
   freshness in code. /admin reject now asks a reason (`review_log.reject_reason`, mig. 076).
   Migrations 075-077 applied.
-- Backtest NOT run: started 11:00 UTC, cancelled by Mikkel before it wrote anything («get the
-  brief as good as possible before the backtest»). Next: `assignment-desk.yml` workflow_dispatch
-  backtest_from=2026-10-13 backtest_to=2026-10-26 limit=500 (~437 stories ≈ 55 Opus calls).
+- Backtest 2026-10-13..26 run 11:32 UTC on the qualified brief (run 40496872902; ~437 stories,
+  ~1 call/min). Read it with `assignment-desk.ts --report --backtest`.
+- **Ramped up (#58, Mikkel «ramp up the processes»):** discovery every 2 h at :17 (was `0 */6`,
+  which GitHub ran ~3×/day: 177 of 776 feeds >24 h old), concurrency group; desk every 4 h.
+  discover-feeds found feeds for 14 of 40 feedless schools (26 still none). Drafting unchanged.
+- **robots + weekly report live (#59):** AI search bots allowed, training bots closed on both
+  sites; `search-console.ts --weekly` in seo-friday.sh. (seo-friday.sh lost its +x in the merge —
+  fixed on main; check `git ls-files -s` after editing .sh files through \\wsl.localhost.)
+- **/admin «Profillinje…» (#60):** a late draft becomes a timeline line (`draftToLine`,
+  review_log decision `to_line`); reject reason `stale` added. Mikkel's three late rejects of
+  2026-10-27 (#761 Baden, #786 Astrup, #785 Blum) were rejected BEFORE this existed.
+- **Profile text for transfers (#61, #62):** the template wrote year_enrolled (first college
+  year) as the start at the NEW school (Elisa Mehyar «siden 2024» at Middle Tennessee; she was at
+  Oregon State 2024-26). Now from the latest kind='transfer' athlete_event INTO the current
+  school, in Mikkel's two-sentence form: «… spiller basketball som forward/center og startede på
+  Oregon State University i 2024. I 2026 skiftede hun til Middle Tennessee Blue Raiders i
+  Murfreesboro, Tennessee.» 17 pending drafts regenerated; 19 live texts queued for approval.
 - Cloudflare headroom (platform-limits.ts, 2026-10-27): D1 reads 0.7 %, writes 3.9 %, requests
   3.6 % of the monthly allowance; Worker CPU 151 % (≈ $0.31 over). Discovery runs on GitHub, so
   ramping it is ~free on Cloudflare; the limits are the Claude subscription and review time.
