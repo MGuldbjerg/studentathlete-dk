@@ -27,6 +27,7 @@
  *   npx tsx pipeline/report/search-console.ts --submit-sitemap   # kræver «Fuld»
  *   npx tsx pipeline/report/search-console.ts --remove-sitemap=https://…  # fjern dødt sitemap
  *   npx tsx pipeline/report/search-console.ts --opportunities     # fredagsgennemgangen
+ *   npx tsx pipeline/report/search-console.ts --weekly            # + alle sidetyper: 5-15, lav CTR, tabt trafik
  *   npx tsx pipeline/report/search-console.ts --inspect https://…  # indekseringsstatus
  *   npx tsx pipeline/report/search-console.ts --json             # maskinlæsbart
  *
@@ -315,6 +316,77 @@ export function groupByPage(rows: Opportunity[]): Array<{ page: string; pageType
     .sort((a, b) => b.impressions - a.impressions);
 }
 
+// ── The weekly check (Mikkel, 2026-10-27, after Thomas Ulvedal's mail) ─────
+//
+// Three more questions, on EVERY page type (profiles and articles too):
+//   - near-rankings: a page in position 5-15 for a search (same band as above)
+//   - low CTR: seen often, high enough, but rarely clicked → title/description
+//   - lost traffic: clicks down against the previous window of the same length
+// Pages that lost traffic are checked live: a 404 or noindex is OUR decision
+// (the UK AdSense floor of 12 and 26 October), not something to repair.
+
+export function lowCtrPages(
+  rows: Row[],
+  o: { minImpressions: number; maxPosition: number; maxCtr: number } = { minImpressions: 80, maxPosition: 10, maxCtr: 0.02 },
+): Row[] {
+  return rows
+    .filter((r) => r.impressions >= o.minImpressions && r.position <= o.maxPosition && r.ctr < o.maxCtr)
+    .sort((a, b) => b.impressions - a.impressions);
+}
+
+export interface PageDelta {
+  page: string;
+  clicks: number;
+  was: number;
+  impressions: number;
+  wasImpressions: number;
+}
+
+/** Pages whose clicks fell by at least `minDrop` — including pages gone from the data. */
+export function lostPages(now: Row[], prev: Row[], minDrop = 3): PageDelta[] {
+  const cur = new Map(now.map((r) => [r.keys[0], r]));
+  return prev
+    .map((p) => {
+      const n = cur.get(p.keys[0]);
+      return { page: p.keys[0], clicks: n?.clicks ?? 0, was: p.clicks, impressions: n?.impressions ?? 0, wasImpressions: p.impressions };
+    })
+    .filter((d) => d.was - d.clicks >= minDrop)
+    .sort((a, b) => b.was - b.clicks - (a.was - a.clicks));
+}
+
+/** The window of the same length just before `w`. */
+export function previousWindow(w: { start: string; end: string }): { start: string; end: string } {
+  const day = 86_400_000;
+  const len = (Date.parse(w.end) - Date.parse(w.start)) / day + 1;
+  const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+  return { start: iso(Date.parse(w.start) - len * day), end: iso(Date.parse(w.start) - day) };
+}
+
+/** What a page answers today: gone, noindex, or indexable. */
+export function pageStatusOf(status: number, html: string): "gone" | "noindex" | "indexed" | "other" {
+  if (status === 404 || status === 410) return "gone";
+  if (status !== 200) return "other";
+  return /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html) ? "noindex" : "indexed";
+}
+
+async function pageStatus(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, { redirect: "follow" });
+    return pageStatusOf(res.status, res.status === 200 ? await res.text() : "");
+  } catch {
+    return "other";
+  }
+}
+
+async function pageRows(token: string, property: string, w: { start: string; end: string }, dimensions: string[]): Promise<Row[]> {
+  const data = await api<{ rows?: Row[] }>(
+    token,
+    `${API}/sites/${encodeURIComponent(property)}/searchAnalytics/query`,
+    { method: "POST", body: JSON.stringify({ startDate: w.start, endDate: w.end, dimensions, rowLimit: 25000, type: "web" }) },
+  );
+  return data.rows ?? [];
+}
+
 // ── Sitemaps ────────────────────────────────────────────────────────────────
 
 interface SitemapEntry {
@@ -415,6 +487,7 @@ interface Args {
   submit: boolean;
   removeSitemapUrl: string | null;
   opportunities: boolean;
+  weekly: boolean;
   band: { min: number; max: number };
   minImpressions: number;
   inspectUrl: string | null;
@@ -440,6 +513,7 @@ export function parseArgs(argv: string[]): Args {
       (argv.includes("--remove-sitemap") ? argv[argv.indexOf("--remove-sitemap") + 1] ?? null : null),
     inspectUrl: get("inspect") ?? (argv.includes("--inspect") ? argv[argv.indexOf("--inspect") + 1] ?? null : null),
     opportunities: argv.includes("--opportunities"),
+    weekly: argv.includes("--weekly"),
     band: {
       min: Number.parseFloat(get("min-position") ?? "5") || 5,
       max: Number.parseFloat(get("max-position") ?? "15") || 15,
@@ -551,6 +625,42 @@ async function main(): Promise<void> {
               `\n     Ændringer kræver en godkendt plan (se CLAUDE.md).`,
           );
         }
+      }
+
+      if (args.weekly && !args.json) {
+        const w = { start, end };
+        const prev = previousWindow(w);
+        const [pagesNow, pagesPrev, pq] = await Promise.all([
+          pageRows(token, property, w, ["page"]),
+          pageRows(token, property, prev, ["page"]),
+          pageRows(token, property, w, ["page", "query"]),
+        ]);
+        const sum = (rs: Row[]) => rs.reduce((n, r) => n + r.clicks, 0);
+        console.log(`
+   ── Ugens tjek (alle sidetyper) · klik ${sum(pagesNow)} mod ${sum(pagesPrev)} i ${prev.start} → ${prev.end}`);
+
+        const near = pq
+          .filter((r) => r.position >= args.band.min && r.position <= args.band.max && r.impressions >= 15)
+          .filter((r) => !STATIC_PAGE_TYPES.has(classify(pathOf(r.keys[0]), profile.language).pageType))
+          .sort((a, b) => b.impressions - a.impressions)
+          .slice(0, 10);
+        console.log(`
+   Profiler og artikler i position ${args.band.min}-${args.band.max} (mindst 15 visninger): ${near.length}`);
+        for (const r of near) console.log(`     ${String(r.impressions).padStart(5)} visn. · pos. ${r.position.toFixed(1).padStart(4)} · ${r.clicks} klik · «${r.keys[1]}» → ${pathOf(r.keys[0])}`);
+
+        const low = lowCtrPages(pagesNow).slice(0, 10);
+        console.log(`
+   Lav CTR (mindst 80 visninger, pos. ≤ 10, CTR under 2%): ${low.length}`);
+        for (const r of low) console.log(`     ${String(r.impressions).padStart(5)} visn. · pos. ${r.position.toFixed(1).padStart(4)} · CTR ${pct(r.ctr)} · ${pathOf(r.keys[0])}`);
+
+        const lost = lostPages(pagesNow, pagesPrev);
+        const shown = lost.slice(0, 15);
+        const statuses = await Promise.all(shown.map((d) => pageStatus(d.page)));
+        const ours = statuses.filter((x) => x === "gone" || x === "noindex").length;
+        console.log(`
+   Tabt trafik (mindst 3 klik færre): ${lost.length} sider · af de ${shown.length} største er ${ours} vores eget valg (404/noindex)`);
+        shown.forEach((d, i) =>
+          console.log(`     klik ${d.was} → ${d.clicks} · visn. ${d.wasImpressions} → ${d.impressions} · ${statuses[i].padEnd(7)} · ${pathOf(d.page)}`));
       }
 
       if (args.showSitemaps || args.submit) {
