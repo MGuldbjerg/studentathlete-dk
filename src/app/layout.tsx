@@ -11,6 +11,7 @@ import { BASE_URL } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/admin";
 import { adsenseIds } from "@/lib/site-content";
 import { ga4Id, ga4Snippet } from "@/lib/ga4";
+import { IMPACT_CONSENT_LOADER, IMPACT_UTT_UK } from "@/lib/impact";
 import { currentLanguage, currentBaseUrl, currentSite } from "@/lib/site-server";
 import "./globals.css";
 
@@ -58,6 +59,7 @@ export default async function RootLayout({
   // consent to read, so no GA4 either.
   const ga4 = adsense && adsScript ? ga4Id(settings["ga4.measurement_id"]) : null;
   const lang = await currentLanguage();
+  const site = await currentSite();
   return (
     <html lang={lang}>
       <head>
@@ -99,6 +101,13 @@ export default async function RootLayout({
             crossOrigin="anonymous"
           />
         )}
+        {/* Impact (Fanatics affiliate) ownership tag, UK only. Inert
+            (type="text/plain") so Impact can find it but nothing runs; the
+            loader at the end of <body> runs it only with marketing consent.
+            See src/lib/impact.ts. */}
+        {site.code === "UK" && (
+          <script type="text/plain" id="impact-utt" dangerouslySetInnerHTML={{ __html: IMPACT_UTT_UK }} />
+        )}
         {/* Cloudflare Web Analytics (klient-side backup til D1-tracking)
             Token hentes i: CF Dashboard → Analytics → Web Analytics → Add site
             Aktiver ved at uncommente linjen nedenfor og indsætte din token: */}
@@ -125,6 +134,7 @@ export default async function RootLayout({
         <Footer />
         <Analytics />
         <CookieConsent enabled={settings["consent.enabled"] === "true"} lang={lang} />
+        {site.code === "UK" && <script dangerouslySetInnerHTML={{ __html: IMPACT_CONSENT_LOADER }} />}
       </body>
     </html>
   );
