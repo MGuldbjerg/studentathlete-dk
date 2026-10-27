@@ -43,6 +43,8 @@ import { notify, COLOR } from "../lib/notify";
 import { countryProfile, siteCountrySql } from "../../src/lib/countries";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
 import { normalizeSourceUrl } from "../lib/story-url";
+import { timelineParams, TIMELINE_INSERT_SQL } from "../../src/lib/timeline-entry";
+import { seasonForEvent } from "../../src/lib/athlete-events";
 
 const MODEL = process.env.DESK_MODEL || "opus";
 /** Stories per model call. An athlete's stories are never split across calls. */
@@ -313,6 +315,45 @@ export function batches<T extends { athlete_id: number; discovered_at: string }>
   return out;
 }
 
+// ── live: the decision acts (Mikkel, 2026-10-27: «switch on the editor») ────
+
+/**
+ * What a decided story becomes in `stories.status`. An article stays 'new' for
+ * generate-articles.ts, which drafts only stories the live desk called
+ * articles; everything else leaves the drafting queue.
+ */
+export const STATUS_FOR: Record<Exclude<Decision, "article">, string> = {
+  line: "line",
+  fold: "folded",
+  skip: "skipped",
+  hold: "held",
+};
+
+/**
+ * The timeline row for a line (TIMELINE_INSERT_SQL), dated by the event when
+ * the desk gave one. Lines go live without a human (Mikkel, 2026-10-27).
+ */
+export function lineParams(v: DeskVerdict, s: Pick<DeskStory, "athlete_id" | "athlete_name" | "source_url" | "discovered_at">): unknown[] {
+  const p = timelineParams(
+    { athlete_id: s.athlete_id, athlete_name: s.athlete_name, title: v.line ?? "", source_url: s.source_url, fact_sheet: null },
+    s.discovered_at.replace(" ", "T") + "Z",
+  );
+  if (v.event_date) {
+    p[1] = v.event_date;
+    p[2] = seasonForEvent(v.event_date, String(p[6]));
+  }
+  return p;
+}
+
+async function act(db: D1Client, v: DeskVerdict, s: DeskStory): Promise<void> {
+  if (v.decision === "article") return;
+  if (v.decision === "line" && v.line) await db.execute(TIMELINE_INSERT_SQL, lineParams(v, s));
+  await db.execute(
+    `UPDATE stories SET status = ?, processed_at = datetime('now') WHERE id = ? AND status = 'new'`,
+    [STATUS_FOR[v.decision], s.id],
+  );
+}
+
 // ── the data ────────────────────────────────────────────────────────────────
 
 const STORY_SELECT = `SELECT s.id, s.athlete_id, s.headline, s.summary, s.content_raw, s.source_url, s.discovered_at,
@@ -439,7 +480,13 @@ async function main() {
   // --run NAME keeps a backtest of a changed brief apart from the earlier ones
   // (mode 'backtest-NAME'); without it the stories already decided are skipped.
   const run = val("--run");
-  const mode = backtest ? (run ? `backtest-${run.replace(/[^a-z0-9-]/gi, "")}` : "backtest") : "shadow";
+  // DESK_MODE=live (assignment-desk.yml): the decisions act — lines go on the
+  // profile, skips/folds/holds leave the drafting queue, and generate-articles
+  // drafts only the articles. Otherwise shadow: decide and record only.
+  const live = !backtest && process.env.DESK_MODE === "live";
+  const mode = backtest
+    ? (run ? `backtest-${run.replace(/[^a-z0-9-]/gi, "")}` : "backtest")
+    : val("--mode") ?? (live ? "live" : "shadow");
   if (args.includes("--report")) return report(db, mode, Number(val("--days") ?? 14), val("--in"));
 
   // --dump-packs <file>: write what the model would read, ask nothing, store nothing.
@@ -457,7 +504,8 @@ async function main() {
   const undecided = `AND s.id NOT IN (SELECT story_id FROM desk_decisions WHERE mode = '${mode}')`;
   const where = backtest
     ? `WHERE ${siteCountrySql()} AND s.relevance_score >= ? AND s.discovered_at >= ? AND s.discovered_at < date(?, '+1 day') ${undecided}`
-    : `WHERE ${siteCountrySql()} AND s.relevance_score >= ? AND s.discovered_at >= datetime('now', '-${WINDOW_DAYS} days') ${undecided}`;
+    : `WHERE ${siteCountrySql()} AND s.relevance_score >= ? AND s.discovered_at >= datetime('now', '-${WINDOW_DAYS} days') ${undecided}
+         ${live ? "AND s.status = 'new'" : ""}`;
   const params = backtest ? [MIN_RELEVANCE_GENERATE, val("--from")!, val("--to")!] : [MIN_RELEVANCE_GENERATE];
   // Stories the pipeline will never write (archived, below the bar) are not the desk's either.
   const stories = (await db.query<DeskStory>(
@@ -502,6 +550,7 @@ async function main() {
         `INSERT OR IGNORE INTO desk_decisions (story_id, decision, article_type, priority, angle, line, fold_into, est_words, event_date, follow_up, reason, model, mode)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [v.story_id, v.decision, v.article_type, v.priority, v.angle, v.line, v.fold_into, v.words, v.event_date, v.follow_up, v.reason, MODEL, mode]);
+      if (live) await act(db, v, s);
     }
     const missing = asked.length - verdicts.length;
     if (missing) console.log(`  ! ${missing} of ${asked.length} without a valid decision: tried again next run`);
@@ -530,12 +579,12 @@ async function main() {
       .join("\n");
     await notify(
       {
-        title: `🗂️ Assignment desk (shadow): ${countryProfile(country).brand}`,
+        title: `🗂️ Assignment desk${live ? "" : " (shadow)"}: ${countryProfile(country).brand}`,
         color: COLOR.report,
         description: DECISIONS.map((d) => `${d} ${count(d, country)}`).join(" · "),
         fields: [
-          ...(arts ? [{ name: "Would assign as articles", value: clip(arts, 1024) }] : []),
-          ...(holds ? [{ name: "Would hold for you", value: clip(holds, 1024) }] : []),
+          ...(arts ? [{ name: live ? "Assigned as articles (drafted at the next generate run)" : "Would assign as articles", value: clip(arts, 1024) }] : []),
+          ...(holds ? [{ name: live ? "Held for you (not drafted)" : "Would hold for you", value: clip(holds, 1024) }] : []),
           ...(follows ? [{ name: "Worth a follow-up (big news, thin material)", value: clip(follows, 1024) }] : []),
         ],
       },

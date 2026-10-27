@@ -1,5 +1,5 @@
 /** Tests for the assignment desk's parsing and guards. Run: npx tsx pipeline/editor/_assignment-desk-test.ts */
-import { ageDays, applyRules, batches, briefText, buildDeskPack, guardDesk, parseDesk, type DeskStory, type DeskVerdict } from "./assignment-desk";
+import { ageDays, applyRules, batches, briefText, buildDeskPack, guardDesk, lineParams, parseDesk, STATUS_FOR, type DeskStory, type DeskVerdict } from "./assignment-desk";
 
 let pass = 0, fail = 0;
 function expect(name: string, got: unknown, want: unknown) {
@@ -108,6 +108,19 @@ expect("pack names the story", pack.includes("story:41"), true);
 expect("pack names the earlier article", pack.includes("article:5"), true);
 expect("pack counts the stories", pack.includes("(1 of them)"), true);
 expect("pack names our other athlete in the same source", pack.includes("Also ours in this source: Amy Jones"), true);
+
+// live (2026-10-27): what a decision does to the story and the profile
+expect("article is not in STATUS_FOR: it stays new for drafting", "article" in STATUS_FOR, false);
+expect("skip leaves the queue", STATUS_FOR.skip, "skipped");
+expect("hold leaves the queue", STATUS_FOR.hold, "held");
+const lineV: DeskVerdict = { story_id: 41, decision: "line", article_type: null, priority: 2, angle: null, line: "Jane Smith named to the preseason All-GSC team", fold_into: null, words: 60, event_date: "2026-10-18", follow_up: null, reason: "r" };
+const lp = lineParams(lineV, story);
+expect("line: the athlete", lp[0], 7);
+expect("line: dated by the event", lp[1], "2026-10-18");
+expect("line: the name taken off the front", lp[5], "Named to the preseason All-GSC team");
+expect("line: the source kept", lp[7], "https://x.edu/a");
+expect("line without an event date: dated by the source or the day found", lineParams({ ...lineV, event_date: null }, story)[1], "2026-10-20");
+expect("the brief asks for lines in the site's language", briefText().includes("Danish for a DK athlete"), true);
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
