@@ -77,15 +77,14 @@ jobs:
       - run: npm install -g @anthropic-ai/claude-code
         if: steps.gate.outputs.run == 'true'
 
-      - name: Check Claude login
+      # Main Claude account, or the fallback when the main one is at its limit
+      # (.github/actions/claude-account). Later steps must not set the token.
+      - name: Pick a Claude account
         if: steps.gate.outputs.run == 'true'
-        run: |
-          OUT=$(claude -p "Reply with exactly: OK" --allowed-tools "" 2>&1 || true)
-          if ! echo "$OUT" | grep -q "OK"; then
-            echo "! Claude login failed — run 'claude setup-token' again and update CLAUDE_CODE_OAUTH_TOKEN"; exit 1
-          fi
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        uses: ./.github/actions/claude-account
+        with:
+          primary: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          fallback: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
 
       - name: Opus decides the UK drafts
         if: steps.gate.outputs.run == 'true'
@@ -94,7 +93,6 @@ jobs:
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
           npx tsx pipeline/fix/auto-editor.ts $ARGS
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}

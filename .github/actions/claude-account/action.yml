@@ -1,0 +1,48 @@
+name: Pick a Claude account
+description: >
+  Mikkel, 2026-10-27: a fallback Claude account, so a job doesn't stop when the
+  main subscription hits its usage limit. Tries the main token, then the
+  fallback, with a one-line call, and puts the first that answers in the job's
+  environment (CLAUDE_CODE_OAUTH_TOKEN, plus CLAUDE_ACCOUNT=primary|fallback).
+  When the main account answered, the fallback token is kept as
+  CLAUDE_CODE_OAUTH_TOKEN_FALLBACK, so pipeline/lib/claude-run.ts can switch
+  mid-run. Later steps must NOT set CLAUDE_CODE_OAUTH_TOKEN themselves — a
+  step's own env would override the pick. Tokens are secrets: GitHub masks them.
+
+inputs:
+  primary:
+    description: secrets.CLAUDE_CODE_OAUTH_TOKEN
+    required: true
+  fallback:
+    description: secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK (may be empty)
+    required: false
+    default: ''
+  required:
+    description: "'true': fail the job when no account answers; 'false': carry on (callers with a fallback of their own)"
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        T1: ${{ inputs.primary }}
+        T2: ${{ inputs.fallback }}
+        REQUIRED: ${{ inputs.required }}
+      run: |
+        answers() { CLAUDE_CODE_OAUTH_TOKEN="$1" claude -p "Reply with exactly: OK" --allowed-tools "" 2>&1 | grep -q "OK"; }
+        if [ -n "$T1" ] && answers "$T1"; then
+          echo "CLAUDE_CODE_OAUTH_TOKEN=$T1" >> "$GITHUB_ENV"
+          [ -n "$T2" ] && echo "CLAUDE_CODE_OAUTH_TOKEN_FALLBACK=$T2" >> "$GITHUB_ENV"
+          echo "CLAUDE_ACCOUNT=primary" >> "$GITHUB_ENV"
+          echo "Claude account: primary${T2:+ (fallback ready)}"
+        elif [ -n "$T2" ] && answers "$T2"; then
+          echo "CLAUDE_CODE_OAUTH_TOKEN=$T2" >> "$GITHUB_ENV"
+          echo "CLAUDE_ACCOUNT=fallback" >> "$GITHUB_ENV"
+          echo "Claude account: fallback (the main account did not answer — usage limit or login)"
+        else
+          echo "! No Claude account answered${T2:+ (main and fallback)}. Usage limit, or run 'claude setup-token' again and update the secret."
+          [ "$REQUIRED" = "true" ] && exit 1
+          echo "CLAUDE_ACCOUNT=none" >> "$GITHUB_ENV"
+        fi

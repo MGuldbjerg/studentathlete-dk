@@ -60,14 +60,13 @@ jobs:
       - run: npm ci
       - run: npm install -g @anthropic-ai/claude-code
 
-      - name: Check Claude login
-        run: |
-          OUT=$(claude -p "Reply with exactly: OK" --allowed-tools "" 2>&1 || true)
-          if ! echo "$OUT" | grep -q "OK"; then
-            echo "! Claude login failed — run 'claude setup-token' again and update CLAUDE_CODE_OAUTH_TOKEN"; exit 1
-          fi
-        env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      # Main Claude account, or the fallback when the main one is at its limit
+      # (.github/actions/claude-account). Later steps must not set the token.
+      - name: Pick a Claude account
+        uses: ./.github/actions/claude-account
+        with:
+          primary: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          fallback: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
 
       - name: The desk decides
         run: |
@@ -82,7 +81,6 @@ jobs:
           # profile, skips/folds/holds leave the queue, generate drafts only the
           # articles. Repo variable DESK_MODE=shadow turns the acting off.
           DESK_MODE: ${{ vars.DESK_MODE || 'live' }}
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}

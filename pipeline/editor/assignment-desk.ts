@@ -34,11 +34,10 @@
  *   npx tsx pipeline/editor/assignment-desk.ts --report [--backtest] [--days 14] [--in desk.json]
  */
 
-import { spawnSync } from "node:child_process";
 import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createD1Client, type D1Client } from "../lib/d1-client";
+import { flushUsage, runClaude } from "../lib/claude-run";
 import { notify, COLOR } from "../lib/notify";
 import { countryProfile, siteCountrySql } from "../../src/lib/countries";
 import { MIN_RELEVANCE_GENERATE } from "../discover/extract-story";
@@ -390,24 +389,13 @@ async function contextFor(db: D1Client, athleteId: number, asOf: string, exclude
   return { articles, earlier, events };
 }
 
+/** The desk's call: lean, on the subscription, usage kept (claude-run.ts). */
 function askModel(pack: string): string | null {
-  const res = spawnSync("claude", ["-p", "--model", MODEL, "--allowed-tools", ""], {
-    input: pack,
-    // Outside the repo, so the repo's CLAUDE.md isn't loaded into every call.
-    cwd: tmpdir(),
-    encoding: "utf8",
-    timeout: 10 * 60_000,
-    maxBuffer: 10 * 1024 * 1024,
+  return runClaude(pack, {
+    job: "assignment-desk",
+    model: MODEL,
+    system: "You are the assignment desk of a sports news site. Follow the brief in the message and answer only with the JSON array it asks for.",
   });
-  if (res.status !== 0) {
-    // The CLI's own words: the v2 backtest lost 29 calls to «exited 1» with no
-    // reason (2026-10-27), most likely the subscription's usage limit. One
-    // line, no pack text — the log is public.
-    const why = `${res.stderr ?? ""} ${res.stdout ?? ""}`.replace(/\s+/g, " ").trim().slice(0, 160);
-    console.log(`  ! claude exited ${res.status ?? res.signal}${why ? `: ${why}` : ""}`);
-    return null;
-  }
-  return res.stdout;
 }
 
 // ── the report ──────────────────────────────────────────────────────────────
@@ -556,6 +544,7 @@ async function main() {
     if (missing) console.log(`  ! ${missing} of ${asked.length} without a valid decision: tried again next run`);
   }
 
+  await flushUsage(db);
   if (out) writeFileSync(out, JSON.stringify(decided, null, 2));
   const count = (d: Decision, c?: string) => decided.filter((v) => v.decision === d && (!c || v.country === c)).length;
   console.log(DECISIONS.map((d) => `${d} ${count(d)}`).join(" · "));
