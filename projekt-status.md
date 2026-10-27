@@ -33,8 +33,21 @@ before; nearly everything drafted got published (346 of 355 in 30 days).
   the bottom of brief.md; the mechanical ones are unit tests. `applyRules` enforces length +
   freshness in code. /admin reject now asks a reason (`review_log.reject_reason`, mig. 076).
   Migrations 075-077 applied.
-- Backtest 2026-10-13..26 run 11:32 UTC on the qualified brief (run 40496872902; ~437 stories,
-  ~1 call/min). Read it with `assignment-desk.ts --report --backtest`.
+- Backtest v1 (11:32 UTC) INVALID for article/line: the model judged freshness against today,
+  not the day found (101 of 135 freshness lines were fresh when found). Fixed in #63: the model
+  gives event_date only, `applyRules` does freshness. **v2** (`--run v2`, mode backtest-v2):
+  204 of 437 decided before the subscription limit (29 «claude exited 1», then the login check
+  failed 12:28; #66 now logs the CLI's reason). Finish: workflow_dispatch backtest_from=2026-10-13
+  backtest_to=2026-10-26 limit=500 run=v2 (skips the decided). Report: `--report --backtest
+  --run v2`. v2 so far, UK 185: article 40 (24 published, 1 rejected, 13 never drafted — real
+  misses like Pederson SUNYAC DPOW, Duggan ASUN POW), line 58 (27 were published as articles),
+  fold 19, skip 67 (16 published: mostly repeats of published articles, rounds in progress,
+  negative-only), hold 1. DK 19: article 5, line 4, fold 2, skip 8. 7 follow-ups.
+- Static pages (approved plan): stats text live (#64), hubs SSR + UK guide breadcrumb (#65).
+  UK under 200: 14 → 8 (site-check 2026-10-27; stats pages were edge-cached during it). Drafts
+  for /athletes, /editorial-standards and four guides in OneDrive
+  `_gennemsyn-sportsider/3 - UK statiske sider 2026-10-27.md` — two UK guides are factually out
+  of date (NLI abolished Oct 2024; CFP straight seeding since 2025); DK guides already correct.
 - **Ramped up (#58, Mikkel «ramp up the processes»):** discovery every 2 h at :17 (was `0 */6`,
   which GitHub ran ~3×/day: 177 of 776 feeds >24 h old), concurrency group; desk every 4 h.
   discover-feeds found feeds for 14 of 40 feedless schools (26 still none). Drafting unchanged.
