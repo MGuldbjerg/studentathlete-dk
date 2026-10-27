@@ -1,9 +1,9 @@
 -- Migration 078 (2026-10-27). Additive.
 --
--- llm_usage: every Claude call on the subscription by the desk and the Opus
+-- claude_calls: every Claude call on the subscription by the desk and the Opus
 -- editor (pipeline/lib/claude-run.ts) — Mikkel: «keep track of usage and not
 -- exhaust everything immediately». account = primary | fallback | local.
-CREATE TABLE IF NOT EXISTS llm_usage (
+CREATE TABLE IF NOT EXISTS claude_calls (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   at            TEXT    NOT NULL DEFAULT (datetime('now')),
   job           TEXT    NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS llm_usage (
   output_tokens INTEGER NOT NULL DEFAULT 0,
   error         TEXT
 );
-CREATE INDEX IF NOT EXISTS idx_llm_usage_at ON llm_usage(at);
+CREATE INDEX IF NOT EXISTS idx_claude_calls_at ON claude_calls(at);
 
 -- The athlete's own merchandise store (Influxer), verified by name AND school
 -- on the store page (pipeline/profiles/merch-stores.ts). Shown on the profile

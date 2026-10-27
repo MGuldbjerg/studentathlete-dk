@@ -13,7 +13,7 @@
  *    to CLAUDE_CODE_OAUTH_TOKEN_FALLBACK for the rest of the run, once. The
  *    workflow's claude-account action has already picked an account that
  *    answered when the job started.
- *  - USAGE: every call becomes a row for llm_usage (migration 078): job,
+ *  - USAGE: every call becomes a row for claude_calls (migration 078): job,
  *    account, model, tokens, ok/failed. `flushUsage(db)` writes them;
  *    pipeline/report/claude-usage.ts reads them.
  *
@@ -85,13 +85,13 @@ export function runClaude(
   return null;
 }
 
-/** Write the run's calls to llm_usage. Never throws: usage must not fail a run. */
+/** Write the run's calls to claude_calls. Never throws: usage must not fail a run. */
 export async function flushUsage(db: D1Client): Promise<void> {
   const rows = pending.splice(0);
   for (const r of rows) {
     try {
       await db.execute(
-        `INSERT INTO llm_usage (job, account, model, ok, input_tokens, output_tokens, error) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO claude_calls (job, account, model, ok, input_tokens, output_tokens, error) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [r.job, r.account, r.model, r.ok, r.input_tokens, r.output_tokens, r.error],
       );
     } catch (e) {
