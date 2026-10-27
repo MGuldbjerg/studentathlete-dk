@@ -239,10 +239,14 @@ export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): s
     main = `${fullName} ${withObject(v.past, v.object)} for ${where}${posSuffix} and graduated in ${a.expected_graduation}.`;
   } else if (!a.active) {
     main = `${fullName} previously ${withObject(v.past, v.object)} for ${where}${posSuffix}.`;
-  } else if (moved && moved.year >= currentSeasonStart(now)) {
-    main = `${fullName} transferred from ${moved.from} to ${school} in the autumn of ${moved.year} and ${withObject(v.present, v.object)}${posSuffix}.`;
   } else if (moved) {
-    main = `${fullName} has ${withObject(v.participle, v.object)} for ${where}${posSuffix} since transferring from ${moved.from} in ${moved.year}.`;
+    // Same two sentences as the Danish builder (Mikkel, 2026-10-27).
+    const who = a.gender === "f" ? "she" : a.gender === "m" ? "he" : firstName;
+    const started = a.year_enrolled != null && a.year_enrolled < moved.year
+      ? ` and started at ${moved.from} in ${a.year_enrolled}` : "";
+    main = started
+      ? `${fullName} ${withObject(v.present, v.object)}${posSuffix}${started}. In ${moved.year} ${who} transferred to ${where}.`
+      : `${fullName} ${withObject(v.present, v.object)}${posSuffix}. In ${moved.year} ${who} transferred from ${moved.from} to ${where}.`;
   } else if (a.year_enrolled != null && a.year_enrolled >= currentSeasonStart(now)) {
     main = `${fullName} started at ${school} in the autumn of ${a.year_enrolled} and ${withObject(v.present, v.object)}${posSuffix}.`;
   } else if (a.year_enrolled != null) {
