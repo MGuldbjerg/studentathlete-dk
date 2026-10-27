@@ -105,8 +105,9 @@ export default async function GuidePage({ params }: { params: Params }) {
       author: { "@type": "Organization", name: site.brand },
     },
     breadcrumbStructuredData([
-      { name: "Forside", url: base },
-      { name: "Viden", url: `${base}/viden` },
+      // The site's own words and path: the UK guides said «Forside» and «Viden» (2026-10-27).
+      { name: t("crumb.home", site.language), url: base },
+      { name: t("guides.crumb", site.language), url: `${base}${routePath("guides", site.language)}` },
       { name: g.title, url },
     ]),
   ];
@@ -117,7 +118,7 @@ export default async function GuidePage({ params }: { params: Params }) {
 
       <Breadcrumb
         crumbs={[
-          { label: "Forside", href: "/" },
+          { label: t("crumb.home", site.language), href: "/" },
           { label: t("guides.crumb", site.language), href: routePath("guides", site.language) },
           { label: g.title },
         ]}
