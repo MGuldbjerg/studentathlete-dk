@@ -26,10 +26,23 @@ before; nearly everything drafted got published (346 of 355 in 30 days).
   drafted). `--backtest --from --to` decides past stories as of their discovery (context cut at
   that moment; per athlete AND day), mode 'backtest', no Discord; workflow_dispatch inputs.
   `--dump-packs file` shows what the model reads (packs ~30k chars per 8 stories).
-- Not run yet: the backtest (2026-10-13..26 = 437 stories ≈ 55 Opus calls; a week ≈ half).
-- **Open for Mikkel:** correct the brief; daily article target per site; lines live or batch
-  approval; preseason lists (line everywhere or DK exception); health stories always hold?;
-  a reject-reason dropdown in /admin (gives the desk labels).
+- **Brief qualified the same day (#56, #57):** Mikkel's length rule (250+ article; 200-249 from
+  priority 3; under 200 line), freshness (1 day for goal/assist/placing, 3 for bigger, event date
+  → day found), follow-ups for big-but-thin news, no articles from schools' features/Q&As, no
+  negative lines, health held, lines live automatically. 24 hypotheticals and his answers are at
+  the bottom of brief.md; the mechanical ones are unit tests. `applyRules` enforces length +
+  freshness in code. /admin reject now asks a reason (`review_log.reject_reason`, mig. 076).
+  Migrations 075-077 applied.
+- Backtest NOT run: started 11:00 UTC, cancelled by Mikkel before it wrote anything («get the
+  brief as good as possible before the backtest»). Next: `assignment-desk.yml` workflow_dispatch
+  backtest_from=2026-10-13 backtest_to=2026-10-26 limit=500 (~437 stories ≈ 55 Opus calls).
+- Cloudflare headroom (platform-limits.ts, 2026-10-27): D1 reads 0.7 %, writes 3.9 %, requests
+  3.6 % of the monthly allowance; Worker CPU 151 % (≈ $0.31 over). Discovery runs on GitHub, so
+  ramping it is ~free on Cloudflare; the limits are the Claude subscription and review time.
+- Parked on branch `robots-search-report` (WIP commit, not pushed): robots.txt with AI search bots
+  allowed + training bots closed on both sites (tests pass), and `search-console.ts --weekly`
+  (all page types: 5-15, low CTR, lost traffic with live 404/noindex check) — needs tests,
+  seo-friday.sh prompt, PR, deploy. Then: text for the other static pages, then the NCAA guide.
 - Next step after shadow data: generate-articles reads `desk_decisions` (article only, by
   priority up to the target), lines → `athlete_events`.
 
