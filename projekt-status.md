@@ -4,7 +4,22 @@
 
 ---
 
-## 🗂️ Assignment desk — Claude as editor, SHADOW MODE since 2026-10-27 (#55)
+## 🗂️ Assignment desk — Claude as editor, **LIVE since 2026-10-27 12:48 UTC (#68)**
+
+**Live (Mikkel: «switch on the editor»):** assignment-desk.yml runs with DESK_MODE=live (every
+4 h, :05 at 1,5,9,13,17,21 UTC): line → athlete_events row + story status `line`; skip/fold/hold
+→ `skipped`/`folded`/`held`; article stays `new`. generate-manual.yml sets DESK_GATE=1:
+generate-articles drafts ONLY live-desk articles, priority first, with the desk's type and angle.
+Off switches (repo variables): DESK_MODE=shadow, DESK_GATE=off. Risk: the desk runs on the
+Claude subscription; when it hits the usage limit (as at ~12:15 on 27/10) nothing is decided and
+nothing is drafted until the next run that gets through — stories stay in the 3-day window.
+Approved texts live (#67): /athletes intro, editorial standards (D1 pages presseetik UK), four UK
+guides incl. the NLI and CFP fixes, CFP 2027 → 24 teams on both sites.
+Influxer: another session found 102 athletes with a matching store (97 UK, 5 DK) + 104 name-only
+(`/tmp/claude-1000/…/ae432e48…/scratchpad/influxer_results.json` in WSL — temp, copy before it
+goes); store URL `https://www.influxermerch.com/athletes/<name-slug>`. Awaiting Mikkel's choice.
+
+### Shadow period (27/10, before going live)
 
 Mikkel: «make you act as an actual editor for the stories coming in … lines on the profile or
 full articles». Why: the body pass finds ~118 UK / ~16 DK stories a day against ~22 / ~2 drafted
