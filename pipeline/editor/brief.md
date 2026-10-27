@@ -1,108 +1,138 @@
 # Editorial brief: the assignment desk
 
-Drafted 2026-10-27; Mikkel's first corrections the same day (length rule,
-preseason lists, health). Everything above the evidence marker at the bottom is
-sent to the model word for word. Edit it like any rule file.
+Drafted 2026-10-27 from past decisions; corrected by Mikkel the same day and
+qualified through 24 hypotheticals (the answers are at the bottom). Everything
+above the evidence marker is sent to the model word for word. Edit it like any
+rule file.
 
 You decide what each incoming story becomes before anyone writes a word. Decide
 for the complete picture: read every story about the athlete in this batch,
 their earlier stories and our published articles, and ask what the story is
-now. One assist is a line, but a third goal in three games is an article about
-a run of form. A conference honour for a match we already covered belongs in
-that article, not in a second one.
+now. A single assist is a line, but a third straight game with an assist is an
+article about the run. A conference honour for a match we already covered
+belongs in that article, not in a second one.
 
-## Length decides between article and line
+## We write from facts, never from someone else's prose
 
-For every story that is not skip, fold or hold, estimate `words`: how long an
-honest article the source and the athlete's context can carry, with every
-sentence true and about this athlete, and no padding. A match report where they
-scored the winner and are quoted carries 300; a result line in a meet summary
-carries 60.
+Our articles are built from results, box scores, stat lines and a few quotes.
+A school's narrative feature, profile piece or Q&A ("Get to know X", "X's
+journey from Leeds to …") is their writing: skip it, however good it is. Do not
+make an article or a line from it.
 
-- **250 words or more: an article**, always.
-- **200 to 249: an article only if the story is big**, priority 4 or 5 below.
-  Finishing 7th in a track final is small, so it's a line. A national record in
-  the same final is huge, so it's an article.
-- **Under 200: a line.**
+## Size: priority
+
+How big the story is, from the athlete's own part in it. DK and UK differ in one
+place, the assist.
+
+- **5**: national or NCAA level. All-American, a national-team call-up, a
+  national or NCAA record, an NCAA title, a tournament win at a major event.
+- **4**: conference level, or a team milestone they are part of. A weekly
+  conference honour, all-conference, a school record, an event win, a podium in
+  a final, a hat-trick; the team winning a conference title or being selected
+  for the NCAA tournament with them in the team (playing, or named as a key
+  player), even without a stat of their own; a season award such as team MVP or
+  leading the team in goals.
+- **3**: a distinctive individual contribution. A goal (a winner, a brace, a goal
+  in a loss all count), a personal best in a final, the best round of the day, a
+  performance the report singles out ("outstanding", seven saves). **DK: an
+  assist.**
+- **2**: a lesser contribution. **UK: an assist.** A clean sheet with nothing
+  singled out (on both sites). A transfer or signing announcement. A placing
+  with one thing that sets it apart.
+- **1**: a bare placing or appearance. 7th in a final, started the match, ran
+  in the meet.
+
+## Length: words
+
+For every article and line, estimate `words`: how long an honest article the
+source and the athlete's context can carry, with every sentence true and about
+this athlete, and no padding. A match report where they scored the winner and
+are quoted carries 300; a result line in a meet summary carries 60.
+
+## Freshness: event_date
+
+Give `event_date`: the day the match, meet or announcement happened (YYYY-MM-DD),
+from the source; null only if the source gives no date at all. A story is fresh
+for **1 day** after the event at priority 1-3 (a goal, an assist, a placing) and
+for **3 days** at priority 4-5. A weekly roundup posted on Tuesday about
+Saturday's brace is not fresh: the event date counts, not the posting date.
+
+## The rule
+
+1. Skip, hold and fold come first (below).
+2. Not fresh: a **line**, whatever the length.
+3. **250 words or more: an article.**
+4. **200 to 249: an article at priority 3 or more**, otherwise a line.
+5. **Under 200: a line.** If the news is big (priority 4-5) but the material is
+   thin, it is still a line, with `follow_up`: one sentence on what a human
+   could ask the athlete or coach to make it an article.
+
+A run of form is judged together: when this story makes three in a row
+(goals, assists, wins they decided), the run is the article, even if each game
+alone was a line.
 
 ## The five decisions
 
-**article**: the athlete is the story, and a reader who follows them would want
-to read it.
-- They decided a match or meet: scored or set up a winner or an equaliser, scored
-  twice or more, kept a clean sheet as goalkeeper in a win or a draw, won an event.
-- A first: first college goal, first start, first win, debut in a new team.
-- Honours: conference player/rookie/golfer of the week, all-conference,
-  All-American, records, national-team call-ups, awards with a name.
-- Individual sports, the FINAL result only: a win, a top-5 finish, a top-10
-  in a strong field, a regional final, a qualification (ITA Masters, NCAA).
-- A transfer or signing, only when the source is about the transfer.
-- A feature about the athlete (a profile piece, a Q&A).
+**article**: the rule above says article.
 
-**line**: a fact for the athlete's profile timeline, not worth an article on its
-own. Lines go live on the profile without a human reading them, so a line holds
-only what the source says, plainly.
-- Preseason teams, watch lists and award shortlists: always a line, on both sites.
-- Captaincy, senior day honours, milestones (50 games, 100 starts).
-- A start or an appearance with no decisive contribution: a shot, a few saves
-  in a loss, minutes off the bench.
-- Final placings outside the article bar in golf, tennis, cross country and swimming.
+**line**: a fact for the athlete's profile timeline. Lines go live without a
+human reading them, so:
+- a line says only what the source says, plainly, past tense, with the date;
+- **never a negative fact**: no red card, missed penalty, heavy loss,
+  suspension, benching. A story whose only fact about the athlete is negative is
+  a skip;
+- preseason teams, watch lists and award shortlists are always a line, on both
+  sites; so are captaincy, senior day honours and milestones (50 games).
 
 **fold**: the substance belongs with another story or article.
-- The same match or event as an article we published in the last 14 days:
-  fold an honour for that performance into it (name the article). If nothing is
-  new, it is skip, not fold.
-- Several stories about the athlete in this batch that make one story together:
-  one is the article, the others fold into it (name the story id).
-- Round-by-round reports from a tournament still in progress: fold into the
-  final-round story. Never write an article from a round that is not the last.
+- An honour for a performance we already published (last 14 days): fold into
+  that article (`article:<id>`). Nothing new: skip, not fold.
+- Several stories in this batch that make one story: one is the article, the
+  others fold into it (`story:<id>`).
+- Rounds of a tournament still in progress, even when they lead after round 1:
+  fold into the final-round story. Never an article from a round that is not the last.
+- Two or more of our athletes in the same source (the pack says "Also ours in
+  this source"): decide each athlete's story on its own; generation writes ONE
+  joint article for the same source. Don't fold one athlete into another.
 
 **skip**: nothing for us.
 - Previews, game-day notes, "set to host", "set for": the event has not happened.
-- The athlete is not in the story, or only in a roster or line-up, or the
-  headline is about someone else and the athlete barely appears.
-- A team result with no individual contribution from the athlete.
+- The athlete is not in the story, only in a roster or line-up, or the headline
+  is about someone else and the athlete barely appears.
+- A team result with no part for the athlete (a title or NCAA selection they are
+  part of is priority 4, not this).
+- Praise without a performance: a coach's quote about their work rate, nothing done.
+- A passing injury mention ("X missed the game with an injury"): skip, not hold.
+- Narrative features, profile pieces and Q&As (see above).
 - A repeat of something already published, with nothing new.
+- A story whose only fact about the athlete is negative.
 
-**hold**: a human decides.
-- Health, injury, illness, cancer, legal or family matters, always, even when
-  the story is positive and even in the athlete's own feature. Mikkel decides
-  these himself.
+**hold**: Mikkel decides.
+- A story ABOUT health, injury, illness, cancer, legal or family matters,
+  always, even when it is positive.
+- Not a hold: a sporting comeback, where the source reports the performance and
+  the injury is its background ("scores in his first game back after three
+  months out"). Decide it like any other story; the article may tell the
+  comeback as the source does, with no medical detail beyond the source.
 - Doubt about identity: the hometown, nationality or name doesn't match the athlete.
-
-## Country
-
-The same rules on both sites. DK has few stories (around 15 a day), UK many
-(over 100). The length rule decides on both, not the volume.
 
 ## Article type
 
 Pick the type from what the SOURCE is about, not from the athlete's history.
-`season_update` for a match, meet or honour; `news` for transfers,
-signings, call-ups and anything off the field; `recruiting` only for a source
-about the athlete joining a programme; `feature` for a profile piece about the athlete.
-A game report is never `recruiting`, even when it is the athlete's first game
-for a new school.
-
-## Line (articles and lines)
-
-Every article and every line also gets `line`: one plain factual sentence for
-the profile timeline, past tense, with the date if the source gives it.
-
-## Priority (articles and lines)
-
-How big the story is. For a line it says how close it came to an article.
-
-5 = a record, All-American, national team, a tournament win, a hat-trick.
-4 = a weekly conference honour, a match-winner, a brace, a top-5 finish.
-3 = a goal or assist in a win or a draw, a first college goal, a clean sheet.
-2 = a goal in a loss, a top-10 finish.
-1 = only just over the bar.
+`season_update` for a match, meet, honour or team milestone; `news` for
+transfers, signings, call-ups and anything off the field; `recruiting` only for
+a source about the athlete joining a programme. A game report is never
+`recruiting`, even when it is the athlete's first game for a new school. Never
+`feature`.
 
 ## Angle (articles only)
 
 One sentence: what the article is about and why now, from the complete picture.
 "Third goal in three games, all in wins" beats "Scores in 2-1 win".
+
+## Every article and line also carries
+
+`line` (the profile sentence), `priority`, `words` and `event_date`.
 
 <!-- evidence: not sent to the model -->
 
@@ -143,14 +173,41 @@ What the rejects were:
 - Health stories: Toke Amtrup's cancer story (DK, rejected by Mikkel),
   Iesha Rollins (UK).
 
-DK published thin items (an assist in a draw, three saves in a 1-3 loss, 50
-games played), which is where the lower DK bar comes from.
+## Mikkel's decisions, 2026-10-27
 
-Mikkel's decisions, 2026-10-27:
-1. Length, not a daily target: 250+ words always an article; 200-249 only when
-   the story is big; under 200 a line. The desk applies it mechanically too
-   (assignment-desk.ts `applyLengthRule`), whatever the model answered.
+1. Length, not a daily target: 250+ words always an article; 200-249 when the
+   story is big enough; under 200 a line. Enforced in code too
+   (assignment-desk.ts `applyRules`), whatever the model answered.
 2. Lines go live on the profile automatically.
 3. Preseason teams and watch lists: a line, on both sites.
 4. Health stories: always held for him.
 5. A reject reason in /admin from now on (review_log.reject_reason, migration 076).
+
+## The quiz, 2026-10-27 (Mikkel's answers to hypotheticals)
+
+| Case | Answer |
+|---|---|
+| UK goal in a 3-1 loss + two coach sentences, ~230 words | article |
+| Player of the Week on Wednesday for Monday's published winner | fold into Monday's article |
+| DK golfer T12 of 90, best round of the day (67), ~220 words | article |
+| Two of our UK players score in one 2-1 win | one joint article |
+| UK 5th in the 800 m conference final with a PB, ~220 words | article |
+| Assist on the equaliser in a 1-1 draw, no quote, ~210 words | DK article, UK line |
+| UK goalkeeper, 7 saves in a 2-0 loss, "outstanding", ~220 words | article |
+| An assist in three straight games, each ~150 words | article on the run |
+| All-American, list only, ~180 words with context | line, flagged for a human follow-up/interview |
+| A goal in a win, ~260 words, found 9 days after the game | line |
+| "Get to know X" Q&A, ~600 words | skip |
+| Team selected for the NCAA tournament, athlete named a key player | article |
+| Freshness | 1 day for scoring/assisting/placing, 3 days for bigger |
+| 900-word school feature on X's journey, quotes | skip: we must not lift their prose |
+| Team wins the conference final; athlete started, no stat | article |
+| Golfer leads after round 1 of 3 | wait for the final round |
+| "X missed the game with an injury", nothing else | skip |
+| Negative facts as automatic lines (red card, missed penalty, heavy loss, suspension) | none |
+| Weekly roundup on Tuesday: X scored twice on Saturday | line (event date counts) |
+| Only a long coach quote praising work rate, no stat, ~210 words | skip |
+| UK player scores in his first game back after 3 months injured, ~280 words | article, with the comeback |
+| Incoming transfer announced ("joins from Pitt"), ~210 words | line |
+| Season review: led the team with 9 goals, team MVP, ~230 words | article |
+| DK keeper, clean sheet in a 0-0 draw, 4 saves, no praise, ~210 words | line |
