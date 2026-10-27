@@ -11,8 +11,10 @@ name: Assignment desk (shadow)
 # only; angles, lines and reasons go to D1 and Discord. Never add an
 # upload-artifact step here.
 #
-# Three times a day, 25 minutes before generate-manual (:30), so a decision
-# usually exists before the draft. In shadow mode the order doesn't matter.
+# Every 4 hours (was 3 a day; Mikkel 2026-10-27 «ramp up the processes», with
+# discovery now every 2 h): smaller batches, and a decision soon after a story
+# is found. 13:05 still lands 25 minutes before generate-manual (:30). In
+# shadow mode the order doesn't matter.
 #
 # Manual run with backtest dates: decides past stories as of their discovery,
 # stored as mode 'backtest' and never sent to Discord.
@@ -21,7 +23,7 @@ name: Assignment desk (shadow)
 
 on:
   schedule:
-    - cron: '5 7,13,19 * * *'
+    - cron: '5 1,5,9,13,17,21 * * *'
   workflow_dispatch:
     inputs:
       backtest_from:
