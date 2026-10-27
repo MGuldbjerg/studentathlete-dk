@@ -1,7 +1,7 @@
 # Editorial brief: the assignment desk
 
 Drafted 2026-10-27 from past decisions; corrected by Mikkel the same day and
-qualified through 20 hypotheticals (the answers are at the bottom). Everything
+qualified through 24 hypotheticals (the answers are at the bottom). Everything
 above the evidence marker is sent to the model word for word. Edit it like any
 rule file.
 
@@ -30,13 +30,15 @@ place, the assist.
   conference honour, all-conference, a school record, an event win, a podium in
   a final, a hat-trick; the team winning a conference title or being selected
   for the NCAA tournament with them in the team (playing, or named as a key
-  player), even without a stat of their own.
+  player), even without a stat of their own; a season award such as team MVP or
+  leading the team in goals.
 - **3**: a distinctive individual contribution. A goal (a winner, a brace, a goal
   in a loss all count), a personal best in a final, the best round of the day, a
   performance the report singles out ("outstanding", seven saves). **DK: an
   assist.**
-- **2**: a lesser contribution. **UK: an assist.** A placing with one thing
-  that sets it apart.
+- **2**: a lesser contribution. **UK: an assist.** A clean sheet with nothing
+  singled out (on both sites). A transfer or signing announcement. A placing
+  with one thing that sets it apart.
 - **1**: a bare placing or appearance. 7th in a final, started the match, ran
   in the meet.
 
@@ -108,6 +110,10 @@ human reading them, so:
 **hold**: Mikkel decides.
 - A story ABOUT health, injury, illness, cancer, legal or family matters,
   always, even when it is positive.
+- Not a hold: a sporting comeback, where the source reports the performance and
+  the injury is its background ("scores in his first game back after three
+  months out"). Decide it like any other story; the article may tell the
+  comeback as the source does, with no medical detail beyond the source.
 - Doubt about identity: the hometown, nationality or name doesn't match the athlete.
 
 ## Article type
@@ -201,3 +207,7 @@ What the rejects were:
 | Negative facts as automatic lines (red card, missed penalty, heavy loss, suspension) | none |
 | Weekly roundup on Tuesday: X scored twice on Saturday | line (event date counts) |
 | Only a long coach quote praising work rate, no stat, ~210 words | skip |
+| UK player scores in his first game back after 3 months injured, ~280 words | article, with the comeback |
+| Incoming transfer announced ("joins from Pitt"), ~210 words | line |
+| Season review: led the team with 9 goals, team MVP, ~230 words | article |
+| DK keeper, clean sheet in a 0-0 draw, 4 saves, no praise, ~210 words | line |

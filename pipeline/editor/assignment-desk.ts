@@ -100,7 +100,7 @@ export interface DeskVerdict {
 }
 
 /**
- * Mikkel's rule, 2026-10-27, qualified by his answers to 20 hypotheticals
+ * Mikkel's rule, 2026-10-27, qualified by his answers to 24 hypotheticals
  * (pipeline/editor/brief.md): «stories over 250 words should always be posted,
  * 200-249 … based on how big the story is», and «simple scoring/assisting/
  * placement should probably be 1 day, bigger stuff should be 3 days».
