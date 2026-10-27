@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { SiteStats, StatsBlock, Tally } from "@/lib/athlete-stats";
 import { NATIONS, type Nation } from "@/lib/home-nation";
 import { languagePack, routePath, sportLabel, t } from "@/lib/i18n";
+import { statsProse } from "@/lib/stats-prose";
 
 function pct(n: number, total: number): string {
   return total ? `${Math.round((n / total) * 100)}%` : "–";
@@ -152,6 +153,14 @@ export function StatsView({
             );
           })}
         </nav>
+      )}
+
+      {block && (
+        // The numbers in words (stats-prose.ts): the page's own data, so the
+        // page says what the tables show — and is more than tables.
+        <div className="max-w-2xl mb-10 space-y-3 text-ink/80 leading-relaxed">
+          {statsProse(stats, nation, lang).map((p, i) => <p key={i}>{p}</p>)}
+        </div>
       )}
 
       {block && <Block block={block} lang={lang} />}

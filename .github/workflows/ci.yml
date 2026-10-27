@@ -124,6 +124,7 @@ jobs:
             src/lib/_athlete-letters-test.ts \
             src/lib/_youtube-test.ts \
             src/lib/_profile-baseline-test.ts \
+            src/lib/_stats-prose-test.ts \
             src/lib/_profile-baseline-en-test.ts \
             src/lib/_positions-test.ts \
             src/lib/_mcp-server-test.ts \

@@ -87,6 +87,7 @@ export default async function NationStatsPage({ params }: { params: Promise<{ na
         <h1 className="text-3xl font-bold text-ink mt-6 mb-3" style={{ fontFamily: "var(--font-serif)" }}>{title}</h1>
         <p className="text-sm text-ink/80 mb-3 max-w-2xl border-l-4 pl-3" style={{ borderColor: "#BF0A30" }}>{t("awards.intro", aw.lang)}</p>
         <AwardsView tally={aw.tally} lang={aw.lang} />
+        <p className="text-sm text-ink/80 mt-10 max-w-2xl leading-relaxed">{t("awards.method", aw.lang)}</p>
       </main>
     );
   }
@@ -117,6 +118,7 @@ export default async function NationStatsPage({ params }: { params: Promise<{ na
           </p>
         )}
         <LeaderboardView board={lb.board} lang={lb.lang} />
+        <p className="text-sm text-ink/80 mt-10 max-w-2xl leading-relaxed">{t("board.method", lb.lang)}</p>
       </main>
     );
   }
