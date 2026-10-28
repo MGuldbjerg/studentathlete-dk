@@ -57,6 +57,10 @@
 # med --dry-run for at se hvad der ville blive gennemgået og rettet.
 # ============================================================================
 set -uo pipefail
+
+# The fallback Claude account runs Sonnet at medium effort (Mikkel, 2026-10-27).
+FALLBACK_MODEL=()
+[ "${CLAUDE_ACCOUNT:-}" = "fallback" ] && FALLBACK_MODEL=(--model sonnet --effort medium)
 cd "$(dirname "$0")/.." || exit 1
 
 # Cron kører en IKKE-interaktiv shell, og ~/.bashrc returnerer med vilje med det
@@ -155,7 +159,7 @@ else
     echo "  → gennemgår #$id"
     # Ingen værktøjer: pakken indeholder alt, og en gennemgang må ikke kunne
     # ændre noget i repoet eller i basen.
-    if claude -p "$(cat "$PACK")" --allowed-tools "" > "$OUT" 2>logs/review/fejl-$id.txt; then
+    if claude -p "$(cat "$PACK")" --allowed-tools "" "${FALLBACK_MODEL[@]}" > "$OUT" 2>logs/review/fejl-$id.txt; then
       npx tsx pipeline/generate/save-review.ts --article "$id" --file "$OUT" \
         || echo "  ! kunne ikke gemme gennemgang af #$id (se $OUT)"
     else
@@ -215,7 +219,7 @@ if [ "$DO_FIX" = "1" ]; then
       # prøvet igennem på kladde #245 (2026-09-10), og den holder uanset hvor
       # lang pakken bliver — en rette-pakke er større end en gennemgangspakke,
       # fordi fundene er med.
-      if claude -p --allowed-tools "" < "$FPACK" > "$FOUT" 2>logs/review/ret-fejl-$id.txt; then
+      if claude -p --allowed-tools "" "${FALLBACK_MODEL[@]}" < "$FPACK" > "$FOUT" 2>logs/review/ret-fejl-$id.txt; then
         npx tsx pipeline/generate/apply-draft-fix.ts --article "$id" --file "$FOUT" \
           || echo "  ! rettelsen af #$id blev IKKE gemt (se $FOUT)"
       else
