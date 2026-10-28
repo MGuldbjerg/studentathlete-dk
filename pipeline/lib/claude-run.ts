@@ -14,6 +14,12 @@
  *    workflow's claude-account action has already picked an account that
  *    answered when the job started. The fallback runs Sonnet at medium effort
  *    whatever the job asked for (Mikkel, 2026-10-27: «just Sonnet, medium for now»).
+ *  - EARLY SWITCH: Mikkel, 2026-10-28: «the fallback should be activated before
+ *    the usage is completely exhausted.» The CLI reports the subscription's
+ *    utilisation (stream-json `rate_limit_event`: five_hour and seven_day, 0–1).
+ *    Before the first call and every PROBE_EVERY calls after, one tiny probe
+ *    reads it; at FIVE_HOUR_LIMIT / SEVEN_DAY_LIMIT (or a non-"allowed" status)
+ *    the run moves to the fallback account while the main one still has room.
  *  - USAGE: every call becomes a row for claude_calls (migration 078): job,
  *    account, model, tokens, ok/failed. `flushUsage(db)` writes them;
  *    pipeline/report/claude-usage.ts reads them.
@@ -49,19 +55,66 @@ export function canSwitch(status: number, current: ClaudeAccount, fallback: stri
 }
 
 /** The model (and effort) a call runs with on this account. */
-export function modelFor(current: ClaudeAccount, model: string): { model: string; effort?: string } {
-  return current === "fallback" ? { model: "sonnet", effort: "medium" } : { model };
+export function modelFor(current: ClaudeAccount, model: string, effort?: string): { model: string; effort?: string } {
+  return current === "fallback" ? { model: "sonnet", effort: "medium" } : effort ? { model, effort } : { model };
 }
+
+export interface Utilization { fiveHour: number; sevenDay: number; allowed: boolean }
+const FIVE_HOUR_LIMIT = Number(process.env.CLAUDE_SWITCH_FIVE_HOUR ?? 0.85);
+const SEVEN_DAY_LIMIT = Number(process.env.CLAUDE_SWITCH_SEVEN_DAY ?? 0.9);
+const PROBE_EVERY = 6;
+
+/** Is the main account close enough to its limit that the run should move to the fallback? */
+export function nearLimit(u: Utilization | null, fiveHour = FIVE_HOUR_LIMIT, sevenDay = SEVEN_DAY_LIMIT): boolean {
+  return !!u && (!u.allowed || u.fiveHour >= fiveHour || u.sevenDay >= sevenDay);
+}
+
+/** Read utilisation from the CLI's stream-json output; null when it carries no rate_limit_event. */
+export function parseUtilization(stdout: string): Utilization | null {
+  for (const line of stdout.split("\n")) {
+    if (!line.includes("rate_limit_event")) continue;
+    try {
+      const info = JSON.parse(line).rate_limit_info;
+      const w = info?.unifiedWindows ?? {};
+      const five = Number(w.five_hour?.utilization ?? 0), seven = Number(w.seven_day?.utilization ?? 0);
+      const allowed = info?.status === "allowed" || info?.status === "allowed_warning";
+      return { fiveHour: five, sevenDay: seven, allowed };
+    } catch { /* not the line */ }
+  }
+  return null;
+}
+
+/** One tiny call on the current token just to read the utilisation. Null on any trouble — a probe must never stop a run. */
+function probeUtilization(env: NodeJS.ProcessEnv): Utilization | null {
+  const res = spawnSync("claude", ["-p", "--model", "haiku", "--output-format", "stream-json", "--verbose", "--tools", "",
+    "--no-session-persistence", "--setting-sources", "user", "--system-prompt", "Reply with OK."], {
+    input: "OK", cwd: tmpdir(), env, encoding: "utf8", timeout: 60_000, maxBuffer: 5 * 1024 * 1024,
+  });
+  return parseUtilization(res.stdout ?? "");
+}
+let callsSinceProbe = Infinity;
 
 export function runClaude(
   input: string,
-  o: { job: string; model: string; system: string; timeoutMs?: number },
+  o: { job: string; model: string; effort?: string; system: string; timeoutMs?: number },
 ): string | null {
   for (let attempt = 0; attempt < 2; attempt++) {
     const env = { ...process.env };
     delete env.ANTHROPIC_API_KEY; // with it set, the CLI would bill the API
     if (token) env.CLAUDE_CODE_OAUTH_TOKEN = token;
-    const m = modelFor(account, o.model);
+    if (account === "primary" && process.env.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK && callsSinceProbe >= PROBE_EVERY) {
+      callsSinceProbe = 0;
+      const u = probeUtilization(env);
+      if (u) console.log(`  Claude main account: 5h ${Math.round(u.fiveHour * 100)}% · 7d ${Math.round(u.sevenDay * 100)}%`);
+      if (nearLimit(u)) {
+        account = "fallback";
+        token = process.env.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK;
+        env.CLAUDE_CODE_OAUTH_TOKEN = token;
+        console.log("  → main account close to its limit: switching to the fallback account for the rest of this run");
+      }
+    }
+    callsSinceProbe++;
+    const m = modelFor(account, o.model, o.effort);
     const res = spawnSync("claude", claudeCliArgs(m.model, o.system, m.effort), {
       input,
       cwd: tmpdir(),
