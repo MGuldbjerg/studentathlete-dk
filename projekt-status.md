@@ -85,18 +85,14 @@ editing connector — a different thing.
 5. **AdSense .co.uk** — reapply not before ~10 Nov and not before the 14 thin hub pages have
    prose (/athletes + /articles intros need his read).
 6. **Threads** — create profiles + Threads use case, then `setup-threads.bat` per market.
-7. **weekly-scrape nightly cron** — confirm removal (see below).
 
-## Decisions from the 28/10 optimisation pass
+## Schedule decisions 28/10 (PR #76)
 
-- **Drafting twice a day** (Mikkel 28/10, PR #76): 07:30 + 19:30 UTC. Saves a probe and a
-  runner, not Claude calls — the lever for those is `CLAUDE_DAILY_CAP` (150).
-- **weekly-scrape's daily 22:00 cron** (temporary since 4 Aug): Mikkel said remove, ON HOLD for
-  one confirm — since 22/10 the nightly rotation also finds the 13 collecting countries'
-  athletes (schools scraped before then kept only UK/DK); weekly would take months.
-- **catalogue-daily** fills `international_athletes`, read by /admin/katalog (expansion
-  inventory: athletes by language/region/sport for choosing the next market). Converges by
-  idempotent upsert; weekly would do once the counts stop moving. Open.
+- Drafting twice a day, 07:30 + 19:30 UTC. Saves a probe and a runner, not Claude calls —
+  the lever for those is `CLAUDE_DAILY_CAP` (150).
+- Catalogue (`international_athletes`, /admin/katalog) weekly, Saturday 21:00 UTC.
+- weekly-scrape keeps its nightly 22:00 run so the 13 collecting countries get a full
+  rotation. Go weekly when `SELECT home_country, COUNT(*) FROM athletes GROUP BY 1` stops growing.
 
 ## Next (Claude)
 
