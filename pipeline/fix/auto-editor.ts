@@ -73,7 +73,10 @@ export type Verdict =
   | { action: "reject"; reason: string }
   | { action: "hold"; reason: string };
 
-const MODEL = process.env.AUTO_EDITOR_MODEL || "opus";
+// Mikkel, 2026-10-28: Sonnet at medium effort — the Opus runs hit the usage limit too often.
+// (The workflow and step keep the name "Opus editor"; the gate finds the step by name.)
+const MODEL = process.env.AUTO_EDITOR_MODEL || "sonnet";
+const EFFORT = process.env.AUTO_EDITOR_EFFORT || "medium";
 
 // ── the prompt ──────────────────────────────────────────────────────────────
 
@@ -219,6 +222,7 @@ function askModel(pack: string): string | null {
   return runClaude(pack, {
     job: "auto-editor",
     model: MODEL,
+    effort: EFFORT,
     system: "You are the editor of a sports news site. Follow the instructions in the message and answer only with the JSON object it asks for.",
   });
 }

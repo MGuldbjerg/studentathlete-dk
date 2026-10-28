@@ -77,5 +77,9 @@ check(args[args.indexOf("--setting-sources") + 1], "user", "project CLAUDE.md is
 check(args[args.indexOf("--system-prompt") + 1], "SYS", "our system prompt replaces Claude Code's");
 check(args.includes("--"), false, "the prompt is not an argument — it goes on stdin");
 
+check(args.includes("--effort"), false, "no effort flag unless asked");
+const withEffort = claudeCliArgs("sonnet", "SYS", "medium");
+check(withEffort[withEffort.indexOf("--effort") + 1], "medium", "effort is passed on");
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

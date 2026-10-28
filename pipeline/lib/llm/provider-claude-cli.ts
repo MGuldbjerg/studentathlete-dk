@@ -44,10 +44,11 @@ export interface ClaudeCliResult {
 }
 
 /** Arguments for one lean, tool-less call. The prompt goes in on stdin. */
-export function claudeCliArgs(model: string, system: string): string[] {
+export function claudeCliArgs(model: string, system: string, effort?: string): string[] {
   return [
     "-p",
     "--model", model,
+    ...(effort ? ["--effort", effort] : []),
     "--output-format", "json",
     "--tools", "",
     "--strict-mcp-config",
