@@ -1,6 +1,6 @@
 # StudentAthlete.dk — Status
 
-**Sidst opdateret**: 2026-10-28 (where we are — read this section first)
+**Sidst opdateret**: 2026-10-27 (where we are — read this section first)
 
 ---
 
@@ -32,13 +32,7 @@ name «Opus editor» — the run gate finds the step by name). **Early switch** 
 the first call and every 6 calls a Haiku probe reads the CLI's `rate_limit_event` utilisation; at
 85% of the 5-hour or 90% of the 7-day window (`CLAUDE_SWITCH_FIVE_HOUR` / `_SEVEN_DAY`) the rest of
 the run moves to the fallback. Applies to the desk too (same runner). The 27/10 editor failure was the
-preflight finding no working main token with no fallback set. Live since #73 merged 28/10.
-**Ops MCP server (28/10, `mcp/`, SETUP-ops-mcp.md):** local stdio, read-only tools for Claude Code —
-`ci_runs`, `ci_failure`, `claude_usage`, `claude_quota`, `d1_schema`, `d1_query`, `d1_top_reads`. D1 guard:
-one SELECT, plan checked (full scan refused unless `allow_scan`), ≤200 rows, 1-min cache, 200k rows/day
-cap. Registered per PC with `claude mcp add` (command in the SETUP file). Use it instead of WSL one-liners.
-First `d1_top_reads` (28/10): the site's top queries each read ~0.3–1M rows/day — `athletes` COUNT by
-sport+home_country (1.8k rows/run) and the articles list queries lead. Worth an index/cache look.
+preflight finding no working main token with no fallback set. Not live until #73 is merged.
 **Influxer (#70):** `merch-stores.ts` verified 104 stores (98 UK, 6 DK) by name + the store's own
 school heading; profile link «Buy {name} merchandise ↗» with UTM + click_kind 'merch'; ~20 visible
 (UK profiles need an article). `merch-clicks.ts` for the pitch. Re-run `--all` monthly (not
