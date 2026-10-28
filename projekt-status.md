@@ -59,8 +59,12 @@ Mikkel creates the profiles and runs `setup-threads.bat`. Social links carry `?s
 
 **Platform.** Workers Paid. 27/10 (`platform-limits.ts`): D1 reads 0.7 %, writes 3.9 %, requests
 3.6 % of the monthly allowance — **Worker CPU 151 %** (≈ $0.31 over). CPU, not D1, is the cost to
-watch. `d1_top_reads` (28/10): the heaviest site queries are the article lists (~3M rows/day,
-no index on `articles.published_at`), sport-page counts and letter pages — see Next.
+watch. **CPU pass live 28/10 (#77, migration 079, deploy dcd6653d):** list queries no longer
+carry article bodies (`ARTICLE_LIST_SELECT`, `word_count` from SQL — the home page dropped
+~170–190 KB of bodies per render); list/carousel/letter indexes; sport counts from the hourly
+`stats_cache` row `sport_active_counts`. Expected D1 ~5.1M → ~0.35M rows/day on those queries.
+`rsc` requests: 0 of 84 in a 10-min tail — `prefetch={false}` already covers it; nothing to cache.
+Migration 047 had been only partly applied (its athletes index was missing live).
 
 **Tooling.** Ops MCP server (`mcp/`, #74): `status` overview, CI runs/failures, Claude usage +
 quota, guarded D1 reads, D1 top queries. Every workflow's failure alert goes through
@@ -96,10 +100,6 @@ editing connector — a different thing.
 
 ## Next (Claude)
 
-- **Site CPU/D1:** index `articles(country, published, published_at)`; list queries without
-  `content`; sport counts from the cached `sport_counts` stat; expression index for letter pages.
-  `rsc` navigations bypass the edge cache (`src/lib/worker-cache.ts`) — measure their share
-  before changing it (RSC payloads vary by router state).
 - **Health:** `daily-js-scrape` hit its 30-min timeout in 7 of 8 runs; `llm-check` failed 4 of 8.
 - **Blyth transfer** (CBU → Nova Southeastern): scrapers don't move a transfer whose slug exists.
 - **Enrich the 56 old short articles** (`enrich.ts`) so they can return to the index (optional).
@@ -112,6 +112,8 @@ editing connector — a different thing.
 - Collecting countries arrive: `SELECT home_country, COUNT(*) FROM athletes GROUP BY 1`.
 - Discovery every 2 h (was 6): story volume, DK draft queue, D1 reads.
 - First award roundup 1 Nov; first weekly leaderboard 3 Nov.
+- **CPU after #77** (~30 Oct, a day or two of traffic): `npx tsx pipeline/checks/platform-limits.ts`
+  (was 151 %) and `d1_top_reads` (the list queries should be gone from the top).
 
 ## Standing decisions
 
