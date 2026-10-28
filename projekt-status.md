@@ -24,9 +24,15 @@ use `pipeline/lib/claude-run.ts` (lean calls, mid-run switch, rows in `claude_ca
 **Main token dead since ~12:20 UTC 27/10** (desk 12:28 «Claude login failed»; editor 15:51 and
 review 15:31 «No Claude account answered»); limit or login unknown — the probe swallows the CLI's
 text. Fallback = mgj@groenagergaard.dk (Mikkel, 27/10), runs **Sonnet, effort medium** on every
-job (`modelFor` in claude-run.ts, `FALLBACK_MODEL` in review-drafts.sh). Secret
-`CLAUDE_CODE_OAUTH_TOKEN_FALLBACK` NOT set yet — Mikkel: `claude setup-token` as that account,
-then `gh secret set CLAUDE_CODE_OAUTH_TOKEN_FALLBACK`.
+job (`modelFor` in claude-run.ts, `FALLBACK_MODEL` in review-drafts.sh). Mikkel set the
+fallback secret `CLAUDE_CODE_OAUTH_TOKEN_FALLBACK` on 28/10.
+**28/10 (PR #73):** the Opus editor (`auto-editor.ts`) now defaults to **Sonnet, effort medium** on
+the main account too (`AUTO_EDITOR_MODEL` / `AUTO_EDITOR_EFFORT` override; workflow and step keep the
+name «Opus editor» — the run gate finds the step by name). **Early switch** in `claude-run.ts`: before
+the first call and every 6 calls a Haiku probe reads the CLI's `rate_limit_event` utilisation; at
+85% of the 5-hour or 90% of the 7-day window (`CLAUDE_SWITCH_FIVE_HOUR` / `_SEVEN_DAY`) the rest of
+the run moves to the fallback. Applies to the desk too (same runner). The 27/10 editor failure was the
+preflight finding no working main token with no fallback set. Not live until #73 is merged.
 **Influxer (#70):** `merch-stores.ts` verified 104 stores (98 UK, 6 DK) by name + the store's own
 school heading; profile link «Buy {name} merchandise ↗» with UTM + click_kind 'merch'; ~20 visible
 (UK profiles need an article). `merch-clicks.ts` for the pitch. Re-run `--all` monthly (not
