@@ -2,7 +2,14 @@
 
 Two sites, one engine: **studentathlete.dk** (Danish athletes, Danish) and
 **student-athlete.co.uk** (British athletes, English). Current state and open
-items: `projekt-status.md` (newest sections at the top). Audited 2026-09-30.
+items: `projekt-status.md` (current state only, CI-capped at 250 lines). Procedures and
+traps: `docs/RUNBOOK.md`. Removed docs and how to get them back: `docs/ARCHIVE.md`.
+Audited 2026-10-28.
+
+**Working here:** start with the ops MCP server's `status` tool (`SETUP-ops-mcp.md`) instead of
+WSL one-liners, and work in your own worktree (`bash scripts/worktree.sh <name>`): other
+sessions use the main checkout at the same time, and a shared tree has already cost a red main
+and a discarded edit.
 
 ## Language
 
@@ -32,9 +39,9 @@ belongs to the site. Only discovery, scraping and the core are shared.
   `RouteKey`s: the middleware rewrites the site's own slug to the physical
   (Danish) route or `pages` storage slug, and 308s the other language's slug.
 
-## Collecting countries (2026-09-30)
+## Collecting countries
 
-Australia, Germany, Sweden and Spain are **collecting**: `src/lib/countries/collecting.ts`, no
+The countries in `src/lib/countries/collecting.ts` (13 as of 2026-10-22) are **collecting**: no
 domain, no site. Their athletes are classified by the roster scrapers (`classifierCountries()`),
 their stories attached by discovery, their awards recorded by the honours scraper — so the history
 exists at launch. Anything that writes for readers or spends the LLM chain (fact sheets, article
@@ -100,6 +107,10 @@ its FULL source, corrects what the source supports, and publishes through
 `pipeline/fix/apply-draft-decisions.ts` — which spaces publishes **17–23 minutes**
 apart (Mikkel, 2026-09-24: a batch going live at once looks spammy). Run it
 detached, give the expected end time, and never publish without that instruction.
+**Approved machine publishers** (no instruction needed, each agreed with Mikkel): the Opus
+editor for UK drafts (`auto-editor-uk.yml`), the assignment desk's profile lines, sourced
+table facts (honours, stats, leaderboards, awards), and rule-based profile refreshes that only
+ADD a fact. Anything new that publishes joins this list only by Mikkel's say-so.
 The spacing is **per site**: .dk and .co.uk are separate sites to their readers,
 so a Danish and a British article may go live at the same moment — one decisions
 file per country, run in parallel (Mikkel, 2026-10-06). Danish drafts: Claude
@@ -141,8 +152,9 @@ amber number not verbatim, red name not in source).
   are one contract in two languages — change a rule in both. Length follows the
   facts (80–200 words for a result or award), no evaluative filler, nothing about
   the person beyond the source, the article may go live days later, hometown is
-  not a birthplace. Gemini 2.5 Flash writes the articles; Mistral does fact
-  sheets and checks. Subheadings under 350 words are stripped in code.
+  not a birthplace. Claude Haiku on the subscription writes fact sheets and
+  articles when the workflow sets `LLM_CLAUDE_CLI=1` (generate-manual does); the free
+  chain (Gemini, Mistral …) is the fallback. Subheadings under 350 words are stripped in code.
 - **Hometowns and classes from our own records are house practice**; a review
   finding that only objects to a DB hometown is not an error.
 - **Scripts before LLMs**: a rule a model keeps breaking is enforced in code
