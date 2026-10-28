@@ -85,7 +85,7 @@ export function parseUtilization(stdout: string): Utilization | null {
 }
 
 /** One tiny call on the current token just to read the utilisation. Null on any trouble — a probe must never stop a run. */
-function probeUtilization(env: NodeJS.ProcessEnv): Utilization | null {
+export function probeUtilization(env: NodeJS.ProcessEnv): Utilization | null {
   const res = spawnSync("claude", ["-p", "--model", "haiku", "--output-format", "stream-json", "--verbose", "--tools", "",
     "--no-session-persistence", "--setting-sources", "user", "--system-prompt", "Reply with OK."], {
     input: "OK", cwd: tmpdir(), env, encoding: "utf8", timeout: 60_000, maxBuffer: 5 * 1024 * 1024,
