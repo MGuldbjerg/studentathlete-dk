@@ -133,9 +133,9 @@ export async function SeasonUpdateTemplate({ article, athlete, athletes = [], re
         {article.author_role !== "human" && <AiDisclaimer />}
         {athlete && <ArticleAthleteCard athlete={athlete} seasonStats={seasonStats} lang={lang} />}
 
-        {/* ── Atletdatakort — one per OTHER athlete the article covers;
-            the primary one has the card above. ── */}
-        {athletes.filter((a) => a.id !== athlete?.id).map((athlete) => (
+        {/* ── Atletdatakort — one per athlete the article covers, primary included:
+            the card above is navigation, this one holds the season badge. ── */}
+        {athletes.map((athlete) => (
           <aside key={athlete.id} className="my-8 overflow-hidden"
             style={{ border: "1px solid #E2E0DC" }}>
             {/* Blå header */}

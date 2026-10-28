@@ -119,9 +119,9 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], read
           {article.author_role !== "human" && <AiDisclaimer />}
           {athlete && <ArticleAthleteCard athlete={athlete} seasonStats={seasonStats} lang={lang} />}
 
-          {/* Atletfaktaboks — one per OTHER athlete the article covers; the
-              primary one has the card above. */}
-          {athletes.filter((a) => a.id !== athlete?.id).map((athlete) => (
+          {/* Atletfaktaboks — one per athlete the article covers, primary included:
+              the card above is navigation, this box holds hometown and division. */}
+          {athletes.map((athlete) => (
             <aside key={athlete.id} className="mt-10 mb-10">
               {/* Rød venstre-linje */}
               <div className="flex">
