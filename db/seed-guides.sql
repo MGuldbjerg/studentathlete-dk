@@ -551,7 +551,7 @@ VALUES ('college-football-playoff-forklaret', 'DK', 'College Football Playoff fo
 
 College Football Playoff er slutspillet, der kårer den nationale mester i Division I [football](/football). Et udvalg rangerer de bedste hold, der derefter spiller om titlen. Fra 2024-sæsonen blev feltet udvidet til 12 hold.
 
-12-holdsformatet fortsætter til og med 2026-sæsonen — med to justeringer, der sikrer alle fire Power Four-mestre adgang og giver Notre Dame en plads ved en top 12-placering. En yderligere udvidelse til 14 eller 16 hold diskuteres for tiden for 2027 og frem, så tjek den aktuelle struktur.
+12-holdsformatet fortsætter til og med 2026-sæsonen — med to justeringer, der sikrer alle fire Power Four-mestre adgang og giver Notre Dame en plads ved en top 12-placering. Fra 2027 skal slutspillet udvides igen, til 24 hold: konferencerne og tv-stationen er enige i princippet, mens den endelige godkendelse og det præcise format endnu mangler.
 
 ## Bowl games
 
@@ -570,7 +570,8 @@ Danskere i college football er ofte specialister (kickere, puntere) og linemen. 
 ## Kilder
 
 - [Wikipedia. (n.d.). College Football Playoff. Hentet juni 2026.](https://en.wikipedia.org/wiki/College_Football_Playoff)
-- [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)', 'Hvordan kåres mesteren i college football? Guide til College Football Playoff, det udvidede slutspil og bowl-systemet.', 1, 'guide', 'saeson', datetime('now'))
+- [Sports Illustrated. (2025). College Football Playoff remains 12 teams in 2026.](https://www.si.com/college-football/playoffs/cfp-makes-decision-expansion-2026)
+- [NBC Sports. (2026). College Football Playoff finalizing an expansion to a 24-team field for 2027.](https://www.nbcsports.com/college-football/news/report-college-football-playoff-finalizing-an-expansion-to-24-team-field-for-2027-season)', 'Hvordan kåres mesteren i college football? Guide til College Football Playoff, det udvidede slutspil og bowl-systemet.', 1, 'guide', 'saeson', datetime('now'))
 ON CONFLICT(slug, country) DO UPDATE SET
   title = excluded.title,
   content = excluded.content,
@@ -620,5 +621,5 @@ ON CONFLICT(slug, country) DO UPDATE SET
   category = excluded.category,
   updated_at = datetime('now');
 
-INSERT INTO site_content (key, country, value, updated_at) VALUES ('seedhash.guides', 'DK', '791ba5870e504cbadfc6bdd7b5ff9ae0dc24540529c43c74dca96bb8ea598094', datetime('now'))
+INSERT INTO site_content (key, country, value, updated_at) VALUES ('seedhash.guides', 'DK', '49f9c890ec91cbbaf5afdae28bf8578da247faa95963d125c3f12ab2f5f13655', datetime('now'))
 ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, updated_at = datetime('now');
