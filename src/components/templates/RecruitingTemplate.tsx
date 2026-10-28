@@ -2,7 +2,9 @@ import type { Article, ArticleListItem, Athlete } from "@/lib/types";
 import { formatDate, articleStructuredData, getAthleteUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
-import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { ArticleEnd } from "@/components/ui/ArticleEnd";
+import { ArticleAthleteCard } from "@/components/ui/ArticleAthleteCard";
+import type { SeasonStatsRow } from "@/lib/db";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
@@ -17,10 +19,13 @@ interface Props {
   athlete?: Athlete | null;
   /** Every athlete the article covers, primary first — one fact box each. */
   athletes?: Athlete[];
-  relatedArticles?: ArticleListItem[];
+  /** «Read next», filled to four by getReadNext. */
+  readNext?: ArticleListItem[];
+  /** The primary athlete's season row, for the athlete card. */
+  seasonStats?: SeasonStatsRow | null;
 }
 
-export async function RecruitingTemplate({ article, athlete, athletes = [], relatedArticles = [] }: Props) {
+export async function RecruitingTemplate({ article, athlete, athletes = [], readNext = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   return (
@@ -51,7 +56,7 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], rela
                 <span className="text-[10px] font-black tracking-[0.25em] uppercase">{t("tpl.official", lang)}</span>
               </div>
               <span className="text-white/30 text-[10px] tracking-[0.2em] uppercase">
-                Rekruttering · {article.sport ? sportLabel(article.sport, lang) : t("tpl.student_athlete_tag", lang)}
+                {t("tpl.recruiting", lang)} · {article.sport ? sportLabel(article.sport, lang) : t("tpl.student_athlete_tag", lang)}
               </span>
             </div>
 
@@ -112,9 +117,11 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], rela
           <CorrectionNotice article={article} lang={lang} />
           <SourceBox sourceUrl={article.source_url} lang={lang} />
           {article.author_role !== "human" && <AiDisclaimer />}
+          {athlete && <ArticleAthleteCard athlete={athlete} seasonStats={seasonStats} lang={lang} />}
 
-          {/* Atletfaktaboks — one per athlete the article covers */}
-          {athletes.map((athlete) => (
+          {/* Atletfaktaboks — one per OTHER athlete the article covers; the
+              primary one has the card above. */}
+          {athletes.filter((a) => a.id !== athlete?.id).map((athlete) => (
             <aside key={athlete.id} className="mt-10 mb-10">
               {/* Rød venstre-linje */}
               <div className="flex">
@@ -150,7 +157,7 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], rela
           ))}
 
           <AdSlot slot="article-footer" className="my-6" />
-          <RelatedArticles articles={relatedArticles} title={t("tpl.more_recruiting", lang)} lang={lang} />
+          <ArticleEnd article={article} readNext={readNext} lang={lang} />
         </div>
       </article>
     </>

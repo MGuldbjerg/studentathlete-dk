@@ -2,7 +2,9 @@ import type { Article, ArticleListItem, Athlete } from "@/lib/types";
 import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
-import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { ArticleEnd } from "@/components/ui/ArticleEnd";
+import { ArticleAthleteCard } from "@/components/ui/ArticleAthleteCard";
+import type { SeasonStatsRow } from "@/lib/db";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
@@ -15,7 +17,10 @@ interface Props {
   athlete?: Athlete | null;
   /** Every athlete the article covers, primary first — one card each. */
   athletes?: Athlete[];
-  relatedArticles?: ArticleListItem[];
+  /** «Read next», filled to four by getReadNext. */
+  readNext?: ArticleListItem[];
+  /** The primary athlete's season row, for the athlete card. */
+  seasonStats?: SeasonStatsRow | null;
 }
 
 /**
@@ -37,7 +42,7 @@ export function getSeason(dateStr: string | null): string {
   return `${start}–${String(start + 1).slice(2)}`;
 }
 
-export async function SeasonUpdateTemplate({ article, athlete, athletes = [], relatedArticles = [] }: Props) {
+export async function SeasonUpdateTemplate({ article, athlete, athletes = [], readNext = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   const readTime = getReadingTime(countWords(article.content));
@@ -126,9 +131,11 @@ export async function SeasonUpdateTemplate({ article, athlete, athletes = [], re
         <CorrectionNotice article={article} lang={lang} />
         <SourceBox sourceUrl={article.source_url} lang={lang} />
         {article.author_role !== "human" && <AiDisclaimer />}
+        {athlete && <ArticleAthleteCard athlete={athlete} seasonStats={seasonStats} lang={lang} />}
 
-        {/* ── Atletdatakort — one per athlete the article covers ── */}
-        {athletes.map((athlete) => (
+        {/* ── Atletdatakort — one per OTHER athlete the article covers;
+            the primary one has the card above. ── */}
+        {athletes.filter((a) => a.id !== athlete?.id).map((athlete) => (
           <aside key={athlete.id} className="my-8 overflow-hidden"
             style={{ border: "1px solid #E2E0DC" }}>
             {/* Blå header */}
@@ -169,7 +176,7 @@ export async function SeasonUpdateTemplate({ article, athlete, athletes = [], re
         ))}
 
         <AdSlot slot="article-footer" className="my-6" />
-        <RelatedArticles articles={relatedArticles} title={t("tpl.previous_updates", lang)} lang={lang} />
+        <ArticleEnd article={article} readNext={readNext} lang={lang} />
       </article>
     </>
   );
