@@ -25,14 +25,13 @@ const UDDATA = "desktop-pakke/StudentAthlete-til-Claude-Desktop.md";
 /** Dokumenter i repoet, som Desktop kan bede Mikkel om at indsætte. */
 const DOKUMENTER: Array<[string, string]> = [
   ["CLAUDE.md", "Retningslinjer for Claude Code i repoet: sprog, stack, scraping-regler"],
-  ["projekt-status.md", "Løbende status — læses FØRST ved nyt arbejde. Lang."],
+  ["projekt-status.md", "Current state and open items — read FIRST before new work."],
+  ["docs/RUNBOOK.md", "Procedures and traps that stay true"],
   ["ARKITEKTUR-motor.md", "De tre lag (kerne/sprog/land) og de fem regler"],
   ["PLAYBOOK-nyt-land.md", "Bindende rækkefølge når et nyt land skal lanceres"],
   ["ARTICLE-ACCURACY.md", "Diagnosen af hvorfor modellerne opfinder, og planen imod det"],
   ["DESIGN.md", "Designsystem: farver, typografi, komponenter, artikel-templates"],
   ["EDITORIAL-PLAN.md", "Alt skal kunne redigeres fra /admin (code-default + D1-override)"],
-  ["PROMPT.md", "Ralph-loopets instruks til artikelgenerering"],
-  ["SETUP-cloudflare-access.md", "Adgangsstyring til /admin"],
   ["UDKAST-persondata-dk.md", "Persondata-vurdering, dansk"],
   ["UDKAST-persondata-uk.md", "Persondata-vurdering, britisk"],
   ["UDKAST-LIA-interesseafvejning.md", "Interesseafvejningen bag behandlingen"],

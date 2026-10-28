@@ -71,9 +71,8 @@ jobs:
 
       - name: Discord-notifikation ved fejl
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Meta-tokenet duer ikke længere\",\"description\":\"Enten er tokenet dødt, eller også mangler det en rettighed det skal bruge for at poste — kørslen siger hvilken. Nye artikler bliver IKKE delt på Facebook/Instagram før det er rettet. Se [kørslen](https://github.com/MGuldbjerg/studentathlete-dk/actions/workflows/meta-check.yml).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk social\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Meta-tokenet duer ikke længere"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          detail: "Enten er tokenet dødt, eller også mangler det en rettighed det skal bruge for at poste — kørslen siger hvilken. Nye artikler bliver IKKE delt på Facebook/Instagram før det er rettet."

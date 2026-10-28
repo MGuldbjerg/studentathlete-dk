@@ -45,7 +45,7 @@ modellens default.
 
 ## Målingen er allerede planlagt
 
-Review-beslutningsloggen (PLAN-autonomi-uk.md fase 1.3) registrerer
+Review-beslutningsloggen (PLAN-autonomi-uk.md fase 1.3 — arkiveret, `docs/ARCHIVE.md`) registrerer
 godkendt-som-er / redigeret / afvist. Samme instrumentering driver BÅDE
 auto-publish-gaten OG læringen: **KPI = % udkast publiceret uredigeret.**
 Læringsloopet accelererer altså direkte vejen til auto-publicering — falder

@@ -39,10 +39,8 @@ jobs:
 
       - name: Discord-notifikation ved fejl
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Kampkort-prerender fejlede\",\"description\":\"Nye artikler falder tilbage til 600×315 on-the-fly-kort (sitet virker). [Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Kampkort-prerender fejlede"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          detail: "Nye artikler falder tilbage til 600×315 on-the-fly-kort (sitet virker)."

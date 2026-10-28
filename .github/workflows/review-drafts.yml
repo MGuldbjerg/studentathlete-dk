@@ -43,17 +43,38 @@ jobs:
       - run: npm ci
       - run: npm install -g @anthropic-ai/claude-code
 
-      # An empty queue never calls Claude, so an expired token would otherwise
-      # stay invisible until the day drafts pile up. One tiny call per run.
+      # Look at the queue before spending a Claude call on the account probe: most
+      # runs find nothing (median run 0.9 min), and the probe cost ~8 calls/day.
+      # Token health is still watched every few hours — the desk (every 4 h) and
+      # drafting (3×/day) run the same probe and alert on failure (2026-10-28).
+      # The mechanical check-drafts.ts runs on its own in check-drafts.yml.
+      # A failing list doesn't skip silently: it reviews anyway.
+      - name: Anything to review?
+        id: queue
+        run: |
+          if out=$(npx tsx pipeline/generate/draft-pack.ts --list); then
+            n=$(printf '%s\n' "$out" | tr -d '\r' | grep -cE '^[0-9]+$' || true)
+          else
+            echo "::warning::queue check failed — reviewing anyway"; n=unknown
+          fi
+          echo "Drafts waiting for review: $n"
+          echo "n=$n" >> "$GITHUB_OUTPUT"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
       # Main Claude account, or the fallback when the main one is at its limit
       # (.github/actions/claude-account). Later steps must not set the token.
       - name: Pick a Claude account
+        if: steps.queue.outputs.n != '0'
         uses: ./.github/actions/claude-account
         with:
           primary: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           fallback: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
 
       - name: Gennemgå kladder (kun dom)
+        if: steps.queue.outputs.n != '0'
         run: |
           if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
             echo "! CLAUDE_CODE_OAUTH_TOKEN mangler — kør 'claude setup-token' og læg den som repo-secret"; exit 1
@@ -70,9 +91,7 @@ jobs:
 
       - name: Discord ved fejl
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Claude-gennemgang af kladder fejlede\",\"description\":\"[Se loggen]($RUN_URL).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Claude-gennemgang af kladder fejlede"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}

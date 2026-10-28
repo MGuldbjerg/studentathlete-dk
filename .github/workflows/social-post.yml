@@ -121,9 +121,8 @@ jobs:
       # (samme princip som discover-daily: ingen "postede N"-støj).
       - name: Discord-notifikation ved fejl
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Social-opslag fejlede\",\"description\":\"Et opslag kunne ikke postes. Tjek [GitHub Actions](https://github.com/MGuldbjerg/studentathlete-dk/actions/workflows/social-post.yml) — efter 3 forsøg markeres opslaget som failed.\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk social\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Social-opslag fejlede"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          detail: "Et opslag kunne ikke postes; efter 3 forsøg markeres opslaget som failed."
