@@ -4,6 +4,7 @@
 
 | Tool | What | Cost |
 |---|---|---|
+| `status` | **start here**: failed runs (24 h), open PRs, drafts waiting, Claude calls today, D1 budget | GitHub API + ~3 small D1 reads, cached 2 min |
 | `ci_runs` | recent GitHub Actions runs, filter by workflow / failures | GitHub API, cached 1 min |
 | `ci_failure` | failed steps + log tail of one run | GitHub API, cached 24 h |
 | `claude_usage` | Claude calls per day/job/account (claude_calls + llm_usage) | ~100 D1 rows, cached 5 min |

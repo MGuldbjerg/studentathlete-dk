@@ -65,6 +65,38 @@ interface Tool { name: string; description: string; inputSchema: object; call: (
 
 const tools: Tool[] = [
   {
+    name: "status",
+    description: "Start-of-session overview in ONE call: failed workflow runs in the last 24 h, open PRs, drafts waiting per site, Claude calls today, the D1 budget, and the last quota reading (no new Claude call). Cached 2 minutes.",
+    inputSchema: { type: "object", properties: {} },
+    call: () => cached("status", 2 * 60_000, async () => {
+      const since = new Date(Date.now() - 24 * 3600_000).toISOString().slice(0, 19);
+      const [failed, prs, drafts, calls, chain] = await Promise.all([
+        gh(["run", "list", "-L", "40", "--status", "failure", "--created", `>=${since}`, "--json", "databaseId,workflowName,createdAt"])
+          // gh's --created compares dates only, so cut to the exact 24 h here
+          .then((s) => (JSON.parse(s) as Array<Record<string, string>>).filter((r) => r.createdAt.slice(0, 19) >= since)),
+        gh(["pr", "list", "--json", "number,title,headRefName"]).then((s) => JSON.parse(s) as Array<Record<string, string>>),
+        d1(`SELECT country, COUNT(*) AS n FROM articles WHERE published = 0 GROUP BY country`),
+        d1(`SELECT job, account, COUNT(*) AS calls, SUM(ok = 0) AS failed FROM claude_calls WHERE at >= date('now') GROUP BY 1, 2`),
+        d1(`SELECT provider, requests, errors FROM llm_usage WHERE date = date('now') AND provider LIKE 'claude%'`),
+      ]);
+      const quota = cache.get("quota");
+      return [
+        `Failed runs, last 24 h: ${failed.length ? "" : "none"}`,
+        ...failed.map((r) => `  ${r.databaseId} · ${r.workflowName} · ${r.createdAt.replace("T", " ").slice(0, 16)} UTC  (ci_failure for the log)`),
+        `Open PRs: ${prs.length ? "" : "none"}`,
+        ...prs.map((p) => `  #${p.number} ${p.title} [${p.headRefName}]`),
+        `Drafts waiting: ${drafts.rows.map((r) => `${r.country} ${r.n}`).join(", ") || "none"}`,
+        `Claude calls today (UTC): ${[
+          ...calls.rows.map((r) => `${r.job}/${r.account} ${r.calls}${Number(r.failed) ? ` (${r.failed} failed)` : ""}`),
+          ...chain.rows.map((r) => `drafting ${r.requests}${Number(r.errors) ? ` (${r.errors} failed)` : ""}`),
+        ].join(", ") || "none"} — review-drafts.sh is not logged`,
+        `Claude quota (this PC): ${quota ? quota.text.replace(/^This PC's Claude login: /, "") + ` (read ${Math.round((Date.now() - quota.at) / 60_000)} min ago)` : "not read this session — claude_quota costs one Haiku call"}`,
+        budget.line(),
+        "State and open items: projekt-status.md · procedures: docs/RUNBOOK.md",
+      ].join("\n");
+    }),
+  },
+  {
     name: "ci_runs",
     description: "Recent GitHub Actions runs (newest first): id, time, workflow, result. Filter by workflow file or name, or failures only. Use ci_failure on an id to see why it failed.",
     inputSchema: {
