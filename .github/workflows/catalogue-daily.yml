@@ -1,17 +1,18 @@
-name: Dagligt ekspansions-katalog
+name: Ugentligt ekspansions-katalog
 
 # Akkumulér ALLE internationale NCAA-atleter (ikke kun danskere) i tabellen
-# international_athletes. PREP, ikke live — ingen site-kode læser tabellen. Kører
-# DAGLIGT så inventaret + land-tallene til pool-vs-eget-site-beslutningstræet
-# fyldes hurtigt (hvert fuldt sweep skipper nogle skole-slices; daglige kørsler
-# konvergerer 7× hurtigere via idempotent upsert). Public repo → gratis GH-minutter;
+# international_athletes. Ingen offentlig side læser tabellen; /admin/katalog viser
+# den (ekspansions-inventaret: atleter pr. sprog/region/sport til valg af næste
+# marked). Kørte dagligt for at konvergere hurtigt (idempotent upsert); ugentligt
+# siden 2026-10-28 (Mikkel) — tallene er fyldt op, og nye atleter kommer i takt med
+# roster-sæsonen, ikke dag for dag. (Filnavnet er beholdt; GitHub sporer kørsler på det.) Public repo → gratis GH-minutter;
 # ~10k D1-writes/kørsel << 100k/dag; ingen LLM.
 
 on:
   schedule:
-    # Dagligt kl. 21:00 UTC — roligt vindue: efter 18:00-discover, før 00:00-discover,
-    # og fri af js-scrape (03:00) + morgen-cluster (06:30/07:00/07:30). Undgår D1-kontention.
-    - cron: '0 21 * * *'
+    # Lørdag kl. 21:00 UTC — samme rolige aftenvindue som før, og ude af vejen for
+    # søndagens roster-scrape (04:00). Undgår D1-kontention.
+    - cron: '0 21 * * 6'
   workflow_dispatch:
     inputs:
       dry_run:
