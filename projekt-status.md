@@ -22,8 +22,11 @@ hold. Rules in `pipeline/editor/brief.md` (Mikkel's answers to 24 hypotheticals 
 `applyRules` enforces length + freshness in code). Off switches: DESK_MODE=shadow, DESK_GATE=off.
 → **Drafting** (`generate-manual.yml`, 07:30/13:30/19:30 UTC) drafts ONLY live-desk articles
 (DESK_GATE=1), Claude Haiku on the subscription (`LLM_CLAUDE_CLI=1`), cap `CLAUDE_DAILY_CAP`=150.
-→ **Review**: `review-drafts.yml` every 3 h at :40 (review-only) + the PC's crontab
-`review-drafts.sh` 7,10,13,16,19 local (can run `--fix` — see Decisions).
+→ **Review**: `review-drafts.yml` every 3 h at :40 gives verdicts (skips when the queue is
+empty). The PC runs the agreed nightly correction (CLAUDE.md «standing exception»): Windows
+task `StudentAthlete-kladderettelse` (`--fix`: rewrite against source / reject) + crontab
+7,10,13,16,19 that catches up a missed night. Reviews are per content hash, so the PC and
+the cloud never review the same text twice.
 → **Opus editor (UK)** (`auto-editor-uk.yml`, midnight + midday windows) publishes / rejects /
 holds finished UK drafts, max 12 per run, spaced 17–23 min. Runs **Sonnet, effort medium**
 since #73. DK drafts are published by Mikkel (or on his instruction).
@@ -82,18 +85,18 @@ editing connector — a different thing.
 5. **AdSense .co.uk** — reapply not before ~10 Nov and not before the 14 thin hub pages have
    prose (/athletes + /articles intros need his read).
 6. **Threads** — create profiles + Threads use case, then `setup-threads.bat` per market.
-7. **Decisions from the 28/10 optimisation pass** (below).
+7. **weekly-scrape nightly cron** — confirm removal (see below).
 
 ## Decisions from the 28/10 optimisation pass
 
-- **The PC's crontab reviewer** (`review-drafts.sh` 5×/day, not `--review-only`) is a second
-  reviewer that can rewrite and reject drafts, duplicating `review-drafts.yml`. Keep, make
-  review-only, or remove?
-- **Drafting cadence**: generate-manual 3×/day is the biggest Claude consumer. 2×/day, or a lower
-  `CLAUDE_DAILY_CAP`?
-- **weekly-scrape's daily 22:00 cron** is marked temporary since 4 Aug («FJERN denne linje
-  når UK-tallet er stabilt»). Remove?
-- **catalogue-daily** writes ~10k D1 rows/run into a table nothing live reads. Weekly?
+- **Drafting twice a day** (Mikkel 28/10, PR #76): 07:30 + 19:30 UTC. Saves a probe and a
+  runner, not Claude calls — the lever for those is `CLAUDE_DAILY_CAP` (150).
+- **weekly-scrape's daily 22:00 cron** (temporary since 4 Aug): Mikkel said remove, ON HOLD for
+  one confirm — since 22/10 the nightly rotation also finds the 13 collecting countries'
+  athletes (schools scraped before then kept only UK/DK); weekly would take months.
+- **catalogue-daily** fills `international_athletes`, read by /admin/katalog (expansion
+  inventory: athletes by language/region/sport for choosing the next market). Converges by
+  idempotent upsert; weekly would do once the counts stop moving. Open.
 
 ## Next (Claude)
 
