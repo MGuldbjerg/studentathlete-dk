@@ -1,7 +1,6 @@
 name: Generer artikler
 
 on:
-  # Automatisk: én gang dagligt kl. 07:00 UTC (efter morgen-discovery)
   schedule:
     # Tre gange dagligt siden 2026-08-26 (var: kun 07:30). Discover kører
     # 00/06/12/18 UTC, så 07:30/13:30/19:30 skriver oven på et friskt fund i
@@ -13,8 +12,12 @@ on:
     # er historien `gen_failed` for altid — kørslerne ville have brændt dagens
     # historier af frem for bare at fejle. Tændt igen da fire historier i træk
     # gav en kladde i `--dry-run` (commit «Red artiklen ud af den JSON…»).
+    # Twice daily since 2026-10-28 (Mikkel): 07:30 feeds the Opus editor's midday
+    # window (10-15 UTC), 19:30 its midnight window (22-03 UTC). There is no
+    # per-run limit, so this drafts the same stories in bigger batches — it saves
+    # one account probe and a runner a day, not Claude calls. The lever for Claude
+    # calls is CLAUDE_DAILY_CAP (over the cap, drafting falls back to the free chain).
     - cron: '30 7 * * *'
-    - cron: '30 13 * * *'
     - cron: '30 19 * * *'
   # Manuelt: kan altid trigges fra GitHub eller admin-panelet
   workflow_dispatch:
