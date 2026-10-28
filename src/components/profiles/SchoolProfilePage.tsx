@@ -1,6 +1,6 @@
 import { t, articleTypeLabel, sportLabel } from "@/lib/i18n";
 import { currentLanguage, currentSite } from "@/lib/site-server";
-import type { School, Athlete, Article } from "@/lib/types";
+import type { School, Athlete, ArticleListItem } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { cleanPosition } from "@/lib/roster-clean";
@@ -10,7 +10,7 @@ interface Props {
   school: School;
   /** The athletes a visitor can open (CountryProfile.profilePublicMinArticles). */
   athletes: Athlete[];
-  articles: Article[];
+  articles: ArticleListItem[];
   /** Every active athlete from this site's country at the school — a number, no names. */
   totalAthletes?: number;
   /** This season's stats of the site's players here (S1/S3, src/lib/school-season.ts). */

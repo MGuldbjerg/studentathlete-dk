@@ -1,4 +1,4 @@
-import type { Athlete, Article } from "@/lib/types";
+import type { Athlete, ArticleListItem } from "@/lib/types";
 import { cleanPosition } from "@/lib/roster-clean";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
@@ -15,7 +15,7 @@ import { countryProfile } from "@/lib/countries";
 import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   athlete: Athlete;
-  articles: Article[];
+  articles: ArticleListItem[];
   events?: AthleteEventRow[];
   /** Landsmænd på samme skole — profilens eneste vej VIDERE for de ~95%, der
    *  ikke har en artikel. Hentes af siden, ikke her. */
@@ -77,7 +77,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
   // counts (src/lib/profile-prose.ts) — the noindex decision is made on this text.
   const { statsLine, statsTable, teamText, standingText, careerText, careerTable, bioText, hub, honoursText } =
     buildProfileProse({ athlete, seasonStats, career, events, records, lang });
-  const timeline = buildTimeline(events, articles, athlete.name, lang, (a) => getArticleUrl(a as Article, lang));
+  const timeline = buildTimeline(events, articles, athlete.name, lang, (a) => getArticleUrl(a as ArticleListItem, lang));
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{

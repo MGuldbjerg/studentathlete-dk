@@ -1,4 +1,4 @@
-import type { Article, Athlete } from "@/lib/types";
+import type { Article, ArticleListItem, Athlete } from "@/lib/types";
 import { formatDate, articleStructuredData, getAthleteUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
@@ -17,7 +17,7 @@ interface Props {
   athlete?: Athlete | null;
   /** Every athlete the article covers, primary first — one fact box each. */
   athletes?: Athlete[];
-  relatedArticles?: Article[];
+  relatedArticles?: ArticleListItem[];
 }
 
 export async function RecruitingTemplate({ article, athlete, athletes = [], relatedArticles = [] }: Props) {

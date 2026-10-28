@@ -1,4 +1,4 @@
-import type { Article } from "@/lib/types";
+import type { ArticleListItem } from "@/lib/types";
 import { getSportColor } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, getReadingTime, formatRelativeTime } from "@/lib/seo";
 
@@ -19,7 +19,7 @@ import { currentLanguage } from "@/lib/site-server";
 export type ArticleCardVariant = "featured" | "lead" | "default" | "compact";
 
 interface ArticleCardProps {
-  article: Article;
+  article: ArticleListItem;
   variant?: ArticleCardVariant;
   /** Kun `featured`: vend kortet, så billedet står til højre (bånd F spejler bånd B). */
   reverse?: boolean;
@@ -29,7 +29,7 @@ export async function ArticleCard({ article, variant = "default", reverse = fals
   const lang = await currentLanguage();
   const typeLabel = articleTypeLabel(article.article_type, lang);
   const sportColor = getSportColor(article.sport);
-  const readingTime = getReadingTime(article.content);
+  const readingTime = getReadingTime(article.word_count);
   const relTime = formatRelativeTime(article.published_at, lang);
 
   if (variant === "compact") {

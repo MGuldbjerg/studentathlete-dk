@@ -1,4 +1,4 @@
-import type { Article } from "@/lib/types";
+import type { ArticleListItem } from "@/lib/types";
 import { ArticleCard } from "@/components/ArticleCard";
 import { archivePath } from "@/lib/routes";
 import { currentLanguage } from "@/lib/site-server";
@@ -15,7 +15,7 @@ import { t } from "@/lib/i18n";
  * Skinnen har bevidst INGEN tidsoverskrift ("Også i dag"): rækkerne er blot de
  * næste artikler i rækkefølgen og kan sagtens være fra i går.
  */
-export async function LeadBand({ lead, rail }: { lead: Article; rail: Article[] }) {
+export async function LeadBand({ lead, rail }: { lead: ArticleListItem; rail: ArticleListItem[] }) {
   const lang = await currentLanguage();
   return (
     <section className="grid md:grid-cols-[1.9fr_1fr] border-b border-border">

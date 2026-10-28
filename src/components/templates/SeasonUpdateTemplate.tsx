@@ -1,5 +1,5 @@
-import type { Article, Athlete } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
+import type { Article, ArticleListItem, Athlete } from "@/lib/types";
+import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
@@ -15,7 +15,7 @@ interface Props {
   athlete?: Athlete | null;
   /** Every athlete the article covers, primary first — one card each. */
   athletes?: Athlete[];
-  relatedArticles?: Article[];
+  relatedArticles?: ArticleListItem[];
 }
 
 /**
@@ -40,7 +40,7 @@ export function getSeason(dateStr: string | null): string {
 export async function SeasonUpdateTemplate({ article, athlete, athletes = [], relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
-  const readTime = getReadingTime(article.content);
+  const readTime = getReadingTime(countWords(article.content));
   const season = getSeason(article.published_at);
 
   return (

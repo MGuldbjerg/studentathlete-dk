@@ -1,5 +1,5 @@
-import type { Article, Athlete } from "@/lib/types";
-import { formatDate, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
+import type { Article, ArticleListItem, Athlete } from "@/lib/types";
+import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
@@ -13,13 +13,13 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
-  relatedArticles?: Article[];
+  relatedArticles?: ArticleListItem[];
 }
 
 export async function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
-  const readTime = getReadingTime(article.content);
+  const readTime = getReadingTime(countWords(article.content));
   const typeLabel = articleTypeLabel(article.article_type, lang) || t("tpl.news_plural", lang);
 
   return (
