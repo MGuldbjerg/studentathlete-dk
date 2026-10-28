@@ -55,3 +55,8 @@ logs/
 # OG images exported at build (pipeline/render/export-og-assets.ts) — generated, never committed
 /public/og/
 .claude/settings.local.json
+
+# generated (regenerate with their scripts — see docs/ARCHIVE.md)
+/UDKAST-sportsider-da.md
+/UDKAST-sportsider-en.md
+/desktop-pakke/StudentAthlete-til-Claude-Desktop.md
