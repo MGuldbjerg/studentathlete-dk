@@ -1,11 +1,11 @@
-import type { Article } from "@/lib/types";
+import type { ArticleListItem } from "@/lib/types";
 import { articleTypeLabel } from "@/lib/i18n";
 import { formatDateShort, getArticleUrl } from "@/lib/seo";
 
 // Titel OG sprog sendes ALTID ind: komponenten kender ikke sitets sprog, og
 // adressen på artiklen er sprogbestemt (/football/… vs /fodbold/…).
 export function RelatedArticles({ articles, title, lang }: {
-  articles: Article[];
+  articles: ArticleListItem[];
   title: string;
   lang: string;
 }) {
