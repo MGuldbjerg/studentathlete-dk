@@ -36,6 +36,19 @@ export interface Article {
   sport: string | null;
 }
 
+/**
+ * An article as a LIST shows it (cards, carousel, related, feed): no bodies.
+ * `content`, `original_content` and `fact_flags` were selected for every list
+ * and the carousel is a client component, so the home page shipped up to 60
+ * full bodies through D1, the Worker and the RSC payload — to compute a
+ * reading time. `word_count` is counted in SQL (`ARTICLE_LIST_SELECT`); the
+ * type keeps a list consumer from reaching for a body it no longer gets.
+ */
+export type ArticleListItem = Omit<
+  Article,
+  "content" | "original_content" | "fact_flags" | "model_used" | "llm_provider" | "fabrication_risk"
+> & { word_count: number };
+
 export interface Athlete {
   id: number;
   name: string;

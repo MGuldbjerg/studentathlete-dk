@@ -1,7 +1,9 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { DEFAULT_COUNTRY, countryProfile } from "./countries";
 import { contentCountry } from "./site-server";
-import type { Article, Athlete, School } from "./types";
+import type { Article, ArticleListItem, Athlete, School } from "./types";
+import { ARTICLE_LIST_SELECT, toListItem } from "./article-list";
+import { SPORT_ACTIVE_COUNTS_SQL, activeBySport, countsForSport, type SportActiveCount } from "./sport-counts";
 import { recordsOf } from "./athlete-hub";
 import { seasonFromDate } from "./athlete-events";
 import type { AthleteEventRow } from "./athlete-events";
@@ -124,18 +126,18 @@ export const ARTICLE_SELECT = `
 
 // ─── Artikler ────────────────────────────────────────────────────────────────
 
-export async function getLatestArticles(limit = 5, country?: string): Promise<Article[]> {
+export async function getLatestArticles(limit = 5, country?: string): Promise<ArticleListItem[]> {
   const db = await getDB();
   if (!db) {
     return MOCK_ARTICLES
       .filter((a) => a.published === 1)
       .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
-      .slice(0, limit);
+      .slice(0, limit).map(toListItem);
   }
   try {
     const r = await db
       .prepare(
-        `SELECT ${ARTICLE_SELECT}
+        `SELECT ${ARTICLE_LIST_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          WHERE a.published = 1 AND a.country = ?
@@ -143,18 +145,18 @@ export async function getLatestArticles(limit = 5, country?: string): Promise<Ar
       )
       .bind(await siteCountry(country), limit)
       .all();
-    return (r.results ?? []) as Article[];
+    return (r.results ?? []) as ArticleListItem[];
   } catch { return []; }
 }
 
 /** Fastgjorte artikler til forsidens karrusel (nyeste først). */
-export async function getFeaturedArticles(limit = 5, country?: string): Promise<Article[]> {
+export async function getFeaturedArticles(limit = 5, country?: string): Promise<ArticleListItem[]> {
   const db = await getDB();
   if (!db) return [];
   try {
     const r = await db
       .prepare(
-        `SELECT ${ARTICLE_SELECT}
+        `SELECT ${ARTICLE_LIST_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          WHERE a.published = 1 AND a.featured = 1 AND a.country = ?
@@ -162,7 +164,7 @@ export async function getFeaturedArticles(limit = 5, country?: string): Promise<
       )
       .bind(await siteCountry(country), limit)
       .all();
-    return (r.results ?? []) as Article[];
+    return (r.results ?? []) as ArticleListItem[];
   } catch {
     return [];
   }
@@ -214,7 +216,7 @@ export async function getArticleBySlug(slug: string, country?: string): Promise<
 
 export async function getArticles({
   q = "", sport = "", limit = 18, offset = 0, country,
-}: { q?: string; sport?: string; limit?: number; offset?: number; country?: string } = {}): Promise<Article[]> {
+}: { q?: string; sport?: string; limit?: number; offset?: number; country?: string } = {}): Promise<ArticleListItem[]> {
   const db = await getDB();
   if (!db) {
     let filtered = MOCK_ARTICLES.filter((a) => a.published === 1);
@@ -232,7 +234,7 @@ export async function getArticles({
     }
     return filtered
       .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
-      .slice(offset, offset + limit);
+      .slice(offset, offset + limit).map(toListItem);
   }
   try {
     const conditions: string[] = ["a.published = 1", "a.country = ?"];
@@ -245,7 +247,7 @@ export async function getArticles({
     params.push(limit, offset);
     const r = await db
       .prepare(
-        `SELECT ${ARTICLE_SELECT}
+        `SELECT ${ARTICLE_LIST_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          WHERE ${conditions.join(" AND ")}
@@ -253,7 +255,7 @@ export async function getArticles({
       )
       .bind(...params)
       .all();
-    return (r.results ?? []) as Article[];
+    return (r.results ?? []) as ArticleListItem[];
   } catch { return []; }
 }
 
@@ -371,10 +373,24 @@ export async function getSiteCounts(country?: string): Promise<SiteCounts> {
   }
 }
 
+/**
+ * Athletes per (sport, active) on a site, cached hourly — the home page's sport
+ * bands and every sport landing page read this one row (see sport-counts.ts).
+ * A new key, not `sport_counts`: that row holds the older shape, and a cache
+ * read must never meet a shape it does not expect.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function sportActiveCounts(db: any, code: string): Promise<SportActiveCount[]> {
+  return cachedStat<SportActiveCount[]>("sport_active_counts", code, async () => {
+    const r = await db.prepare(SPORT_ACTIVE_COUNTS_SQL).bind(code).all();
+    return (r.results ?? []) as SportActiveCount[];
+  });
+}
+
 export interface SportGroup {
   sport: string;
   athleteCount: number;
-  articles: Article[];
+  articles: ArticleListItem[];
 }
 
 /**
@@ -397,7 +413,7 @@ export async function getArticlesGroupedBySport({
     const [recent, counts] = await Promise.all([
       db
         .prepare(
-          `SELECT ${ARTICLE_SELECT}
+          `SELECT ${ARTICLE_LIST_SELECT}
            FROM articles a
            LEFT JOIN athletes at ON a.athlete_id = at.id
            WHERE a.published = 1 AND a.country = ? AND at.sport IS NOT NULL
@@ -405,27 +421,14 @@ export async function getArticlesGroupedBySport({
         )
         .bind(code)
         .all(),
-      cachedStat<Array<{ sport: string; n: number }>>("sport_counts", code, async () => {
-        const r = await db
-          .prepare(
-            `SELECT sport, COUNT(*) AS n FROM athletes
-             WHERE active = 1 AND home_country = ? AND sport IS NOT NULL
-             GROUP BY sport`
-          )
-          .bind(code)
-          .all();
-        return (r.results ?? []) as Array<{ sport: string; n: number }>;
-      }),
+      sportActiveCounts(db, code),
     ]);
 
-    const perSportCount = new Map<string, number>();
-    for (const row of counts) {
-      perSportCount.set(row.sport, row.n);
-    }
+    const perSportCount = activeBySport(counts);
 
     const skip = new Set(excludeIds);
-    const grouped = new Map<string, Article[]>();
-    for (const a of (recent.results ?? []) as Article[]) {
+    const grouped = new Map<string, ArticleListItem[]>();
+    for (const a of (recent.results ?? []) as ArticleListItem[]) {
       if (!a.sport || skip.has(a.id)) continue;
       const bucket = grouped.get(a.sport) ?? [];
       if (bucket.length >= perSport) continue;
@@ -447,18 +450,18 @@ export async function getArticlesGroupedBySport({
 
 export async function getArticlesByAthleteId(
   athleteId: number, limit = 6, country?: string
-): Promise<Article[]> {
+): Promise<ArticleListItem[]> {
   const db = await getDB();
   if (!db) {
     return MOCK_ARTICLES
       .filter((a) => a.athlete_id === athleteId && a.published === 1)
       .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
-      .slice(0, limit);
+      .slice(0, limit).map(toListItem);
   }
   try {
     const r = await db
       .prepare(
-        `SELECT ${ARTICLE_SELECT}
+        `SELECT ${ARTICLE_LIST_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          WHERE a.published = 1 AND a.country = ?
@@ -472,13 +475,13 @@ export async function getArticlesByAthleteId(
       // of the UNION are index lookups.
       .bind(await siteCountry(country), athleteId, athleteId, limit)
       .all();
-    return (r.results ?? []) as Article[];
+    return (r.results ?? []) as ArticleListItem[];
   } catch { return []; }
 }
 
 export async function getArticlesByUniversity(
   university: string, limit = 4, country?: string
-): Promise<Article[]> {
+): Promise<ArticleListItem[]> {
   const db = await getDB();
   if (!db) {
     const athleteIds = MOCK_ATHLETES
@@ -487,12 +490,12 @@ export async function getArticlesByUniversity(
     return MOCK_ARTICLES
       .filter((a) => a.athlete_id !== null && athleteIds.includes(a.athlete_id) && a.published === 1)
       .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
-      .slice(0, limit);
+      .slice(0, limit).map(toListItem);
   }
   try {
     const r = await db
       .prepare(
-        `SELECT ${ARTICLE_SELECT}
+        `SELECT ${ARTICLE_LIST_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          WHERE at.university = ? AND a.published = 1 AND a.country = ?
@@ -500,7 +503,7 @@ export async function getArticlesByUniversity(
       )
       .bind(university, await siteCountry(country), limit)
       .all();
-    return (r.results ?? []) as Article[];
+    return (r.results ?? []) as ArticleListItem[];
   } catch { return []; }
 }
 
@@ -874,6 +877,10 @@ export async function getAllAthletes(country?: string, opts: { publicOnly?: bool
  * Begge kasser af bogstavet bindes som parametre, fordi SQLite's `upper()` er
  * ASCII-only: den kan ikke se at «ø» og «Ø» er samme bogstav, og et dansk
  * efternavn ville falde ud af sin egen side.
+ *
+ * `substr(a.name, 1, 1)` must stay exactly that expression: it is what
+ * `idx_athletes_country_active_initial` (migration 079) indexes, and any other
+ * spelling of it sends the query back to reading the whole country.
  */
 export async function getAthletesByLetter(
   upper: string,
@@ -999,18 +1006,18 @@ export async function getAthletesBySport(
 
 export async function getArticlesBySport(
   sport: string, limit = 12, country?: string
-): Promise<Article[]> {
+): Promise<ArticleListItem[]> {
   const db = await getDB();
   if (!db) {
     return MOCK_ARTICLES
       .filter((a) => a.sport?.toLowerCase() === sport.toLowerCase() && a.published === 1)
       .sort((a, b) => (b.published_at ?? "").localeCompare(a.published_at ?? ""))
-      .slice(0, limit);
+      .slice(0, limit).map(toListItem);
   }
   try {
     const r = await db
       .prepare(
-        `SELECT ${ARTICLE_SELECT}
+        `SELECT ${ARTICLE_LIST_SELECT}
          FROM articles a
          LEFT JOIN athletes at ON a.athlete_id = at.id
          WHERE at.sport = ? AND a.country = ? AND a.published = 1
@@ -1018,7 +1025,7 @@ export async function getArticlesBySport(
       )
       .bind(sport, await siteCountry(country), limit)
       .all();
-    return (r.results ?? []) as Article[];
+    return (r.results ?? []) as ArticleListItem[];
   } catch { return []; }
 }
 
@@ -1030,16 +1037,7 @@ export async function countAthletesBySport(sport: string, country?: string): Pro
     return { active, alumni };
   }
   try {
-    const r = await db
-      .prepare("SELECT active, COUNT(*) as cnt FROM athletes WHERE sport = ? AND home_country = ? GROUP BY active")
-      .bind(sport, await siteCountry(country))
-      .all();
-    let active = 0, alumni = 0;
-    for (const row of (r.results ?? []) as { active: number; cnt: number }[]) {
-      if (row.active === 1) active = row.cnt;
-      else alumni = row.cnt;
-    }
-    return { active, alumni };
+    return countsForSport(await sportActiveCounts(db, await siteCountry(country)), sport);
   } catch { return { active: 0, alumni: 0 }; }
 }
 

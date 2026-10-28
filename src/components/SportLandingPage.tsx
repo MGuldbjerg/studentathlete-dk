@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Article, Athlete } from "@/lib/types";
+import type { ArticleListItem, Athlete } from "@/lib/types";
 import { getSportColor } from "@/lib/types";
 import { getAthleteUrl } from "@/lib/seo";
 import type { SportContent } from "@/lib/sport-content";
@@ -11,7 +11,7 @@ import { currentLanguage } from "@/lib/site-server";
 interface Props {
   sport: string;
   content: SportContent;
-  articles: Article[];
+  articles: ArticleListItem[];
   athletes: Athlete[];
   counts: { active: number; alumni: number };
 }

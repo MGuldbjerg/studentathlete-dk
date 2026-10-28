@@ -16,9 +16,14 @@ import { cardAssetPath, genericAssetPath, genericQuery } from "./og-static";
 export const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? siteBaseUrl(countryProfile());
 
-export function getReadingTime(content: string): number {
-  const wordCount = content.trim().split(/\s+/).length;
-  return Math.max(1, Math.round(wordCount / 200));
+/** Words in a body, split on whitespace. `ARTICLE_WORD_COUNT_SQL` in db.ts is the SQL twin. */
+export function countWords(content: string): number {
+  return content.trim().split(/\s+/).length;
+}
+
+/** Minutes to read, from a word count (`countWords`, or a list row's `word_count`). */
+export function getReadingTime(words: number): number {
+  return Math.max(1, Math.round(words / 200));
 }
 
 /**
@@ -397,7 +402,7 @@ export function siteStructuredData(site: CountryProfile): object {
 
 export function athleteStructuredData(
   athlete: Athlete,
-  articles: Article[],
+  articles: Pick<Article, "title" | "slug" | "sport">[],
   site: CountryProfile,
 ): object {
   const base = siteBaseUrl(site);

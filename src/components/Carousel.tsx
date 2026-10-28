@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Article } from "@/lib/types";
+import type { ArticleListItem } from "@/lib/types";
 import { getSportColor } from "@/lib/types";
 import { getArticleUrl, getArticleCoverUrl, formatRelativeTime, getReadingTime } from "@/lib/seo";
 
@@ -36,7 +36,7 @@ function SportTag({ sport, type, lang }: { sport?: string | null; type?: string;
 }
 
 interface CarouselProps {
-  articles: Article[];
+  articles: ArticleListItem[];
   strings: CarouselStrings;
   lang: string;
 }
@@ -89,7 +89,7 @@ export function Carousel({ articles, strings, lang }: CarouselProps) {
 
   const slide = articles[current];
   const relTime = formatRelativeTime(slide.published_at, lang);
-  const readTime = getReadingTime(slide.content);
+  const readTime = getReadingTime(slide.word_count);
 
   return (
     <div
