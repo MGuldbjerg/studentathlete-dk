@@ -90,7 +90,7 @@ token koster ét marked, og et nyt marked rører ikke et eksisterende token.
 
 ⚠️ **Threads har sit eget token.** `graph.threads.net`, egne scopes
 (`threads_basic`, `threads_content_publish`), 60-dages levetid med
-fornyelse — den rider IKKE på side-tokenet. `PLAN-social-expansion.md` påstår det
+fornyelse — den rider IKKE på side-tokenet. `PLAN-social-expansion.md` (arkiveret) påstår det
 modsatte; dét afsnit er forkert.
 
 Bluesky er den nemme: app-passwords, ingen OAuth, ingen portefølje.

@@ -65,8 +65,9 @@ jobs:
           done
           go true "first run in the window from $START"
 
+      # Always checked out (2 s): the failure alert is a local action and needs the repo
+      # even when the gate step itself fails.
       - uses: actions/checkout@v5
-        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-node@v5
         if: steps.gate.outputs.run == 'true'
         with:
@@ -109,9 +110,7 @@ jobs:
 
       - name: Discord on failure
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_UK || secrets.DISCORD_WEBHOOK_URL }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Opus editor (UK) failed\",\"description\":\"[See the log]($RUN_URL).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Opus editor (UK) failed"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_UK || secrets.DISCORD_WEBHOOK_URL }}

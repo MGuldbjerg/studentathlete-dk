@@ -1,0 +1,40 @@
+name: Discord on failure
+description: >
+  Mikkel, 2026-10-28 (optimisation pass): one failure alert for every workflow,
+  and it says WHICH step failed — «Pick a Claude account» or «npm ci» tells you
+  the cause before you open the log. The step name comes from the jobs API,
+  which reports finished steps while the job is still running. If the token
+  can't read it (a workflow whose `permissions:` leave out actions: read), the
+  alert goes out without it. Use with `if: failure()` after actions/checkout.
+
+inputs:
+  title:
+    description: The alert's title, e.g. «❌ Statistik-siden blev ikke opdateret»
+    required: true
+  webhook:
+    description: secrets.DISCORD_WEBHOOK_URL (or a site-specific webhook)
+    required: true
+  detail:
+    description: Optional sentence on what the failure means, e.g. «Karriere-tabellerne blev ikke opdateret.»
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        TITLE: ${{ inputs.title }}
+        DETAIL: ${{ inputs.detail }}
+        WEBHOOK: ${{ inputs.webhook }}
+        GH_TOKEN: ${{ github.token }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        STEPS=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" \
+          --jq '[.jobs[].steps[] | select(.conclusion == "failure") | .name] | join(", ")' 2>/dev/null || true)
+        DESC="[Se loggen]($RUN_URL)"
+        [ -n "$STEPS" ] && DESC="Fejlede trin: **$STEPS**"$'\n'"$DESC"
+        [ -n "$DETAIL" ] && DESC="$DETAIL"$'\n'"$DESC"
+        jq -n --arg t "$TITLE" --arg d "$DESC" \
+          '{embeds: [{title: $t, description: $d, color: 15158332, timestamp: (now | todate)}]}' \
+          | curl -s -X POST "$WEBHOOK" -H "Content-Type: application/json" -d @- > /dev/null

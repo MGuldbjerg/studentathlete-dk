@@ -30,110 +30,24 @@ jobs:
       - name: Typecheck pipeline
         run: npx tsc -p pipeline/tsconfig.json --noEmit
 
+      # projekt-status.md holds current state only (see its header). Done work
+      # belongs in git log, procedures in docs/RUNBOOK.md — it grew to 3,841 lines
+      # once, and every session reads it first.
+      - name: Status file stays short
+        run: |
+          n=$(wc -l < projekt-status.md)
+          echo "projekt-status.md: $n lines (limit 250)"
+          if [ "$n" -gt 250 ]; then
+            echo "::error file=projekt-status.md::$n lines — move done work out (git log keeps it), procedures to docs/RUNBOOK.md"
+            exit 1
+          fi
+
+      # Every tracked _*-test.ts runs: no list to keep in sync. Twelve tests had
+      # fallen out of the old hand-kept list without anyone noticing (2026-10-28).
       - name: Unit-tests
         run: |
           set -e
-          for t in \
-            pipeline/generate/_parse-output-test.ts \
-            pipeline/generate/_boxscore-test.ts \
-            pipeline/generate/_weekday-test.ts \
-            pipeline/generate/_match-facts-test.ts \
-            pipeline/generate/_fact-cross-check-test.ts \
-            pipeline/generate/_verify-factsheet-test.ts \
-            pipeline/generate/_source-window-test.ts \
-            pipeline/generate/_tournament-hold-test.ts \
-            pipeline/generate/_award-section-test.ts \
-            pipeline/generate/_records-test.ts \
-            pipeline/stats/_ncaa-rankings-test.ts \
-            pipeline/stats/_season-stats-test.ts \
-            pipeline/reels/_frames-test.ts \
-            pipeline/photos/_permission-email-test.ts \
-            pipeline/photos/_permission-state-test.ts \
-            pipeline/generate/_identity-guard-test.ts \
-            pipeline/generate/_event-timing-test.ts \
-            pipeline/generate/_timeline-test.ts \
-            pipeline/generate/_forward-looking-test.ts \
-            pipeline/generate/_fact-numbers-test.ts \
-            pipeline/generate/_number-roles-test.ts \
-            pipeline/generate/_group-stories-test.ts \
-            pipeline/generate/_quality-check-test.ts \
-            pipeline/generate/_draft-pack-test.ts \
-            pipeline/generate/_fix-pack-test.ts \
-            pipeline/generate/_factsheet-status-test.ts \
-            pipeline/lib/llm/_errors-test.ts \
-            pipeline/lib/llm/_chain-test.ts \
-            pipeline/catalogue/_catalogue-test.ts \
-            pipeline/checks/_platform-limits-test.ts \
-            pipeline/checks/_check-view-test.ts \
-            pipeline/checks/_athlete-stats-test.ts \
-            pipeline/lib/_browser-budget-test.ts \
-            pipeline/checks/_false-transfers-test.ts \
-            pipeline/checks/_draft-numbers-test.ts \
-            pipeline/checks/_danish-names-test.ts \
-            pipeline/checks/_factsheet-attribution-test.ts \
-            pipeline/checks/_localised-source-urls-test.ts \
-            pipeline/discover/_extract-story-test.ts \
-            pipeline/discover/_sensitive-test.ts \
-            pipeline/editor/_assignment-desk-test.ts \
-            pipeline/lib/_claude-run-test.ts \
-            pipeline/profiles/_merch-stores-test.ts \
-            pipeline/fix/_auto-editor-test.ts \
-            pipeline/fix/_auto-timeline-test.ts \
-            pipeline/discover/_honors-test.ts \
-            pipeline/discover/_story-kind-test.ts \
-            pipeline/learn/_mine-edits-test.ts \
-            pipeline/lib/_hometown-test.ts \
-            pipeline/lib/_hometown-uk-test.ts \
-            pipeline/lib/_athlete-identity-test.ts \
-            pipeline/lib/_d1-client-test.ts \
-            pipeline/lib/_divisions-test.ts \
-            pipeline/lib/_notify-test.ts \
-            pipeline/lib/_robots-test.ts \
-            pipeline/lib/_robots-txt-site-test.ts \
-            pipeline/scrape/_team-discovery-test.ts \
-            pipeline/scrape/_athletics-site-test.ts \
-            pipeline/scrape/_honors-test.ts \
-            pipeline/scrape/_conference-honors-test.ts \
-            pipeline/scrape/_roster-urls-test.ts \
-            pipeline/scrape/_waf-challenge-test.ts \
-            pipeline/scrape/parsers/_roster-api-test.ts \
-            pipeline/scrape/parsers/_sidearm-test.ts \
-            pipeline/social/_social-test.ts \
-            pipeline/report/_search-console-test.ts \
-            pipeline/report/_indexnow-backfill-test.ts \
-            pipeline/profiles/_profile-drafts-test.ts \
-            src/lib/_admin-paging-test.ts \
-            src/lib/_award-label-test.ts \
-            src/lib/_timeline-test.ts \
-            src/lib/_ga4-test.ts \
-            src/lib/_analytics-test.ts \
-            src/lib/_social-stats-test.ts \
-            src/lib/_site-family-test.ts \
-            src/lib/_db-errors-test.ts \
-            src/lib/_article-url-test.ts \
-            src/lib/_meta-description-test.ts \
-            src/lib/_indexnow-test.ts \
-            src/lib/_school-name-test.ts \
-            src/lib/_school-display-name-test.ts \
-            src/lib/_school-team-name-test.ts \
-            src/lib/_no-danish-default-test.ts \
-            src/lib/_no-danish-in-jsx-test.ts \
-            src/lib/_season-badge-test.ts \
-            src/lib/_article-blocks-test.ts \
-            src/lib/_gender-test.ts \
-            src/lib/_site-content-test.ts \
-            src/lib/_ui-strings-test.ts \
-            src/lib/_athlete-letters-test.ts \
-            src/lib/_youtube-test.ts \
-            src/lib/_profile-baseline-test.ts \
-            src/lib/_stats-prose-test.ts \
-            src/lib/_profile-baseline-en-test.ts \
-            src/lib/_positions-test.ts \
-            src/lib/_mcp-server-test.ts \
-            src/lib/_athlete-merge-test.ts \
-            src/lib/_og-card-test.ts \
-            src/lib/_og-static-test.ts
-          do
+          for t in $(git ls-files '*_*-test.ts' | grep -E '(^|/)_[a-z0-9-]+-test\.ts$'); do
             echo "── $t"
             npx tsx "$t"
           done
