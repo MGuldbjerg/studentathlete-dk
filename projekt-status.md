@@ -59,8 +59,9 @@ Mikkel creates the profiles and runs `setup-threads.bat`. Social links carry `?s
 watch. `d1_top_reads` (28/10): the heaviest site queries are the article lists (~3M rows/day,
 no index on `articles.published_at`), sport-page counts and letter pages — see Next.
 
-**Tooling.** Ops MCP server (`mcp/`, #74): CI runs/failures, Claude usage + quota, guarded D1
-reads, D1 top queries. The Worker MCP (`/api/mcp`, `SETUP-mcp-desktop.md`) is Claude Desktop's
+**Tooling.** Ops MCP server (`mcp/`, #74): `status` overview, CI runs/failures, Claude usage +
+quota, guarded D1 reads, D1 top queries. Every workflow's failure alert goes through
+`.github/actions/notify-failure` and names the failed step. CI runs every `_*-test.ts`. The Worker MCP (`/api/mcp`, `SETUP-mcp-desktop.md`) is Claude Desktop's
 editing connector — a different thing.
 
 ---

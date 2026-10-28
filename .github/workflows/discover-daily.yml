@@ -46,10 +46,8 @@ jobs:
       # ikke går ubemærket. Dashboard-signalet er "/generate: N kladder klar".
       - name: Discord-notifikation ved fejl
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Discovery fejlede\",\"description\":\"check-sources fejlede. [Se loggen]($RUN_URL).\",\"color\":15158332,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Discovery fejlede"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          detail: "check-sources fejlede."

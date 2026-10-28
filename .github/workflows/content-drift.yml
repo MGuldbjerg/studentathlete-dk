@@ -32,10 +32,8 @@ jobs:
 
       - name: Discord-notifikation ved drift
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"⚠️ Sport/viden-tekster er ude af sync med D1\",\"description\":\"Koden er ændret uden re-seed (eller tjekket fejlede) — teksterne på sitet viser IKKE kodens version. Kør seed-sport/seed-guides mod D1 (tjek admin-redigeringer først). [Se loggen]($RUN_URL).\",\"color\":16753920,\"footer\":{\"text\":\"StudentAthlete.dk pipeline\"},\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "⚠️ Sport/viden-tekster er ude af sync med D1"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          detail: "Koden er ændret uden re-seed (eller tjekket fejlede) — teksterne på sitet viser IKKE kodens version. Kør seed-sport/seed-guides mod D1 (tjek admin-redigeringer først)."

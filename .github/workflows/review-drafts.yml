@@ -91,9 +91,7 @@ jobs:
 
       - name: Discord ved fejl
         if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Claude-gennemgang af kladder fejlede\",\"description\":\"[Se loggen]($RUN_URL).\",\"color\":15158332,\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}"
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Claude-gennemgang af kladder fejlede"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}

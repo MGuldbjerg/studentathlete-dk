@@ -23,7 +23,9 @@ The fetch tool returns empty shells on Sidearm athletics sites. Use
 Yale keep emails out of the HTML. **Never infer an address from a pattern.**
 
 ### Diagnose a failed workflow
-Use the ops MCP server (`SETUP-ops-mcp.md`): `ci_runs failed_only` → `ci_failure <id>`.
+The Discord alert already names the failed step (`.github/actions/notify-failure` — every
+workflow's `if: failure()` step uses it; add it the same way to new workflows). For the log,
+use the ops MCP server (`SETUP-ops-mcp.md`): `ci_runs failed_only` → `ci_failure <id>`.
 Claude-account failures («No Claude account answered») are the usage limit or a dead
 token; the early switch in `pipeline/lib/claude-run.ts` moves runs to the fallback
 account at 85 % (5 h) / 90 % (7 d).
