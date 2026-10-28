@@ -111,7 +111,7 @@ skolerne er de samme, kun klassifikationen adskiller sig.
   (`/football` vs `/american-football`). Engelske alias-ruter er ikke lavet.
 - **Admin er dansk** og redigerer det site den tilgås FRA. Bevidst — én bruger —
   men UK-tekster kan derfor kun redigeres på UK-værten.
-- **Redaktør-roller** — se `IDEA-payload.md`: `admin_users(email, role, country)`
+- **Redaktør-roller** — se `IDEA-payload.md` (arkiveret, `docs/ARCHIVE.md`): `admin_users(email, role, country)`
   oven på Cloudflare Access, ikke et nyt CMS.
 
 ## Status: to lande (2026-08-04)
