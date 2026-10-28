@@ -4,12 +4,14 @@ on:
   schedule:
     # Søndag kl. 04:00 UTC (05:00 dansk tid)
     - cron: '0 4 * * 0'
-    # MIDLERTIDIG natlig kørsel under UK-opstarten (2026-08-04 →).
-    # Scraperen roterer gennem ~1.700 skoler og fanger kun en del pr. kørsel;
-    # ugentligt ville tage måneder om at finde alle briter. 22:00 UTC ligger
-    # frit af de øvrige jobs (js-scrape 03:00, katalog 21:00, morgen-cluster).
-    # ⚠️ FJERN denne linje igen når UK-tallet flader ud — ellers scrapes der
-    # unødigt hver nat resten af sitets levetid.
+    # Natlig kørsel: begyndte under UK-opstarten (2026-08-04), BEHOLDT 2026-10-28
+    # (Mikkel: «Keep finding athletes from the 13 countries»). Scraperen roterer
+    # gennem ~1.700 skoler og fanger kun en del pr. kørsel; skoler scrapet før
+    # 2026-10-22 gemte kun UK/DK-atleter, så de 13 indsamlingslande kræver en ny
+    # runde. Ugentligt ville tage måneder. 22:00 UTC ligger frit af js-scrape
+    # (03:00), katalog (lør 21:00) og morgen-clusteret. Overvej ugentligt, når
+    # indsamlingslandenes tal (`SELECT home_country, COUNT(*) FROM athletes
+    # GROUP BY 1`) holder op med at vokse.
     - cron: '0 22 * * *'
   workflow_dispatch:
 
