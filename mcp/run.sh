@@ -7,6 +7,7 @@
 cd "$(dirname "$0")/.." || exit 1
 # The same node as CI and ~/.bashrc: the global wrangler lives under v22.22.0.
 export PATH="$HOME/.local/bin:$HOME/.nvm/versions/node/v22.22.0/bin:$PATH"
-# Only the three Cloudflare values it needs, not the whole interactive .bashrc.
-eval "$(grep -E '^export CLOUDFLARE_(API_TOKEN|ACCOUNT_ID|D1_DATABASE_ID)=' ~/.bashrc)"
+# Only the values it needs, not the whole interactive .bashrc. BREVO_API_KEY is for access_check's
+# read-only GET /v3/account; the server never prints it.
+eval "$(grep -E '^export (CLOUDFLARE_(API_TOKEN|ACCOUNT_ID|D1_DATABASE_ID)|BREVO_API_KEY)=' ~/.bashrc)"
 exec node_modules/.bin/tsx mcp/ops-server.ts

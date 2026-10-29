@@ -26,9 +26,13 @@
  */
 import { execFile } from "node:child_process";
 import { createInterface } from "node:readline";
+import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { promisify } from "node:util";
+import { SignJWT, importPKCS8 } from "jose";
 import { probeUtilization } from "../pipeline/lib/claude-run";
 import { createD1Client } from "../pipeline/lib/d1-client";
+import { accessCheck, formatChecks } from "./access-check";
 import { Budget, checkReadOnly, clip, cteNames, fullScans, table } from "./ops-guards";
 
 const run = promisify(execFile);
@@ -57,6 +61,23 @@ async function d1(sql: string, params: unknown[] = []): Promise<{ rows: Record<s
 }
 
 const gh = async (args: string[]) => (await run("gh", [...args, "-R", REPO], { maxBuffer: 64 * 1024 * 1024 })).stdout;
+
+/** Service-account access token (GA4, Search Console) — the same exchange as pipeline/report/social-retention.ts. */
+async function googleToken(scope: string): Promise<string> {
+  const path = (process.env.GOOGLE_SEARCH_CONSOLE_KEY ?? "~/.config/gcloud/sa-searchconsole.json").replace(/^~/, homedir());
+  const key = JSON.parse(readFileSync(path, "utf8"));
+  const now = Math.floor(Date.now() / 1000);
+  const assertion = await new SignJWT({ scope })
+    .setProtectedHeader({ alg: "RS256" }).setIssuer(key.client_email)
+    .setAudience("https://oauth2.googleapis.com/token").setIssuedAt(now).setExpirationTime(now + 3600)
+    .sign(await importPKCS8(key.private_key, "RS256"));
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion }),
+  });
+  if (!res.ok) throw new Error(`Google token exchange failed: HTTP ${res.status}`);
+  return ((await res.json()) as { access_token: string }).access_token;
+}
 
 // ── the tools ───────────────────────────────────────────────────────────────
 
@@ -180,6 +201,18 @@ const tools: Tool[] = [
       const pct = (x: number) => `${Math.round(x * 100)}%`;
       return `This PC's Claude login: 5-hour window ${pct(u.fiveHour)} · 7-day window ${pct(u.sevenDay)} · ${u.allowed ? "allowed" : "LIMITED"}. CI moves to the fallback at 85% / 90% (claude-run.ts).`;
     }),
+  },
+  {
+    name: "access_check",
+    description: "Which accesses work RIGHT NOW: Cloudflare (token, D1, R2, zones), GA4 (both properties), Search Console, GitHub scopes, Brevo, Worker secret names. One harmless read per service; run it before saying «we can't» or «we can». The Worker's own GITHUB_TOKEN scope cannot be tested from here. Cached 10 minutes.",
+    inputSchema: { type: "object", properties: {} },
+    call: () => cached("access", 10 * 60_000, async () =>
+      formatChecks(await accessCheck({
+        env: process.env,
+        fetch: (url, init) => fetch(url, init),
+        exec: async (cmd, args) => (await run(cmd, args, { maxBuffer: 4 * 1024 * 1024, timeout: 30_000 })).stdout,
+        googleToken,
+      }))),
   },
   {
     name: "d1_schema",
