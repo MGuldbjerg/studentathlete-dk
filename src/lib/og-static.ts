@@ -51,7 +51,7 @@ export function cardAssetPath(articleId: number, version: number): string {
  * HTML and hydration. Set it only AFTER the backfill (docs/RUNBOOK.md, «Cards
  * in R2»). `NEXT_PUBLIC_MEDIA_BASE_URL` overrides it for tests and trial builds.
  */
-export const MEDIA_BASE_URL_CONFIG = "";
+export const MEDIA_BASE_URL_CONFIG = "https://media.studentathlete.dk";
 
 /** The media base URL without trailing slash, or null when cards are not in R2. */
 export function mediaBaseUrl(): string | null {
