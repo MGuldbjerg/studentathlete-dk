@@ -22,6 +22,9 @@
  *   --dry-run    render og skriv KUN til disk — rør ikke D1. Uden den var der
  *                ingen måde at se en designændring uden at skrive i produktion.
  * Idempotent: springer nøgler over der allerede findes (nøgle indeholder CARD_VERSION).
+ *
+ * Storage (2026-10-29): CARD_STORE=d1|both|r2 picks where the bytes go — see
+ * pipeline/lib/card-store.ts. Unset = d1, the behaviour described above.
  */
 import { readFileSync } from "node:fs";
 import { writeFileSync } from "node:fs";
@@ -30,6 +33,7 @@ import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 import { createD1Client, type D1Client } from "../lib/d1-client";
+import { createCardStore } from "../lib/card-store";
 import { CARD_FORMATS, buildMatchCardElement, type CardData, type CardFormat } from "../../src/lib/og-card";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 import { ALL_CHANNELS, withinQueueWindow } from "../social/post-social";
@@ -192,8 +196,10 @@ async function portraitCountries(db: D1Client): Promise<Map<string, string>> {
 async function main(): Promise<void> {
   const { force, article, out, formats, dryRun } = parseArgs();
   const db = createD1Client();
+  const store = createCardStore(db);
   const assets = loadAssets();
 
+  console.log(`Card store: ${store.mode}`);
   if (dryRun) console.log("DRY-RUN: renderer og skriver til disk, rører ikke D1." + "\n");
 
   // Samme joins som /api/og getCardData — kun publicerede artikler pre-renderes
@@ -233,11 +239,7 @@ async function main(): Promise<void> {
       // I dry-run springer vi ALDRIG over: man beder om den netop for at se
       // kortet, og et «fandtes allerede» ville give en tom mappe og ingen fejl.
       if (!force && !dryRun) {
-        const existing = await db.query<{ key: string }>(
-          "SELECT key FROM card_blobs WHERE key = ?",
-          [key],
-        );
-        if (existing.results.length > 0) {
+        if (await store.hasCard(key)) {
           skipped++;
           continue;
         }
@@ -246,12 +248,8 @@ async function main(): Promise<void> {
       try {
         const img = await renderCard(row, assets, format);
         if (!dryRun) {
-          await db.execute(
-            `INSERT INTO card_blobs (key, png_base64, width, height)
-             VALUES (?, ?, ?, ?)
-             ON CONFLICT(key) DO UPDATE SET png_base64 = excluded.png_base64, created_at = datetime('now')`,
-            [key, img.toString("base64"), width, height],
-          );
+          // renderCard: portrait → JPEG, landscape → WebP.
+          await store.putCard(key, img, format === "portrait" ? "image/jpeg" : "image/webp", { width, height });
         }
         rendered++;
         console.log(`  ${dryRun ? "·" : "✓"} ${key} (artikel ${row.id}, ${width}×${height}, ${Math.round(img.length / 1024)} KB)`);
@@ -262,6 +260,10 @@ async function main(): Promise<void> {
           console.log(`    → skrevet til ${file}`);
         }
       } catch (err) {
+        // A refused token (R2 permission missing) fails every card the same way:
+        // stop the run so the workflow goes red and Discord says so.
+        const status = (err as { status?: number }).status;
+        if (status === 401 || status === 403) throw err;
         // Én fejlet render må ikke stoppe resten — /api/og-fallbacket dækker den
         console.error(`  ✗ ${key}: ${err instanceof Error ? err.message : String(err)}`);
       }

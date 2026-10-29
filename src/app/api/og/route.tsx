@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { NextRequest } from "next/server";
 import { getDB, getEnv } from "@/lib/db";
 import { cardBlobKey, igCardBlobKey, reelBlobKey } from "@/lib/seo";
+import { cardMediaUrl } from "@/lib/og-static";
 import { buildGenericElement } from "@/lib/og-generic";
 import {
   buildMatchCardElement,
@@ -135,6 +136,23 @@ export async function GET(req: NextRequest) {
   if (cached) return cached;
 
   const type = searchParams.get("type") || "article";
+
+  // Cards in R2: pages and new posts link the media domain directly, so only
+  // OLD links get here (posts and caches holding `/og/cards/…?type=card…` or
+  // `/api/og?type=ig…`). Send them to the bucket — a redirect costs no D1 read
+  // and no decode, and keeps working after card_blobs is emptied.
+  if (type === "card" || type === "ig") {
+    const articleId = parseInt(searchParams.get("article") ?? "", 10);
+    const target = Number.isFinite(articleId)
+      ? cardMediaUrl(type === "ig" ? igCardBlobKey(articleId) : cardBlobKey(articleId))
+      : null;
+    if (target) {
+      return withEdgeCache(req.url, new Response(null, {
+        status: 302,
+        headers: { Location: target, "Cache-Control": "public, max-age=86400, s-maxage=604800" },
+      }));
+    }
+  }
 
   // Kampkort: synligt cover genereret fra artiklens egne data (IDEA-billeder.md niveau 1)
   if (type === "card") {
