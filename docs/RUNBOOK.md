@@ -93,8 +93,21 @@ account at 85 % (5 h) / 90 % (7 d).
 - **Separate Cloudflare accounts per site:** no capacity gain — the CPU limit is per
   call, not per account, and there is one Worker.
 
+- **Facial recognition — NEVER, in any form** (Mikkel, 2026-10-29: «Under no circumstances
+  facial recognition — ever»). Not to match photos to athletes, not to sort, not as a
+  «helper». It is biometric data (GDPR Art. 9) about named young people, and it is a no
+  regardless of tooling or cost. Identity of a person in a photo comes from the school's
+  own text (below), never from the face.
+
 ## Standing decisions worth knowing
 
 - **Sourced table facts may publish straight to profiles** (Mikkel, 17 Sep 2026: «This
   is table data, not prose, and directly from official sources»). The no-auto-publish
   rule governs PROSE about named people.
+- **Which athlete is in a photo** (Mikkel, 2026-10-29). Roster headshots come from the
+  athlete's own roster page — the right person by construction. An ARTICLE photo may be
+  used for our athlete only when the image's caption or alt text names the athlete by full
+  name (first + last, diacritics folded); several players in the photo is fine. A caption's
+  «Photo by …» names the photographer, not the motif. Photos that don't match go to a review
+  queue (Mikkel accepts the delay, to fill articles with real photos rather than template
+  graphics); the queue should drop photos for articles too old to use.
