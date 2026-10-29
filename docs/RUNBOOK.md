@@ -62,13 +62,14 @@ build the URL too). Order: bucket + domain → `CARD_STORE=both` → backfill
 → `CARD_STORE=r2`. Setting the constant before the backfill breaks every card image.
 In `r2` mode card_blobs keeps an EMPTY marker row per card: it is the social queue's
 «card exists» gate (`cardReadyClause`) and render-cards' skip check.
-**Card at publish (branch `card-at-publish`):** pages link the bucket only when the
+**Card at publish (#91):** pages link the bucket only when the
 card_blobs row exists (`card_ready`, `cardReadySql` in seo.ts), else `/api/og`, which
 draws it (cached 5 min) and 302s to the bucket once the row is there.
 `apply-draft-decisions.ts` renders the card before `published = 1`; /admin and MCP
 publishes dispatch `render-cards.yml` with `article=<id>` (Worker secret `GITHUB_TOKEN`,
 needs Actions write). A hand run of apply-draft-decisions needs `CARD_STORE` set like the
-workflows — render-cards refuses `d1` while `MEDIA_BASE_URL_CONFIG` is set.
+workflows — render-cards refuses `d1` while `MEDIA_BASE_URL_CONFIG` is set. Social posts wait
+until the card row is at least 6 minutes old (`CARD_SETTLE_MINUTES`).
 **Not done, a separate decision:** emptying the old rows. Keep the rows (markers) and
 clear the bytes — `UPDATE card_blobs SET png_base64 = '' WHERE key LIKE 'card-%' OR key
 LIKE 'ig-%'` — never `DELETE`, or the queue waits forever and render-cards re-renders
@@ -120,8 +121,24 @@ account at 85 % (5 h) / 90 % (7 d).
 - **Separate Cloudflare accounts per site:** no capacity gain — the CPU limit is per
   call, not per account, and there is one Worker.
 
+- **Facial recognition — NEVER, in any form** (Mikkel, 2026-10-29: «Under no circumstances
+  facial recognition — ever»). Not to match photos to athletes, not to sort, not as a
+  «helper». It is biometric data (GDPR Art. 9) about named young people, and it is a no
+  regardless of tooling or cost. Identity of a person in a photo comes from the school's
+  own text (below), never from the face.
+
 ## Standing decisions worth knowing
 
 - **Sourced table facts may publish straight to profiles** (Mikkel, 17 Sep 2026: «This
   is table data, not prose, and directly from official sources»). The no-auto-publish
   rule governs PROSE about named people.
+- **Which athlete is in a photo** (Mikkel, 2026-10-29). Roster headshots come from the
+  athlete's own roster page — the right person by construction. An ARTICLE photo may be
+  used for our athlete only when the image's caption or alt text names the athlete by full
+  name (first + last, diacritics folded); several players in the photo is fine. A caption's
+  «Photo by …» names the photographer, not the motif. Photos that don't match go to a review
+  queue (Mikkel accepts the delay, to fill articles with real photos rather than template
+  graphics); the queue drops photos for articles too old to use. Surname-only matches never
+  count. Image hunting runs ONLY for stories the assignment desk decided as an ARTICLE — not
+  lines, folds, skips or holds: no fetching, queueing or review effort for a story that will
+  never get a page.
