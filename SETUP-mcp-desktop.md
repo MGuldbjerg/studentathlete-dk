@@ -67,7 +67,7 @@ Forkert eller manglende token svarer `401`, manglende secret svarer `503`.
 | `save_draft` | **skriver** | Gemmer titel/manchet/brødtekst på en kladde. Publicerer aldrig |
 | `publish_draft` | **skriver** | Publicerer — kræver `confirm: true` og nægter ved verdict `reject` |
 | `list_pages` / `get_page` | læser | Pillartekster, guider og faste sider pr. land |
-| `save_page` | **skriver** | Gemmer en sides tekst (advarer når siden også findes i koden) |
+| `save_page` | **skriver** | Gemmer en sides tekst — **offentlig med det samme**; kræver `confirm: true` (advarer når siden også findes i koden) |
 | `search_athletes` | læser | Slår atleter op på navn, sport, universitet, hjemland |
 | `site_stats` | læser | Atleter pr. sport/land, kladdekø, publicerede artikler |
 
@@ -97,11 +97,20 @@ admin gør.
 
 **Publicering**: `publish_draft` findes, fordi du skal kunne sige "udgiv #109" i
 Desktop. Den kræver `confirm: true` og nægter kladder, som gennemgangen har
-afvist. Vil du helt fjerne muligheden, så slet værktøjet fra
+afvist. `save_page` kræver også `confirm: true` (2026-10-29): sider har ingen
+kladdetilstand, så en gemt side er offentlig i samme øjeblik.
+
+**Sti-vejen er ikke fjernet** (vurderet 2026-10-29): Claude Desktops og claude.ai's
+connector-dialog tager en URL (+ OAuth), ikke egne headers, så for dem er
+`/api/mcp/<token>` den eneste vej ind. Tokenet sammenlignes i konstant tid, og
+sitets egen statistik logger ikke `/api`-stier; URL'en står derimod i Cloudflares
+request-logs (kun synlige for kontoen) og i Desktops opsætning. Roter derfor
+tokenet, hvis URL'en har været delt eller vist. Vil du helt fjerne muligheden, så slet værktøjet fra
 `src/lib/mcp-server.ts` og deploy — resten virker uændret.
 
 ## Filerne
 
 - `src/lib/mcp-server.ts` — værktøjerne og JSON-RPC-håndteringen
-- `src/app/api/mcp/[token]/route.ts` — transport og token-tjek
-- `pipeline/generate/_mcp-server-test.ts` — test af protokol og spærrer (i CI)
+- `src/lib/mcp-http.ts` — transport og token-tjek (konstant tid)
+- `src/app/api/mcp/route.ts` — header-vejen; `src/app/api/mcp/[token]/route.ts` — sti-vejen
+- `src/lib/_mcp-server-test.ts` — test af protokol og spærrer (i CI)

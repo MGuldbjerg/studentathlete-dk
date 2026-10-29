@@ -283,8 +283,10 @@ const TOOLS: ToolDef[] = [
   {
     name: "save_page",
     description:
-      "Gem en sides tekst. NB: sport- og guide-sider har en kode-version i repoet; " +
-      "en rettelse her overskrives, hvis seed-scriptet køres igen. Sig det til Mikkel.",
+      "Gem en sides tekst — den er OFFENTLIG i samme øjeblik (sider har ingen kladdetilstand). " +
+      "Kræver confirm: true; brug den kun når Mikkel har set teksten og bedt om det. " +
+      "NB: sport- og guide-sider har en kode-version i repoet; en rettelse her overskrives, " +
+      "hvis seed-scriptet køres igen. Sig det til Mikkel.",
     writes: true,
     inputSchema: {
       type: "object",
@@ -294,10 +296,16 @@ const TOOLS: ToolDef[] = [
         title: { type: "string" },
         content: { type: "string", description: "Hele sidens markdown." },
         meta_description: { type: "string" },
+        confirm: { type: "boolean", description: "Skal være true. Uden den sker der intet." },
       },
-      required: ["slug", "title", "content"],
+      required: ["slug", "title", "content", "confirm"],
     },
     handler: async (a) => {
+      // Same guard as publish_draft (Mikkel, 2026-10-29): a page goes public the moment
+      // it is saved, so one stray call must not be able to change the live site.
+      if (a.confirm !== true) {
+        return { gemt: false, grund: "confirm var ikke true — intet gemt. Siden er offentlig i det øjeblik den gemmes." };
+      }
       const slug = str(a.slug);
       const title = str(a.title);
       const content = str(a.content);
