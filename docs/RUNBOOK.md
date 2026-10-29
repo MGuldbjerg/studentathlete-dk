@@ -29,7 +29,8 @@ or dies.
 
 **Referenced but not set (2026-10-29)** — the step that uses it falls back or stays inert:
 `BREVO_API_KEY` (photo-permission sends — Mikkel's blocker), `MCP_TOKEN` (Worker MCP for
-Claude Desktop is closed until set, `SETUP-mcp-desktop.md`), `THREADS_DK_*` (no DK Threads
+Claude Desktop/claude.ai is closed until set — `SETUP-mcp-desktop.md`; writes need
+`confirm: true` since 2026-10-29), `THREADS_DK_*` (no DK Threads
 profile), `X_*` (no X account), `ANTHROPIC_API_KEY` (API drafting not used — subscription
 instead), `DISCORD_WEBHOOK_DK`/`_UK` (alerts fall back to `DISCORD_WEBHOOK_URL`).
 `CLOUDFLARE_EMAIL_TOKEN` and `VERCEL_TOKEN` in `~/.bashrc` are not used by this repo.

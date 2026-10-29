@@ -95,6 +95,21 @@ const run = async () => {
   });
   ok(text(noConfirm).includes('"publiceret": false'), "publish_draft uden confirm publicerer ikke");
 
+  // save_page: a page is public the moment it is saved — without confirm nothing happens.
+  for (const [i, args] of [
+    { slug: "om", title: "Om", content: "x" },
+    { slug: "om", title: "Om", content: "x", confirm: false },
+    { slug: "om", title: "Om", content: "x", confirm: "true" },
+  ].entries()) {
+    const r = await handleMcpRequest({
+      jsonrpc: "2.0",
+      id: 60 + i,
+      method: "tools/call",
+      params: { name: "save_page", arguments: args },
+    });
+    ok(text(r).includes('"gemt": false'), `save_page uden confirm: true gemmer ikke (${JSON.stringify(args.confirm)})`);
+  }
+
   const nothingToSave = await handleMcpRequest({
     jsonrpc: "2.0",
     id: 7,
