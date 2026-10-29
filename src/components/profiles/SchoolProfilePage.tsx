@@ -199,6 +199,15 @@ export async function SchoolProfilePage({ school, athletes, articles, totalAthle
               // paragraph above already says how many we follow.
               <p className="text-muted text-sm">{t("school.no_athletes", lang)}</p>
             )}
+            {/* The 48px avatars carry no credit of their own; one line credits the school
+                (Mikkel, 2026-10-29: «If no credit line, just credit the school»). Only when
+                at least one avatar is a real photo — the gate has already removed photos
+                from schools that declined. */}
+            {athletes.some((a) => a.photo_url) && (
+              <p className="text-[10px] text-muted mt-3">
+                {t("photo.roster_credit", lang, { school: school.name })}
+              </p>
+            )}
             {athletes.length > 0 && more > 0 && (
               <p className="text-muted text-sm mt-4">
                 {more === 1

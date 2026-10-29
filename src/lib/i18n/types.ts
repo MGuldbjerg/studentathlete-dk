@@ -292,6 +292,7 @@ export type UiKey =
   | "photo.credit"
   | "photo.school_credit"
   | "photo.source"
+  | "photo.roster_credit"
   | "profile.about"
   | "school.athletes_heading"
   | "tpl.student_athlete_tag"

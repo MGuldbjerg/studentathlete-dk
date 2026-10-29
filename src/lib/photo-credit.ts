@@ -11,6 +11,12 @@
  *   photographer + school + url → "Foto: Jane Doe · Duke Athletics · [Kilde]"
  *   school + url               → "Foto: Duke Athletics · [Kilde]"
  *   legacy credit only         → "Foto: Duke Athletics"  (rows from before migration 080)
+ *
+ * Today's photos are roster headshots, which name no photographer, so the field is
+ * empty. Mikkel, 2026-10-29: «once we get images, there should be photographers» —
+ * the pipeline that takes photos from school ARTICLES must read the photographer
+ * from the article's caption/credit and store it (photo_suggestions.photographer),
+ * and should not suggest an article photo whose page names no one without saying so.
  */
 import { t } from "./i18n";
 

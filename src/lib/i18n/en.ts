@@ -562,6 +562,7 @@ const ui: LanguagePack["ui"] = {
   "photo.credit": "Photo: {credit}",
   "photo.school_credit": "{school} Athletics",
   "photo.source": "Source",
+  "photo.roster_credit": "Photos: {school} Athletics",
   "profile.about": "About {name}",
   "school.athletes_heading": "UK athletes at {school}",
   "tpl.student_athlete_tag": "Student athlete",
