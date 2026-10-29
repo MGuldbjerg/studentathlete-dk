@@ -12,10 +12,17 @@ used (the «Verified» column). Inventory 2026-10-29: `~/.bashrc` exports, `gh s
 `wrangler secret list`, `~/.config/gcloud/`. Update the table when a credential is added
 or dies.
 
+**Don't answer «can we?» from memory — try it.** Ops MCP `access_check` makes one harmless read per
+service (Cloudflare token/D1/R2/zones, GA4 both properties, Search Console, `gh` scopes, Brevo, Worker
+secret names) and says can / cannot / unknown. Run it before saying «we can't» or «we can», and after
+any token change. It cannot test the Worker's own `GITHUB_TOKEN` (only the Worker knows the value) or
+anything that needs a write; for those, say «unverified» rather than guessing.
+
 | Service | Credential (where) | Reaches | Read-only way in | Verified |
 |---|---|---|---|---|
 | D1 + Workers | `CLOUDFLARE_API_TOKEN`, `_ACCOUNT_ID`, `_D1_DATABASE_ID` (`~/.bashrc` + repo secrets) | D1 read/write, Worker deploy, analytics (`wrangler d1 insights`, `platform-limits.ts`) | ops MCP `d1_query` / `d1_top_reads` | 2026-10-28 |
-| Cloudflare zones | same token | **not** zone bot settings (auth error 2026-10-27); cache purge unverified | — | partly |
+| Cloudflare R2 | same token | **not yet**: `access_check` 2026-10-29 → «token lacks permission». Needs «Workers R2 Storage: Edit» on the token, and R2 enabled on the account | `access_check` | 2026-10-29 (refused) |
+| Cloudflare zones | same token | zones list works (2026-10-29); **not** zone bot settings (auth error 2026-10-27); cache purge unverified | `access_check` | partly |
 | GA4 (.dk 370967469, .co.uk 557937554) | service account, key `~/.config/gcloud/sa-searchconsole.json` (`GOOGLE_SEARCH_CONSOLE_KEY`) — Editor on both properties | Admin API (`scripts/ga4-admin.ts`) **and Data API** (reports) | `pipeline/report/social-retention.ts` | 2026-10-29 |
 | Search Console | same service account | both sites' search data | `scripts/search-console.sh`, `pipeline/report/search-console.ts` | weekly via seo-friday |
 | AdSense | OAuth as Mikkel (`~/.config/gcloud/adsense-client.json` + `adsense-token.json`) — the AdSense API refuses service accounts | reports | `scripts/adsense-report.ts` (`adsense-auth.ts` to renew) | — |

@@ -9,6 +9,7 @@
 | `ci_failure` | failed steps + log tail of one run | GitHub API, cached 24 h |
 | `claude_usage` | Claude calls per day/job/account (claude_calls + llm_usage) | ~100 D1 rows, cached 5 min |
 | `claude_quota` | live 5-hour / 7-day utilisation of THIS PC's Claude login | **one tiny Haiku call**, cached 15 min |
+| `access_check` | **which accesses work right now**: Cloudflare token/D1/R2/zones, GA4, Search Console, `gh` scopes, Brevo, Worker secret names | one GET per service, no D1 rows, cached 10 min |
 | `d1_schema` | table names, or one table's CREATE + indexes | ~300 D1 rows, cached 1 h |
 | `d1_query` | one SELECT on the live D1 | rows read, see below |
 | `d1_top_reads` | the site's costliest D1 queries (`wrangler d1 insights`) | Cloudflare analytics, cached 30 min |
