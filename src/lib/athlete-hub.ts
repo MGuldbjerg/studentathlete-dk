@@ -79,6 +79,30 @@ export function statColumns(kind: "outfield" | "keeper" | "tennis", cellsJson: s
   return out;
 }
 
+/** Which column speaks for the season in one number, best first, per kind. */
+const HEADLINE_KEYS: Record<"outfield" | "keeper" | "tennis", string[]> = {
+  outfield: ["g", "pts", "gp"],
+  keeper: ["sv", "saves", "sho", "sho/cbo", "gp"],
+  tennis: ["singles", "dual", "doubles"],
+};
+
+/**
+ * ONE number from the season row, for the athlete card under an article: the
+ * same labelled columns the profile's «Season so far» table shows
+ * (`statColumns`), picked in HEADLINE_KEYS order. A zero is passed over for a
+ * later key (0 goals in 9 games reads better as «9 games»); if every
+ * preferred column is zero or missing, the first column the row has.
+ */
+export function seasonHeadline(kind: "outfield" | "keeper" | "tennis", cellsJson: string, lang: string): { label: string; value: string } | null {
+  const cols = statColumns(kind, cellsJson, lang);
+  if (cols.length === 0) return null;
+  for (const key of HEADLINE_KEYS[kind] ?? []) {
+    const col = cols.find((c) => c.key === key);
+    if (col && !/^0+(\.0+)?$/.test(col.value)) return { label: col.label, value: col.value };
+  }
+  return { label: cols[0].label, value: cols[0].value };
+}
+
 /** The `records` texts of a stored fact sheet; [] for anything unreadable. */
 export function recordsOf(factSheetJson: string | null): string[] {
   try {

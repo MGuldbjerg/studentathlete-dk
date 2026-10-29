@@ -10,6 +10,7 @@ import {
   getArticleAthletes,
   getAthleteSlugByAlias,
   getArticlesByAthleteId,
+  getReadNext,
   getAthleteEvents,
   getSchoolBySlug,
   schoolHasCoverage,
@@ -48,7 +49,8 @@ import {
   letterFromSlug,
 } from "@/lib/athlete-letters";
 import { AthleteFullList, parseSort } from "@/components/athletes/AthleteFullList";
-import { subRouteSlug, routePath } from "@/lib/i18n";
+import { subRouteSlug, routePath, sportSlug, queryParamAliases } from "@/lib/i18n";
+import { SocialBand } from "@/components/ui/SocialBand";
 import { SchoolProfilePage } from "@/components/profiles/SchoolProfilePage";
 import { SportLandingPage } from "@/components/SportLandingPage";
 import { NewsTemplate } from "@/components/templates/NewsTemplate";
@@ -578,20 +580,21 @@ export default async function DynamicPage({
     }
 
     if (article && normalizedSport === prefix) {
-      const [athlete, linkedAthletes, relatedArticles] = await Promise.all([
+      // Read next is one query (same athlete → sport → school → newest, see
+      // src/lib/read-next.ts); the season row is one primary-key lookup for
+      // the athlete card. All four in parallel.
+      const [athlete, linkedAthletes, readNext, seasonStats] = await Promise.all([
         article.athlete_slug ? getAthleteBySlug(article.athlete_slug) : null,
         getArticleAthletes(article.id),
-        article.athlete_id
-          ? getArticlesByAthleteId(article.athlete_id, 4).then((arts) =>
-              arts.filter((a) => a.slug !== slug)
-            )
-          : [],
+        getReadNext(article),
+        article.athlete_id ? getSeasonStats(article.athlete_id) : null,
       ]);
 
       // One fact card per athlete the article covers; an article without
       // links (older rows) still gets its primary athlete's card.
       const athletes = linkedAthletes.length > 0 ? linkedAthletes : athlete ? [athlete] : [];
-      const props = { article, athlete, athletes, relatedArticles };
+      const props = { article, athlete, athletes, readNext, seasonStats: athlete ? seasonStats : null };
+      const site = await currentSite();
 
       let template;
       switch (article.article_type) {
@@ -602,6 +605,15 @@ export default async function DynamicPage({
       }
       return (
         <>
+          {/* Only for visitors from a social post (?source= / ?kilde=); decided
+              in the browser, so the cached page is the same for everyone. */}
+          <SocialBand
+            params={queryParamAliases("source")}
+            sportHref={article.sport ? `/${sportSlug(article.sport, lang)}` : null}
+            sportText={article.sport ? t("tpl.social_more", lang, { sport: sportLabel(article.sport, lang), brand: site.brand }) : null}
+            athletesHref={routePath("athletes", lang)}
+            athletesText={t("tpl.social_athletes", lang)}
+          />
           {template}
           <AdminEditButton href={`/admin/rediger/${article.id}`} label="Rediger artikel" />
         </>
