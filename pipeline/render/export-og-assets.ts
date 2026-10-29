@@ -33,6 +33,7 @@ import { CARD_VERSION, athleteOgParams, GENERIC_OG_VERSION } from "../../src/lib
 import { cardAssetPath, genericAssetPath } from "../../src/lib/og-static";
 import { buildGenericElement, GENERIC_OG_SIZE } from "../../src/lib/og-generic";
 import { activeCountries } from "../../src/lib/countries";
+import { photoAllowedSql } from "../../src/lib/photo-permission";
 
 const ROOT = process.cwd();
 const PUBLIC = path.join(ROOT, "public");
@@ -88,7 +89,11 @@ async function exportCards(db: ReturnType<typeof createD1Client>, wanted: Set<st
 async function exportAthletes(db: ReturnType<typeof createD1Client>, wanted: Set<string>) {
   const assets = loadAssets();
   const { results } = await db.query<{ name: string; university: string; sport: string; home_country: string }>(
-    `SELECT name, university, sport, home_country FROM athletes WHERE photo_url IS NULL OR photo_url = ''`,
+    // An athlete whose school blocks photos shows the generic image too (the page's
+    // photo is gated at read time, src/lib/photo-permission.ts), so it needs the file.
+    `SELECT a.name, a.university, a.sport, a.home_country FROM athletes a
+      WHERE a.photo_url IS NULL OR a.photo_url = ''
+         OR NOT ${photoAllowedSql("(SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1)")}`,
   );
   // An athlete page answers only on its own site (getAthleteBySlug filters on
   // home_country), in that site's language — so one image per athlete.

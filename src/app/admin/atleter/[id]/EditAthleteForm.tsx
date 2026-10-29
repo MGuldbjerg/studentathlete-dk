@@ -20,7 +20,8 @@ export function EditAthleteForm({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
-  async function handleSave() {
+  /** `removePhoto`: save at once with the photo cleared — removal on request must not wait for a second click. */
+  async function handleSave(removePhoto = false) {
     setSaving(true);
     setMessage(null);
 
@@ -30,8 +31,8 @@ export function EditAthleteForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim() || null,
-          photo_url: photoUrl || null,
-          photo_credit: photoCredit || null,
+          photo_url: removePhoto ? null : photoUrl || null,
+          photo_credit: removePhoto ? null : photoCredit || null,
           preferred_name: preferredName || null,
           expected_graduation: gradYear.trim() ? parseInt(gradYear, 10) : null,
         }),
@@ -42,6 +43,11 @@ export function EditAthleteForm({
         setMessage({ type: "err", text: body.error ?? "Noget gik galt" });
       } else if (body.renamed) {
         setMessage({ type: "ok", text: `Gemt! Navnet er nu "${name.trim()}" og den gamle adresse viderestiller.` });
+        router.refresh();
+      } else if (removePhoto) {
+        setPhotoUrl("");
+        setPhotoCredit("");
+        setMessage({ type: "ok", text: "Fotoet er fjernet fra sitet (kilde og fotograf ryddet, forslaget markeret afvist)." });
         router.refresh();
       } else {
         setMessage({ type: "ok", text: "Gemt!" });
@@ -142,6 +148,17 @@ export function EditAthleteForm({
                 Kredit: {athlete.photo_credit}
               </span>
             )}
+            {athlete.photo_photographer && (
+              <span className="text-xs text-muted">
+                Fotograf: {athlete.photo_photographer}
+              </span>
+            )}
+            {athlete.photo_source_url && (
+              <a href={athlete.photo_source_url} target="_blank" rel="noopener noreferrer"
+                className="text-xs text-flag-blue hover:underline">
+                Kilde ↗
+              </a>
+            )}
           </div>
         ) : (
           <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-500">
@@ -227,7 +244,7 @@ export function EditAthleteForm({
 
       {/* Gem-knap */}
       <button
-        onClick={handleSave}
+        onClick={() => handleSave()}
         disabled={saving}
         className="py-3 rounded-lg font-semibold text-white transition-opacity disabled:opacity-50"
         style={{ backgroundColor: "#00205B" }}
@@ -239,12 +256,14 @@ export function EditAthleteForm({
       {athlete.photo_url && (
         <button
           onClick={() => {
-            setPhotoUrl("");
-            setPhotoCredit("");
+            if (confirm("Fjern fotoet fra sitet nu? Kredit, kilde og fotograf ryddes, og forslaget markeres afvist.")) {
+              void handleSave(true);
+            }
           }}
-          className="py-2 text-sm text-flag-red hover:underline"
+          disabled={saving}
+          className="py-2 text-sm text-flag-red hover:underline disabled:opacity-50"
         >
-          Fjern foto
+          Fjern foto (gemmes straks)
         </button>
       )}
     </div>

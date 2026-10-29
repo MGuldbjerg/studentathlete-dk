@@ -9,6 +9,7 @@ import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
+import { PhotoCredit } from "@/components/ui/PhotoCredit";
 
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
@@ -69,6 +70,15 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], read
                   <img src={athlete.photo_url} alt={athlete.name}
                     className="w-40 h-40 md:w-52 md:h-52 object-cover"
                     style={{ border: "3px solid #BF0A30" }} />
+                  {/* Same credit line as the profile (the photo was shown uncredited here before). */}
+                  <PhotoCredit
+                    className="text-[10px] text-white/30 mt-1 max-w-40 md:max-w-52"
+                    photographer={athlete.photo_photographer}
+                    schoolName={athlete.photo_source_url || athlete.photo_photographer ? athlete.university : null}
+                    creditLine={athlete.photo_credit}
+                    sourceUrl={athlete.photo_source_url}
+                    lang={lang}
+                  />
                 </div>
               )}
 

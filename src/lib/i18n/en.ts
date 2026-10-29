@@ -558,6 +558,10 @@ const ui: LanguagePack["ui"] = {
   "profile.official_bio": "Official profile at {school} ↗",
   "profile.merch": "Buy {name} merchandise ↗",
   "profile.merch_note": "Sold through Influxer. The athlete gets a share of every sale.",
+  // Photo credit next to a photo (src/components/ui/PhotoCredit.tsx).
+  "photo.credit": "Photo: {credit}",
+  "photo.school_credit": "{school} Athletics",
+  "photo.source": "Source",
   "profile.about": "About {name}",
   "school.athletes_heading": "UK athletes at {school}",
   "tpl.student_athlete_tag": "Student athlete",
