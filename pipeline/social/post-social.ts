@@ -221,11 +221,13 @@ function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
   // Kanalens eget kort: Instagram kan kun bruge 1080×1350-JPEG'et, resten
   // bruger delekortet. Se CardKind.
   // absoluteUrl: with cards in R2 the URL is already absolute (media domain).
+  // The card is known to exist: postOne only takes rows that passed
+  // cardReadyClause for this channel's card kind.
   const imageUrl = absoluteUrl(
     base,
     channel.cardKind === "ig"
-      ? getArticleIgCardUrl({ id: row.article_id })
-      : getArticleCoverUrl({ id: row.article_id }),
+      ? getArticleIgCardUrl({ id: row.article_id, ig_card_ready: 1 })
+      : getArticleCoverUrl({ id: row.article_id, card_ready: 1 }),
   );
   // Samme beskrivelse som sitets egen meta-tag: klippet ved sætningsgrænse, og
   // med brødteksten som reserve, så et opslag ikke kan ende som en nøgen titel.
@@ -287,7 +289,7 @@ async function warnIfWaitingForCards(db: D1Client, ch: SocialChannel): Promise<v
  * pacing.ts). `empty` betyder "der var ikke mere at tage" — ikke en fejl, men
  * grunden til at bygen stopper før sit loft.
  */
-async function postOne(
+export async function postOne(
   db: D1Client,
   ch: SocialChannel,
   dryRun: boolean,

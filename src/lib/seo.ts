@@ -4,7 +4,7 @@ import { countryProfile } from "./countries";
 import type { CountryProfile } from "./countries/types";
 import { siteBaseUrl } from "./site";
 import { sportLabel, t, languagePack, routePath } from "./i18n";
-import { cardAssetPath, cardMediaUrl, genericAssetPath, genericQuery } from "./og-static";
+import { cardAssetPath, cardMediaUrl, genericAssetPath, genericQuery, mediaBaseUrl, OG_DYNAMIC_PATH } from "./og-static";
 
 /**
  * Standardsitets base-URL. Værten står ét sted — landeprofilen — så et nyt site
@@ -200,9 +200,33 @@ export function igCardBlobKey(articleId: number): string {
  * når containeren oprettes — vi uploader ikke bytes. (Og derfor er /api/ i
  * robots.txt en fælde her på samme måde som ved Facebooks OG-scrape 18-08.)
  */
-export function getArticleIgCardUrl(article: Pick<Article, "id">): string {
-  // In R2 (MEDIA_BASE_URL_CONFIG set): the bucket's own public URL, no Worker.
-  return cardMediaUrl(igCardBlobKey(article.id)) ?? `/api/og?type=ig&article=${article.id}&v=${CARD_VERSION}`;
+export function getArticleIgCardUrl(article: Pick<Article, "id" | "ig_card_ready">): string {
+  // In R2 (MEDIA_BASE_URL_CONFIG set): the bucket's own public URL, no Worker —
+  // but only for a card known to exist. Otherwise /api/og, which redirects to
+  // the bucket once the card is there and answers 404 until then (no fallback
+  // for Instagram, see /api/og).
+  const media = cardMediaUrl(igCardBlobKey(article.id));
+  if (media && article.ig_card_ready) return media;
+  return `/api/og?type=ig&article=${article.id}&v=${CARD_VERSION}`;
+}
+
+/**
+ * SQL for "this article's share card can be linked directly" — select it as
+ * `card_ready` (ARTICLE_SELECT, ARTICLE_LIST_SELECT); getArticleCoverUrl reads it.
+ *
+ * Only matters with cards in R2. There the page links the bucket object, and a
+ * card not rendered yet (published since the last render) would be a 404 —
+ * in the page and in every share preview scraped from it. The card_blobs row
+ * (in r2 mode an empty marker, written after the upload succeeded) is the
+ * "it exists" index: one primary-key lookup per article row.
+ *
+ * Without a media URL the static `/og/cards/…` path is its own fallback (a miss
+ * falls through to /api/og, see og-static.ts), so the answer is a constant 1
+ * and the query reads nothing extra.
+ */
+export function cardReadySql(alias = "a"): string {
+  if (!mediaBaseUrl()) return "1";
+  return `EXISTS (SELECT 1 FROM card_blobs cb WHERE cb.key = 'card-' || ${alias}.id || '-v${CARD_VERSION}')`;
 }
 
 /**
@@ -226,11 +250,16 @@ export function getArticleReelUrl(article: Pick<Article, "id">): string {
  * artiklen — som listevisnings-cover ødelagde de kort-formatet, så
  * cover_image_url bruges bevidst ikke her.
  */
-export function getArticleCoverUrl(article: Pick<Article, "id">): string {
+export function getArticleCoverUrl(article: Pick<Article, "id" | "card_ready">): string {
   // Cards in R2: the media domain's absolute URL — no Worker, no deploy copy.
   // Callers that need an absolute URL use absoluteUrl(), which leaves it alone.
+  // Only when the card is known to exist (`card_ready`, see cardReadySql);
+  // otherwise /api/og, which draws it until it is rendered and redirects to
+  // the bucket after. A row without the column counts as "not known".
   const media = cardMediaUrl(cardBlobKey(article.id));
-  if (media) return media;
+  if (media) {
+    return article.card_ready ? media : `${OG_DYNAMIC_PATH}?type=card&article=${article.id}&v=${CARD_VERSION}`;
+  }
   // Static file first (no Worker, no CPU); the query string is what /api/og
   // needs if the file is not in the build yet. See src/lib/og-static.ts.
   return `${cardAssetPath(article.id, CARD_VERSION)}?type=card&article=${article.id}&v=${CARD_VERSION}`;

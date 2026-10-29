@@ -137,16 +137,19 @@ export async function GET(req: NextRequest) {
 
   const type = searchParams.get("type") || "article";
 
-  // Cards in R2: pages and new posts link the media domain directly, so only
-  // OLD links get here (posts and caches holding `/og/cards/…?type=card…` or
-  // `/api/og?type=ig…`). Send them to the bucket — a redirect costs no D1 read
-  // and no decode, and keeps working after card_blobs is emptied.
+  // Cards in R2: pages and new posts link the media domain directly once the
+  // card exists, so what gets here is OLD links (posts and caches holding
+  // `/og/cards/…?type=card…` or `/api/og?type=ig…`) and pages rendered before
+  // the card was (getArticleCoverUrl's fallback). Send them to the bucket — but
+  // only when the card_blobs row says the object is there (one primary-key
+  // read, no decode; the marker rows outlive emptying the bytes). A card not
+  // rendered yet falls through: drawn on the fly below, 404 for Instagram.
   if (type === "card" || type === "ig") {
     const articleId = parseInt(searchParams.get("article") ?? "", 10);
-    const target = Number.isFinite(articleId)
-      ? cardMediaUrl(type === "ig" ? igCardBlobKey(articleId) : cardBlobKey(articleId))
-      : null;
-    if (target) {
+    const key = Number.isFinite(articleId) ? (type === "ig" ? igCardBlobKey(articleId) : cardBlobKey(articleId)) : null;
+    const target = key ? cardMediaUrl(key) : null;
+    // `null` = D1 could not say: redirect as before rather than draw blind.
+    if (target && key && (await cardRowExists(key)) !== false) {
       return withEdgeCache(req.url, new Response(null, {
         status: 302,
         headers: { Location: target, "Cache-Control": "public, max-age=86400, s-maxage=604800" },
@@ -162,11 +165,16 @@ export async function GET(req: NextRequest) {
       //    skarpt kort UDEN satori-CPU på free-plan. Fail-soft til fallback.
       const blob = await getCardBlob(cardBlobKey(articleId));
       if (blob) return withEdgeCache(req.url, blob);
-      // 2) Fallback: on-the-fly 600×315 (free-plan-budgettet) — som hidtil
+      // 2) Fallback: on-the-fly 600×315 (free-plan-budgettet) — som hidtil.
+      // Cached for minutes, not a week: this is the gap between publish and
+      // render (seconds to a few minutes since the card is rendered at
+      // publish), and the same URL must turn into the real card — or the
+      // redirect to it — as soon as that exists. A week-old 600×315 under the
+      // URL a share preview scrapes is exactly the broken card this avoids.
       const data = await getCardData(articleId);
       if (data) {
         const assets = await loadOgAssets(req.nextUrl.origin);
-        return withEdgeCache(req.url, matchCard(data, assets));
+        return withEdgeCache(req.url, matchCard(data, assets, DRAWN_CARD_CACHE));
       }
     }
     // Fald igennem til generisk design med de params der måtte være sat
@@ -228,8 +236,26 @@ export async function GET(req: NextRequest) {
   ));
 }
 
+/** Cache-Control for a card drawn because its rendered one is not there yet. */
+const DRAWN_CARD_CACHE = "public, max-age=300, s-maxage=300";
+
+/**
+ * Does card_blobs hold this key (a full row, or the r2 mode's empty marker)?
+ * `null` when D1 is unavailable or the read failed — the caller decides.
+ */
+async function cardRowExists(key: string): Promise<boolean | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+    const r = await db.prepare("SELECT 1 AS x FROM card_blobs WHERE key = ?").bind(key).first();
+    return r != null;
+  } catch {
+    return null;
+  }
+}
+
 /** Kampkort-fallback: on-the-fly 600×315 via det DELTE element-træ (og-card.ts). */
-function matchCard(data: CardData, assets: OgAssets) {
+function matchCard(data: CardData, assets: OgAssets, cacheControl: string) {
   return new ImageResponse(
     // Plain-object-element-træet er satori-kompatibelt; next/og sender det uændret videre.
     buildMatchCardElement(data, assets.logoDataUri, 0.5) as unknown as ReactElement,
@@ -239,7 +265,7 @@ function matchCard(data: CardData, assets: OgAssets) {
       emoji: "twemoji",
       fonts: ogFonts(assets),
       headers: {
-        "Cache-Control": "public, max-age=86400, s-maxage=604800",
+        "Cache-Control": cacheControl,
       },
     },
   );

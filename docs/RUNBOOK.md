@@ -62,6 +62,13 @@ build the URL too). Order: bucket + domain → `CARD_STORE=both` → backfill
 → `CARD_STORE=r2`. Setting the constant before the backfill breaks every card image.
 In `r2` mode card_blobs keeps an EMPTY marker row per card: it is the social queue's
 «card exists» gate (`cardReadyClause`) and render-cards' skip check.
+**Card at publish (branch `card-at-publish`):** pages link the bucket only when the
+card_blobs row exists (`card_ready`, `cardReadySql` in seo.ts), else `/api/og`, which
+draws it (cached 5 min) and 302s to the bucket once the row is there.
+`apply-draft-decisions.ts` renders the card before `published = 1`; /admin and MCP
+publishes dispatch `render-cards.yml` with `article=<id>` (Worker secret `GITHUB_TOKEN`,
+needs Actions write). A hand run of apply-draft-decisions needs `CARD_STORE` set like the
+workflows — render-cards refuses `d1` while `MEDIA_BASE_URL_CONFIG` is set.
 **Not done, a separate decision:** emptying the old rows. Keep the rows (markers) and
 clear the bytes — `UPDATE card_blobs SET png_base64 = '' WHERE key LIKE 'card-%' OR key
 LIKE 'ig-%'` — never `DELETE`, or the queue waits forever and render-cards re-renders
