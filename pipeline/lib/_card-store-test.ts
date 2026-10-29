@@ -42,14 +42,14 @@ ok(cardMediaUrl(cardBlobKey(12)) === null, "no media URL → cardMediaUrl null")
 process.env.NEXT_PUBLIC_MEDIA_BASE_URL = "https://media.studentathlete.dk/";
 ok(mediaBaseUrl() === "https://media.studentathlete.dk", "trailing slash trimmed");
 ok(
-  getArticleCoverUrl({ id: 12 }) === `https://media.studentathlete.dk/cards/card-12-v${CARD_VERSION}.webp`,
-  "with media URL the cover is the versioned bucket object",
+  getArticleCoverUrl({ id: 12, card_ready: 1 }) === `https://media.studentathlete.dk/cards/card-12-v${CARD_VERSION}.webp`,
+  "with media URL (and the card rendered) the cover is the versioned bucket object",
 );
 ok(
-  getArticleIgCardUrl({ id: 12 }) === `https://media.studentathlete.dk/cards/ig-12-v${CARD_VERSION}.jpg`,
+  getArticleIgCardUrl({ id: 12, ig_card_ready: 1 }) === `https://media.studentathlete.dk/cards/ig-12-v${CARD_VERSION}.jpg`,
   "…and so is the IG card",
 );
-ok(absoluteUrl("https://studentathlete.dk", getArticleCoverUrl({ id: 12 })).startsWith("https://media."), "absoluteUrl keeps an absolute URL");
+ok(absoluteUrl("https://studentathlete.dk", getArticleCoverUrl({ id: 12, card_ready: 1 })).startsWith("https://media."), "absoluteUrl keeps an absolute URL");
 ok(absoluteUrl("https://studentathlete.dk", "/og/x.webp") === "https://studentathlete.dk/og/x.webp", "absoluteUrl prefixes a path");
 delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
 

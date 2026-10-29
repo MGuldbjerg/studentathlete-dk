@@ -28,6 +28,14 @@ export interface Article {
   fabrication_risk?: string | null;
   fact_flags?: string | null;
   story_id?: number | null;
+  /**
+   * 1 when the share card can be linked directly (`cardReadySql`, seo.ts):
+   * with cards in R2, the card_blobs row exists. Missing/0 → the cover URL is
+   * /api/og, which draws the card until it is rendered.
+   */
+  card_ready?: number | boolean | null;
+  /** The same for the Instagram card; only post-social sets it (its queue gate checked it). */
+  ig_card_ready?: number | boolean | null;
   /** Presseetik-flag fra stories.sensitive (kun joinet i admin-kladdelisten) */
   sensitive?: string | null;
   // Joined fra athletes

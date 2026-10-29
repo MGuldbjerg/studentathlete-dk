@@ -3,6 +3,7 @@ import { DEFAULT_COUNTRY, countryProfile } from "./countries";
 import { contentCountry } from "./site-server";
 import type { Article, ArticleListItem, Athlete, School } from "./types";
 import { ARTICLE_LIST_SELECT, toListItem } from "./article-list";
+import { cardReadySql } from "./seo";
 import { readNextQuery, pickReadNext } from "./read-next";
 import { SPORT_ACTIVE_COUNTS_SQL, activeBySport, countsForSport, type SportActiveCount } from "./sport-counts";
 import { recordsOf } from "./athlete-hub";
@@ -123,6 +124,7 @@ export const ARTICLE_SELECT = `
   a.model_used, a.llm_provider, a.original_content, a.featured,
   a.correction_note, a.corrected_at,
   a.fabrication_risk, a.fact_flags, a.story_id,
+  ${cardReadySql("a")} AS card_ready,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;
 

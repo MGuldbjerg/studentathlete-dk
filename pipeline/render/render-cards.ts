@@ -33,7 +33,8 @@ import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 import { createD1Client, type D1Client } from "../lib/d1-client";
-import { createCardStore } from "../lib/card-store";
+import { createCardStore, type CardStore } from "../lib/card-store";
+import { mediaBaseUrl } from "../../src/lib/og-static";
 import { CARD_FORMATS, buildMatchCardElement, type CardData, type CardFormat } from "../../src/lib/og-card";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 import { ALL_CHANNELS, withinQueueWindow } from "../social/post-social";
@@ -193,16 +194,60 @@ async function portraitCountries(db: D1Client): Promise<Map<string, string>> {
   return new Map(igChannels.filter((c) => live.has(c.name)).map((c) => [c.country, c.name]));
 }
 
-async function main(): Promise<void> {
-  const { force, article, out, formats, dryRun } = parseArgs();
-  const db = createD1Client();
-  const store = createCardStore(db);
-  const assets = loadAssets();
+export interface RenderCardsOptions {
+  force?: boolean;
+  /** Only this article. */
+  article?: number | null;
+  out?: string | null;
+  formats?: CardFormat[];
+  dryRun?: boolean;
+  /**
+   * Render `article` even though it is not published yet. The publish path
+   * (apply-draft-decisions.ts) renders BEFORE it sets `published = 1`, so the
+   * page never goes live without its card. Ignored without `article`.
+   */
+  includeUnpublished?: boolean;
+}
+
+export interface RenderCardsResult {
+  rendered: number;
+  skipped: number;
+  /** Keys whose render or store failed (logged; /api/og covers them meanwhile). */
+  failed: string[];
+  /** Articles the query matched (0 = no such article, or not published). */
+  articles: number;
+}
+
+let assetsCache: ReturnType<typeof loadAssets> | null = null;
+
+/**
+ * Render the missing cards — every published article, or one with `article`.
+ * The CLI below and the publish path (apply-draft-decisions.ts) both call this.
+ * Throws only for what fails every card alike (a refused R2 token, a
+ * misconfigured store); one card's failure is logged and listed in `failed`.
+ */
+export async function renderCards(
+  db: D1Client,
+  opts: RenderCardsOptions = {},
+  store: CardStore = createCardStore(db),
+): Promise<RenderCardsResult> {
+  const { force = false, article = null, out = null, formats = ["landscape", "portrait"], dryRun = false } = opts;
+  const includeUnpublished = Boolean(opts.includeUnpublished && article);
+  const assets = (assetsCache ??= loadAssets());
+
+  // Pages link the bucket (MEDIA_BASE_URL_CONFIG) but this run would write only
+  // to D1: the card_blobs row would tell the site "the card is there" while the
+  // object is not — a broken image on every page that trusts it. The workflows
+  // pass the repo's CARD_STORE; a hand run must set it too.
+  if (!dryRun && store.mode === "d1" && mediaBaseUrl()) {
+    throw new Error(`Cards are served from ${mediaBaseUrl()} but CARD_STORE is d1 — set CARD_STORE=r2 (or both)`);
+  }
 
   console.log(`Card store: ${store.mode}`);
   if (dryRun) console.log("DRY-RUN: renderer og skriver til disk, rører ikke D1." + "\n");
 
   // Samme joins som /api/og getCardData — kun publicerede artikler pre-renderes
+  // (undtagen den ene artikel publiceringen beder om, lige før den udgives).
   const rows = await db.query<CardRow>(
     `SELECT a.id, a.title, a.created_at, a.published_at, a.country, at.name as athlete_name, at.sport, at.university,
             sc.primary_color, s.fact_sheet
@@ -210,18 +255,19 @@ async function main(): Promise<void> {
      LEFT JOIN athletes at ON a.athlete_id = at.id
      LEFT JOIN stories s ON a.story_id = s.id
      LEFT JOIN schools sc ON sc.name = at.university
-     WHERE a.published = 1${article ? " AND a.id = ?" : ""}
+     WHERE ${includeUnpublished ? "1 = 1" : "a.published = 1"}${article ? " AND a.id = ?" : ""}
      ORDER BY a.id ASC`,
     article ? [article] : [],
   );
 
-  const igCountries = await portraitCountries(db);
+  const igCountries = formats.includes("portrait") ? await portraitCountries(db) : new Map<string, string>();
   if (formats.includes("portrait")) {
     console.log(`Portræt-kort renderes for: ${[...igCountries.keys()].join(", ") || "(ingen lande — ingen IG-kanal)"}`);
   }
 
   let rendered = 0;
   let skipped = 0;
+  const failed: string[] = [];
   for (const row of rows.results) {
     for (const format of formats) {
       // Et portræt-kort til et land uden Instagram-konto er spildt arbejde og
@@ -266,17 +312,30 @@ async function main(): Promise<void> {
         if (status === 401 || status === 403) throw err;
         // Én fejlet render må ikke stoppe resten — /api/og-fallbacket dækker den
         console.error(`  ✗ ${key}: ${err instanceof Error ? err.message : String(err)}`);
+        failed.push(key);
       }
     }
   }
 
+  return { rendered, skipped, failed, articles: rows.results.length };
+}
+
+async function main(): Promise<void> {
+  const args = parseArgs();
+  const formats = args.formats;
+  const r = await renderCards(createD1Client(), args);
   console.log(
-    `\nFærdig: ${rendered} renderet, ${skipped} fandtes allerede ` +
-      `(${rows.results.length} publicerede × ${formats.length} format).`,
+    `\nFærdig: ${r.rendered} renderet, ${r.skipped} fandtes allerede ` +
+      `(${r.articles} publicerede × ${formats.length} format).`,
   );
 }
 
-main().catch((err) => {
-  console.error("Kort-prerender fejlede:", err);
-  process.exit(1);
-});
+// Imported by the publish path (apply-draft-decisions.ts) for renderCards;
+// only a direct run is the CLI.
+const runDirectly = process.argv[1]?.endsWith("render-cards.ts") ?? false;
+if (runDirectly) {
+  main().catch((err) => {
+    console.error("Kort-prerender fejlede:", err);
+    process.exit(1);
+  });
+}

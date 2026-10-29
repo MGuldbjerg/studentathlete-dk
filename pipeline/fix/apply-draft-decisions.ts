@@ -21,6 +21,11 @@
  * A long queue therefore takes hours — run it in the background. `--no-spacing`
  * exists for a single urgent correction, not for batches.
  *
+ * Each publish renders the article's cards FIRST (render-cards.ts as a
+ * function, publish-order.ts), so the page and the social queue never see the
+ * article without its card. Needs the repo's CARD_STORE (and R2 env in r2 mode)
+ * like render-cards.yml; a failed render still publishes and is listed at the end.
+ *
  * `--public-log` (the auto-editor's CI run; the repo is public) prints ids only,
  * never a title — a rejected draft's title is draft text.
  *
@@ -29,6 +34,9 @@
 
 import { readFileSync, statSync } from "node:fs";
 import { createD1Client } from "../lib/d1-client";
+import { createCardStore, type CardStore } from "../lib/card-store";
+import { renderCards } from "../render/render-cards";
+import { renderThenPublish } from "./publish-order";
 import { generateSlug } from "../../src/lib/slug";
 import {
   REJECT_DELETE_SQL,
@@ -79,6 +87,12 @@ const db = createD1Client();
 // Language matters for the slug: the Danish pack transliterates æ/ø/å, and the
 // article's own country is what decides which pack applies.
 const langForCountry = (c: string | null) => (c === "DK" ? "da" : "en");
+
+// One card store for the run, made on first use: in r2 mode it needs R2 env,
+// and a missing one must fail the render (caught, publish goes on), not the run.
+let store: CardStore | null = null;
+const cardStore = (): CardStore => (store ??= createCardStore(db));
+const cardFailures: number[] = [];
 
 async function main() {
   let published = 0;
@@ -234,12 +248,20 @@ async function main() {
         ? row.cover_image_url
         : null;
 
-    await db.execute(
-      `UPDATE articles
-          SET published = 1, published_at = datetime('now'), cover_image_url = ?
-        WHERE id = ?`,
-      [cover, d.id],
-    );
+    // The card BEFORE the article goes live (publish-order.ts), from the final
+    // title above. A failed render still publishes; it is counted below.
+    const { cardError } = await renderThenPublish(d.id, {
+      renderCard: () => renderCards(db, { article: d.id, includeUnpublished: true }, cardStore()),
+      publish: async () => {
+        await db.execute(
+          `UPDATE articles
+              SET published = 1, published_at = datetime('now'), cover_image_url = ?
+            WHERE id = ?`,
+          [cover, d.id],
+        );
+      },
+    });
+    if (cardError) cardFailures.push(d.id);
 
     // Career timeline, as publishArticle does in the Worker — this script
     // skipped it until 2026-09-30, so 47 batch-published articles added no
@@ -270,6 +292,9 @@ async function main() {
   }
 
   console.log(`\n${DRY ? "[dry-run] " : ""}published: ${published} · rejected: ${rejected}${timelined ? ` · timeline lines: ${timelined}` : ""}`);
+  if (cardFailures.length) {
+    console.log(`cards NOT rendered at publish (the hourly render retries; /api/og covers meanwhile): #${cardFailures.join(", #")}`);
+  }
 }
 
 main().catch((e) => {
