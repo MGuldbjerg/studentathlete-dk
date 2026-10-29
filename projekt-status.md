@@ -6,7 +6,7 @@ Done work lives in `git log` / the PRs; procedures and traps in `docs/RUNBOOK.md
 instead of raising the limit. The long history before this rewrite: `git show
 2135676:projekt-status.md` (3,841 lines, narrative from June to 28 Oct 2026).
 
-Start a session with the ops MCP server's `status` tool (`SETUP-ops-mcp.md`) and work in
+Start a session with the ops MCP server's `status` tool (`SETUP-ops-mcp.md`); before saying «we can't reach X» run its `access_check`. Work in
 your own worktree (`bash scripts/worktree.sh <name>`), never in the shared checkout.
 
 ---
