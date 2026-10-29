@@ -4,7 +4,7 @@ import { countryProfile } from "./countries";
 import type { CountryProfile } from "./countries/types";
 import { siteBaseUrl } from "./site";
 import { sportLabel, t, languagePack, routePath } from "./i18n";
-import { cardAssetPath, genericAssetPath, genericQuery } from "./og-static";
+import { cardAssetPath, cardMediaUrl, genericAssetPath, genericQuery } from "./og-static";
 
 /**
  * Standardsitets base-URL. Værten står ét sted — landeprofilen — så et nyt site
@@ -201,7 +201,8 @@ export function igCardBlobKey(articleId: number): string {
  * robots.txt en fælde her på samme måde som ved Facebooks OG-scrape 18-08.)
  */
 export function getArticleIgCardUrl(article: Pick<Article, "id">): string {
-  return `/api/og?type=ig&article=${article.id}&v=${CARD_VERSION}`;
+  // In R2 (MEDIA_BASE_URL_CONFIG set): the bucket's own public URL, no Worker.
+  return cardMediaUrl(igCardBlobKey(article.id)) ?? `/api/og?type=ig&article=${article.id}&v=${CARD_VERSION}`;
 }
 
 /**
@@ -226,6 +227,10 @@ export function getArticleReelUrl(article: Pick<Article, "id">): string {
  * cover_image_url bruges bevidst ikke her.
  */
 export function getArticleCoverUrl(article: Pick<Article, "id">): string {
+  // Cards in R2: the media domain's absolute URL — no Worker, no deploy copy.
+  // Callers that need an absolute URL use absoluteUrl(), which leaves it alone.
+  const media = cardMediaUrl(cardBlobKey(article.id));
+  if (media) return media;
   // Static file first (no Worker, no CPU); the query string is what /api/og
   // needs if the file is not in the build yet. See src/lib/og-static.ts.
   return `${cardAssetPath(article.id, CARD_VERSION)}?type=card&article=${article.id}&v=${CARD_VERSION}`;

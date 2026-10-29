@@ -30,7 +30,7 @@ import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 import { createD1Client } from "../lib/d1-client";
 import { CARD_VERSION, athleteOgParams, GENERIC_OG_VERSION } from "../../src/lib/seo";
-import { cardAssetPath, genericAssetPath } from "../../src/lib/og-static";
+import { cardAssetPath, genericAssetPath, mediaBaseUrl } from "../../src/lib/og-static";
 import { buildGenericElement, GENERIC_OG_SIZE } from "../../src/lib/og-generic";
 import { activeCountries } from "../../src/lib/countries";
 import { photoAllowedSql } from "../../src/lib/photo-permission";
@@ -142,7 +142,16 @@ async function main() {
   let cardsOk = false;
   let athletesOk = false;
 
-  try {
+  // Cards in R2 (MEDIA_BASE_URL_CONFIG / NEXT_PUBLIC_MEDIA_BASE_URL set): pages
+  // link the media domain, so static copies would only ride along in the
+  // deploy. Keyed on the URL switch, not on CARD_STORE: the deploy machine does
+  // not see the workflows' CARD_STORE, and the copy is needed exactly as long as
+  // pages link /og/cards/. The prune below then clears the old copies.
+  const media = mediaBaseUrl();
+  if (media) {
+    console.log(`og-export: match cards are served from ${media} — no static copies`);
+    cardsOk = true;
+  } else try {
     const n = await exportCards(db, wanted);
     console.log(`og-export: ${n} match cards → public/og/cards/`);
     cardsOk = true;

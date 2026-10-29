@@ -29,6 +29,7 @@ import {
 } from "../../src/lib/seo";
 import { countryProfile } from "../../src/lib/countries";
 import { siteBaseUrl, siteIsLive } from "../../src/lib/site";
+import { absoluteUrl } from "../../src/lib/og-static";
 import {
   DEFAULT_PACING,
   IN_RUN_SPACING_MINUTES,
@@ -219,11 +220,13 @@ function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
   );
   // Kanalens eget kort: Instagram kan kun bruge 1080×1350-JPEG'et, resten
   // bruger delekortet. Se CardKind.
-  const imageUrl =
-    base +
-    (channel.cardKind === "ig"
+  // absoluteUrl: with cards in R2 the URL is already absolute (media domain).
+  const imageUrl = absoluteUrl(
+    base,
+    channel.cardKind === "ig"
       ? getArticleIgCardUrl({ id: row.article_id })
-      : getArticleCoverUrl({ id: row.article_id }));
+      : getArticleCoverUrl({ id: row.article_id }),
+  );
   // Samme beskrivelse som sitets egen meta-tag: klippet ved sætningsgrænse, og
   // med brødteksten som reserve, så et opslag ikke kan ende som en nøgen titel.
   const description = metaDescription({ summary: row.summary, content: row.content });
@@ -247,6 +250,9 @@ function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
 export function cardReadyClause(alias = "a", kind: CardKind = "share"): string {
   // Nøgleformaterne er cardBlobKey()'s og igCardBlobKey()'s (src/lib/seo.ts);
   // testen binder dem sammen, så en ændring dér ikke kan skride fra SQL'en.
+  // The card_blobs row is the "card exists" index in EVERY card-store mode:
+  // with CARD_STORE=r2 it is an empty marker written after the R2 upload
+  // succeeded (pipeline/lib/card-store.ts), so this gate needs no R2 call.
   const prefix = kind === "ig" ? "ig-" : "card-";
   return `EXISTS (SELECT 1 FROM card_blobs cb WHERE cb.key = '${prefix}' || ${alias}.id || '-v${CARD_VERSION}')`;
 }

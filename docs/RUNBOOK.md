@@ -47,6 +47,26 @@ re-rendering alone does not reach readers.
    edge answered `HIT` with the old file after step 2.
 Posts already on Bluesky/Facebook/Instagram keep the old image.
 
+**Once cards are in R2** (`MEDIA_BASE_URL_CONFIG` set): step 1 runs with the
+workflows' `CARD_STORE` (`CARD_STORE=r2` in the shell when run by hand), step 2 is
+not needed, and step 3 purges `https://media.studentathlete.dk/cards/card-<id>-v9.webp`
+(and `ig-<id>-v9.jpg`) instead.
+
+### Cards in R2 (built 2026-10-29, branch `cards-r2`)
+`pipeline/lib/card-store.ts` holds the design. Switches: repo variable `CARD_STORE`
+(`d1` default | `both` | `r2`, read by render-cards in `render-cards.yml` and
+`social-post.yml`) and the constant `MEDIA_BASE_URL_CONFIG` in `src/lib/og-static.ts`
+(empty = today's `/og/cards/` URLs; a build-time constant, because client components
+build the URL too). Order: bucket + domain → `CARD_STORE=both` → backfill
+(`migrate-cards-to-r2.ts --dry-run`, then for real) → set the constant, push, deploy
+→ `CARD_STORE=r2`. Setting the constant before the backfill breaks every card image.
+In `r2` mode card_blobs keeps an EMPTY marker row per card: it is the social queue's
+«card exists» gate (`cardReadyClause`) and render-cards' skip check.
+**Not done, a separate decision:** emptying the old rows. Keep the rows (markers) and
+clear the bytes — `UPDATE card_blobs SET png_base64 = '' WHERE key LIKE 'card-%' OR key
+LIKE 'ig-%'` — never `DELETE`, or the queue waits forever and render-cards re-renders
+everything. Check afterwards whether D1's reported size actually drops.
+
 ### Find a school's staff email
 The fetch tool returns empty shells on Sidearm athletics sites. Use
 `curl -sL -A "Mozilla/5.0" https://<site>/staff-directory` and parse the raw HTML

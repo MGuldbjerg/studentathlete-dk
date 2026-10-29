@@ -47,6 +47,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+          # d1 | both | r2 (pipeline/lib/card-store.ts). Unset repo variable = d1.
+          CARD_STORE: ${{ vars.CARD_STORE }}
+          CARD_R2_BUCKET: ${{ vars.CARD_R2_BUCKET }}
 
       # Hvad fejlede, og hvorfor? Uden dette står svaret kun i Metas egen
       # fejltekst, midt i en kø, tre timer efter tokenet blev skiftet. Her står
