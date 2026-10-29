@@ -78,8 +78,13 @@ editing connector — a different thing.
 1. **Photo-permission outreach** — built (`pipeline/photos/`, ledger migration 068), nothing
    sent. Waiting for Influxer's answer (emailed 27/10) on who handles photo rights. Then: approve
    wording + the 7 South Atlantic contacts (`contacts/south-atlantic-conference.csv`; Lincoln
-   Memorial name/email mismatch), and check the site really shows the photo credit + source
-   link the email promises. `BREVO_API_KEY` is set (2026-10-29, verified read-only).
+   Memorial name/email mismatch). `BREVO_API_KEY` is set (2026-10-29, verified read-only).
+   **Credits live since 29/10 (#86, migration 080 + backfill: 2,905 photos got a source
+   link):** «Foto/Photo: {School} Athletics · Kilde/Source» on profiles, «Fotos/Photos: …» under
+   school rosters; schools with `declined`/`do_not_contact` show no photo anywhere (read-time
+   gate, `src/lib/photo-permission.ts`); «Fjern foto» in admin removes at once. Open: today's
+   photos are roster HEADSHOTS, which the email does not ask about — Mikkel's call whether
+   they stay; the article-photo pipeline (with photographer) waits for a «yes».
 2. **Influxer merch links** — 104 verified stores live on profiles (#70); ~17 probable
    (transfers) + ~80 namesakes need his choice. `merch-clicks.ts` for the pitch.
 3. **Fanatics** — declined 28/10 (generic reasons). Appeal to partners@fanatics.com with traffic
