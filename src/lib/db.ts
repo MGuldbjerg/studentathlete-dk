@@ -3,6 +3,7 @@ import { DEFAULT_COUNTRY, countryProfile } from "./countries";
 import { contentCountry } from "./site-server";
 import type { Article, ArticleListItem, Athlete, School } from "./types";
 import { ARTICLE_LIST_SELECT, toListItem } from "./article-list";
+import { readNextQuery, pickReadNext } from "./read-next";
 import { SPORT_ACTIVE_COUNTS_SQL, activeBySport, countsForSport, type SportActiveCount } from "./sport-counts";
 import { recordsOf } from "./athlete-hub";
 import { seasonFromDate } from "./athlete-events";
@@ -504,6 +505,41 @@ export async function getArticlesByUniversity(
       .bind(university, await siteCountry(country), limit)
       .all();
     return (r.results ?? []) as ArticleListItem[];
+  } catch { return []; }
+}
+
+/**
+ * «Read next» under an article (src/lib/read-next.ts): up to four of this
+ * site's articles — same athlete, then sport, then school, then newest. One
+ * D1 round trip; each tier walks an index to its LIMIT.
+ */
+export async function getReadNext(
+  article: { id: number; athlete_id: number | null; sport?: string | null },
+  country?: string,
+): Promise<ArticleListItem[]> {
+  const db = await getDB();
+  if (!db) {
+    const by = (f: (a: Article) => boolean, tier: number) => MOCK_ARTICLES
+      .filter((a) => a.published === 1 && f(a))
+      .map((a) => ({ ...toListItem(a), tier }));
+    const uni = MOCK_ATHLETES.find((x) => x.id === article.athlete_id)?.university;
+    const uniIds = new Set(MOCK_ATHLETES.filter((x) => uni && x.university === uni).map((x) => x.id));
+    return pickReadNext([
+      ...by((a) => article.athlete_id != null && a.athlete_id === article.athlete_id, 1),
+      ...by((a) => !!article.sport && a.sport === article.sport, 2),
+      ...by((a) => a.athlete_id != null && uniIds.has(a.athlete_id), 3),
+      ...by(() => true, 4),
+    ], article.id);
+  }
+  try {
+    const { sql, params } = readNextQuery({
+      articleId: article.id,
+      country: await siteCountry(country),
+      athleteId: article.athlete_id ?? null,
+      sport: article.sport ?? null,
+    });
+    const r = await db.prepare(sql).bind(...params).all();
+    return pickReadNext((r.results ?? []) as (ArticleListItem & { tier: number })[], article.id);
   } catch { return []; }
 }
 

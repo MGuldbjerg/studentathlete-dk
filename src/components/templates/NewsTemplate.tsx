@@ -2,7 +2,9 @@ import type { Article, ArticleListItem, Athlete } from "@/lib/types";
 import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
-import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { ArticleEnd } from "@/components/ui/ArticleEnd";
+import { ArticleAthleteCard } from "@/components/ui/ArticleAthleteCard";
+import type { SeasonStatsRow } from "@/lib/db";
 import { AdSlot } from "@/components/ui/AdSlot";
 import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
@@ -13,10 +15,13 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
-  relatedArticles?: ArticleListItem[];
+  /** «Read next», filled to four by getReadNext. */
+  readNext?: ArticleListItem[];
+  /** The primary athlete's season row, for the athlete card. */
+  seasonStats?: SeasonStatsRow | null;
 }
 
-export async function NewsTemplate({ article, athlete, relatedArticles = [] }: Props) {
+export async function NewsTemplate({ article, athlete, readNext = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
   const site = await currentSite();
   const readTime = getReadingTime(countWords(article.content));
@@ -130,25 +135,14 @@ export async function NewsTemplate({ article, athlete, relatedArticles = [] }: P
           <CorrectionNotice article={article} lang={lang} />
           <SourceBox sourceUrl={article.source_url} lang={lang} />
           {article.author_role !== "human" && <AiDisclaimer />}
+          {athlete && <ArticleAthleteCard athlete={athlete} seasonStats={seasonStats} lang={lang} />}
         </div>
 
         {/* ── Annonce efter artikel ────────────────────────────── */}
         <AdSlot slot="article-footer" className="my-6" />
 
-        {/* ── Tags ───────────────────────────────────────────────── */}
-        <div className="px-5 md:px-0 pt-6 pb-10 border-t border-border mt-4">
-          <div className="flex flex-wrap gap-2">
-            {[article.sport ? sportLabel(article.sport, lang) : null, typeLabel, t("tpl.student_athlete_tag", lang)].filter(Boolean).map((tag) => (
-              <span key={tag}
-                className="text-xs px-3 py-1 border border-border text-muted
-                           hover:border-flag-red hover:text-flag-red transition-colors cursor-default tracking-wide">
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <RelatedArticles articles={relatedArticles} title={t("tpl.related", lang)} lang={lang} />
-        </div>
+        {/* ── Tags + læs videre ──────────────────────────────────── */}
+        <ArticleEnd article={article} readNext={readNext} lang={lang} className="px-5 md:px-0" />
       </article>
 
       {/* ── Sidebar (kun desktop) ─────────────────────────────── */}
