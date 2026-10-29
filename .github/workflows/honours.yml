@@ -11,6 +11,10 @@ name: Udmærkelser
 # BROWSER_RUN_SHARE=0.5 lets this run use at most half of what is left of
 # today's share, so box scores for the day's articles still get rendered. The
 # page cap is high on purpose — the budget, not the count, ends the run.
+# --limit 2000 (was 3000, Mikkel 2026-10-29): with the 13 collecting countries the
+# queue grew and 3000 athletes no longer fit in timeout-minutes (28 Oct: cancelled
+# at exactly 90 min). The rotation on honors_checked_at means a lower limit only
+# lengthens the full cycle; nobody is skipped.
 on:
   schedule:
     - cron: '35 2 * * *'
@@ -19,7 +23,7 @@ on:
       limit:
         description: "Antal atleter at læse"
         required: false
-        default: '3000'
+        default: '2000'
       render:
         description: "Loft over antal renderinger (0 = ingen)"
         required: false
@@ -41,7 +45,7 @@ jobs:
       - name: Hent udmærkelser fra bio-sider
         run: |
           npx tsx pipeline/scrape/scrape-honors.ts \
-            --limit ${{ inputs.limit || '3000' }} \
+            --limit ${{ inputs.limit || '2000' }} \
             --render ${{ inputs.render || '200' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
