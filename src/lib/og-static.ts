@@ -35,6 +35,58 @@ export function cardAssetPath(articleId: number, version: number): string {
   return `${OG_STATIC_PREFIX}cards/card-${articleId}-v${version}.webp`;
 }
 
+// ─── Cards in R2, on their own public domain ────────────────────────────────
+//
+// The rendered cards (`card-<id>-v<N>` WebP, `ig-<id>-v<N>` JPEG) can live in
+// an R2 bucket served by a public custom domain, so neither D1 nor the deploy
+// carries them and no request starts the Worker. pipeline/lib/card-store.ts
+// writes them; these pure functions name them, for the site and the pipeline.
+
+/**
+ * Public base URL of the media bucket — the switch that points pages and social
+ * posts at R2. Empty = cards keep the static `/og/cards/…` path (today).
+ *
+ * A build-time constant, not a Worker var: client components (Carousel) build
+ * the same URL in the browser, and a runtime var would differ between server
+ * HTML and hydration. Set it only AFTER the backfill (docs/RUNBOOK.md, «Cards
+ * in R2»). `NEXT_PUBLIC_MEDIA_BASE_URL` overrides it for tests and trial builds.
+ */
+export const MEDIA_BASE_URL_CONFIG = "";
+
+/** The media base URL without trailing slash, or null when cards are not in R2. */
+export function mediaBaseUrl(): string | null {
+  const fromEnv = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_MEDIA_BASE_URL : undefined;
+  const v = (fromEnv || MEDIA_BASE_URL_CONFIG).trim().replace(/\/+$/, "");
+  return v || null;
+}
+
+/** A rendered card's store key: `card-<id>-v<N>` (landscape) or `ig-<id>-v<N>` (Instagram). */
+export function isCardKey(key: string): boolean {
+  return /^(card|ig)-\d+-v\d+$/.test(key);
+}
+
+/** The format each card kind is rendered in (render-cards.ts): WebP for the site, JPEG for Instagram. */
+export function cardContentType(key: string): "image/webp" | "image/jpeg" {
+  return key.startsWith("ig-") ? "image/jpeg" : "image/webp";
+}
+
+/** Object key in the bucket: `cards/card-12-v9.webp`, `cards/ig-12-v9.jpg`. */
+export function cardObjectKey(key: string): string {
+  if (!isCardKey(key)) throw new Error(`Not a card key: ${key}`);
+  return `cards/${key}.${cardContentType(key) === "image/jpeg" ? "jpg" : "webp"}`;
+}
+
+/** Public URL of a card in the bucket, or null while no media domain is configured. */
+export function cardMediaUrl(key: string): string | null {
+  const base = mediaBaseUrl();
+  return base ? `${base}/${cardObjectKey(key)}` : null;
+}
+
+/** `base + url` for a site-relative path; an absolute URL (the media domain) is left alone. */
+export function absoluteUrl(base: string, url: string): string {
+  return /^https?:\/\//i.test(url) ? url : `${base}${url}`;
+}
+
 /**
  * Path of a generic OG image (athlete without photo, sport page, guide).
  *

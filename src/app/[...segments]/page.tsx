@@ -34,6 +34,7 @@ import {
 import { getPublishedPageBySlug, getPublishedSportBySlug } from "@/lib/admin";
 import { currentLanguage, currentSite, currentBaseUrl, siteRobots, profileRobots } from "@/lib/site-server";
 import { getAthleteUrl, getSchoolUrl, getArticleUrl, getOgImageUrl, athleteOgParams, getArticleCoverUrl, metaDescription } from "@/lib/seo";
+import { absoluteUrl } from "@/lib/og-static";
 import { getSportContent, type SportContent } from "@/lib/sport-content";
 import { urlSlugToDbSport, dbSportToUrlSlug } from "@/lib/types";
 import { sportLabel, t, sportKeyFromSlugAnyLanguage, routeSlug, routeKeyFromSlug } from "@/lib/i18n";
@@ -279,7 +280,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       const canonicalUrl = `${base}${getArticleUrl(article, lang)}`;
       // Brug det genererede 16:9 kampkort som og:image (skarpt + ensartet),
       // ikke et evt. stamplet portræt-headshot fra cover_image_url.
-      const ogImage = `${base}${getArticleCoverUrl(article)}`;
+      const ogImage = absoluteUrl(base, getArticleCoverUrl(article)); // absolute already when cards are in R2
 
       // Artiklens egne ord frem for skabelonen: `summary` hvis den findes,
       // ellers artiklens første afsnit — begge klippet til det Google viser.
