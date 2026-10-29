@@ -978,7 +978,11 @@ export async function getPendingPhotoSuggestionCount(): Promise<number> {
   }
 }
 
-/** Godkend (→ athletes.photo_url/photo_credit) eller afvis et foto-forslag. */
+/**
+ * Approve (→ athletes.photo_url/photo_credit/photo_source_url/photo_photographer)
+ * or reject a photo suggestion. The source page and photographer travel with the
+ * photo, because the credit next to it links to the source (migration 080).
+ */
 export async function decidePhotoSuggestion(
   id: number,
   action: "approve" | "reject",
@@ -988,17 +992,28 @@ export async function decidePhotoSuggestion(
   if (!db) return false;
 
   const suggestion = await db
-    .prepare("SELECT athlete_id, image_url, credit FROM photo_suggestions WHERE id = ? AND status = 'pending'")
+    .prepare(
+      "SELECT athlete_id, image_url, credit, source_url, photographer FROM photo_suggestions WHERE id = ? AND status = 'pending'",
+    )
     .bind(id)
-    .first() as { athlete_id: number; image_url: string; credit: string } | null;
+    .first() as {
+      athlete_id: number; image_url: string; credit: string; source_url: string | null; photographer: string | null;
+    } | null;
   if (!suggestion) return false;
 
   if (action === "approve") {
     await db
       .prepare(
-        "UPDATE athletes SET photo_url = ?, photo_credit = ?, updated_at = datetime('now') WHERE id = ?"
+        `UPDATE athletes SET photo_url = ?, photo_credit = ?, photo_source_url = ?, photo_photographer = ?,
+                updated_at = datetime('now') WHERE id = ?`
       )
-      .bind(suggestion.image_url, credit?.trim() || suggestion.credit, suggestion.athlete_id)
+      .bind(
+        suggestion.image_url,
+        credit?.trim() || suggestion.credit,
+        suggestion.source_url?.trim() || null,
+        suggestion.photographer?.trim() || null,
+        suggestion.athlete_id,
+      )
       .run();
   }
   await db
@@ -1362,18 +1377,39 @@ export async function updateAthlete(
   const db = await getDB();
   if (!db) return { ok: false, error: "Ingen databaseforbindelse" };
 
+  const photoUrl = fields.photo_url ?? null;
+  // The source link and photographer belong to ONE photo (migration 080): they
+  // survive a save that keeps the photo, and are cleared when the photo is
+  // removed or replaced by hand (SET's right-hand side reads the OLD row).
   await db
     .prepare(
-      `UPDATE athletes SET photo_url = ?, photo_credit = ?, preferred_name = ?, expected_graduation = ?, updated_at = datetime('now') WHERE id = ?`
+      `UPDATE athletes SET photo_url = ?, photo_credit = ?,
+              photo_source_url = CASE WHEN photo_url IS ? THEN photo_source_url ELSE NULL END,
+              photo_photographer = CASE WHEN photo_url IS ? THEN photo_photographer ELSE NULL END,
+              preferred_name = ?, expected_graduation = ?, updated_at = datetime('now') WHERE id = ?`
     )
     .bind(
-      fields.photo_url ?? null,
+      photoUrl,
       fields.photo_credit ?? null,
+      photoUrl,
+      photoUrl,
       fields.preferred_name ?? null,
       fields.expected_graduation ?? null,
       id,
     )
     .run();
+
+  // Removal on request (the permission email promises it): with no photo left,
+  // the approved suggestion is marked rejected, so the queue's history says the
+  // photo is gone. A new headshot can still be suggested, and waits for approval.
+  if (!photoUrl) {
+    await db
+      .prepare(
+        "UPDATE photo_suggestions SET status = 'rejected', decided_at = datetime('now') WHERE athlete_id = ? AND status = 'approved'",
+      )
+      .bind(id)
+      .run();
+  }
 
   const wanted = fields.name?.trim();
   if (!wanted) return { ok: true };

@@ -9,6 +9,7 @@ import { recordsOf } from "./athlete-hub";
 import { seasonFromDate } from "./athlete-events";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
+import { gatePhoto } from "./photo-permission";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getDB(): Promise<any | null> {
@@ -640,7 +641,8 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
     // migration-057 (indeks på schools.name) — uden det var den en fuld scan.
     const r = await db
       .prepare(
-        `SELECT a.*, s.slug AS school_slug, ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
+        `SELECT a.*, s.slug AS school_slug, s.photo_permission AS school_photo_permission,
+                ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
                 ${articleCountSql("a")} AS article_count
            FROM athletes a
            LEFT JOIN schools s ON s.name = a.university
@@ -648,7 +650,9 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
       )
       .bind(slug, await siteCountry(country))
       .first();
-    return (r as Athlete) ?? null;
+    // Photo gate at read time: a school that declined shows no photo (src/lib/photo-permission.ts).
+    const athlete = (r as Athlete | null) ?? null;
+    return athlete ? gatePhoto(athlete, athlete.school_photo_permission) : null;
   } catch (err) { rethrowDbError(err, "atlet"); }
 }
 
@@ -667,7 +671,7 @@ export async function getArticleAthletes(articleId: number, country?: string): P
   try {
     const r = await db
       .prepare(
-        `SELECT a.*, s.slug AS school_slug
+        `SELECT a.*, s.slug AS school_slug, s.photo_permission AS school_photo_permission
            FROM article_athletes aa
            JOIN athletes a ON a.id = aa.athlete_id
            LEFT JOIN schools s ON s.name = a.university
@@ -676,7 +680,8 @@ export async function getArticleAthletes(articleId: number, country?: string): P
       )
       .bind(articleId, await siteCountry(country))
       .all();
-    return (r.results ?? []) as Athlete[];
+    // Photo gate at read time, same as getAthleteBySlug.
+    return ((r.results ?? []) as Athlete[]).map((a) => gatePhoto(a, a.school_photo_permission));
   } catch (err) { rethrowDbError(err, "artiklens atleter"); }
 }
 
@@ -723,12 +728,17 @@ export async function getAthletesByUniversity(
     const code = await siteCountry(country);
     const r = await db
       .prepare(
-        `SELECT a.* FROM athletes a WHERE a.university = ? AND a.home_country = ? AND a.active = 1
+        // The school's photo permission is one lookup on idx_schools_name (migration 057).
+        // A scalar subquery, not a join: a duplicate school name must not duplicate the roster.
+        `SELECT a.*, (SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1) AS school_photo_permission
+           FROM athletes a
+          WHERE a.university = ? AND a.home_country = ? AND a.active = 1
            ${publicAthleteClause(code)} ${opts.listed ? listedClause(code) : ""} ORDER BY a.name LIMIT ?`
       )
       .bind(university, code, limit)
       .all();
-    return (r.results ?? []) as Athlete[];
+    // Photo gate at read time (src/lib/photo-permission.ts): the school page's roster shows photos.
+    return ((r.results ?? []) as Athlete[]).map((a) => gatePhoto(a, a.school_photo_permission));
   } catch { return []; }
 }
 

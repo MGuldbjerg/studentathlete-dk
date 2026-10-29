@@ -3,6 +3,7 @@ import { cleanPosition } from "@/lib/roster-clean";
 import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { PhotoCredit } from "@/components/ui/PhotoCredit";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 import { buildProfileProse } from "@/lib/profile-prose";
 import type { CareerSeason } from "@/lib/career";
@@ -107,11 +108,17 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 fetchPriority="high"
                 className="w-36 h-44 md:w-44 md:h-56 object-cover"
                 style={{ border: "2px solid rgba(255,255,255,0.12)" }} />
-              {athlete.photo_credit && (
-                <p className="text-[10px] text-white/30 mt-1">
-                  {lang === "da" ? athlete.photo_credit : athlete.photo_credit.replace(/^Foto:/i, "Photo:")}
-                </p>
-              )}
+              {/* Photographer · "{School} Athletics" · Source link (migration 080). A row
+                  from before that has only photo_credit; it then shows as before, and the
+                  school name is not added to a photo whose origin we did not record. */}
+              <PhotoCredit
+                className="text-[10px] text-white/30 mt-1 max-w-36 md:max-w-44"
+                photographer={athlete.photo_photographer}
+                schoolName={athlete.photo_source_url || athlete.photo_photographer ? athlete.university : null}
+                creditLine={athlete.photo_credit}
+                sourceUrl={athlete.photo_source_url}
+                lang={lang}
+              />
             </div>
           ) : (
             <div className="w-36 h-44 md:w-44 md:h-56 flex-shrink-0

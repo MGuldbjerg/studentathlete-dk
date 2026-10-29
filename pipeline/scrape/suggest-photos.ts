@@ -15,6 +15,7 @@ import { createD1Client } from "../lib/d1-client";
 
 import { pipelineUserAgent } from "../../src/lib/site";
 import { siteCountrySql } from "../../src/lib/countries";
+import { photoAllowedSql } from "../../src/lib/photo-permission";
 interface AthleteRow {
   id: number;
   name: string;
@@ -145,13 +146,17 @@ async function main(): Promise<void> {
   const { limit, dryRun } = parseArgs();
   const db = createD1Client();
 
-  // Aktive atleter uden foto, med bio-side, uden åbent/godkendt forslag
+  // Aktive atleter uden foto, med bio-side, uden åbent/godkendt forslag.
+  // Skip schools that declined photos or asked not to be contacted
+  // (src/lib/photo-permission.ts) — in SQL, before the LIMIT, so they never take
+  // places in the batch. One lookup on idx_schools_name per candidate row.
   const athletes = await db.query<AthleteRow>(
     `SELECT a.id, a.name, a.university, a.bio_url
      FROM athletes a
      WHERE a.active = 1
        AND a.bio_url IS NOT NULL
        AND (a.photo_url IS NULL OR a.photo_url = '')
+       AND ${photoAllowedSql("(SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1)")}
        AND ${siteCountrySql()}
        AND NOT EXISTS (
          SELECT 1 FROM photo_suggestions ps
