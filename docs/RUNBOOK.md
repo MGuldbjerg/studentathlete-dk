@@ -26,11 +26,11 @@ or dies.
 | Instagram / Facebook / Threads | `IG_*`, `IG_UK_*`, `FB_*`, `FB_UK_*`, `FB_APP_*`, `THREADS_UK_*` (repo secrets) | posting (FB disabled: Meta ad restriction) | `meta-check.yml` (token check) | daily |
 | Discord | `DISCORD_WEBHOOK_URL` (alerts), `DISCORD_BOT_TOKEN`/`_APP_ID` (repo secrets) | alerts, bot commands | — | alerts fire |
 | Worker secrets | `ADMIN_TOKEN`, `ANALYTICS_SALT`, `ANALYTICS_EXCLUDE_IPS`, `GITHUB_TOKEN` (`wrangler secret`) | /admin, analytics hashing, admin-triggered workflows | — | — |
+| Worker MCP (Claude Desktop / claude.ai) | `MCP_TOKEN` (`wrangler secret`, set 2026-10-29; the value is only in Mikkel's password manager) | drafts and pages on the live site; writes need `confirm: true` | `SETUP-mcp-desktop.md` | 401 without token, 2026-10-29 |
+| Brevo (email) | `BREVO_API_KEY` (`~/.bashrc` only, set 2026-10-29; v3 keys are unscoped — can do anything in the account) | transactional send for photo-permission mails; free plan, 300/day | `GET /v3/account` (read-only) | 2026-10-29 |
 
 **Referenced but not set (2026-10-29)** — the step that uses it falls back or stays inert:
-`BREVO_API_KEY` (photo-permission sends — Mikkel's blocker), `MCP_TOKEN` (Worker MCP for
-Claude Desktop/claude.ai is closed until set — `SETUP-mcp-desktop.md`; writes need
-`confirm: true` since 2026-10-29), `THREADS_DK_*` (no DK Threads
+`THREADS_DK_*` (no DK Threads
 profile), `X_*` (no X account), `ANTHROPIC_API_KEY` (API drafting not used — subscription
 instead), `DISCORD_WEBHOOK_DK`/`_UK` (alerts fall back to `DISCORD_WEBHOOK_URL`).
 `CLOUDFLARE_EMAIL_TOKEN` and `VERCEL_TOKEN` in `~/.bashrc` are not used by this repo.
