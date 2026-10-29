@@ -150,6 +150,11 @@ export function createBlueskyChannel(country: string): SocialChannel {
       const handle = readAccountEnv("bluesky", country, "HANDLE")!;
       const session = await createSession(handle, readAccountEnv("bluesky", country, "APP_PASSWORD")!);
       const thumb = await uploadThumb(session, content.imageUrl);
+      // Never post without the card (Mikkel 2026-10-29: images go out with the
+      // posts). The queue only takes articles whose card is stored, so a
+      // missing thumb is a fetch/upload hiccup: fail this attempt, and the row
+      // stays queued for the next run (MAX_ATTEMPTS in post-social.ts).
+      if (!thumb) throw new Error(`Bluesky: card image not fetched/uploaded (${content.imageUrl}) — not posted without it`);
       const record = buildBlueskyRecord(content, country, thumb);
 
       const res = await fetch(`${PDS}/xrpc/com.atproto.repo.createRecord`, {

@@ -1,6 +1,7 @@
 import { becomesTimelineEntry, timelineParams, TIMELINE_INSERT_SQL, TIMELINE_DELETE_SQL } from "./timeline-entry";
 import { cache } from "react";
-import { getDB, ARTICLE_SELECT } from "./db";
+import { getDB, getEnv, ARTICLE_SELECT } from "./db";
+import { dispatchCardRender } from "./card-dispatch";
 import { pingIndexNow } from "./indexnow";
 import { getArticleUrl } from "./seo";
 import { currentBaseUrl, currentLanguage } from "./site-server";
@@ -260,6 +261,17 @@ export async function publishArticle(id: number): Promise<void> {
     } catch {
       /* høst-fejl må aldrig vælte udgivelsen */
     }
+  }
+
+  // The card: rendered by GitHub, not here (Worker CPU). Asked for right after
+  // the publish — /admin and MCP publish_draft both come through here. Never
+  // throws and times out after 3 s (card-dispatch.ts); until it has run the
+  // page links /api/og and the social queue waits for the card.
+  try {
+    const env = await getEnv();
+    await dispatchCardRender(id, (env as Record<string, string | undefined>).GITHUB_TOKEN);
+  } catch {
+    /* must never fail the publish */
   }
 }
 

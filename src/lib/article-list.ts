@@ -4,7 +4,7 @@
  * so `_word-count-sql-test.ts` can run the SQL against a real SQLite.
  */
 import type { Article, ArticleListItem } from "./types";
-import { countWords } from "./seo";
+import { cardReadySql, countWords } from "./seo";
 
 /**
  * `countWords(content)` (seo.ts) in SQL: whitespace becomes spaces, runs of up
@@ -32,6 +32,7 @@ export const ARTICLE_LIST_SELECT = `
   a.created_at, a.updated_at, a.athlete_id, a.source_url, a.featured,
   a.correction_note, a.corrected_at, a.story_id,
   ${ARTICLE_WORD_COUNT_SQL} AS word_count,
+  ${cardReadySql("a")} AS card_ready,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;
 

@@ -14,6 +14,14 @@ on:
         description: "Genrender ALLE kort (efter design-ændring — husk CARD_VERSION-bump)"
         type: boolean
         default: false
+      # Set by the Worker right after a publish from /admin or MCP
+      # (src/lib/card-dispatch.ts), so the new article's card exists in a minute
+      # or two instead of at the next :05. Empty = every missing card, as hourly.
+      article:
+        description: "Only this article id (render it now, e.g. just after a publish)"
+        type: string
+        required: false
+        default: ''
 
 jobs:
   render:
@@ -31,8 +39,19 @@ jobs:
       - run: npm ci
 
       - name: Render manglende kampkort → D1
-        run: npx tsx pipeline/render/render-cards.ts ${{ inputs.force && '--force' || '' }}
+        # The article id goes through env and a digits-only check, never
+        # straight into the shell line.
+        run: |
+          ARGS=""
+          if [ "$FORCE" = "true" ]; then ARGS="--force"; fi
+          if [ -n "$ARTICLE" ]; then
+            if ! [[ "$ARTICLE" =~ ^[0-9]+$ ]]; then echo "article must be a number, got: $ARTICLE"; exit 1; fi
+            ARGS="$ARGS --article $ARTICLE"
+          fi
+          npx tsx pipeline/render/render-cards.ts $ARGS
         env:
+          FORCE: ${{ inputs.force }}
+          ARTICLE: ${{ inputs.article }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
