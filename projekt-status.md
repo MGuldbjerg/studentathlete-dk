@@ -114,6 +114,13 @@ editing connector — a different thing.
 - First award roundup 1 Nov; first weekly leaderboard 3 Nov.
 - **CPU after #77** (~30 Oct, a day or two of traffic): `npx tsx pipeline/checks/platform-limits.ts`
   (was 151 %) and `d1_top_reads` (the list queries should be gone from the top).
+- **Social retention after #80 — check from ~5 Nov, ideally 12 Nov.** Live since
+  **2026-10-29 07:42 UTC** (deploy 271865f0, commit 1770fe8): read next that never runs dry
+  (athlete → sport → school → country), athlete card, clickable tags, band for `?source=`/`?kilde=`
+  visitors. Before: «related» was empty under 47 % UK / 36 % DK of articles. In GA4 compare
+  social sessions (landing URL with `source=`/`kilde=`, or session source = social) for the 14 days
+  before 29 Oct vs after: engagement rate, pages per session, views per user. Low follower counts
+  → small numbers; read the direction, not the decimals.
 
 ## Standing decisions
 
