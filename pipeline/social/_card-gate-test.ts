@@ -54,6 +54,10 @@ const db = {
     return { results: [] };
   },
 } as unknown as D1Client;
+const setAge = (key: string, minutes: number) =>
+  sqlite.prepare(`UPDATE card_blobs SET created_at = datetime('now', ?) WHERE key = ?`).run(`-${minutes} minutes`, key);
+const ageMinutes = (key: string) =>
+  Number(sqlite.prepare(`SELECT (julianday('now') - julianday(created_at)) * 1440 AS m FROM card_blobs WHERE key = ?`).all(key)[0]?.m ?? -1);
 const row = (id: number) => sqlite.prepare("SELECT status, attempts FROM social_posts WHERE id = ?").all(id)[0];
 
 // ── R2 bucket stub (the REST API card-store.ts talks to) ────────────────────
@@ -116,6 +120,22 @@ async function main(): Promise<void> {
     await store.putCard(cardBlobKey(1), WEBP, "image/webp", { width: 1200, height: 630 });
     const marker = sqlite.prepare("SELECT png_base64 FROM card_blobs WHERE key = ?").all(cardBlobKey(1))[0];
     ok(marker?.png_base64 === "" && objects.has(`cards/${cardBlobKey(1)}.webp`), "r2: object in the bucket, empty marker in D1");
+    ok(ageMinutes(cardBlobKey(1)) < 1, "the marker's created_at is set on write");
+
+    // 3a) Just stored, and 2 minutes old: held (the drawn fallback may still be cached).
+    r = await postOne(db, share, false);
+    ok(!r.posted && posted.length === 0 && row(1).attempts === 0, "card just stored → held, no attempt used");
+    setAge(cardBlobKey(1), 2);
+    r = await postOne(db, share, false);
+    ok(!r.posted && posted.length === 0 && row(1).status === "queued", "card 2 min old → held");
+
+    // A re-render refreshes created_at, so the wait starts again.
+    setAge(cardBlobKey(1), 30);
+    await store.putCard(cardBlobKey(1), WEBP, "image/webp", { width: 1200, height: 630 });
+    ok(ageMinutes(cardBlobKey(1)) < 1, "a re-render refreshes created_at");
+
+    // 3b) 7 minutes old: posted.
+    setAge(cardBlobKey(1), 7);
     r = await postOne(db, share, false);
     ok(r.posted && posted.length === 1, "share card stored → posted");
     ok(posted[0]?.imageUrl === `${MEDIA}/cards/${cardBlobKey(1)}.webp`, "…with the bucket URL");
@@ -126,6 +146,9 @@ async function main(): Promise<void> {
     r = await postOne(db, ig, false);
     ok(!r.posted && posted.length === 1, "IG waits for the IG card even with the share card stored");
     await store.putCard(igCardBlobKey(1), JPEG, "image/jpeg", { width: 1080, height: 1350 });
+    r = await postOne(db, ig, false);
+    ok(!r.posted && posted.length === 1, "IG card just stored → held by the same 6-minute rule");
+    setAge(igCardBlobKey(1), 7);
     r = await postOne(db, ig, false);
     ok(r.posted && posted[1]?.imageUrl === `${MEDIA}/cards/${igCardBlobKey(1)}.jpg` && posted[1]?.imageExists, "IG card stored → posted with the existing bucket JPEG");
   } finally {

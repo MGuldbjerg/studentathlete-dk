@@ -255,9 +255,22 @@ export function cardReadyClause(alias = "a", kind: CardKind = "share"): string {
   // The card_blobs row is the "card exists" index in EVERY card-store mode:
   // with CARD_STORE=r2 it is an empty marker written after the R2 upload
   // succeeded (pipeline/lib/card-store.ts), so this gate needs no R2 call.
+  //
+  // AND the row must be CARD_SETTLE_MINUTES old (one rule, every channel).
+  // Facebook and Threads scrape the article page's og:image themselves; a page
+  // viewed before the render may have left a drawn 600×315 fallback in the
+  // edge cache for up to 5 minutes (/api/og, DRAWN_CARD_CACHE). After 6 minutes
+  // that is gone and every URL answers with the real card. created_at is set on
+  // insert and refreshed on every re-render (card-store.ts UPSERT), in every
+  // mode — in r2 mode it is the marker's timestamp. A post held by this simply
+  // goes out in a later run.
   const prefix = kind === "ig" ? "ig-" : "card-";
-  return `EXISTS (SELECT 1 FROM card_blobs cb WHERE cb.key = '${prefix}' || ${alias}.id || '-v${CARD_VERSION}')`;
+  return `EXISTS (SELECT 1 FROM card_blobs cb WHERE cb.key = '${prefix}' || ${alias}.id || '-v${CARD_VERSION}'` +
+    ` AND cb.created_at <= datetime('now', '-${CARD_SETTLE_MINUTES} minutes'))`;
 }
+
+/** Minutes a stored card must be old before the queue posts with it (> /api/og's 5-min drawn cache). */
+export const CARD_SETTLE_MINUTES = 6;
 
 /**
  * Køen er ikke tom — den venter på kort. Sig det højt, med navn og id.
