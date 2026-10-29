@@ -110,4 +110,7 @@ account at 85 % (5 h) / 90 % (7 d).
   name (first + last, diacritics folded); several players in the photo is fine. A caption's
   «Photo by …» names the photographer, not the motif. Photos that don't match go to a review
   queue (Mikkel accepts the delay, to fill articles with real photos rather than template
-  graphics); the queue should drop photos for articles too old to use.
+  graphics); the queue drops photos for articles too old to use. Surname-only matches never
+  count. Image hunting runs ONLY for stories the assignment desk decided as an ARTICLE — not
+  lines, folds, skips or holds: no fetching, queueing or review effort for a story that will
+  never get a page.
