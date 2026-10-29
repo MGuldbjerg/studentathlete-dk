@@ -117,10 +117,11 @@ editing connector — a different thing.
 - **Social retention after #80 — check from ~5 Nov, ideally 12 Nov.** Live since
   **2026-10-29 07:42 UTC** (deploy 271865f0, commit 1770fe8): read next that never runs dry
   (athlete → sport → school → country), athlete card, clickable tags, band for `?source=`/`?kilde=`
-  visitors. Before: «related» was empty under 47 % UK / 36 % DK of articles. In GA4 compare
-  social sessions (landing URL with `source=`/`kilde=`, or session source = social) for the 14 days
-  before 29 Oct vs after: engagement rate, pages per session, views per user. Low follower counts
-  → small numbers; read the direction, not the decimals.
+  visitors. Before: «related» was empty under 47 % UK / 36 % DK of articles. Run
+  `npx tsx pipeline/report/social-retention.ts` (GA4 Data API, read-only; equal windows around
+  29 Oct). Baseline 15–28 Oct, social sessions: UK 1,156 (2× the fortnight before), 29 % engaged,
+  1.01 views/session, 2 s engaged time; DK 14. Reminder task fires 5 Nov 09:00. Small numbers —
+  read the direction, not the decimals.
 
 ## Standing decisions
 
