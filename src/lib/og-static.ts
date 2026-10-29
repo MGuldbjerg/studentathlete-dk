@@ -49,14 +49,14 @@ export function cardAssetPath(articleId: number, version: number): string {
  * A build-time constant, not a Worker var: client components (Carousel) build
  * the same URL in the browser, and a runtime var would differ between server
  * HTML and hydration. Set it only AFTER the backfill (docs/RUNBOOK.md, «Cards
- * in R2»). `NEXT_PUBLIC_MEDIA_BASE_URL` overrides it for tests and trial builds.
+ * in R2»). `NEXT_PUBLIC_MEDIA_BASE_URL` overrides it for tests and trial builds (an empty value means «no R2»).
  */
-export const MEDIA_BASE_URL_CONFIG = "";
+export const MEDIA_BASE_URL_CONFIG = "https://media.studentathlete.dk";
 
 /** The media base URL without trailing slash, or null when cards are not in R2. */
 export function mediaBaseUrl(): string | null {
   const fromEnv = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_MEDIA_BASE_URL : undefined;
-  const v = (fromEnv || MEDIA_BASE_URL_CONFIG).trim().replace(/\/+$/, "");
+  const v = (fromEnv ?? MEDIA_BASE_URL_CONFIG).trim().replace(/\/+$/, "");
   return v || null;
 }
 

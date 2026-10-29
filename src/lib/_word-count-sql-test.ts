@@ -26,6 +26,7 @@ const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as {
 const db = new DatabaseSync(":memory:");
 db.exec(`
   CREATE TABLE athletes (id INTEGER PRIMARY KEY, name TEXT, sport TEXT, slug TEXT);
+  CREATE TABLE card_blobs (key TEXT PRIMARY KEY);
   CREATE TABLE articles (
     id INTEGER PRIMARY KEY, title TEXT, slug TEXT, summary TEXT, content TEXT,
     article_type TEXT, index_words INTEGER, author TEXT, author_role TEXT,

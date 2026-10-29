@@ -29,7 +29,7 @@ const MEDIA = `https://media.studentathlete.dk/cards/card-12-v${V}.webp`;
 const MEDIA_IG = `https://media.studentathlete.dk/cards/ig-12-v${V}.jpg`;
 
 // ── d1 mode: no media URL ────────────────────────────────────────────────────
-delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+process.env.NEXT_PUBLIC_MEDIA_BASE_URL = ""; // d1 mode, whatever MEDIA_BASE_URL_CONFIG says
 ok(getArticleCoverUrl({ id: 12, card_ready: 1 }) === STATIC, "d1, card exists → static path");
 ok(getArticleCoverUrl({ id: 12, card_ready: 0 }) === STATIC, "d1, card missing → static path (its own /api/og fallback)");
 ok(getArticleCoverUrl({ id: 12 }) === STATIC, "d1, unknown → static path");
@@ -71,7 +71,7 @@ ok(ready[14] === 0, "no card row (only the IG card) → not ready");
 ok(ready[15] === 0, "an older CARD_VERSION's row → not ready");
 const urls = rows.map((r) => getArticleCoverUrl({ id: Number(r.id), card_ready: r.card_ready as number }));
 ok(urls[0].startsWith("https://media.") && urls[2].startsWith("/api/og?type=card&article=14"), "query → URL end to end");
-delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+process.env.NEXT_PUBLIC_MEDIA_BASE_URL = "";
 
 // ── the render dispatch after a Worker publish ──────────────────────────────
 const req = renderDispatchRequest(42, "tok");

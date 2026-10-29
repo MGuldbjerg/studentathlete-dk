@@ -30,8 +30,8 @@ let threw = false;
 try { cardObjectKey("reel-12"); } catch { threw = true; }
 ok(threw, "a non-card key has no object key");
 
-delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
-ok(mediaBaseUrl() === null, "no media URL configured by default (merge-safe)");
+process.env.NEXT_PUBLIC_MEDIA_BASE_URL = "";
+ok(mediaBaseUrl() === null, "an empty override means no media URL");
 ok(
   getArticleCoverUrl({ id: 12 }) === `/og/cards/card-12-v${CARD_VERSION}.webp?type=card&article=12&v=${CARD_VERSION}`,
   "without media URL the cover is today's static path + query fallback",
@@ -51,7 +51,7 @@ ok(
 );
 ok(absoluteUrl("https://studentathlete.dk", getArticleCoverUrl({ id: 12, card_ready: 1 })).startsWith("https://media."), "absoluteUrl keeps an absolute URL");
 ok(absoluteUrl("https://studentathlete.dk", "/og/x.webp") === "https://studentathlete.dk/og/x.webp", "absoluteUrl prefixes a path");
-delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+process.env.NEXT_PUBLIC_MEDIA_BASE_URL = "";
 
 ok(sniffContentType(WEBP) === "image/webp" && sniffContentType(JPEG) === "image/jpeg", "format sniffing");
 
