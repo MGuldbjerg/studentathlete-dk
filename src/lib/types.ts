@@ -65,6 +65,10 @@ export interface Athlete {
   active: number;
   photo_url: string | null;
   photo_credit: string | null;
+  /** The page the photo came from, linked as "Source" next to it (migration 080). */
+  photo_source_url?: string | null;
+  /** The photographer, when the school's page names one (migration 080). */
+  photo_photographer?: string | null;
   preferred_name: string | null;
   profile_summary: string | null;
   bio_url?: string | null;
@@ -79,6 +83,12 @@ export interface Athlete {
    * opslag. Kan være null: en skole kan mangle i `schools`.
    */
   school_slug?: string | null;
+  /**
+   * The school's `photo_permission` (migration 068), selected with the athlete
+   * where a photo is read. Rows from a blocked school have their photo fields
+   * emptied by gatePhoto() (src/lib/photo-permission.ts) before they leave db.ts.
+   */
+  school_photo_permission?: string | null;
   /** 1 when the athlete has a published article (getAthleteBySlug only). */
   has_article?: number;
   /** Published articles about or naming the athlete (getAthleteBySlug, getAllAthleteSlugs). */
@@ -117,6 +127,8 @@ export interface School {
   news_feed_url?: string | null;
   news_feed_type?: string | null;
   news_last_checked_at?: string | null;
+  /** Photo-permission state (migration 068); read by photoAllowed(). */
+  photo_permission?: string | null;
 }
 
 // ── Sportsgrene ──────────────────────────────────────────────────────────────

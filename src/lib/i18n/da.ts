@@ -568,6 +568,11 @@ const ui: LanguagePack["ui"] = {
   "profile.official_bio": "Officiel profil hos {school} ↗",
   "profile.merch": "Køb merchandise med {name} ↗",
   "profile.merch_note": "Sælges gennem Influxer. Atleten får en del af hvert salg.",
+  // Photo credit next to a photo (src/components/ui/PhotoCredit.tsx); the school's own name is a proper noun.
+  "photo.credit": "Foto: {credit}",
+  "photo.school_credit": "{school} Athletics",
+  "photo.source": "Kilde",
+  "photo.roster_credit": "Fotos: {school} Athletics",
   "profile.about": "Om {name}",
   "school.athletes_heading": "Danske atleter på {school}",
   "tpl.student_athlete_tag": "Student athlete",
