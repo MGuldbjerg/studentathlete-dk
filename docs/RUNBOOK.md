@@ -4,6 +4,36 @@ Durable how-tos and lessons. Not state (that is `projekt-status.md`) and not rul
 (that is `CLAUDE.md`). Add an entry when something cost real time and will happen
 again; delete it when the code makes it impossible.
 
+## Access map — what we can reach, and with what
+
+Check here before saying «we can't see X». Names only; values live where the table says
+and are never written into the repo or chat. An access is real only once it has been
+used (the «Verified» column). Inventory 2026-10-29: `~/.bashrc` exports, `gh secret list`,
+`wrangler secret list`, `~/.config/gcloud/`. Update the table when a credential is added
+or dies.
+
+| Service | Credential (where) | Reaches | Read-only way in | Verified |
+|---|---|---|---|---|
+| D1 + Workers | `CLOUDFLARE_API_TOKEN`, `_ACCOUNT_ID`, `_D1_DATABASE_ID` (`~/.bashrc` + repo secrets) | D1 read/write, Worker deploy, analytics (`wrangler d1 insights`, `platform-limits.ts`) | ops MCP `d1_query` / `d1_top_reads` | 2026-10-28 |
+| Cloudflare zones | same token | **not** zone bot settings (auth error 2026-10-27); cache purge unverified | — | partly |
+| GA4 (.dk 370967469, .co.uk 557937554) | service account, key `~/.config/gcloud/sa-searchconsole.json` (`GOOGLE_SEARCH_CONSOLE_KEY`) — Editor on both properties | Admin API (`scripts/ga4-admin.ts`) **and Data API** (reports) | `pipeline/report/social-retention.ts` | 2026-10-29 |
+| Search Console | same service account | both sites' search data | `scripts/search-console.sh`, `pipeline/report/search-console.ts` | weekly via seo-friday |
+| AdSense | OAuth as Mikkel (`~/.config/gcloud/adsense-client.json` + `adsense-token.json`) — the AdSense API refuses service accounts | reports | `scripts/adsense-report.ts` (`adsense-auth.ts` to renew) | — |
+| GitHub | `gh` logged in (repo, workflow) on the PC; `GH_SECRETS_PAT` (repo secret, renews IG tokens) | PRs, runs, secrets/variables | ops MCP `ci_runs` / `ci_failure`, `status` | 2026-10-29 |
+| Claude | `CLAUDE_CODE_OAUTH_TOKEN` + `_FALLBACK` (repo secrets); the PC's own CLI login | subscription calls in CI / locally | ops MCP `claude_usage`, `claude_quota` | 2026-10-28 |
+| Free LLM chain | `GEMINI_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `NVIDIA_API_KEY` (bashrc + secrets), `OPENROUTER_API_KEY` (bashrc only) | drafting fallback, checks | `pipeline/checks/llm-health.ts` (llm-check.yml) | llm-check failing 4/8 |
+| Bluesky | `BLUESKY_HANDLE`/`_APP_PASSWORD` (DK), `BLUESKY_UK_*` (repo secrets) | posting | — | social-post runs |
+| Instagram / Facebook / Threads | `IG_*`, `IG_UK_*`, `FB_*`, `FB_UK_*`, `FB_APP_*`, `THREADS_UK_*` (repo secrets) | posting (FB disabled: Meta ad restriction) | `meta-check.yml` (token check) | daily |
+| Discord | `DISCORD_WEBHOOK_URL` (alerts), `DISCORD_BOT_TOKEN`/`_APP_ID` (repo secrets) | alerts, bot commands | — | alerts fire |
+| Worker secrets | `ADMIN_TOKEN`, `ANALYTICS_SALT`, `ANALYTICS_EXCLUDE_IPS`, `GITHUB_TOKEN` (`wrangler secret`) | /admin, analytics hashing, admin-triggered workflows | — | — |
+
+**Referenced but not set (2026-10-29)** — the step that uses it falls back or stays inert:
+`BREVO_API_KEY` (photo-permission sends — Mikkel's blocker), `MCP_TOKEN` (Worker MCP for
+Claude Desktop is closed until set, `SETUP-mcp-desktop.md`), `THREADS_DK_*` (no DK Threads
+profile), `X_*` (no X account), `ANTHROPIC_API_KEY` (API drafting not used — subscription
+instead), `DISCORD_WEBHOOK_DK`/`_UK` (alerts fall back to `DISCORD_WEBHOOK_URL`).
+`CLOUDFLARE_EMAIL_TOKEN` and `VERCEL_TOKEN` in `~/.bashrc` are not used by this repo.
+
 ## Procedures
 
 ### Fix a published card (three steps, in this order)
