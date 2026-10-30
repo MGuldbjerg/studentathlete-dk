@@ -2,7 +2,7 @@
  * Unit-tests for analytics-hjælpere. Kør: npx tsx src/lib/_analytics-test.ts
  * (Ingen test-runner — bare asserts, exit 1 ved fejl.)
  */
-import { classify, deviceFromUA, isClickKind, hashVisitor, normalizeSource } from "./analytics";
+import { classify, deviceFromUA, isClickKind, hashVisitor, isDatacenterAsn, normalizeSource } from "./analytics";
 
 let failed = 0;
 function ok(cond: boolean, msg: string) {
@@ -14,6 +14,15 @@ function ok(cond: boolean, msg: string) {
 function eq(a: unknown, b: unknown, msg: string) {
   ok(JSON.stringify(a) === JSON.stringify(b), `${msg} (fik ${JSON.stringify(a)}, ville have ${JSON.stringify(b)})`);
 }
+
+// isDatacenterAsn — Meta's link checkers and cloud bots run JS with a Chrome UA (2026-10-29 audit)
+eq(isDatacenterAsn(32934), true, "Meta (Facebook) is a data centre");
+eq(isDatacenterAsn(16509), true, "Amazon AWS is a data centre");
+eq(isDatacenterAsn(45102), true, "Alibaba Cloud is a data centre");
+eq(isDatacenterAsn(2119), false, "Telenor (a real ISP) is not");
+eq(isDatacenterAsn(36183), false, "Akamai/iCloud Private Relay carries real people — not filtered");
+eq(isDatacenterAsn(13335), false, "Cloudflare WARP / Private Relay carries real people — not filtered");
+eq(isDatacenterAsn(undefined), false, "unknown ASN → keep the visit");
 
 // classify
 eq(classify("/", "da"), { pageType: "home", sport: null }, "forside");
