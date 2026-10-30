@@ -1,5 +1,5 @@
 /** Tests for the assignment desk's parsing and guards. Run: npx tsx pipeline/editor/_assignment-desk-test.ts */
-import { ageDays, applyRules, batches, briefText, buildDeskPack, guardDesk, lineParams, parseDesk, STATUS_FOR, type DeskStory, type DeskVerdict } from "./assignment-desk";
+import { ageDays, applyRules, batches, briefText, buildDeskPack, guardDesk, lineParams, parseDesk, sourceText, STATUS_FOR, type DeskStory, type DeskVerdict } from "./assignment-desk";
 
 let pass = 0, fail = 0;
 function expect(name: string, got: unknown, want: unknown) {
@@ -121,6 +121,17 @@ expect("line: the name taken off the front", lp[5], "Named to the preseason All-
 expect("line: the source kept", lp[7], "https://x.edu/a");
 expect("line without an event date: dated by the source or the day found", lineParams({ ...lineV, event_date: null }, story)[1], "2026-10-20");
 expect("the brief asks for lines in the site's language", briefText().includes("Danish for a DK athlete"), true);
+
+// sourceText: the head of the source, plus later sentences that name the athlete
+// (2026-10-30: John Hollis's program record sat at char ~2,800, past the 2,500 cut).
+const boxScore = "Box score header. ".repeat(60);
+const recap = boxScore + "Mercy won 1-0. Lysoe scored the winner. Other news here. Hollis dished out his 14th assist, setting a new program record. The coach got his 107th win.";
+const seen = sourceText(recap, "John Hollis", 300);
+expect("the head is kept", seen.startsWith("Box score header."), true);
+expect("a later sentence naming the athlete is added", seen.includes("Hollis dished out his 14th assist, setting a new program record."), true);
+expect("later sentences not naming them are not", seen.includes("The coach got his 107th win"), false);
+expect("short sources are unchanged", sourceText("Hollis scored.", "John Hollis", 300), "Hollis scored.");
+expect("a surname inside another word does not count", sourceText(boxScore + "Hollister won.", "John Hollis", 300).includes("Hollister"), false);
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

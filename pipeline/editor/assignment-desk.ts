@@ -155,6 +155,28 @@ export function briefText(raw = readFileSync(join(__dirname, "brief.md"), "utf8"
 }
 
 const clip = (s: string, n: number) => (s.length <= n ? s : s.slice(0, n - 1) + "…");
+const LATER_CHARS = 1_200;
+
+/**
+ * The source as the desk sees it: the first `n` characters, plus later
+ * sentences that name the athlete. Box-score headers can fill the head, and
+ * on 2026-10-30 John Hollis's program record sat past the cut, so the desk
+ * gave the story the wrong angle.
+ */
+export function sourceText(raw: string, athleteName: string, n = SOURCE_CHARS): string {
+  const text = raw.replace(/\s+/g, " ").trim();
+  if (text.length <= n) return text;
+  const surname = athleteName.trim().split(" ").pop() ?? "";
+  if (!surname) return clip(text, n);
+  const names = new RegExp(`\\b${surname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+  const later = (text.slice(n).match(/[^.!?]+[.!?]+/g) ?? []).map((x) => x.trim()).filter((x) => names.test(x));
+  let extra = "";
+  for (const sentence of later) {
+    if (extra.length + sentence.length > LATER_CHARS) break;
+    extra += (extra ? " " : "") + sentence;
+  }
+  return clip(text, n) + (extra ? `\n[Later in the source:] ${extra}` : "");
+}
 const day = (s: string | null) => (s ?? "").slice(0, 10);
 
 export function buildDeskPack(
@@ -177,7 +199,7 @@ export function buildDeskPack(
       : "(none)";
     const news = stories
       .map((s) => {
-        const text = clip((s.content_raw || s.summary || "").replace(/\s+/g, " ").trim(), SOURCE_CHARS);
+        const text = sourceText(s.content_raw || s.summary || "", a.athlete_name);
         const others = alsoOurs.get(s.id) ?? [];
         return `### story:${s.id} (found ${day(s.discovered_at)}${s.sensitive ? `, flagged sensitive: ${s.sensitive}` : ""})
 Headline: ${s.headline ?? ""}${others.length ? `\nAlso ours in this source: ${others.join(", ")}` : ""}
