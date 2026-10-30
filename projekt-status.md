@@ -11,6 +11,23 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 
 ---
 
+
+## 🤖 Bot traffic + desk source cut (2026-10-30)
+
+- **Audit 2026-10-29** (`logs/ga4-bot-check.ts`, read-only, 1-28/10): GA4 UK ~85% of 2,370 sessions
+  from data centres — Meta's link checkers (Prineville, Luleå, Forest City, Dublin, Fort Worth,
+  Altoona, Gallatin: «Organic Social», ~10 s, 2000×2000, a third even count as engaged), AWS
+  Boardman, a Chinese wave (Urumqi). DK ~40%. Our own `events` had the same (isbot passes them):
+  UK 3,323 views, 2,019 with a Facebook referrer. **Social page views were mostly Meta, not people.**
+  Trustworthy: Search Console clicks ≈ our Google referrals (UK 304 vs 376); GA4 sees ~half (consent).
+- **#95 live (b4ffeff deploy):** `/api/track` drops visits from data-centre ASNs (`isDatacenterAsn`
+  in `src/lib/analytics.ts`: Meta, AWS, Google Cloud, Azure, Oracle, DO/OVH/Hetzner/Linode/Vultr,
+  Alibaba, Tencent, Huawei; privacy relays kept). Events before 30/10 are unfiltered — compare
+  social numbers only from 31/10. GA4 can't be fixed at source (no ASN).
+- **#96:** the desk saw only 2,500 chars; John Hollis's Mercy program record (14 assists) sat at
+  ~2,800 → wrong angle. `sourceText()` adds up to 1,200 chars of later sentences naming the
+  athlete. Story 16018's decision corrected by hand (Mikkel's OK): priority 4, record angle.
+
 ## What runs (live)
 
 **Story flow.** `discover-daily` every 2 h at :17 reads school feeds; each NEW feed item is
