@@ -79,6 +79,29 @@ export function deviceFromUA(ua: string): "mobile" | "tablet" | "desktop" {
 // "merch": the athlete's Influxer store (2026-10-27; Mikkel wants the count to
 // take to Influxer). "fanatics": FanaticsAffiliateLink already tagged its
 // clicks so, but the kind was missing here and the server dropped them.
+/**
+ * Networks (ASNs) that are data centres, not people. The 2026-10-29 audit found
+ * ~85% of UK traffic came from them: Meta's link checkers (Prineville, Luleå,
+ * Forest City …) load every shared link in a real Chrome, so isbot() lets them
+ * through. Privacy relays (Akamai 36183, Cloudflare 13335, Fastly 54113) carry
+ * real people and are deliberately NOT here.
+ */
+const DATACENTER_ASNS = new Set([
+  32934, 63293, // Meta
+  16509, 14618, 8987, // Amazon / AWS
+  15169, 396982, 19527, // Google / Google Cloud
+  8075, // Microsoft / Azure
+  31898, // Oracle Cloud
+  14061, 16276, 24940, 63949, 20473, // DigitalOcean, OVH, Hetzner, Linode, Vultr
+  37963, 45102, // Alibaba
+  132203, 45090, // Tencent
+  136907, 55990, // Huawei Cloud
+]);
+
+export function isDatacenterAsn(asn: number | undefined | null): boolean {
+  return typeof asn === "number" && DATACENTER_ASNS.has(asn);
+}
+
 export const CLICK_KINDS = ["bio_out", "internal", "search", "ad", "outbound", "merch", "fanatics"] as const;
 export type ClickKind = (typeof CLICK_KINDS)[number];
 

@@ -3,7 +3,8 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 import type { NextRequest } from "next/server";
 import { isbot } from "isbot";
 import { getDB, getEnv } from "@/lib/db";
-import { classify, deviceFromUA, hashVisitor, isClickKind, normalizeSource } from "@/lib/analytics";
+import { classify, deviceFromUA, hashVisitor, isClickKind, isDatacenterAsn, normalizeSource } from "@/lib/analytics";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { isKnownHost } from "@/lib/site";
 
 // Værterne kommer fra landeprofilerne (src/lib/site.ts) — ikke en konstant her.
@@ -20,6 +21,15 @@ export async function POST(req: NextRequest) {
 
     // 1) Bots der eksekverer JS og bevarer bot-UA — frasortér.
     if (isbot(ua)) return ack();
+
+    // 1b) Bots that run JS with a normal browser UA, recognised by their network
+    // (Meta's link checkers, cloud servers). Unknown network → keep the visit.
+    try {
+      const { cf } = await getCloudflareContext({ async: true });
+      if (isDatacenterAsn((cf as { asn?: number } | undefined)?.asn)) return ack();
+    } catch {
+      /* no Cloudflare context (local dev) */
+    }
 
     // 2) Same-origin-værn: afvis hvis Origin findes og ikke matcher os.
     const origin = req.headers.get("origin");
