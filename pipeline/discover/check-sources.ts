@@ -20,6 +20,7 @@ import {
 import { normalizeSourceUrl, storyHash } from "../lib/story-url";
 import { siteCountryCodes } from "../../src/lib/countries";
 import { createHash } from "node:crypto";
+import { siteFirst, bodyShare, newestFirst } from "./body-budget";
 
 /**
  * The article-body pass (2026-10-26, Mikkel: «Fix»). The title pass below
@@ -52,6 +53,7 @@ interface SchoolWithFeed {
   news_feed_url: string;
   news_feed_type: "rss" | "html";
   athlete_count: number;
+  site_count: number;
 }
 
 interface AthleteRef {
@@ -62,39 +64,49 @@ interface AthleteRef {
 }
 
 
-function parseArgs(): { limit: number } {
+function parseArgs(): { limit: number; school: number | null } {
   const args = process.argv.slice(2);
   let limit = 100;
+  let school: number | null = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) {
       limit = parseInt(args[i + 1], 10) || 100;
     }
+    // One school now, regardless of its 6-hour wait (e.g. --school 865).
+    if (args[i] === "--school" && args[i + 1]) {
+      school = parseInt(args[i + 1], 10) || null;
+    }
   }
 
-  return { limit };
+  return { limit, school };
 }
 
 async function checkSchoolFeeds(
   db: ReturnType<typeof createD1Client>,
   limit: number,
+  only: number | null = null,
 ): Promise<{ checked: number; found: number }> {
   // Hent skoler der er klar til tjek
+  const sites = [...SITES];
   const result = await db.query<SchoolWithFeed>(
     `SELECT s.id, s.name, s.news_feed_url, s.news_feed_type,
-            COUNT(a.id) as athlete_count
+            COUNT(a.id) as athlete_count,
+            SUM(CASE WHEN a.home_country IN (${sites.map(() => "?").join(",") || "NULL"}) THEN 1 ELSE 0 END) as site_count
      FROM schools s
      JOIN athletes a ON a.university = s.name AND a.active = 1
      WHERE s.news_feed_url IS NOT NULL
-       AND (s.news_last_checked_at IS NULL
-            OR datetime(s.news_last_checked_at, '+6 hours') < datetime('now'))
+       AND ${only ? "s.id = ?" : `(s.news_last_checked_at IS NULL
+            OR datetime(s.news_last_checked_at, '+6 hours') < datetime('now'))`}
      GROUP BY s.id
      ORDER BY s.news_last_checked_at ASC NULLS FIRST
      LIMIT ?`,
-    [limit],
+    [...sites, ...(only ? [only] : []), limit],
   );
 
-  const schools = result.results;
+  // Which schools are in the run is still oldest-check-first; only the ORDER within
+  // the run changes, so the body pages reach site schools first (body-budget.ts).
+  const schools = siteFirst(result.results);
 
   if (schools.length === 0) {
     console.log("Ingen skoler klar til feed-tjek.");
@@ -109,7 +121,7 @@ async function checkSchoolFeeds(
   let bodyStories = 0;
   let collectingStories = 0;
 
-  for (const school of schools) {
+  for (const [schoolIndex, school] of schools.entries()) {
     try {
       // Hent alle aktive atleter på denne skole
       const athleteResult = await db.query<AthleteRef>(
@@ -215,10 +227,12 @@ async function checkSchoolFeeds(
       }
 
       // ── The body pass: new items the title pass did not catch ──────────────
-      if (bodyFetches < BODY_FETCHES) {
+      const share = bodyShare(BODY_FETCHES - bodyFetches, schools.length - schoolIndex);
+      if (share > 0) {
+        const schoolLimit = bodyFetches + share;
         const cutoff = Date.now() - BODY_MAX_AGE_DAYS * 86_400_000;
-        const items = (await listFeedItems(school.news_feed_url, school.news_feed_type))
-          .filter((i) => !titleMatched.has(normalizeSourceUrl(i.link)) && (!i.pubDate || i.pubDate.getTime() >= cutoff));
+        const items = newestFirst((await listFeedItems(school.news_feed_url, school.news_feed_type))
+          .filter((i) => !titleMatched.has(normalizeSourceUrl(i.link)) && (!i.pubDate || i.pubDate.getTime() >= cutoff)));
         const hashes = items.map((i) => itemHash(i.link));
         const seen = new Set(hashes.length
           ? (await db.query<{ url_hash: string }>(
@@ -226,7 +240,7 @@ async function checkSchoolFeeds(
           : []);
         for (const [n, item] of items.entries()) {
           if (seen.has(hashes[n])) continue;
-          if (bodyFetches >= BODY_FETCHES) break;
+          if (bodyFetches >= schoolLimit) break;
           bodyFetches++;
           const article = await fetchArticle(item.link);
           await new Promise((r) => setTimeout(r, 500));
@@ -279,10 +293,10 @@ async function checkSchoolFeeds(
 
 
 async function main(): Promise<void> {
-  const { limit } = parseArgs();
+  const { limit, school } = parseArgs();
   const db = createD1Client();
 
-  const { checked, found } = await checkSchoolFeeds(db, limit);
+  const { checked, found } = await checkSchoolFeeds(db, limit, school);
 
   console.log(
     `\nFærdig. Tjekket ${checked} skole-feed(s). Fundet ${found} ny(e) historie(r).`,
