@@ -12,6 +12,13 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 ---
 
 
+## 🔎 Body-pass starvation fixed (2026-10-31, ef6f1d9)
+
+- Discovery's body pass (opening feed articles to find names below the headline) used its 600 pages in a fixed order and ran out around school 150 of 200. **174 of 638 schools with UK/DK athletes (750 athletes) had never had an article opened**; those athletes only got stories when named in a headline or summary.
+- Fix (`pipeline/discover/body-budget.ts`): site schools first within a run, an even share of the remaining pages per school, items newest first. `check-sources.ts --school <id>` checks one school now.
+- Found by Josh Lane (RMU, UK): program record of 18 career shutouts, in the body of "RMU Earns a Point … at Cleveland State". Run once for RMU → story 16848 (also 16845 Abdul Kamara UK, 16846 Filip Jeppesen DK). Desk picks it up at its next run.
+- To check: `SELECT count(*) FROM feed_items_seen WHERE school_id=…` should be > 0 for most site schools within a few days.
+
 ## 🤖 Bot traffic + desk source cut (2026-10-30)
 
 - **Audit 2026-10-29** (`logs/ga4-bot-check.ts`, read-only, 1-28/10): GA4 UK ~85% of 2,370 sessions
