@@ -12,6 +12,24 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 ---
 
 
+## 📡 Feeds that never showed whole sports or the athletics site (2026-11-02)
+
+- **Curated main feeds:** Illinois's `/rss` carries ~10 football/basketball/volleyball stories;
+  XC, track and golf only in sport feeds (`?path=mcross` …). Frank Buchanan's Second-Team
+  All-Big Ten (30/10) was never seen. New table `school_feeds` (migration 082): extra feeds per
+  school, read after the main feed by `check-sources.ts`, body-pass share per school. Illinois
+  has 5 (m/w XC, m/w track, m golf). Run once → 18 stories, Buchanan = story 18549.
+  Other `/rss` feeds sampled (8) carry mixed sports — curation looked Illinois-only; no
+  general detector yet (a school with stories in some sports passes every check).
+- **Feeds on the college site, not athletics:** 134 of 638 site schools had 0 feed stories in
+  30 days. 33 of them (125 UK/DK athletes) pointed at the college's general news; replaced
+  with the athletics site's `/rss` (host taken from the athletes' `bio_url`, feed verified
+  ≥3 items, newest < 21 days). Old → new in `logs/feed-fix-2026-11-02.tsv` (WSL only, gitignored).
+  Belmont Abbey (20 athletes) → 5 stories on the first run. The other 98 zero-story schools
+  already read their athletics site: quiet, or dead (`repair-feeds.ts`: 42 still dead, 21 of
+  them HTTP 403). repair-feeds' 3 proposed swaps (Marymount, Alice Lloyd, Brescia) NOT applied —
+  college `/rss`, content unverified.
+
 ## 🔎 Body-pass starvation fixed (2026-10-31, ef6f1d9)
 
 - Discovery's body pass (opening feed articles to find names below the headline) used its 600 pages in a fixed order and ran out around school 150 of 200. **174 of 638 schools with UK/DK athletes (750 athletes) had never had an article opened**; those athletes only got stories when named in a headline or summary.
@@ -106,8 +124,9 @@ editing connector — a different thing.
    that shell). Influxer never answered (emailed 27/10), so we went ahead. Lincoln Memorial went
    to christopher.haley@ with an extra line apologising for a possible mix-up with an Adam Haley
    (`SCHOOL_NOTES` in `request-permission.ts`). Open: replies — record each with `--respond`
-   (granted/conditional/declined/forwarded/bounced/do-not-contact); no automatic follow-ups;
-   nothing recorded yet. Delivery is unconfirmed (Brevo accepted ≠ delivered): watch
+   (granted/conditional/declined/forwarded/bounced/do-not-contact); no automatic follow-ups.
+   **First answer 2026-11-02: Newberry — granted** (Christopher Williams, Asst AD Communications:
+   «Yes you have permission to use our material», no conditions); recorded with `--respond`. Delivery is unconfirmed (Brevo accepted ≠ delivered): watch
    info@studentathlete.dk for bounces. Next conference needs Mikkel's contact approval. `--pause
    min-max` (minutes, default 8-15) shortens the gap between mails for small batches.
    `BREVO_API_KEY` is set (2026-10-29, verified read-only); in a plain shell it can be missing —
@@ -124,8 +143,13 @@ editing connector — a different thing.
    numbers, or drop. Impact's recommender returned no UK/DK programs.
 4. **LIA section D** (`UDKAST-LIA-interesseafvejning.md`) — legal basis for the 13 collecting
    countries incl. a 12-month deletion limit. Collecting already runs.
-5. **AdSense .co.uk** — reapply not before ~10 Nov and not before the 14 thin hub pages have
-   prose (/athletes + /articles intros need his read).
+5. **AdSense .co.uk** — reapply ~16–20 Nov. Live 2026-11-02 (6680336): the AdSense script is
+   only on INDEXABLE pages (`src/components/AdsenseScript.tsx`; layout keeps only the
+   verification meta). Why: the AdSense crawler reads every page with the ad tag and ignores
+   noindex, so the 569 UK profiles under the 200-word floor were still in its review. Google
+   says AdSense's own index takes 1–2 weeks to reflect changes. GSC (2/11): ~82% of the 1,276
+   removed profiles still indexed in Search, last crawled Sept — that is Search, not AdSense.
+   Crawl 2/11: no indexed UK page under 200 words except the /athletes hub (167, nav page).
 6. **Threads** — create profiles + Threads use case, then `setup-threads.bat` per market.
 
 ## Schedule decisions 28/10 (PR #76)
