@@ -99,10 +99,19 @@ editing connector — a different thing.
 
 ## Waiting on Mikkel
 
-1. **Photo-permission outreach** — built (`pipeline/photos/`, ledger migration 068), nothing
-   sent. Waiting for Influxer's answer (emailed 27/10) on who handles photo rights. Then: approve
-   wording + the 7 South Atlantic contacts (`contacts/south-atlantic-conference.csv`; Lincoln
-   Memorial name/email mismatch). `BREVO_API_KEY` is set (2026-10-29, verified read-only).
+1. **Photo-permission outreach** — built (`pipeline/photos/`, ledger migration 068).
+   **First batch sent 2026-11-02:** all 7 South Atlantic Conference schools (Anderson, Catawba,
+   Lenoir–Rhyne, Lincoln Memorial, Newberry, UVA Wise, Wingate), 11:46–12:29 UTC, all `sent` in
+   `photo_events` (Anderson also has one `failed` row from a first run without `BREVO_API_KEY` in
+   that shell). Influxer never answered (emailed 27/10), so we went ahead. Lincoln Memorial went
+   to christopher.haley@ with an extra line apologising for a possible mix-up with an Adam Haley
+   (`SCHOOL_NOTES` in `request-permission.ts`). Open: replies — record each with `--respond`
+   (granted/conditional/declined/forwarded/bounced/do-not-contact); no automatic follow-ups;
+   nothing recorded yet. Delivery is unconfirmed (Brevo accepted ≠ delivered): watch
+   info@studentathlete.dk for bounces. Next conference needs Mikkel's contact approval. `--pause
+   min-max` (minutes, default 8-15) shortens the gap between mails for small batches.
+   `BREVO_API_KEY` is set (2026-10-29, verified read-only); in a plain shell it can be missing —
+   run via `bash -ic`.
    **Credits live since 29/10 (#86, migration 080 + backfill: 2,905 photos got a source
    link):** «Foto/Photo: {School} Athletics · Kilde/Source» on profiles, «Fotos/Photos: …» under
    school rosters; schools with `declined`/`do_not_contact` show no photo anywhere (read-time
