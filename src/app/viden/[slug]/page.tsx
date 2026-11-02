@@ -14,6 +14,7 @@ import {
   categoryLabels,
   type GuideCategory,
 } from "@/lib/viden-content";
+import { withAds } from "@/components/AdsenseScript";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function GuidePage({ params }: { params: Params }) {
+async function GuidePage({ params }: { params: Params }) {
   const base = await currentBaseUrl();
   const site = await currentSite();
   const { slug } = await params;
@@ -141,3 +142,5 @@ export default async function GuidePage({ params }: { params: Params }) {
     </main>
   );
 }
+
+export default withAds(GuidePage);

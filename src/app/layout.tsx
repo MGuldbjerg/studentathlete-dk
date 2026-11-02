@@ -82,23 +82,9 @@ export default async function RootLayout({
         {ga4 && <script dangerouslySetInnerHTML={{ __html: ga4Snippet(ga4) }} />}
         {ga4 && <script async src={`https://www.googletagmanager.com/gtag/js?id=${ga4}`} />}
 
-        {/* AdSense-scriptet. Ét tag leverer TRE ting: auto ads, Googles
-            certificerede CMP (samtykkeboksen serveres af auto-ads-scriptet —
-            der skal ikke tilføjes CMP-kode), og ejerskabsverifikation.
-
-            Derfor er vores egen CookieConsent slået fra: to samtykkedialoger er
-            værre end én, og kun Googles er TCF-certificeret (krav i EØS/UK for
-            personligt tilpassede annoncer).
-
-            Styres af admin → Tekster (`adsense.enabled`) og ikke af en env-var,
-            så det kan slukkes igen uden deploy hvis noget går galt. */}
-        {adsense && adsScript && (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsense.account}`}
-            crossOrigin="anonymous"
-          />
-        )}
+        {/* The AdSense script is NOT here: each indexable page renders
+            <AdsenseScript /> (src/components/AdsenseScript.tsx), so noindex
+            pages never carry the ad tag the AdSense review crawls. */}
         {/* Cloudflare Web Analytics (klient-side backup til D1-tracking)
             Token hentes i: CF Dashboard → Analytics → Web Analytics → Add site
             Aktiver ved at uncommente linjen nedenfor og indsætte din token: */}

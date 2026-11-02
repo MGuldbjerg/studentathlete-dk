@@ -4,6 +4,7 @@ import { getArticles, countArticles } from "@/lib/db";
 import { archivePath, pageParam, pageParamAliases } from "@/lib/routes";
 import { sportLabel, sportSlug, sportKeyFromSlug, sportNav, t } from "@/lib/i18n";
 import { currentLanguage, currentBaseUrl } from "@/lib/site-server";
+import { withAds } from "@/components/AdsenseScript";
 
 /**
  * ARKIVET — alle artikler, pagineret.
@@ -69,7 +70,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ArchivePage({
+async function ArchivePage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -204,3 +205,5 @@ export default async function ArchivePage({
     </main>
   );
 }
+
+export default withAds(ArchivePage);

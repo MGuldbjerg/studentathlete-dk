@@ -60,8 +60,27 @@ import { RecruitingTemplate } from "@/components/templates/RecruitingTemplate";
 import { SeasonUpdateTemplate } from "@/components/templates/SeasonUpdateTemplate";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminEditButton } from "@/components/AdminEditButton";
+import { AdsenseScript } from "@/components/AdsenseScript";
 
 type Params = Promise<{ segments: string[] }>;
+
+// ── Indexable: ONE rule for the robots tag and the AdSense script ─────────
+// A page that is noindex also leaves out the AdSense script (AdsenseScript.tsx),
+// so metadata and render must agree — hence these, used by both.
+type Site = Awaited<ReturnType<typeof currentSite>>;
+type AthleteRow = NonNullable<Awaited<ReturnType<typeof getAthleteBySlug>>>;
+type SchoolRow = NonNullable<Awaited<ReturnType<typeof getSchoolBySlug>>>;
+
+/** Letter pages are navigation: noindex wherever the word floor applies. */
+const letterIndexable = (site: Site) => !(site.indexMinWords > 0);
+
+const athleteIndexable = (athlete: AthleteRow, site: Site) =>
+  ((athlete.article_count ?? 0) >= site.profileIndexMinArticles || athlete.has_stats === 1) &&
+  meetsWordFloor(athlete.index_words, site.code);
+
+const schoolIndexable = async (school: SchoolRow, site: Site) =>
+  (site.profileIndexMinArticles === 0 || (await countSchoolArticles(school.name)) >= site.profileIndexMinArticles) &&
+  meetsWordFloor(await getSchoolIndexWords(school.id), site.code);
 
 /** A fixed page's address on this site: storage slug "om" → "/about" on .co.uk. */
 function fixedPagePath(slug: string, lang: string): string {
@@ -203,7 +222,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           },
           alternates: { canonical: url },
           // Navigation, not content: noindex, follow where the word floor applies (Mikkel 2026-10-26).
-          robots: await profileRobots(!(site.indexMinWords > 0)),
+          robots: await profileRobots(letterIndexable(site)),
         };
       }
     }
@@ -240,10 +259,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             images: [ogImage],
           },
           alternates: { canonical: `${base}${getAthleteUrl(slug, lang)}` },
-          robots: await profileRobots(
-            ((athlete.article_count ?? 0) >= site.profileIndexMinArticles || athlete.has_stats === 1) &&
-            meetsWordFloor(athlete.index_words, site.code),
-          ),
+          robots: await profileRobots(athleteIndexable(athlete, site)),
         };
       }
     }
@@ -265,10 +281,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
             url: `${base}${getSchoolUrl(slug, lang)}`,
           },
           alternates: { canonical: `${base}${getSchoolUrl(slug, lang)}` },
-          robots: await profileRobots(
-            (site.profileIndexMinArticles === 0 || (await countSchoolArticles(school.name)) >= site.profileIndexMinArticles) &&
-            meetsWordFloor(await getSchoolIndexWords(school.id), site.code),
-          ),
+          robots: await profileRobots(await schoolIndexable(school, site)),
         };
       }
     }
@@ -371,6 +384,7 @@ export default async function DynamicPage({
             counts={counts}
           />
           <AdminEditButton href={`/admin/sider/${slug}`} label="Rediger sportsside" />
+          <AdsenseScript />
         </>
       );
     }
@@ -390,6 +404,7 @@ export default async function DynamicPage({
             <ArticleBody content={page.content} />
           </article>
           <AdminEditButton href={`/admin/sider/${slug}`} label="Rediger side" />
+          <AdsenseScript />
         </main>
       );
     }
@@ -457,6 +472,7 @@ export default async function DynamicPage({
             sort={parseSort(sp.sort)}
             lang={lang}
           />
+          <AdsenseScript />
         </main>
       );
     }
@@ -480,13 +496,16 @@ export default async function DynamicPage({
         // adressen kan stadig gættes, og så skal svaret være ærligt.
         if (forLetter.length === 0) notFound();
         return (
-          <AthleteLetterPage
-            letter={letter}
-            athletes={forLetter}
-            counts={foldInitialCounts(initialRows, lang)}
-            alphabet={alphabetFor(lang)}
-            lang={lang}
-          />
+          <>
+            <AthleteLetterPage
+              letter={letter}
+              athletes={forLetter}
+              counts={foldInitialCounts(initialRows, lang)}
+              alphabet={alphabetFor(lang)}
+              lang={lang}
+            />
+            {letterIndexable(await currentSite()) && <AdsenseScript />}
+          </>
         );
       }
     }
@@ -530,6 +549,7 @@ export default async function DynamicPage({
               career={career}
             />
             <AdminEditButton href={`/admin/atleter/${athlete.id}`} label="Rediger atlet" />
+            {athleteIndexable(athlete, await currentSite()) && <AdsenseScript />}
           </>
         );
       }
@@ -559,6 +579,7 @@ export default async function DynamicPage({
           <>
             <SchoolProfilePage school={school} athletes={athletes} articles={articles} totalAthletes={total} season={season} mix={mix} />
             <AdminEditButton href="/admin/skoler" label="Rediger skoler" />
+            {(await schoolIndexable(school, site)) && <AdsenseScript />}
           </>
         );
       }
@@ -617,6 +638,7 @@ export default async function DynamicPage({
           />
           {template}
           <AdminEditButton href={`/admin/rediger/${article.id}`} label="Rediger artikel" />
+          {meetsWordFloor(article.index_words, site.code) && <AdsenseScript />}
         </>
       );
     }

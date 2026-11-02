@@ -7,6 +7,7 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 import { t, routePath } from "@/lib/i18n";
 import { getPublishedGuides } from "@/lib/admin";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { withAds } from "@/components/AdsenseScript";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ interface HubGuide {
   category: GuideCategory;
 }
 
-export default async function VidenPage() {
+async function VidenPage() {
   // D1 (redigerbar) som primær; kode-guides som fallback.
   const lang = await currentLanguage();
   const dbGuides = await getPublishedGuides();
@@ -149,3 +150,5 @@ export default async function VidenPage() {
     </main>
   );
 }
+
+export default withAds(VidenPage);
