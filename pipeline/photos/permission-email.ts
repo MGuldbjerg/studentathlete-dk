@@ -13,6 +13,8 @@ export interface PermissionEmailInput {
   contactName: string | null;
   /** Sites that are live today, e.g. ["studentathlete.dk", "student-athlete.co.uk"]. */
   liveSites: string[];
+  /** Optional one-off paragraph placed right after the greeting (e.g. a contact-name apology). */
+  note?: string;
 }
 
 export interface PermissionEmail {
@@ -31,6 +33,7 @@ export function buildPermissionEmail(input: PermissionEmailInput): PermissionEma
   const sites = input.liveSites.join(" and ");
   const paragraphs = [
     greeting,
+    ...(input.note ? [input.note] : []),
     `If you are not the right person for this, I would be grateful if you could forward it to the colleague who handles photo and media rights for ${school} Athletics. Thank you.`,
     `I run ${sites}, independent news sites that follow British and Danish student-athletes at American colleges. Back home, most of these athletes are not celebrities, and we would like to shine a little more light on them for representing their flag overseas.`,
     `We would like to use the photos that accompany articles about these athletes on your athletics website, and to credit them properly: on our page, next to the photo, we would name the photographer where your site gives a name, along with "${school} Athletics", and link to the source article.`,
