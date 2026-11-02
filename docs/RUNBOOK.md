@@ -51,6 +51,12 @@ athlete's articles (title, summary, text) with a visible correction note. Articl
 table). Then `CARD_STORE=r2 npx tsx pipeline/render/render-cards.ts --article N --force` and purge the media URLs — the
 token can purge by URL (worked 2026-11-02). Posts already on social keep the old spelling. First use: #12036 Sofia Thøgersen.
 
+**Prevention — the Nordic name check** (`name-check.yml`, nightly 00:30 UTC; table `name_checks`, migration 081).
+Judges each new DK/NO/SE/FI/IS athlete once, the night after the roster scrape; Haiku proposes the spelling, a guard
+accepts it only if it is the same name with Nordic letters restored. FLAGS ONLY: suspects go to Discord and
+`npx tsx pipeline/checks/name-check.ts --report`, each with its fix command; `--dismiss <id>` when the printed
+spelling is right. Off switch: repo variable `NAME_CHECK=off`. A plain-o-for-ø can't be found by a rule, hence the model.
+
 ### Fix a published card (three steps, in this order)
 The card URL is versioned (`/og/cards/card-<id>-v9.webp`) and never changes, so
 re-rendering alone does not reach readers.

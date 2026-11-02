@@ -102,6 +102,8 @@ async function main(): Promise<void> {
       `UPDATE articles SET title = ?, summary = ?, content = ?, updated_at = datetime('now')${f.note ? ", correction_note = ?, corrected_at = datetime('now')" : ""} WHERE id = ?`,
       f.note ? [f.title, f.summary, f.content, f.note, f.art.id] : [f.title, f.summary, f.content, f.art.id]);
   }
+  // Close the name check's suspect, if it had one (the table exists once migration 081 has run).
+  await db.execute(`UPDATE name_checks SET verdict = 'fixed', suggested = ? WHERE athlete_id = ?`, [name, id]).catch(() => {});
   console.log(`\nWritten: athlete + ${fixes.length} article(s).`);
   const published = fixes.filter((f) => f.art.published);
   if (published.length) {
