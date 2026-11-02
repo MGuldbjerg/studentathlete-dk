@@ -14,6 +14,7 @@ import { GraduationHelp } from "@/components/athletes/AthleteFullList";
 import { alphabetFor, letterOf, athletesAllPath } from "@/lib/athlete-letters";
 import { t, routePath } from "@/lib/i18n";
 import { currentLanguage, currentSite } from "@/lib/site-server";
+import { withAds } from "@/components/AdsenseScript";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function AtleterPage() {
+async function AtleterPage() {
   // Siden bruger KUN to tal og 25 bogstavtællinger. Den hentede hele
   // atletlisten og hele alumnelisten for at regne dem ud — ~3.000 rækker
   // serialiseret og pakket ud i workeren pr. visning, på en rute uden cache.
@@ -94,3 +95,5 @@ export default async function AtleterPage() {
     </main>
   );
 }
+
+export default withAds(AtleterPage);

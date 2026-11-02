@@ -5,6 +5,7 @@ import { getSchoolUrl, breadcrumbStructuredData } from "@/lib/seo";
 import { currentBaseUrl, currentLanguage, currentSite } from "@/lib/site-server";
 import { routePath, t } from "@/lib/i18n";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { withAds } from "@/components/AdsenseScript";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ function divisionRank(div: string): number {
   return 5;
 }
 
-export default async function SkolerPage() {
+async function SkolerPage() {
   const [schools, lang] = await Promise.all([getSchoolsWithAthletes(), currentLanguage()]);
 
   // Gruppér efter division
@@ -142,3 +143,5 @@ export default async function SkolerPage() {
     </main>
   );
 }
+
+export default withAds(SkolerPage);

@@ -17,6 +17,7 @@ import { archivePath } from "@/lib/routes";
 import { currentLanguage, currentSite } from "@/lib/site-server";
 import { siteStructuredData } from "@/lib/seo";
 import { t } from "@/lib/i18n";
+import { withAds } from "@/components/AdsenseScript";
 
 interface SearchParams {
   q?: string;
@@ -45,7 +46,7 @@ interface SearchParams {
  * størrelse to bånd i træk. Søge-/filtervisningen bruger bevidst det simple
  * grid: dér leder man efter noget bestemt, og rytme er kun støj.
  */
-export default async function HomePage({
+async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -245,3 +246,5 @@ export default async function HomePage({
     </main>
   );
 }
+
+export default withAds(HomePage);

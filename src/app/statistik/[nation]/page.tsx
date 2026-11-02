@@ -17,6 +17,7 @@ async function awardsFor(params: Promise<{ nation: string }>) {
   return { site, lang, tally: await getAwardTally(site.code) };
 }
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { withAds } from "@/components/AdsenseScript";
 
 /** The leaderboard lives under the stats page; its slug is the site language's. */
 async function leaderboardFor(params: Promise<{ nation: string }>) {
@@ -72,7 +73,7 @@ export async function generateMetadata({ params }: { params: Promise<{ nation: s
   };
 }
 
-export default async function NationStatsPage({ params }: { params: Promise<{ nation: string }> }) {
+async function NationStatsPage({ params }: { params: Promise<{ nation: string }> }) {
   const aw = await awardsFor(params);
   if (aw) {
     if (!aw.tally || !aw.tally.total) notFound();
@@ -127,3 +128,5 @@ export default async function NationStatsPage({ params }: { params: Promise<{ na
   const name = t(`stats.nation.${r.nation}` as const, r.lang);
   return <StatsShell lang={r.lang} country="UK" nation={r.nation} title={t("stats.nation_meta_title", r.lang, { nation: name })} />;
 }
+
+export default withAds(NationStatsPage);

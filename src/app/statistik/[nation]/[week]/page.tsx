@@ -8,6 +8,7 @@ import { LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 import { LeaderboardWeekView } from "@/components/LeaderboardWeekView";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { plain, weekHeadline, weekSections } from "@/lib/leaderboard-week";
+import { withAds } from "@/components/AdsenseScript";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ nation: s
   };
 }
 
-export default async function LeaderboardWeekPage({ params }: { params: Promise<{ nation: string; week: string }> }) {
+async function LeaderboardWeekPage({ params }: { params: Promise<{ nation: string; week: string }> }) {
   const w = await weekFor(params);
   if (!w) notFound();
   const boardHref = `${routePath("stats", w.lang)}/${LEADERBOARD_SLUG[w.lang]}`;
@@ -59,3 +60,5 @@ export default async function LeaderboardWeekPage({ params }: { params: Promise<
     </main>
   );
 }
+
+export default withAds(LeaderboardWeekPage);

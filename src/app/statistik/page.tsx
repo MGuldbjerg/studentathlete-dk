@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { currentLanguage, currentSite } from "@/lib/site-server";
 import { routePath, t } from "@/lib/i18n";
 import { StatsShell } from "./StatsShell";
+import { withAds } from "@/components/AdsenseScript";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function StatsPage() {
+async function StatsPage() {
   const [lang, site] = await Promise.all([currentLanguage(), currentSite()]);
   return <StatsShell lang={lang} country={site.code} nation={null} title={t("stats.meta_title", lang)} />;
 }
+
+export default withAds(StatsPage);
