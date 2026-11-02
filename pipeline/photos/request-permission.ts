@@ -6,7 +6,8 @@
  *
  *   npx tsx pipeline/photos/request-permission.ts --import contacts/<file>.csv    save contacts
  *   npx tsx pipeline/photos/request-permission.ts [--conference X]                dry run: print emails
- *   npx tsx pipeline/photos/request-permission.ts --send --limit 3                send (BREVO_API_KEY)
+ *   npx tsx pipeline/photos/request-permission.ts --send --limit 3 [--pause 4-7]  send (BREVO_API_KEY);
+ *         --pause = min-max minutes between emails (default 8-15)
  *   npx tsx pipeline/photos/request-permission.ts --status [--conference X]       the ledger
  *   npx tsx pipeline/photos/request-permission.ts --respond "School" granted|conditional|declined|
  *         forwarded|bounced|do-not-contact|note [--note "text"]                    record a reply
@@ -27,8 +28,15 @@ const SCHOOL_NOTES: Record<string, string> = {
   "Lincoln Memorial University":
     "While finding your address I also came across the name Adam Haley, so if I have mixed up your names, I apologize.",
 };
-/** 8-15 minutes between emails, a few a day: a burst of cold mail lands in spam. */
-const pauseMs = () => (8 + Math.random() * 7) * 60_000;
+/** 8-15 minutes between emails by default, a few a day: a burst of cold mail lands in spam. */
+const DEFAULT_PAUSE_MIN = [8, 15] as const;
+const pauseMs = ([lo, hi]: readonly [number, number]) => (lo + Math.random() * (hi - lo)) * 60_000;
+
+/** "4-7" → [4, 7] minutes; anything malformed falls back to the default. */
+function parsePause(s: string | null): readonly [number, number] {
+  const m = s?.match(/^(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)$/);
+  return m && Number(m[1]) <= Number(m[2]) ? [Number(m[1]), Number(m[2])] : DEFAULT_PAUSE_MIN;
+}
 
 function parseArgs() {
   const a = process.argv.slice(2);
@@ -42,6 +50,7 @@ function parseArgs() {
     note: val("--note"),
     conference: val("--conference"),
     limit: Number(val("--limit") ?? 3),
+    pause: parsePause(val("--pause")),
   };
 }
 
@@ -168,7 +177,7 @@ async function sendRun(args: ReturnType<typeof parseArgs>) {
     console.log(`\n--- ${t.name}\nTo: ${t.sid_email}\nSubject: ${email.subject}\n\n${email.text}`);
     sent++;
     if (!args.send) continue;
-    if (sent > 1) await new Promise((r) => setTimeout(r, pauseMs()));
+    if (sent > 1) await new Promise((r) => setTimeout(r, pauseMs(args.pause)));
     try {
       const id = await sendBrevo(t.sid_email, email);
       await record(db, t.id, "sent", { to: t.sid_email, subject: email.subject, messageId: id });
