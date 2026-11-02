@@ -138,131 +138,141 @@ async function checkSchoolFeeds(
         continue;
       }
 
-      // Udtræk og match historier
-      const stories = await extractStoriesForSchool(
-        school.news_feed_url,
-        school.news_feed_type,
-        athletes,
-      );
-      const titleMatched = new Set(stories.map((s) => normalizeSourceUrl(s.url)));
-
-      // Gruppér per URL. Matcheren udsender ÉN post pr. (artikel, atlet), så en
-      // artikel der nævner to holdkammerater gav før to gennemløb — og dermed to
-      // hentninger af præcis samme side. Nu hentes hver artikel én gang.
-      const byUrl = new Map<string, SchoolStoryMatch[]>();
-      for (const story of stories) {
-        const list = byUrl.get(story.url);
-        if (list) list.push(story);
-        else byUrl.set(story.url, [story]);
-      }
-
+      // The main feed, then the school's extra feeds (school_feeds, migration 082):
+      // a curated main feed — Illinois — leaves whole sports out. The body-pass share
+      // is the SCHOOL's, spread over all its feeds.
+      const extra = await db.query<{ url: string; feed_type: "rss" | "html" }>(
+        `SELECT url, feed_type FROM school_feeds WHERE school_id = ? AND active = 1`, [school.id]);
+      const feeds = [
+        { url: school.news_feed_url, type: school.news_feed_type },
+        ...extra.results.map((f) => ({ url: f.url, type: f.feed_type })),
+      ];
       let foundInSchool = 0;
-      for (const [url, group] of byUrl) {
-        const first = group[0];
+      const schoolLimit = bodyFetches + bodyShare(BODY_FETCHES - bodyFetches, schools.length - schoolIndex);
+      for (const feed of feeds) {
+        // Udtræk og match historier
+        const stories = await extractStoriesForSchool(
+          feed.url,
+          feed.type,
+          athletes,
+        );
+        const titleMatched = new Set(stories.map((s) => normalizeSourceUrl(s.url)));
 
-        // Berig med fuldt indhold — én gang pr. artikel, ikke én gang pr. atlet.
-        let contentRaw = first.content;
-        if (!contentRaw && url) {
-          contentRaw = await fetchStoryContent(url);
-          await new Promise((r) => setTimeout(r, 500));
+        // Gruppér per URL. Matcheren udsender ÉN post pr. (artikel, atlet), så en
+        // artikel der nævner to holdkammerater gav før to gennemløb — og dermed to
+        // hentninger af præcis samme side. Nu hentes hver artikel én gang.
+        const byUrl = new Map<string, SchoolStoryMatch[]>();
+        for (const story of stories) {
+          const list = byUrl.get(story.url);
+          if (list) list.push(story);
+          else byUrl.set(story.url, [story]);
         }
 
-        // Feedet matchede kun på titel og resumé. Et kampreferat nævner typisk
-        // flere af skolens atleter længere nede i brødteksten: Daniel Helle lagde
-        // op til Macfarlanes mål uden at stå i resuméet og fik derfor aldrig sin
-        // egen vinkel. Teksten er hentet alligevel, så gen-matchningen er gratis.
-        //
-        // KRAV: kun FULDE navne (score 90). Et efternavn alene står i hver eneste
-        // målprotokol og holdopstilling — det er ikke en historie om personen.
-        const perAthlete = new Map<number, SchoolStoryMatch>();
-        for (const s of group) perAthlete.set(s.athlete_id, s);
-        if (contentRaw) {
-          for (const m of matchAthletes(contentRaw, athletes)) {
-            if (m.relevance_score < 90) continue;
-            if (perAthlete.has(m.athlete.id)) continue;
-            perAthlete.set(m.athlete.id, {
-              ...first,
-              athlete_id: m.athlete.id,
-              relevance_score: m.relevance_score,
-            });
+        for (const [url, group] of byUrl) {
+          const first = group[0];
+
+          // Berig med fuldt indhold — én gang pr. artikel, ikke én gang pr. atlet.
+          let contentRaw = first.content;
+          if (!contentRaw && url) {
+            contentRaw = await fetchStoryContent(url);
+            await new Promise((r) => setTimeout(r, 500));
           }
-        }
 
-        for (const story of perAthlete.values()) {
-          // Hashen er pr. ATLET. Var den global pr. URL — som før — kunne en
-          // artikel kun tilhøre ÉN atlet: den anden blev tavst droppet af
-          // INSERT OR IGNORE (0 rækker, ingen fejl, intet i loggen).
-          // Adressen normaliseres FØR hashen: http/https og www betyder intet
-          // for hvilken side man er havnet på. Se pipeline/lib/story-url.ts —
-          // Nathan Hopley stod to gange i køen 18. september af netop den grund.
-          const urlHash = storyHash(story.athlete_id, url);
-
-          try {
-            const res = await db.execute(
-              `INSERT OR IGNORE INTO stories
-               (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [
-                story.athlete_id,
-                url,
-                urlHash,
-                story.headline,
-                story.summary,
-                keepText(athletes.find((a) => a.id === story.athlete_id)?.home_country, contentRaw),
-                `school_feed_${school.news_feed_type}`,
-                story.relevance_score,
-                story.sensitive,
-              ],
-            );
-            if (res.meta.changes > 0) {
-              foundInSchool++;
-              totalFound++;
+          // Feedet matchede kun på titel og resumé. Et kampreferat nævner typisk
+          // flere af skolens atleter længere nede i brødteksten: Daniel Helle lagde
+          // op til Macfarlanes mål uden at stå i resuméet og fik derfor aldrig sin
+          // egen vinkel. Teksten er hentet alligevel, så gen-matchningen er gratis.
+          //
+          // KRAV: kun FULDE navne (score 90). Et efternavn alene står i hver eneste
+          // målprotokol og holdopstilling — det er ikke en historie om personen.
+          const perAthlete = new Map<number, SchoolStoryMatch>();
+          for (const s of group) perAthlete.set(s.athlete_id, s);
+          if (contentRaw) {
+            for (const m of matchAthletes(contentRaw, athletes)) {
+              if (m.relevance_score < 90) continue;
+              if (perAthlete.has(m.athlete.id)) continue;
+              perAthlete.set(m.athlete.id, {
+                ...first,
+                athlete_id: m.athlete.id,
+                relevance_score: m.relevance_score,
+              });
             }
-          } catch (err) {
-            console.error(
-              `  Insert fejlede [${url}]: ${err instanceof Error ? err.message : String(err)}`,
-            );
+          }
+
+          for (const story of perAthlete.values()) {
+            // Hashen er pr. ATLET. Var den global pr. URL — som før — kunne en
+            // artikel kun tilhøre ÉN atlet: den anden blev tavst droppet af
+            // INSERT OR IGNORE (0 rækker, ingen fejl, intet i loggen).
+            // Adressen normaliseres FØR hashen: http/https og www betyder intet
+            // for hvilken side man er havnet på. Se pipeline/lib/story-url.ts —
+            // Nathan Hopley stod to gange i køen 18. september af netop den grund.
+            const urlHash = storyHash(story.athlete_id, url);
+
+            try {
+              const res = await db.execute(
+                `INSERT OR IGNORE INTO stories
+                 (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  story.athlete_id,
+                  url,
+                  urlHash,
+                  story.headline,
+                  story.summary,
+                  keepText(athletes.find((a) => a.id === story.athlete_id)?.home_country, contentRaw),
+                  `school_feed_${feed.type}`,
+                  story.relevance_score,
+                  story.sensitive,
+                ],
+              );
+              if (res.meta.changes > 0) {
+                foundInSchool++;
+                totalFound++;
+              }
+            } catch (err) {
+              console.error(
+                `  Insert fejlede [${url}]: ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
           }
         }
-      }
 
-      // ── The body pass: new items the title pass did not catch ──────────────
-      const share = bodyShare(BODY_FETCHES - bodyFetches, schools.length - schoolIndex);
-      if (share > 0) {
-        const schoolLimit = bodyFetches + share;
-        const cutoff = Date.now() - BODY_MAX_AGE_DAYS * 86_400_000;
-        const items = newestFirst((await listFeedItems(school.news_feed_url, school.news_feed_type))
-          .filter((i) => !titleMatched.has(normalizeSourceUrl(i.link)) && (!i.pubDate || i.pubDate.getTime() >= cutoff)));
-        const hashes = items.map((i) => itemHash(i.link));
-        const seen = new Set(hashes.length
-          ? (await db.query<{ url_hash: string }>(
-              `SELECT url_hash FROM feed_items_seen WHERE url_hash IN (${hashes.map(() => "?").join(",")})`, hashes)).results.map((r) => r.url_hash)
-          : []);
-        for (const [n, item] of items.entries()) {
-          if (seen.has(hashes[n])) continue;
-          if (bodyFetches >= schoolLimit) break;
-          bodyFetches++;
-          const article = await fetchArticle(item.link);
-          await new Promise((r) => setTimeout(r, 500));
-          if (!article) continue;          // not reachable now: tried again next run
-          let held = false;                // a collecting match over the cap: the item stays unseen for a later run
-          for (const m of matchArticle(article, athletes)) {
-            const country = (m.athlete as AthleteRef).home_country ?? null;
-            const site = !!country && SITES.has(country);
-            if (!site && collectingStories >= COLLECTING_STORIES) { held = true; continue; }
-            const meta = storyMeta(item.title, item.description, m.relevance_score);
-            const res = await db.execute(
-              `INSERT OR IGNORE INTO stories
-               (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [m.athlete.id, item.link, storyHash(m.athlete.id, item.link), item.title, item.description || null,
-                keepText(country, article.text), `school_feed_${school.news_feed_type}`, meta.relevance_score, meta.sensitive],
-            );
-            if (res.meta.changes > 0) { foundInSchool++; totalFound++; bodyStories++; if (!site) collectingStories++; }
+        // ── The body pass: new items the title pass did not catch ──────────────
+        if (bodyFetches < schoolLimit) {
+          const cutoff = Date.now() - BODY_MAX_AGE_DAYS * 86_400_000;
+          const items = newestFirst((await listFeedItems(feed.url, feed.type))
+            .filter((i) => !titleMatched.has(normalizeSourceUrl(i.link)) && (!i.pubDate || i.pubDate.getTime() >= cutoff)));
+          const hashes = items.map((i) => itemHash(i.link));
+          const seen = new Set(hashes.length
+            ? (await db.query<{ url_hash: string }>(
+                `SELECT url_hash FROM feed_items_seen WHERE url_hash IN (${hashes.map(() => "?").join(",")})`, hashes)).results.map((r) => r.url_hash)
+            : []);
+          for (const [n, item] of items.entries()) {
+            if (seen.has(hashes[n])) continue;
+            if (bodyFetches >= schoolLimit) break;
+            bodyFetches++;
+            const article = await fetchArticle(item.link);
+            await new Promise((r) => setTimeout(r, 500));
+            if (!article) continue;          // not reachable now: tried again next run
+            let held = false;                // a collecting match over the cap: the item stays unseen for a later run
+            for (const m of matchArticle(article, athletes)) {
+              const country = (m.athlete as AthleteRef).home_country ?? null;
+              const site = !!country && SITES.has(country);
+              if (!site && collectingStories >= COLLECTING_STORIES) { held = true; continue; }
+              const meta = storyMeta(item.title, item.description, m.relevance_score);
+              const res = await db.execute(
+                `INSERT OR IGNORE INTO stories
+                 (athlete_id, source_url, url_hash, headline, summary, content_raw, source_type, relevance_score, sensitive)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [m.athlete.id, item.link, storyHash(m.athlete.id, item.link), item.title, item.description || null,
+                  keepText(country, article.text), `school_feed_${feed.type}`, meta.relevance_score, meta.sensitive],
+              );
+              if (res.meta.changes > 0) { foundInSchool++; totalFound++; bodyStories++; if (!site) collectingStories++; }
+            }
+            if (held) continue;
+            await db.execute(`INSERT OR IGNORE INTO feed_items_seen (url_hash, school_id, seen_at) VALUES (?, ?, datetime('now'))`,
+              [hashes[n], school.id]);
           }
-          if (held) continue;
-          await db.execute(`INSERT OR IGNORE INTO feed_items_seen (url_hash, school_id, seen_at) VALUES (?, ?, datetime('now'))`,
-            [hashes[n], school.id]);
         }
       }
 
@@ -274,7 +284,7 @@ async function checkSchoolFeeds(
 
       if (foundInSchool > 0) {
         console.log(
-          `  ${school.name}: ${foundInSchool} ny(e) historie(r) fra ${school.news_feed_url}`,
+          `  ${school.name}: ${foundInSchool} ny(e) historie(r) fra ${feeds.length} feed(s)`,
         );
       } else {
         console.log(`  ${school.name}: Ingen nye matches`);
