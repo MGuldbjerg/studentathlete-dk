@@ -22,7 +22,7 @@ anything that needs a write; for those, say «unverified» rather than guessing.
 |---|---|---|---|---|
 | D1 + Workers | `CLOUDFLARE_API_TOKEN`, `_ACCOUNT_ID`, `_D1_DATABASE_ID` (`~/.bashrc` + repo secrets) | D1 read/write, Worker deploy, analytics (`wrangler d1 insights`, `platform-limits.ts`) | ops MCP `d1_query` / `d1_top_reads` | 2026-10-28 |
 | Cloudflare R2 | same token | **not yet**: `access_check` 2026-10-29 → «token lacks permission». Needs «Workers R2 Storage: Edit» on the token, and R2 enabled on the account | `access_check` | 2026-10-29 (refused) |
-| Cloudflare zones | same token | zones list works (2026-10-29); **not** zone bot settings (auth error 2026-10-27); cache purge unverified | `access_check` | partly |
+| Cloudflare zones | same token | zones list works (2026-10-29); **not** zone bot settings (auth error 2026-10-27); cache purge by URL works (2026-11-02) | `access_check` | partly |
 | GA4 (.dk 370967469, .co.uk 557937554) | service account, key `~/.config/gcloud/sa-searchconsole.json` (`GOOGLE_SEARCH_CONSOLE_KEY`) — Editor on both properties | Admin API (`scripts/ga4-admin.ts`) **and Data API** (reports) | `pipeline/report/social-retention.ts` | 2026-10-29 |
 | Search Console | same service account | both sites' search data | `scripts/search-console.sh`, `pipeline/report/search-console.ts` | weekly via seo-friday |
 | AdSense | OAuth as Mikkel (`~/.config/gcloud/adsense-client.json` + `adsense-token.json`) — the AdSense API refuses service accounts | reports | `scripts/adsense-report.ts` (`adsense-auth.ts` to renew) | — |
@@ -43,6 +43,19 @@ instead), `DISCORD_WEBHOOK_DK`/`_UK` (alerts fall back to `DISCORD_WEBHOOK_URL`)
 `CLOUDFLARE_EMAIL_TOKEN` and `VERCEL_TOKEN` in `~/.bashrc` are not used by this repo.
 
 ## Procedures
+
+### Fix an athlete's name (diacritics the roster dropped)
+Rosters fold ø/æ/å (Thøgersen → Thogersen) and the scraper copies it. `npx tsx pipeline/fix/fix-athlete-name.ts <id> "<new name>"`
+shows the plan; `--apply` writes: athlete (roster_name kept as match key, name_locked, old slug → 301 alias) and the
+athlete's articles (title, summary, text) with a visible correction note. Article slugs stay (shared links, no alias
+table). Then `CARD_STORE=r2 npx tsx pipeline/render/render-cards.ts --article N --force` and purge the media URLs — the
+token can purge by URL (worked 2026-11-02). Posts already on social keep the old spelling. First use: #12036 Sofia Thøgersen.
+
+**Prevention — the Nordic name check** (`name-check.yml`, nightly 00:30 UTC; table `name_checks`, migration 081).
+Judges each new DK/NO/SE/FI/IS athlete once, the night after the roster scrape; Haiku proposes the spelling, a guard
+accepts it only if it is the same name with Nordic letters restored. FLAGS ONLY: suspects go to Discord and
+`npx tsx pipeline/checks/name-check.ts --report`, each with its fix command; `--dismiss <id>` when the printed
+spelling is right. Off switch: repo variable `NAME_CHECK=off`. A plain-o-for-ø can't be found by a rule, hence the model.
 
 ### Fix a published card (three steps, in this order)
 The card URL is versioned (`/og/cards/card-<id>-v9.webp`) and never changes, so
