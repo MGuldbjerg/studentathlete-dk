@@ -22,6 +22,11 @@ import { daysSince, emailCooledDown, parseResponse } from "./permission-state";
 
 const SENDER = { name: "Mikkel Guldbjerg Jensen", email: "info@studentathlete.dk" };
 const LIVE_SITES = ["studentathlete.dk", "student-athlete.co.uk"]; // update when a market goes live
+/** One-off paragraphs for individual schools (Mikkel 2026-11-02). */
+const SCHOOL_NOTES: Record<string, string> = {
+  "Lincoln Memorial University":
+    "While finding your address I also came across the name Adam Haley, so if I have mixed up your names, I apologize.",
+};
 /** 8-15 minutes between emails, a few a day: a burst of cold mail lands in spam. */
 const pauseMs = () => (8 + Math.random() * 7) * 60_000;
 
@@ -159,7 +164,7 @@ async function sendRun(args: ReturnType<typeof parseArgs>) {
       console.log(`skip ${t.name}: ${t.sid_email} was mailed in the last 90 days`);
       continue;
     }
-    const email = buildPermissionEmail({ schoolName: t.name, contactName: t.sid_name, liveSites: LIVE_SITES });
+    const email = buildPermissionEmail({ schoolName: t.name, contactName: t.sid_name, liveSites: LIVE_SITES, note: SCHOOL_NOTES[t.name] });
     console.log(`\n--- ${t.name}\nTo: ${t.sid_email}\nSubject: ${email.subject}\n\n${email.text}`);
     sent++;
     if (!args.send) continue;
