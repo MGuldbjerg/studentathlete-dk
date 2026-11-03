@@ -301,6 +301,10 @@ export type UiKey =
   | "tpl.see_profile"
   | "tpl.season_stat"
   | "tpl.topics"
+  | "share.heading"
+  | "share.native"
+  | "share.copy"
+  | "share.copied"
   | "tpl.social_more"
   | "tpl.social_athletes"
   // Faktaetiketter (atlet- og skoleprofiler, skabelonernes fakta-bokse)

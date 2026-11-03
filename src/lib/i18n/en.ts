@@ -571,6 +571,10 @@ const ui: LanguagePack["ui"] = {
   "tpl.see_profile": "See profile",
   "tpl.season_stat": "{stat}, season so far",
   "tpl.topics": "Topics",
+  "share.heading": "Share",
+  "share.native": "Share…",
+  "share.copy": "Copy link",
+  "share.copied": "Link copied",
   "tpl.social_more": "{sport}: more stories on {brand} →",
   "tpl.social_athletes": "All athletes →",
 
