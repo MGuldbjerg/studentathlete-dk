@@ -4,19 +4,22 @@ import { getSportColor } from "@/lib/types";
 import { getAthleteUrl } from "@/lib/seo";
 import type { SportContent } from "@/lib/sport-content";
 import { ArticleCard } from "./ArticleCard";
+import { DigestSignup } from "./ui/DigestSignup";
 import { Breadcrumb } from "./ui/Breadcrumb";
 import { t, routePath } from "@/lib/i18n";
 import { currentLanguage } from "@/lib/site-server";
 
 interface Props {
   sport: string;
+  /** The sport's database key (`sport` above is the site's URL slug). */
+  dbSport: string;
   content: SportContent;
   articles: ArticleListItem[];
   athletes: Athlete[];
   counts: { active: number; alumni: number };
 }
 
-export async function SportLandingPage({ sport, content, articles, athletes, counts }: Props) {
+export async function SportLandingPage({ sport, dbSport, content, articles, athletes, counts }: Props) {
   const lang = await currentLanguage();
   const color = getSportColor(sport);
   const [featured, ...rest] = articles;
@@ -100,6 +103,11 @@ export async function SportLandingPage({ sport, content, articles, athletes, cou
           </div>
         </section>
       )}
+
+      {/* Weekly email digest, this sport ticked (only where the site has it on). */}
+      <div className="px-4 md:px-8">
+        <DigestSignup sport={dbSport} />
+      </div>
 
       {/* ── Atleter fra sitets land ─────────────────────────────────────────── */}
       {athletes.length > 0 && (
