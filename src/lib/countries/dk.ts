@@ -179,6 +179,8 @@ export const dk: CountryProfile = {
   ],
   // Published 2026-10-08 (pages: DK/privatliv), from UDKAST-persondata-dk.md + the UK page.
   hasPrivacyPage: true,
+  // Off until the Worker key and the privacy text are in place (growth plan 2026-11-03).
+  emailDigest: false,
   // AdSense approved with every profile public and indexed; unchanged.
   profilePublicMinArticles: 0,
   profileIndexMinArticles: 0,

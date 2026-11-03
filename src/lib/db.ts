@@ -6,6 +6,7 @@ import { ARTICLE_LIST_SELECT, toListItem } from "./article-list";
 import { cardReadySql } from "./seo";
 import { readNextQuery, pickReadNext } from "./read-next";
 import { SPORT_ACTIVE_COUNTS_SQL, activeBySport, countsForSport, type SportActiveCount } from "./sport-counts";
+import { isSportKey } from "./sports";
 import { recordsOf } from "./athlete-hub";
 import { seasonFromDate } from "./athlete-events";
 import type { AthleteEventRow } from "./athlete-events";
@@ -389,6 +390,21 @@ function sportActiveCounts(db: any, code: string): Promise<SportActiveCount[]> {
     const r = await db.prepare(SPORT_ACTIVE_COUNTS_SQL).bind(code).all();
     return (r.results ?? []) as SportActiveCount[];
   });
+}
+
+/** Sports with active athletes on the site, largest first: the digest's tick boxes. Reads the cached row. */
+export async function getDigestSports(country?: string): Promise<string[]> {
+  const db = await getDB();
+  if (!db) return [];
+  const code = await siteCountry(country);
+  try {
+    return [...activeBySport(await sportActiveCounts(db, code))]
+      .filter(([sport, n]) => n > 0 && sport !== "other" && isSportKey(sport))
+      .sort((a, b) => b[1] - a[1])
+      .map(([sport]) => sport);
+  } catch {
+    return [];
+  }
 }
 
 export interface SportGroup {

@@ -20,9 +20,19 @@ in total (IG DK 62, Bsky UK 17, IG UK 15, Threads 0). Audiences: fans of each sp
 Danish pipeline (athletics, field hockey, basketball …); for soccer the academy→college pathway.
 **Decided, in order:**
 1. **Share buttons** on articles and profiles (WhatsApp, Facebook, copy, native share), tagged
-   `?source=share_*` — in progress.
+   `?source=share_*`, click kind `share` — **live 2026-11-03 (#101)**.
 2. **Per-sport email digest** via Brevo: subscriber picks sports, gets only those sections,
-   double opt-in. Fully automated or not at all. Sending is a publication → Mikkel's OK.
+   double opt-in. **Built, switched OFF** (`emailDigest` on the country profile; table
+   `digest_subscribers`, migration 083; `/api/digest/*`; `pipeline/digest/send-digest.ts`;
+   `email-digest.yml` Mondays 07:10 UTC = dry run unless repo variable `DIGEST_SEND=1`).
+   **Launch checklist (Mikkel):** (a) .co.uk DNS for Brevo — 2 DKIM CNAMEs, brevo-code TXT,
+   `include:spf.brevo.com` in SPF, replace the dead `_dmarc` CNAME (dmarc.simply.com) with
+   Brevo's `p=none` TXT; domain registered in Brevo 2026-11-03, not yet authenticated.
+   (b) own Brevo key → `wrangler secret put BREVO_API_KEY_WEB` (sign-up mails) and repo secret
+   `BREVO_API_KEY` (weekly send). (c) privacy pages: wording approved 2026-11-03 — publish the
+   «Email digest» section, Brevo under processors, retention (7 d unconfirmed / 30 d after
+   unsubscribe) in the SAME step as `emailDigest: true`. (d) `DIGEST_SEND=1` after a preview.
+   Brevo free plan: 300 mails/day, shared with Fantasy Challenge/GFC; the script caps at 250.
 3. **Local news after big honours** (All-Conference, titles, records, Team of the Year — not a
    single goal): link the athlete page or article. A map of local outlets only once enough
    athletes have answered. Photos: papers take them from the school, never from us.
