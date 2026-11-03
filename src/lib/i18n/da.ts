@@ -581,6 +581,10 @@ const ui: LanguagePack["ui"] = {
   "tpl.see_profile": "Se profilen",
   "tpl.season_stat": "{stat}, sæsonen indtil nu",
   "tpl.topics": "Emner",
+  "share.heading": "Del",
+  "share.native": "Del…",
+  "share.copy": "Kopiér link",
+  "share.copied": "Linket er kopieret",
   "tpl.social_more": "{sport}: flere historier på {brand} →",
   "tpl.social_athletes": "Alle atleter →",
 
