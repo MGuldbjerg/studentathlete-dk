@@ -1,12 +1,14 @@
 import type { Article, ArticleListItem } from "@/lib/types";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
 import { ShareBar } from "@/components/ui/ShareBar";
+import { DigestSignup } from "@/components/ui/DigestSignup";
 import { sportLabel, sportSlug, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { sourceParam } from "@/lib/routes";
 
 /**
  * The end of every article template: the share row, the tags as real links (sport page,
- * the article archive, the athletes overview) and «Read next», which
+ * the article archive, the athletes overview), the digest sign-up (only where the
+ * site has it switched on) and «Read next», which
  * getReadNext fills to four (src/lib/read-next.ts). The tags were spans
  * that looked clickable and were not.
  */
@@ -37,6 +39,8 @@ export function ArticleEnd({ article, readNext, lang, className = "" }: {
           </a>
         ))}
       </nav>
+
+      <DigestSignup sport={article.sport ?? null} />
 
       <RelatedArticles articles={readNext} title={t("tpl.read_next", lang)} lang={lang} />
     </div>

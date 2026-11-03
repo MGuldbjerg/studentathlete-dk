@@ -139,6 +139,9 @@ export const uk: CountryProfile = {
   darkLaunch: false,
   // The privacy page (pages: privatliv/UK) is published — /privacy, footer, sitemap.
   hasPrivacyPage: true,
+  // Off until student-athlete.co.uk is authenticated in Brevo, the Worker key and
+  // the privacy text are in place (growth plan 2026-11-03).
+  emailDigest: false,
   // AdSense «low value content», 2026-10-09: ~2,560 of 2,830 profiles had no article.
   // Mikkel 2026-10-12: public from 1 article, indexed from 2 (PLAN-adsense-uk.md).
   profilePublicMinArticles: 1,

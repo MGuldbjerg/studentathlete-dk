@@ -61,6 +61,14 @@ export interface CountryProfile {
    */
   hasPrivacyPage: boolean;
   /**
+   * Whether the weekly email digest is open on this site: the sign-up box shows
+   * and /api/digest accepts sign-ups. Sent from `contactEmail` through Brevo, so
+   * the site's domain must be authenticated there, the Worker needs
+   * BREVO_API_KEY_WEB, and the privacy page must describe the digest before
+   * this is turned on. Required, not defaulted: a new country must decide.
+   */
+  emailDigest: boolean;
+  /**
    * How many published articles an athlete needs before the profile is PUBLIC,
    * and before it is INDEXED. 0 / 0 = every profile public and indexed.
    *

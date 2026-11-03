@@ -378,6 +378,7 @@ export default async function DynamicPage({
         <>
           <SportLandingPage
             sport={slug}
+            dbSport={dbSport}
             content={sportContent}
             articles={articles}
             athletes={athletes}
