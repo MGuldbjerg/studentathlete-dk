@@ -29,9 +29,10 @@ Danish pipeline (athletics, field hockey, basketball …); for soccer the academ
    `include:spf.brevo.com` in SPF, replace the dead `_dmarc` CNAME (dmarc.simply.com) with
    Brevo's `p=none` TXT; domain registered in Brevo 2026-11-03, not yet authenticated.
    (b) own Brevo key → `wrangler secret put BREVO_API_KEY_WEB` (sign-up mails) and repo secret
-   `BREVO_API_KEY` (weekly send). (c) privacy pages: wording approved 2026-11-03 — publish the
-   «Email digest» section, Brevo under processors, retention (7 d unconfirmed / 30 d after
-   unsubscribe) in the SAME step as `emailDigest: true`. (d) `DIGEST_SEND=1` after a preview.
+   `BREVO_API_KEY` (weekly send). (c) ✅ privacy pages DK+UK published 2026-11-03 (Mikkel's call, ahead of
+   launch): digest section, Brevo as processor, retention 7 d unconfirmed / 30 d after
+   unsubscribe. Migration 083 applied live 2026-11-03. Then `emailDigest: true` per site +
+   deploy. (d) `DIGEST_SEND=1` after a preview.
    Brevo free plan: 300 mails/day, shared with Fantasy Challenge/GFC; the script caps at 250.
 3. **Local news after big honours** (All-Conference, titles, records, Team of the Year — not a
    single goal): link the athlete page or article. A map of local outlets only once enough
