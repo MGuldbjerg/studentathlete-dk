@@ -73,4 +73,5 @@ export const GA4_CLICK_EVENTS: Record<string, string> = {
   bio_out: "bio_click",
   fanatics: "affiliate_click",
   merch: "merch_click",
+  share: "share",
 };

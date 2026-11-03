@@ -12,6 +12,26 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 ---
 
 
+## 📈 Growth plan (Mikkel, 2026-11-03)
+
+Baseline: ~20 real visitors/day per site (events after the bot filter); search clicks 90 d UK
+785, DK 420, almost all athlete-name searches; ~1,670 automated social posts → ~100 followers
+in total (IG DK 62, Bsky UK 17, IG UK 15, Threads 0). Audiences: fans of each sport's British/
+Danish pipeline (athletics, field hockey, basketball …); for soccer the academy→college pathway.
+**Decided, in order:**
+1. **Share buttons** on articles and profiles (WhatsApp, Facebook, copy, native share), tagged
+   `?source=share_*` — in progress.
+2. **Per-sport email digest** via Brevo: subscriber picks sports, gets only those sections,
+   double opt-in. Fully automated or not at all. Sending is a publication → Mikkel's OK.
+3. **Local news after big honours** (All-Conference, titles, records, Team of the Year — not a
+   single goal): link the athlete page or article. A map of local outlets only once enough
+   athletes have answered. Photos: papers take them from the school, never from us.
+4. **Athlete contact on an honour — either/or:** a background form for a better profile, OR a
+   one-line DM («Congrats — if you'd like, a written or voice reaction for the article»).
+5. **Experiments:** tag youth clubs and the US school on posts. Social posting is NOT paused
+   (there is an audience). No mention bot (resources).
+Every experiment: own `?source=` tag, ≥ 4 weeks, one metric fixed in advance.
+
 ## 📡 Feeds that never showed whole sports or the athletics site (2026-11-02)
 
 - **Curated main feeds:** Illinois's `/rss` carries ~10 football/basketball/volleyball stories;

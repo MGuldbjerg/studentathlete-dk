@@ -102,7 +102,8 @@ export function isDatacenterAsn(asn: number | undefined | null): boolean {
   return typeof asn === "number" && DATACENTER_ASNS.has(asn);
 }
 
-export const CLICK_KINDS = ["bio_out", "internal", "search", "ad", "outbound", "merch", "fanatics"] as const;
+// "share": the share row on articles and profiles (ShareBar.tsx, 2026-11-03); the target is the channel.
+export const CLICK_KINDS = ["bio_out", "internal", "search", "ad", "outbound", "merch", "fanatics", "share"] as const;
 export type ClickKind = (typeof CLICK_KINDS)[number];
 
 export function isClickKind(v: unknown): v is ClickKind {

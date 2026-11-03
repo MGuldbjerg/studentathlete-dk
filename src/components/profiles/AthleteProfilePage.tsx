@@ -4,6 +4,8 @@ import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverU
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { PhotoCredit } from "@/components/ui/PhotoCredit";
+import { ShareBar } from "@/components/ui/ShareBar";
+import { sourceParam } from "@/lib/routes";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 import { buildProfileProse } from "@/lib/profile-prose";
 import type { CareerSeason } from "@/lib/career";
@@ -200,6 +202,10 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 </div>
               ))}
             </dl>
+
+            <ShareBar title={athlete.name} sourceParam={sourceParam(lang)} className="mt-5"
+              labels={{ heading: t("share.heading", lang), native: t("share.native", lang),
+                copy: t("share.copy", lang), copied: t("share.copied", lang) }} />
 
             {schoolmates.length > 0 && (
               <section className="mt-8">

@@ -1,9 +1,11 @@
 import type { Article, ArticleListItem } from "@/lib/types";
 import { RelatedArticles } from "@/components/ui/RelatedArticles";
+import { ShareBar } from "@/components/ui/ShareBar";
 import { sportLabel, sportSlug, t, articleTypeLabel, routePath } from "@/lib/i18n";
+import { sourceParam } from "@/lib/routes";
 
 /**
- * The end of every article template: the tags as real links (sport page,
+ * The end of every article template: the share row, the tags as real links (sport page,
  * the article archive, the athletes overview) and «Read next», which
  * getReadNext fills to four (src/lib/read-next.ts). The tags were spans
  * that looked clickable and were not.
@@ -23,6 +25,9 @@ export function ArticleEnd({ article, readNext, lang, className = "" }: {
 
   return (
     <div className={`pt-6 pb-10 border-t border-border mt-4 ${className}`}>
+      <ShareBar title={article.title} sourceParam={sourceParam(lang)} className="mb-5"
+        labels={{ heading: t("share.heading", lang), native: t("share.native", lang),
+          copy: t("share.copy", lang), copied: t("share.copied", lang) }} />
       <nav aria-label={t("tpl.topics", lang)} className="flex flex-wrap gap-2">
         {tags.map((tag) => (
           <a key={tag.href} href={tag.href}
