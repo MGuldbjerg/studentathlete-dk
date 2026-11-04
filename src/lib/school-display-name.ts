@@ -75,6 +75,19 @@ export function looksMangled(commonName: string): boolean {
 }
 
 /**
+ * The seed's strip also left names that read whole but are not: «Hinds
+ * Community» (Community College), «Jones County Junior» (Junior College),
+ * «Missouri of Science and Technology» (Missouri UNIVERSITY of …). Found on UK
+ * profiles 2026-11-04, mostly the NJCAA schools. Needs the official name: «X
+ * of Y» is only broken when the official name had «University of» there.
+ */
+export function strippedBySeed(official: string, common: string): boolean {
+  if (/\b(Community|Junior|Technical)$/i.test(common)) return true;
+  const seeded = official.replace(/ University| College/g, "").trim();
+  return seeded === common && /\S (University|College) of\b/.test(official);
+}
+
+/**
  * Navnet vi skriver. Rækkefølgen er bevidst:
  *   1. kurateret override (verificeret)
  *   2. skolens `common_name`, hvis den ser hel ud
@@ -94,7 +107,7 @@ export function displaySchoolName(
   // «Army / Army West Point». Den første er den primære — ellers stod der
   // «for UMass / Massachusetts in Massachusetts».
   const common = (commonName ?? "").split("/")[0].trim();
-  if (common && !looksMangled(common)) return common;
+  if (common && !looksMangled(common) && !strippedBySeed(official, common)) return common;
 
   return official;
 }

@@ -98,6 +98,16 @@ export interface CountryProfile {
    * floor. UK 200 (Mikkel, 2026-10-26); DK 0.
    */
   indexMinWords: number;
+  /**
+   * The rule-based profile text (src/lib/i18n/profile-builders.ts) is approved
+   * as a TEMPLATE: pipeline/profiles/apply-template-profiles.ts publishes its
+   * output without a per-profile approval in /admin/profiler. It never
+   * overwrites a text a person approved or edited (athletes.profile_by_template
+   * marks the template's own texts), and it holds a profile whose school
+   * changed without a recorded transfer. UK true (Mikkel, 2026-11-04, after
+   * the template audit); DK false — the .dk site promises a person reads it.
+   */
+  profileTemplateApproved: boolean;
 }
 
 /**

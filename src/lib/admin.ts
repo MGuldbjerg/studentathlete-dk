@@ -1303,8 +1303,10 @@ export async function decideProfileDraft(
     const text = editedText?.trim() || row.profile_draft;
     await db
       .prepare(
+        // profile_by_template = 0: a person approved this text, so the template
+        // publisher (apply-template-profiles.ts) never overwrites it.
         `UPDATE athletes SET profile_summary = ?, profile_draft = NULL,
-         profile_draft_at = NULL, updated_at = datetime('now') WHERE id = ?`
+         profile_draft_at = NULL, profile_by_template = 0, updated_at = datetime('now') WHERE id = ?`
       )
       .bind(text, athleteId)
       .run();

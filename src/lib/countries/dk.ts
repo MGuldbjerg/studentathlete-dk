@@ -189,4 +189,5 @@ export const dk: CountryProfile = {
   // 2026-10-22: 150 (the UK went to 200).
   standaloneMinWords: 150,
   indexMinWords: 0,
+  profileTemplateApproved: false,
 };
