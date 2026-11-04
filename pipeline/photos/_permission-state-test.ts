@@ -1,5 +1,5 @@
 /** Test of the permission-ledger rules. Offline. */
-import { parseResponse, emailCooledDown, daysSince } from "./permission-state";
+import { REOPENING_EVENTS, parseResponse, emailCooledDown, daysSince } from "./permission-state";
 
 let passed = 0;
 let failed = 0;
@@ -14,6 +14,10 @@ eq(parseResponse("conditional").state, "conditional", "conditional is its own st
 eq(parseResponse("do-not-contact").state, "do_not_contact", "do-not-contact blocks further mail");
 eq(parseResponse("forwarded").state, null, "forwarded leaves the state at asked");
 eq(parseResponse("bounced").event, "bounced", "bounced event");
+eq(parseResponse("contact-changed").event, "contact_changed", "contact-changed event");
+eq(parseResponse("contact-changed").state, null, "contact-changed sets no state of its own");
+eq((REOPENING_EVENTS as readonly string[]).includes("contact_changed"), true, "a contact change reopens the school");
+eq((REOPENING_EVENTS as readonly string[]).includes("forwarded"), false, "a forward does not reopen it");
 let threw = false;
 try { parseResponse("yes"); } catch { threw = true; }
 eq(threw, true, "unknown keyword throws");
