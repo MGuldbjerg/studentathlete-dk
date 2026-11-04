@@ -150,13 +150,13 @@ async function sendBrevo(to: string, email: { subject: string; text: string; htm
   return (JSON.parse(body) as { messageId?: string }).messageId ?? "";
 }
 
-interface Target { id: number; name: string; sid_email: string; sid_name: string | null }
+interface Target { id: number; name: string; common_name: string | null; sid_email: string; sid_name: string | null }
 
 async function sendRun(args: ReturnType<typeof parseArgs>) {
   const db = createD1Client();
   // Ready = has a contact, no state yet, and no send that a bounce hasn't cancelled.
   const targets = (await db.query<Target>(
-    `SELECT s.id, s.name, s.sid_email, s.sid_name FROM schools s
+    `SELECT s.id, s.name, s.common_name, s.sid_email, s.sid_name FROM schools s
      WHERE s.sid_email IS NOT NULL AND s.photo_permission IS NULL
        AND NOT EXISTS (SELECT 1 FROM photo_events e WHERE e.school_id = s.id AND e.event = 'sent'
                        AND NOT EXISTS (SELECT 1 FROM photo_events b WHERE b.school_id = s.id AND b.event = 'bounced' AND b.id > e.id))
@@ -173,7 +173,9 @@ async function sendRun(args: ReturnType<typeof parseArgs>) {
       console.log(`skip ${t.name}: ${t.sid_email} was mailed in the last 90 days`);
       continue;
     }
-    const email = buildPermissionEmail({ schoolName: t.name, contactName: t.sid_name, liveSites: LIVE_SITES, note: SCHOOL_NOTES[t.name] });
+    // The school's own short name in the text («Stony Brook Athletics», not «State
+    // University of New York at Stony Brook Athletics») — Mikkel 2026-11-04.
+    const email = buildPermissionEmail({ schoolName: t.common_name || t.name, contactName: t.sid_name, liveSites: LIVE_SITES, note: SCHOOL_NOTES[t.name] });
     console.log(`\n--- ${t.name}\nTo: ${t.sid_email}\nSubject: ${email.subject}\n\n${email.text}`);
     sent++;
     if (!args.send) continue;

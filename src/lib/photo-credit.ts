@@ -34,7 +34,25 @@ export interface PhotoCreditInput {
   creditLine?: string | null;
   /** The page the photo came from. Only http(s) URLs are linked. */
   sourceUrl?: string | null;
+  /**
+   * The school's official name and the name we credit (its own short name when it
+   * has one — creditedSchoolName below). suggest-photos.ts stored the default line
+   * with the official name ("Foto: State University of New York at Stony Brook
+   * Athletics"); such a line is shown with the credited name instead, so the page
+   * says what the permission email promises ("Stony Brook Athletics"). A line that
+   * says anything else is the school's own wish and is left alone.
+   */
+  schoolNames?: { official: string; credited: string } | null;
   lang: string;
+}
+
+/**
+ * The name a credit line uses: the school's short name ("Stony Brook", "UNCW")
+ * when it has one, else the official name (Mikkel, 2026-11-04 — the permission
+ * email uses the short name, and the site must match it).
+ */
+export function creditedSchoolName(official: string, common?: string | null): string {
+  return clean(common) || clean(official);
 }
 
 export interface PhotoCreditParts {
@@ -67,7 +85,11 @@ export function photoCreditParts(input: PhotoCreditInput): PhotoCreditParts {
   const { lang } = input;
   const photographer = clean(input.photographer);
   const school = clean(input.schoolName);
-  const stored = clean(input.creditLine).replace(/^(foto|photo)\s*:\s*/i, "");
+  let stored = clean(input.creditLine).replace(/^(foto|photo)\s*:\s*/i, "");
+  const names0 = input.schoolNames;
+  if (names0 && stored.toLowerCase() === `${clean(names0.official)} Athletics`.toLowerCase()) {
+    stored = t("photo.school_credit", lang, { school: clean(names0.credited) });
+  }
   const schoolCredit = school ? t("photo.school_credit", lang, { school }) : "";
 
   // A stored line wins. For the default suggest-photos.ts writes ("Foto: Duke

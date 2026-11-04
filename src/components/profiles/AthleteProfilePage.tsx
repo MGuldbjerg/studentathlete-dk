@@ -4,6 +4,7 @@ import { formatDateShort, athleteStructuredData, getArticleUrl, getArticleCoverU
 import { graduationBadgeYear } from "@/lib/graduation";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { PhotoCredit } from "@/components/ui/PhotoCredit";
+import { creditedSchoolName } from "@/lib/photo-credit";
 import { ShareBar } from "@/components/ui/ShareBar";
 import { sourceParam } from "@/lib/routes";
 import type { AthleteEventRow } from "@/lib/athlete-events";
@@ -116,7 +117,8 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
               <PhotoCredit
                 className="text-[10px] text-white/30 mt-1 max-w-36 md:max-w-44"
                 photographer={athlete.photo_photographer}
-                schoolName={athlete.photo_source_url || athlete.photo_photographer ? athlete.university : null}
+                schoolName={athlete.photo_source_url || athlete.photo_photographer ? creditedSchoolName(athlete.university, athlete.school_common_name) : null}
+                schoolNames={{ official: athlete.university, credited: creditedSchoolName(athlete.university, athlete.school_common_name) }}
                 creditLine={athlete.photo_credit}
                 sourceUrl={athlete.photo_source_url}
                 lang={lang}
