@@ -58,7 +58,10 @@ export type Decision =
 /** Does the text still name the athlete's current school (or its team)? */
 export function namesCurrentSchool(text: string, a: BaselineAthlete): boolean {
   const school = displaySchoolName(a.university, a.university_common_name);
-  const names = [school, a.university, teamName(school, a.university_nickname, a.gender)]
+  // The stored common_name too, as it is: an older text used it even where the
+  // seed had cut it («Hinds Community»), and that is not a change of school.
+  const stored = (a.university_common_name ?? "").split("/")[0].trim();
+  const names = [school, a.university, stored, teamName(school, a.university_nickname, a.gender)]
     .filter((n): n is string => Boolean(n && n.trim()));
   return names.some((n) => text.includes(n));
 }

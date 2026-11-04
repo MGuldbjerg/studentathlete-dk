@@ -41,6 +41,9 @@ eq(decide({
 }, build), { action: "publish", text: T }, "school changed WITH a recorded transfer → publish");
 eq(decide({ ...row, profile_summary: "Cody Read started at Winthrop University in 2026.", profile_by_template: 1 }, build).action,
   "publish", "official school name counts as the current school");
+eq(decide({ ...row, university: "Hinds Community College", university_common_name: "Hinds Community",
+  profile_summary: "X started at Hinds Community in 2026.", profile_by_template: 1 }, build).action,
+  "publish", "a seed-cut school name in the old text is the same school");
 
 console.log(`\napply-template-profiles: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
