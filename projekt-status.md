@@ -152,12 +152,15 @@ Mikkel creates the profiles and runs `setup-threads.bat`. Social links carry `?s
 
 **Platform.** Workers Paid. 27/10 (`platform-limits.ts`): D1 reads 0.7 %, writes 3.9 %, requests
 3.6 % of the monthly allowance — **Worker CPU 151 %** (≈ $0.31 over). CPU, not D1, is the cost to
-watch. **CPU pass live 28/10 (#77, migration 079, deploy dcd6653d):** list queries no longer
-carry article bodies (`ARTICLE_LIST_SELECT`, `word_count` from SQL — the home page dropped
-~170–190 KB of bodies per render); list/carousel/letter indexes; sport counts from the hourly
-`stats_cache` row `sport_active_counts`. Expected D1 ~5.1M → ~0.35M rows/day on those queries.
-`rsc` requests: 0 of 84 in a 10-min tail — `prefetch={false}` already covers it; nothing to cache.
-Migration 047 had been only partly applied (its athletes index was missing live).
+watch. #77 (28/10) cut D1 reads (list queries without bodies, indexes) but **not CPU**: still
+~1.5M CPU-ms/day (≈46M/month vs 30M included) on 4 Nov. Measured 4 Nov: a Next render costs
+300–600 ms CPU; ~30 % of Worker calls were uncached 404s (scanners, Googlebot on removed
+profiles); 5-min edge TTL gave ~5 % hits; `/api/track` 180 ms per beacon through Next.
+**CPU cut (branch `cpu-cut`):** `workers/entry.ts` answers probes (`isProbe`: dot-paths, .php/.env/
+.json…, unknown `/api/*`) with a plain 404 and the beacon itself (`src/lib/track-ingest.ts`);
+404s cached 1 h; article pages (`/<sport>/<slug>`) 1 h edge TTL (middleware), so an article
+correction can take up to an hour to show. Expected ~0.6–0.9M CPU-ms/day. 403s on `/.env` etc.
+come from Cloudflare's WAF and never reach the Worker.
 
 **Tooling.** Ops MCP server (`mcp/`, #74): `status` overview, CI runs/failures, Claude usage +
 quota, guarded D1 reads, D1 top queries. Every workflow's failure alert goes through
@@ -225,8 +228,9 @@ editing connector — a different thing.
 - Collecting countries arrive: `SELECT home_country, COUNT(*) FROM athletes GROUP BY 1`.
 - Discovery every 2 h (was 6): story volume, DK draft queue, D1 reads.
 - First award roundup 1 Nov; first weekly leaderboard 3 Nov.
-- **CPU after #77** (~30 Oct, a day or two of traffic): `npx tsx pipeline/checks/platform-limits.ts`
-  (was 151 %) and `d1_top_reads` (the list queries should be gone from the top).
+- **CPU after the cpu-cut deploy** (a day of traffic): `npx tsx pipeline/checks/platform-limits.ts`
+  — daily CPU should fall from ~1.5M to under 1M CPU-ms. If not, `wrangler tail --format json`
+  carries `cpuTime` per request.
 - **Social retention after #80 — check from ~5 Nov, ideally 12 Nov.** Live since
   **2026-10-29 07:42 UTC** (deploy 271865f0, commit 1770fe8): read next that never runs dry
   (athlete → sport → school → country), athlete card, clickable tags, band for `?source=`/`?kilde=`
