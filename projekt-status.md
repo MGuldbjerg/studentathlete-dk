@@ -26,8 +26,7 @@ Wales Fla.» / «Grimsby, ON» filed as UK. All fixed, with tests (commits dd228
   or unknown origin: school changes like Cody Read Fairfield→Winthrop, renames, hand-edits).
 - **Blocked on Mikkel's OK (auto-mode refused the live migration):** push, `migrate-live.sh
   migration-084-profile-by-template.sql`, deploy, backfill `profile_by_template=1` for the 2,675
-  UK texts identical to the template on 2026-11-04 (ids in the session scratchpad — regenerate by
-  comparing `profile_summary` to `profileBuilder("en")` with the PRE-fix code, commit dd22848^),
+  UK texts identical to the template on 2026-11-04 (`db/backfill-084-profile-by-template.sql`),
   then `apply-template-profiles.ts --apply`. Do NOT push before the migration: the Sunday run would fail on the missing column.
 - Not fixed: athlete 1697 «Lake Wales» (no state) is probably Floridian; 2 athletes have sport key `polo`.
 
