@@ -10,16 +10,18 @@
  *         --pause = min-max minutes between emails (default 8-15)
  *   npx tsx pipeline/photos/request-permission.ts --status [--conference X]       the ledger
  *   npx tsx pipeline/photos/request-permission.ts --respond "School" granted|conditional|declined|
- *         forwarded|bounced|do-not-contact|note [--note "text"]                    record a reply
+ *         forwarded|bounced|contact-changed|do-not-contact|note [--note "text"]    record a reply
+ *   (contact-changed: the person has left — then import the new contact and send as usual)
  *
  * contacts.csv: school,email,name[,title,source]  (school = schools.name or common_name).
- * Never sent: to a school with any state set, with a send not followed by a bounce, to an
+ * Never sent: to a school with any state set, with a send not followed by a bounce or a
+ * contact change, to an
  * address mailed in the last 90 days, or without --send. No automatic follow-ups.
  */
 import { readFileSync } from "node:fs";
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { buildPermissionEmail } from "./permission-email";
-import { daysSince, emailCooledDown, parseResponse } from "./permission-state";
+import { REOPENING_EVENTS, daysSince, emailCooledDown, parseResponse } from "./permission-state";
 
 const SENDER = { name: "Mikkel Guldbjerg Jensen", email: "info@studentathlete.dk" };
 const LIVE_SITES = ["studentathlete.dk", "student-athlete.co.uk"]; // update when a market goes live
@@ -91,7 +93,7 @@ async function record(db: D1Client, schoolId: number, event: string, f: { to?: s
 }
 
 async function respond(name: string, keyword: string | null, note: string | null) {
-  if (!keyword) throw new Error("Usage: --respond \"School\" granted|conditional|declined|forwarded|bounced|do-not-contact|note [--note \"text\"]");
+  if (!keyword) throw new Error("Usage: --respond \"School\" granted|conditional|declined|forwarded|bounced|contact-changed|do-not-contact|note [--note \"text\"]");
   const { event, state } = parseResponse(keyword);
   const db = createD1Client();
   const school = await findSchool(db, name);
@@ -102,8 +104,9 @@ async function respond(name: string, keyword: string | null, note: string | null
       "UPDATE schools SET photo_permission = ?, photo_permission_at = datetime('now'), photo_permission_note = COALESCE(?, photo_permission_note) WHERE id = ?",
       [state, note, school.id]);
   }
-  if (event === "bounced") {
-    // The address is dead: drop it, and let the school be contacted again once a new one is saved.
+  if ((REOPENING_EVENTS as readonly string[]).includes(event)) {
+    // The address is dead or the person has left: drop it, and let the school be
+    // contacted again once a new one is imported.
     await db.query("UPDATE schools SET sid_email = NULL, photo_permission = NULL, photo_permission_at = NULL WHERE id = ?", [school.id]);
   }
   console.log(`${school.name}: recorded ${event}${state ? ` → ${state}` : ""}`);
@@ -159,7 +162,7 @@ async function sendRun(args: ReturnType<typeof parseArgs>) {
     `SELECT s.id, s.name, s.common_name, s.sid_email, s.sid_name FROM schools s
      WHERE s.sid_email IS NOT NULL AND s.photo_permission IS NULL
        AND NOT EXISTS (SELECT 1 FROM photo_events e WHERE e.school_id = s.id AND e.event = 'sent'
-                       AND NOT EXISTS (SELECT 1 FROM photo_events b WHERE b.school_id = s.id AND b.event = 'bounced' AND b.id > e.id))
+                       AND NOT EXISTS (SELECT 1 FROM photo_events b WHERE b.school_id = s.id AND b.event IN ('bounced', 'contact_changed') AND b.id > e.id))
        AND (? IS NULL OR s.conference = ?)
      ORDER BY s.conference, s.name`, [args.conference, args.conference])).results;
   console.log(`${targets.length} schools ready (${args.send ? "SEND" : "dry run"}, limit ${args.limit})`);
