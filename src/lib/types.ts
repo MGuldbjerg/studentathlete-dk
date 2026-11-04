@@ -97,6 +97,8 @@ export interface Athlete {
    * emptied by gatePhoto() (src/lib/photo-permission.ts) before they leave db.ts.
    */
   school_photo_permission?: string | null;
+  /** The school's short name (`schools.common_name`), selected with the athlete where a photo credit is shown. */
+  school_common_name?: string | null;
   /** 1 when the athlete has a published article (getAthleteBySlug only). */
   has_article?: number;
   /** Published articles about or naming the athlete (getAthleteBySlug, getAllAthleteSlugs). */
