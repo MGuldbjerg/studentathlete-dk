@@ -44,6 +44,9 @@ eq(decide({ ...row, profile_summary: "Cody Read started at Winthrop University i
 eq(decide({ ...row, university: "Hinds Community College", university_common_name: "Hinds Community",
   profile_summary: "X started at Hinds Community in 2026.", profile_by_template: 1 }, build).action,
   "publish", "a seed-cut school name in the old text is the same school");
+eq(decide({ ...row, hometown: "Grimsby, ON" }, build).action, "hold", "Canadian hometown → hold");
+eq(decide({ ...row, hometown: "Lake Wales Fla." }, build).action, "hold", "Florida «Wales» → hold");
+eq(decide({ ...row, hometown: null }, build).action, "publish", "no hometown → nothing to contradict");
 
 console.log(`\napply-template-profiles: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

@@ -19,7 +19,11 @@
  *   · a pending draft over 400 characters is an LLM career summary (--expand)
  *     waiting for a person: never touched.
  *
- * One hold: the text names a school the athlete is no longer at, and no
+ * Hold 1: the hometown does not read as the athlete's country («Grimsby, ON»,
+ * «Lake Wales Fla.» — matched as UK on «Wales»). The classifier let the row
+ * in; a person decides whether it belongs on the site.
+ *
+ * Hold 2: the text names a school the athlete is no longer at, and no
  * transfer was recorded. Then «has played for X since 2023» would claim the
  * whole time at the new school — or the row was matched to the wrong person.
  * That goes to the approval queue instead.
@@ -37,6 +41,7 @@ import { profileBuilder } from "../../src/lib/i18n/profile-builders";
 import { COUNTRIES, countryProfile } from "../../src/lib/countries";
 import { displaySchoolName } from "../../src/lib/school-display-name";
 import { teamName } from "../../src/lib/school-team-name";
+import { matchesCountry } from "../../src/lib/hometown";
 
 /** Longer than any template text; an --expand summary is longer. */
 export const MAX_TEMPLATE_CHARS = 400;
@@ -81,6 +86,9 @@ export function decide(a: TemplateRow, build: (a: BaselineAthlete) => string): D
   const text = build(a);
   if (a.profile_summary === text && a.profile_draft == null) {
     return { action: "skip", why: "up to date" };
+  }
+  if (a.hometown && a.home_country && !matchesCountry(a.hometown, countryProfile(a.home_country))) {
+    return { action: "hold", text, why: "hometown does not read as " + a.home_country };
   }
   if (a.profile_summary != null && !namesCurrentSchool(a.profile_summary, a) && !transferInto(a)) {
     return { action: "hold", text, why: "school changed without a recorded transfer" };

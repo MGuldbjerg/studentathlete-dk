@@ -39,7 +39,20 @@ const US_STATE_IDENTIFIERS = new Set([
   "westvirginia","wisconsin","wyoming",
   // Lande-/USA-markører
   "usa","unitedstates","us",
+  // Canada (2026-11-04: «Grimsby, ON» was filed as UK on the city Grimsby).
+  "on","ont","ontario","bc","britishcolumbia","qc","que","quebec","ab","alberta",
+  "mb","manitoba","sk","saskatchewan","ns","novascotia","nb","newbrunswick",
+  "nl","newfoundland","pe","pei","canada",
 ]);
+
+/**
+ * «Lake Wales Fla.» has no comma, so the segment test never sees «fla» and the
+ * word «Wales» made it UK (2026-11-04). An informal state abbreviation WITH its
+ * full stop as the last word is unambiguous; the bare word is not («Washington»
+ * is also a town in Tyne and Wear), so only the dotted forms count here.
+ */
+const TRAILING_STATE_ABBREV =
+  /\b(ala|ariz|ark|calif|colo|conn|del|fla|ill|ind|kan|mass|mich|minn|miss|mont|neb|nev|okla|ore|penn|tenn|tex|wash|wis|wisc|wyo|ont)\.\s*$/;
 
 /**
  * Segmenter der IKKE er et sted. Rosterne udfylder tomme felter med en
@@ -87,6 +100,7 @@ export function matchesCountry(hometown: string | null, profile: HometownProfile
 
   const segments = lower.split(/[,/]/).map((p) => p.replace(/[^a-z]/g, ""));
   if (segments.some((seg) => seg.length > 0 && US_STATE_IDENTIFIERS.has(seg))) return false;
+  if (TRAILING_STATE_ABBREV.test(lower)) return false;
 
   const hasMarker = profile.countryMarkers.some((marker) =>
     containsWholeWord(lower, marker.toLowerCase()),
