@@ -12,22 +12,24 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 ---
 
 
-## 🧩 UK profiles approved on the template level (2026-11-04) — CODE DONE, NOT LIVE
+## 🧩 UK profiles approved on the template level (2026-11-04) — LIVE
 
 Mikkel: «I want the UK profiles to be approved on a template level.» An audit of all 2,908 UK
 template texts found raw codes as roles («as a UT», «She/Her»), seed-cut school names («Hinds
-Community»), «Washington, Washington D.C.», «runs as a distance runner», «as an epee», «Lake
-Wales Fla.» / «Grimsby, ON» filed as UK. All fixed, with tests (commits dd22848, 78a2e60, 0952e77, local on main).
+Community»), «Washington, Washington D.C.», «runs as a distance runner», «as an epee», and
+«Lake Wales Fla.» / «Grimsby, ON» filed as UK. All fixed, with tests.
 - `apply-template-profiles.ts` publishes the template where no person wrote the text; switch
   `profileTemplateApproved` (UK on, DK off). Holds: hometown not UK, school changed without a
-  transfer. Wired into profile-drafts.yml (Sun) + quality-sweep.yml (Mon).
-- `athletes.profile_by_template` (migration 084): 1 = template's text; admin approval sets 0.
-- Simulated first run: 344 published (152 new, 192 corrected), 81 stay in the queue (a person's text
-  or unknown origin: school changes like Cody Read Fairfield→Winthrop, renames, hand-edits).
-- **Blocked on Mikkel's OK (auto-mode refused the live migration):** push, `migrate-live.sh
-  migration-084-profile-by-template.sql`, deploy, backfill `profile_by_template=1` for the 2,675
-  UK texts identical to the template on 2026-11-04 (`db/backfill-084-profile-by-template.sql`),
-  then `apply-template-profiles.ts --apply`. Do NOT push before the migration: the Sunday run would fail on the missing column.
+  transfer. Runs in profile-drafts.yml (Sun) + quality-sweep.yml (Mon), before queue-stale.
+- `athletes.profile_by_template` (migration 084 applied; backfill-084 marked 2,675): 1 = the
+  template's text; admin approval sets 0; NULL = unknown, treated as a person's.
+- First run 2026-11-04 (deploy 21db8ffd): 342 published (151 new, 191 corrected), 2 held
+  (16229 Grimsby ON, 1470 Lake Wales Fla. — decide whether they belong on the UK site).
+- **Still in /admin/profiler: ~80 UK drafts** whose live text is a person's or of unknown origin —
+  incl. 6 school changes without a recorded transfer (Cody Read Fairfield→Winthrop, Georgia Bell
+  Colorado→SMU, …), renames (Ben→Benjamin), and hand-edits. Approving one there sets 0.
+- A change to `profile-baseline-en.ts` now publishes on the next Sunday/Monday run: dry-run
+  `apply-template-profiles.ts` and read the output before pushing.
 - Not fixed: athlete 1697 «Lake Wales» (no state) is probably Floridian; 2 athletes have sport key `polo`.
 
 ## 📈 Growth plan (Mikkel, 2026-11-03)
