@@ -12,9 +12,15 @@ export const RESPONSES: Record<string, { event: string; state: PermissionState |
   declined: { event: "reply_declined", state: "declined" },
   forwarded: { event: "forwarded", state: null },
   bounced: { event: "bounced", state: null },
+  // The contact we mailed has left or is the wrong person: like a bounce, the school is
+  // ready again once a new contact is imported (Hofstra, 2026-11-04).
+  "contact-changed": { event: "contact_changed", state: null },
   "do-not-contact": { event: "do_not_contact", state: "do_not_contact" },
   note: { event: "note", state: null },
 };
+
+/** Events after which a school may be mailed again, at a NEW address (the old one stays in cooldown). */
+export const REOPENING_EVENTS = ["bounced", "contact_changed"] as const;
 
 export function parseResponse(keyword: string): { event: string; state: PermissionState | null } {
   const r = RESPONSES[keyword];
