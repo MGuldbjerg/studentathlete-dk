@@ -4,6 +4,7 @@ import type { School, Athlete, ArticleListItem } from "@/lib/types";
 import { formatDateShort, schoolStructuredData, getAthleteUrl, getArticleUrl, getArticleCoverUrl } from "@/lib/seo";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { cleanPosition } from "@/lib/roster-clean";
+import { creditedSchoolName } from "@/lib/photo-credit";
 import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs, type SchoolFacts, type SchoolPlayer } from "@/lib/school-season";
 
 interface Props {
@@ -205,7 +206,7 @@ export async function SchoolProfilePage({ school, athletes, articles, totalAthle
                 from schools that declined. */}
             {athletes.some((a) => a.photo_url) && (
               <p className="text-[10px] text-muted mt-3">
-                {t("photo.roster_credit", lang, { school: school.name })}
+                {t("photo.roster_credit", lang, { school: creditedSchoolName(school.name, school.common_name) })}
               </p>
             )}
             {athletes.length > 0 && more > 0 && (

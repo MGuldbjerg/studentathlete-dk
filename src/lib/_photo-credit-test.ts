@@ -5,7 +5,7 @@
  * Holds the wording the permission email promises: photographer when known,
  * "{School} Athletics", a Source link — on both sites.
  */
-import { photoCreditParts, photoCreditText, safeSourceUrl } from "./photo-credit";
+import { creditedSchoolName, photoCreditParts, photoCreditText, safeSourceUrl } from "./photo-credit";
 
 let passed = 0;
 let failed = 0;
@@ -46,6 +46,18 @@ eq(photoCreditText({ schoolName: "Duke", creditLine: "Foto: Duke Athletics", sou
 // A school's preferred line wins, and its photographer is not repeated
 eq(photoCreditText({ photographer: "Jane Doe", schoolName: "Duke", creditLine: "Jane Doe/Duke Athletics Communications", sourceUrl: url, lang: "en" }),
   "Photo: Jane Doe/Duke Athletics Communications · Source", "preferred credit line wins, no repeat");
+
+// The school's short name (Mikkel, 2026-11-04): the email promises «Stony Brook Athletics»
+const sb = { official: "State University of New York at Stony Brook", credited: creditedSchoolName("State University of New York at Stony Brook", "Stony Brook") };
+eq(sb.credited, "Stony Brook", "short name preferred");
+eq(creditedSchoolName("Duke University", null), "Duke University", "no short name → official");
+eq(creditedSchoolName("Duke University", "  "), "Duke University", "blank short name → official");
+eq(photoCreditText({ schoolName: sb.credited, schoolNames: sb, creditLine: "Foto: State University of New York at Stony Brook Athletics", sourceUrl: url, lang: "en" }),
+  "Photo: Stony Brook Athletics · Source", "stored default with the official name → short name");
+eq(photoCreditText({ schoolNames: sb, creditLine: "Foto: State University of New York at Stony Brook Athletics", lang: "da" }),
+  "Foto: Stony Brook Athletics", "legacy row (no school passed) also gets the short name");
+eq(photoCreditText({ schoolName: sb.credited, schoolNames: sb, creditLine: "Stony Brook Athletics/John Smith", lang: "en" }),
+  "Photo: Stony Brook Athletics/John Smith", "a school's own line is left alone");
 
 console.log(`\nphoto-credit: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);

@@ -660,6 +660,7 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
     const r = await db
       .prepare(
         `SELECT a.*, s.slug AS school_slug, s.photo_permission AS school_photo_permission,
+                s.common_name AS school_common_name,
                 ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
                 ${articleCountSql("a")} AS article_count
            FROM athletes a
@@ -689,7 +690,8 @@ export async function getArticleAthletes(articleId: number, country?: string): P
   try {
     const r = await db
       .prepare(
-        `SELECT a.*, s.slug AS school_slug, s.photo_permission AS school_photo_permission
+        `SELECT a.*, s.slug AS school_slug, s.photo_permission AS school_photo_permission,
+                s.common_name AS school_common_name
            FROM article_athletes aa
            JOIN athletes a ON a.id = aa.athlete_id
            LEFT JOIN schools s ON s.name = a.university

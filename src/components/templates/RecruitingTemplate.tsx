@@ -10,6 +10,7 @@ import { SourceBox } from "@/components/ui/SourceBox";
 import { AiDisclaimer } from "@/components/ui/AiDisclaimer";
 import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 import { PhotoCredit } from "@/components/ui/PhotoCredit";
+import { creditedSchoolName } from "@/lib/photo-credit";
 
 import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
@@ -74,7 +75,8 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], read
                   <PhotoCredit
                     className="text-[10px] text-white/30 mt-1 max-w-40 md:max-w-52"
                     photographer={athlete.photo_photographer}
-                    schoolName={athlete.photo_source_url || athlete.photo_photographer ? athlete.university : null}
+                    schoolName={athlete.photo_source_url || athlete.photo_photographer ? creditedSchoolName(athlete.university, athlete.school_common_name) : null}
+                    schoolNames={{ official: athlete.university, credited: creditedSchoolName(athlete.university, athlete.school_common_name) }}
                     creditLine={athlete.photo_credit}
                     sourceUrl={athlete.photo_source_url}
                     lang={lang}
