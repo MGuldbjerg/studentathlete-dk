@@ -177,5 +177,77 @@ function okEq(label: string, got: unknown, want: unknown): void {
   okEq("transfer: she", baselineProfileEn({ ...t, gender: "f" }, fall26).includes("In 2026 she transferred to"), true);
 }
 
+// ── Template audit 2026-11-04 (UK profiles approved as a template) ──────────
+const vet = (o: Partial<BaselineAthlete>) => ({ ...base, ...o });
+expectText(vet({ sport: "water-polo", position: "UT" }), fall26,
+  "Oliver Smith has played water polo for Ohio State University in Ohio as a utility player since 2025. Oliver is from Aldershot.",
+  "known code UT is expanded");
+expectText(vet({ sport: "squash", position: "PL" }), fall26,
+  "Oliver Smith has played squash for Ohio State University in Ohio since 2025. Oliver is from Aldershot.",
+  "unknown code is left out, not printed");
+expectText(vet({ position: "Midfielder/Arsenal U21" }), fall26,
+  "Oliver Smith has played football for Ohio State University in Ohio since 2025. Oliver is from Aldershot.",
+  "one unknown part drops the whole role");
+expectText(vet({ position: "She/Her" }), fall26,
+  "Oliver Smith has played football for Ohio State University in Ohio since 2025. Oliver is from Aldershot.",
+  "pronouns are not a role");
+expectText(vet({ sport: "rugby", position: "Eight-Man" }), fall26,
+  "Oliver Smith has played rugby for Ohio State University in Ohio as a number eight since 2025. Oliver is from Aldershot.",
+  "rugby Eight-Man → number eight");
+expectText(vet({ sport: "track-and-field", position: "Distance" }), fall25,
+  "Oliver Smith started at Ohio State University in the autumn of 2025 and competes as a distance runner. Oliver is from Aldershot.",
+  "no «runs as a distance runner»");
+expectText(vet({ sport: "track-and-field", position: "Sprints" }), fall26,
+  "Oliver Smith has run for Ohio State University in Ohio as a sprinter since 2025. Oliver is from Aldershot.",
+  "past tense keeps «has run»");
+expectText(vet({ sport: "fencing", position: "Épée" }), fall26,
+  "Oliver Smith has fenced for Ohio State University in Ohio as an épée fencer since 2025. Oliver is from Aldershot.",
+  "weapon → fencer");
+expectText(vet({ sport: "fencing", position: "Sabre" }), fall26,
+  "Oliver Smith has fenced for Ohio State University in Ohio as a sabre fencer since 2025. Oliver is from Aldershot.",
+  "sabre fencer");
+expectText(vet({ sport: "rowing", position: "Port Side/Starboard Side" }), fall26,
+  "Oliver Smith has rowed for Ohio State University in Ohio as a port-side/starboard-side rower since 2025. Oliver is from Aldershot.",
+  "compound rowing sides");
+expectText(vet({ sport: "rowing", position: "P/S" }), fall26,
+  "Oliver Smith has rowed for Ohio State University in Ohio as a port-side/starboard-side rower since 2025. Oliver is from Aldershot.",
+  "P/S rowing code");
+expectText(vet({ sport: "esports", position: "League of Legends - Jungle" }), fall26,
+  "Oliver Smith has played esports for Ohio State University in Ohio since 2025. Oliver is from Aldershot.",
+  "game name is not a role");
+expectText(vet({ sport: "bowling", position: null }), fall26,
+  "Oliver Smith has bowled for Ohio State University in Ohio since 2025. Oliver is from Aldershot.",
+  "bowling verb");
+expectText(vet({ university: "Georgetown University", university_state: "DC", university_city: "Washington" }), fall26,
+  "Oliver Smith has played football for Georgetown University in Washington, D.C. as a midfielder since 2025. Oliver is from Aldershot.",
+  "Washington, D.C. once");
+expectText(vet({ hometown: "Oxford, UK." }), fall26,
+  "Oliver Smith has played football for Ohio State University in Ohio as a midfielder since 2025. Oliver is from Oxford.",
+  "trailing full stop in hometown");
+expectText(vet({ hometown: "St. Albans, Herts." }), fall26,
+  "Oliver Smith has played football for Ohio State University in Ohio as a midfielder since 2025. Oliver is from St. Albans, Herts.",
+  "no double full stop");
+expectText(vet({ university: "Hinds Community College", university_common_name: "Hinds Community", university_state: "MS" }), fall25,
+  "Oliver Smith started at Hinds Community College in the autumn of 2025 and plays football as a midfielder. Oliver is from Aldershot.",
+  "seed-stripped community college name");
+expectText(vet({ university: "Missouri University of Science and Technology", university_common_name: "Missouri of Science and Technology", university_state: "MO" }), fall25,
+  "Oliver Smith started at Missouri University of Science and Technology in the autumn of 2025 and plays football as a midfielder. Oliver is from Aldershot.",
+  "seed-stripped «X University of Y»");
+expectText(vet({ sport: "fencing", position: "Sabre" }), fall25,
+  "Oliver Smith started at Ohio State University in the autumn of 2025 and competes as a sabre fencer. Oliver is from Aldershot.",
+  "no «fences as a sabre fencer»");
+expectText(vet({ sport: "swimming-and-diving", position: "Free" }), fall25,
+  "Oliver Smith started at Ohio State University in the autumn of 2025 and competes as a freestyle swimmer. Oliver is from Aldershot.",
+  "no «swims as a freestyle swimmer»");
+expectText(vet({ sport: "swimming-and-diving", position: null }), fall25,
+  "Oliver Smith started at Ohio State University in the autumn of 2025 and swims. Oliver is from Aldershot.",
+  "swims without a role");
+expectText(vet({ sport: "skiing", position: "Alpine" }), fall25,
+  "Oliver Smith started at Ohio State University in the autumn of 2025 and competes as an alpine skier. Oliver is from Aldershot.",
+  "alpine → alpine skier");
+expectText(vet({ hometown: "London, U.K." }), fall26,
+  "Oliver Smith has played football for Ohio State University in Ohio as a midfielder since 2025. Oliver is from London.",
+  "U.K. suffix stripped");
+
 console.log(`\nprofile-baseline-en: ${passed} bestået, ${failed} fejlet`);
 if (failed > 0) process.exit(1);

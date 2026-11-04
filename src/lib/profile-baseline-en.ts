@@ -10,7 +10,7 @@
  */
 
 import { cleanPosition } from "./roster-clean";
-import { expandPosition } from "./positions";
+import { expandKnownPosition, expandPosition } from "./positions";
 import { BALL_SPORT_KEYS } from "./sports";
 import { sportLabel } from "./i18n";
 import {
@@ -27,7 +27,9 @@ import { teamName } from "./school-team-name";
 import { countryProfile } from "./countries";
 
 // Delstatstabellen er engelsk i forvejen — kun det danske eksonym afviger.
-const STATE_NAMES_EN: Record<string, string> = { ...STATE_NAMES, CA: "California" };
+// DC: the city is Washington, so the «state» is just «D.C.» — otherwise the
+// place read «Washington, Washington D.C.» (16 UK profiles, 2026-11-04).
+const STATE_NAMES_EN: Record<string, string> = { ...STATE_NAMES, CA: "California", DC: "D.C." };
 
 function stateName(abbrevOrName: string): string {
   return STATE_NAMES_EN[abbrevOrName.toUpperCase()] ?? abbrevOrName;
@@ -45,13 +47,14 @@ function sportNoun(sport: string): string {
  * ", Denmark"-strip på DK-sitet).
  */
 function cleanHometown(hometown: string, homeCountry?: string | null): string {
-  return localizeHometown(hometown, countryProfile(homeCountry ?? "UK"));
+  // «Oxford, UK.» gave «is from Oxford, UK..» — the sentence adds its own stop.
+  return localizeHometown(hometown.trim().replace(/\bU\.K\.?/g, "UK").replace(/\.+$/, ""), countryProfile(homeCountry ?? "UK")).replace(/\.+$/, "");
 }
 
 /** "a"/"an" — med undtagelse for u-ord der udtales "ju" (a utility player). */
 function article(noun: string): string {
   if (/^(uni|ut)/i.test(noun)) return "a";
-  return /^[aeiou]/i.test(noun) ? "an" : "a";
+  return /^[aeioué]/i.test(noun) ? "an" : "a";
 }
 
 // ── Rolle-normalisering pr. sport ────────────────────────────────────────────
@@ -80,6 +83,13 @@ const ROWING_ROLES: Record<string, string> = {
   lightweight: "lightweight rower",
 };
 
+const FENCING_WEAPONS: Record<string, string> = {
+  epee: "épée",
+  "épée": "épée",
+  foil: "foil",
+  sabre: "sabre",
+};
+
 const GYM_ROLES: Record<string, string> = {
   "all-around": "all-around gymnast",
 };
@@ -95,8 +105,24 @@ function normalizeRole(sport: string, role: string): string {
     if (/\b(swimmer|diver)\b/i.test(key)) return role;
     return `${role} swimmer`;
   }
-  if (sport === "rowing") return ROWING_ROLES[key] ?? role;
+  if (sport === "rowing") {
+    if (ROWING_ROLES[key]) return ROWING_ROLES[key];
+    // «port side/starboard side» → «port-side/starboard-side rower».
+    const sides = key.split("/");
+    if (sides.length > 1 && sides.every((s) => ROWING_ROLES[s]?.endsWith(" rower"))) {
+      return `${sides.map((s) => ROWING_ROLES[s].replace(/ rower$/, "")).join("/")} rower`;
+    }
+    return role;
+  }
+  if (sport === "fencing") {
+    // The weapon is not a person: «as an epee» → «as an épée fencer».
+    const weapons = key.split("/").map((w) => FENCING_WEAPONS[w]);
+    if (weapons.every(Boolean)) return `${weapons.join("/")} fencer`;
+    return role;
+  }
   if (sport === "gymnastics") return GYM_ROLES[key] ?? `${role} specialist`;
+  // «skis as an alpine» — the discipline needs its person.
+  if (sport === "skiing") return /\bskier$/i.test(key) ? role : `${role} skier`;
   return role;
 }
 
@@ -142,6 +168,9 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
     const meaningful = meaningfulPosition(sport, p);
     return meaningful ? normalizeRole(sport, meaningful) : null;
   };
+  if (sport === "bowling") {
+    return { present: "bowls", past: "bowled", participle: "bowled", object: "", posNoun: role(position) };
+  }
   if (BALL_SPORT_KEYS.has(sport as never)) {
     return { present: "plays", past: "played", participle: "played", object: sportNoun(sport), posNoun: role(position) };
   }
@@ -199,6 +228,16 @@ function sportVerb(sportRaw: string, position: string | null): SportVerb {
   return { present: "competes", past: "competed", participle: "competed", object: `in ${sportNoun(sport)}`, posNoun: role(position) };
 }
 
+/**
+ * «swims as a freestyle swimmer», «fences as a sabre fencer»: when the role
+ * already names the activity, the present tense says it twice. Past forms
+ * («has swum for X as a freestyle swimmer») read fine and stay.
+ */
+const AGENT_NOUN = /\b(swimmer|diver|rower|fencer|runner|sprinter|hurdler|skier)$/i;
+function presentVerb(v: SportVerb): string {
+  return v.posNoun && !v.object && AGENT_NOUN.test(v.posNoun) ? "competes" : v.present;
+}
+
 function withObject(verbForm: string, object: string): string {
   return object ? `${verbForm} ${object}` : verbForm;
 }
@@ -210,7 +249,12 @@ function withObject(verbForm: string, object: string): string {
 export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): string {
   const fullName = tidyName(a.name);
   const firstName = a.preferred_name ?? fullName.split(" ")[0];
-  const position = expandPosition(a.sport, cleanPosition(a.position), "en");
+  // Only roles the code tables understand go into the sentence (see
+  // expandKnownPosition). Athletics reads the raw event text with its own
+  // regexes, so it keeps the full expansion.
+  const position = a.sport === "track-and-field"
+    ? expandPosition(a.sport, cleanPosition(a.position), "en")
+    : expandKnownPosition(a.sport, cleanPosition(a.position), "en");
   const v = sportVerb(a.sport, position);
   const posSuffix = v.posNoun ? ` as ${article(v.posNoun)} ${v.posNoun}` : "";
   // Se den danske pendant: brugsnavn frem for registernavn, og ingen
@@ -245,14 +289,14 @@ export function baselineProfileEn(a: BaselineAthlete, now: Date = new Date()): s
     const started = a.year_enrolled != null && a.year_enrolled < moved.year
       ? ` and started at ${moved.from} in ${a.year_enrolled}` : "";
     main = started
-      ? `${fullName} ${withObject(v.present, v.object)}${posSuffix}${started}. In ${moved.year} ${who} transferred to ${where}.`
-      : `${fullName} ${withObject(v.present, v.object)}${posSuffix}. In ${moved.year} ${who} transferred from ${moved.from} to ${where}.`;
+      ? `${fullName} ${withObject(presentVerb(v), v.object)}${posSuffix}${started}. In ${moved.year} ${who} transferred to ${where}.`
+      : `${fullName} ${withObject(presentVerb(v), v.object)}${posSuffix}. In ${moved.year} ${who} transferred from ${moved.from} to ${where}.`;
   } else if (a.year_enrolled != null && a.year_enrolled >= currentSeasonStart(now)) {
-    main = `${fullName} started at ${school} in the autumn of ${a.year_enrolled} and ${withObject(v.present, v.object)}${posSuffix}.`;
+    main = `${fullName} started at ${school} in the autumn of ${a.year_enrolled} and ${withObject(presentVerb(v), v.object)}${posSuffix}.`;
   } else if (a.year_enrolled != null) {
     main = `${fullName} has ${withObject(v.participle, v.object)} for ${where}${posSuffix} since ${a.year_enrolled}.`;
   } else {
-    main = `${fullName} ${withObject(v.present, v.object)} for ${where}${posSuffix}.`;
+    main = `${fullName} ${withObject(presentVerb(v), v.object)} for ${where}${posSuffix}.`;
   }
 
   const parts = [main];

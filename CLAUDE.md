@@ -109,8 +109,13 @@ apart (Mikkel, 2026-09-24: a batch going live at once looks spammy). Run it
 detached, give the expected end time, and never publish without that instruction.
 **Approved machine publishers** (no instruction needed, each agreed with Mikkel): the Opus
 editor for UK drafts (`auto-editor-uk.yml`), the assignment desk's profile lines, sourced
-table facts (honours, stats, leaderboards, awards), and rule-based profile refreshes that only
-ADD a fact. Anything new that publishes joins this list only by Mikkel's say-so.
+table facts (honours, stats, leaderboards, awards), rule-based profile refreshes that only
+ADD a fact, and — UK only, since 2026-11-04 — the rule-based profile TEMPLATE
+(`pipeline/profiles/apply-template-profiles.ts`, switch `profileTemplateApproved` on the
+country profile): it publishes where no person wrote the text (`athletes.profile_by_template`)
+and holds a profile whose school changed without a recorded transfer. Changing
+`profile-baseline-en.ts` is therefore a publication on the next Sunday/Monday run — run
+`apply-template-profiles.ts` (dry-run) and read its output before pushing a template change. Anything new that publishes joins this list only by Mikkel's say-so.
 The spacing is **per site**: .dk and .co.uk are separate sites to their readers,
 so a Danish and a British article may go live at the same moment — one decisions
 file per country, run in parallel (Mikkel, 2026-10-06). Danish drafts: Claude

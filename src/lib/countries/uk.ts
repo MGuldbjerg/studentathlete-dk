@@ -151,6 +151,8 @@ export const uk: CountryProfile = {
   // (pipeline/generate/enrich.ts) add sourced facts, so fuller stories pass.
   standaloneMinWords: 200,
   indexMinWords: 200,
+  // Mikkel 2026-11-04: profiles approved on the template level (types.ts).
+  profileTemplateApproved: true,
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
   demonym: "UK",

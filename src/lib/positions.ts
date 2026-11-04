@@ -73,6 +73,42 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     striker: "striker",
     attacker: "striker",
     angreb: "striker",
+    // Schools' own spellings and typos, seen on UK profiles 2026-11-04. The
+    // English template now drops an unknown code instead of printing it, so a
+    // legitimate variant must be listed here for the role to survive.
+    "goal keeper": "goalkeeper",
+    goalie: "goalkeeper",
+    goalkeepeer: "goalkeeper",
+    "center-back": "centre_back",
+    "centre-back": "centre_back",
+    "centre back": "centre_back",
+    rightback: "right_back",
+    "right back": "right_back",
+    "right-back": "right_back",
+    leftback: "left_back",
+    "left back": "left_back",
+    "left-back": "left_back",
+    "center mid": "central_midfielder",
+    "center-mid": "central_midfielder",
+    "center midfielder": "central_midfielder",
+    "centre midfielder": "central_midfielder",
+    "central midfielder": "central_midfielder",
+    cdm: "defensive_midfielder",
+    "defensive midfielder": "defensive_midfielder",
+    cam: "attacking_midfielder",
+    "attacking midfielder": "attacking_midfielder",
+    midfiled: "midfielder",
+    foward: "striker",
+    "right-wing": "winger",
+    "left-wing": "winger",
+    "right wing": "winger",
+    "left wing": "winger",
+    // A wing-back is neither a full-back nor a winger; «defender» is true.
+    wingback: "defender",
+    "wing-back": "defender",
+    "wing back": "defender",
+    rwb: "defender",
+    lwb: "defender",
   },
 
   // ── Basketball ─────────────────────────────────────────────────────────────
@@ -88,6 +124,8 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     forward: "forward",
     center: "center",
     wing: "wing",
+    w: "wing",
+    gaurd: "guard",
   },
 
   // ── Baseball / softball ────────────────────────────────────────────────────
@@ -134,6 +172,7 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     dl: "defensive_lineman",
     de: "defensive_end",
     dt: "defensive_tackle",
+    "defensive tackle": "defensive_tackle",
     lb: "linebacker",
     olb: "outside_linebacker",
     ilb: "inside_linebacker",
@@ -223,6 +262,8 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     "outside hitter": "outside_hitter",
     "middle blocker": "middle_blocker",
     "opposite hitter": "opposite_hitter",
+    opposite: "opposite_hitter",
+    "defensive specialist": "defensive_specialist",
   },
 
   // ── Ishockey ───────────────────────────────────────────────────────────────
@@ -269,6 +310,17 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     "1m": "diving_1m",
     "3m": "diving_3m",
     platform: "platform_diving",
+    dive: "diving",
+    brst: "breaststroke",
+    medley: "individual_medley",
+    sprints: "sprint",
+    "sprint free": "sprint",
+    "sprint freestyle": "sprint",
+    "50 free": "sprint",
+    "distance free": "distance",
+    "distance freestyle": "distance",
+    "mid-distance": "mid_distance",
+    "middle distance": "mid_distance",
   },
 
   // ── Roning ─────────────────────────────────────────────────────────────────
@@ -283,6 +335,12 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     sweep: "sweep_rower",
     lw: "lightweight",
     lightweight: "lightweight",
+    // «P/S» on a roster: rows both sides.
+    p: "port_side",
+    s: "starboard_side",
+    stbd: "starboard_side",
+    "port side": "port_side",
+    "starboard side": "starboard_side",
   },
 
   // ── Gymnastik (redskab står i position-feltet) ─────────────────────────────
@@ -383,6 +441,16 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     "back row": "back_row",
     "loose forward": "back_row",
     back: "back",
+    backs: "back",
+    br: "back_row",
+    scrumhalf: "scrum_half",
+    flyhalf: "fly_half",
+    "8": "number_eight",
+    "8-man": "number_eight",
+    "8 man": "number_eight",
+    "eight-man": "number_eight",
+    "eight man": "number_eight",
+    "number eight": "number_eight",
   },
 
   // ── Vandpolo ───────────────────────────────────────────────────────────────
@@ -414,6 +482,12 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     utility: "utility",
     def: "defender",
     defender: "defender",
+    ut: "utility",
+    att: "attacker",
+    // Water polo: CB = centre back, the defender who guards the hole set.
+    cb: "hole_defender",
+    center: "hole_set",
+    centre: "hole_set",
   },
 
   // ── Fægtning (våbnet står i position-feltet) ───────────────────────────────
@@ -482,6 +556,7 @@ export const POSITION_CODES: Record<SportKey, Record<string, string>> = {
     lsm: "long_stick_midfielder",
     "long stick midfield": "long_stick_midfielder",
     ssdm: "defensive_midfielder",
+    dmf: "defensive_midfielder",
     fo: "faceoff_specialist",
     fogo: "faceoff_specialist",
     faceoff: "faceoff_specialist",
@@ -757,4 +832,28 @@ export function expandPosition(
 
   const joined = out.filter((p) => p.length > 0).join("/");
   return joined.length > 0 ? joined : raw;
+}
+
+/**
+ * Like `expandPosition`, but null unless EVERY part of the position is a known
+ * code for the sport.
+ *
+ * `expandPosition` passes unknown text through on purpose (rule 3 above), which
+ * is right for a fact sidebar that shows the school's own words. A sentence is
+ * different: «as a UT», «as a She/Her», «as a Student Intern» stood on UK
+ * profiles (audit 2026-11-04). The English template is approved as a template
+ * (Mikkel, 2026-11-04), so it may only say what the tables understand — an
+ * unknown role is left out, which keeps the sentence true.
+ */
+export function expandKnownPosition(
+  sport: string,
+  position: string | null | undefined,
+  lang?: string,
+): string | null {
+  if (!position) return null;
+  const sportKey = sport.trim().toLowerCase();
+  const parts = position.trim().split(COMPOUND_SPLIT).filter((p) => p.trim().length > 0);
+  if (parts.length === 0) return null;
+  if (!parts.every((p) => conceptFor(sportKey, p) !== null)) return null;
+  return expandPosition(sport, position, lang);
 }
