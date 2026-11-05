@@ -626,7 +626,9 @@ expect("én mere end der er tid til", spacingWouldCostPosts(5, 120, 30), true);
 // lægge en text/x-component-nyttelast på forsidens plads i cachen.
 const mkRes = (status: number, headers: Record<string, string> = {}) => new Response("", { status, headers });
 expect("almindeligt 200-svar må gemmes", isCacheable(mkRes(200)), true);
-expect("404 gemmes ikke", isCacheable(mkRes(404)), false);
+// Since 2026-11-04 (CPU cut) a 404 IS cached, for NOT_FOUND_EDGE_TTL — see _worker-cache-test.ts.
+expect("404 is cached (CPU cut)", isCacheable(mkRes(404)), true);
+expect("500 is not cached", isCacheable(mkRes(500)), false);
 expect("Set-Cookie gemmes ALDRIG", isCacheable(mkRes(200, { "set-cookie": "sa_country=UK" })), false);
 expect("no-store respekteres", isCacheable(mkRes(200, { "cache-control": "private, no-store" })), false);
 expect("s-maxage-svaret må gemmes", isCacheable(mkRes(200, { "cache-control": "public, s-maxage=300" })), true);
