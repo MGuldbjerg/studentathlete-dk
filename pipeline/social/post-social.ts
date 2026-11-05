@@ -42,6 +42,7 @@ import {
   spacingWouldCostPosts,
 } from "./pacing";
 import { buildPostText } from "./copy";
+import { articlePhotoSql, articlePostPhoto, type ArticlePhotoFields } from "../../src/lib/article-photo";
 import { ChannelAuthError, type CardKind, type PostContent, type SocialChannel } from "./types";
 import { collabEnabled, loadCandidates, refreshInviteStatus, normaliseHandle, pickCollaborators, recordInvites } from "./collab";
 import { createBlueskyChannel } from "./channels/bluesky";
@@ -157,6 +158,12 @@ interface QueuedRow {
   sport: string | null;
   cover_image_url: string | null;
   country: string;
+  photo_url?: string | null;
+  photo_photographer?: string | null;
+  photo_school?: string | null;
+  photo_source_url?: string | null;
+  photo_school_permission?: string | null;
+  photo_school_common_name?: string | null;
 }
 
 async function enqueue(db: D1Client, channels: SocialChannel[]): Promise<number> {
@@ -232,15 +239,24 @@ function buildContent(row: QueuedRow, channel: SocialChannel): PostContent {
   // Samme beskrivelse som sitets egen meta-tag: klippet ved sætningsgrænse, og
   // med brødteksten som reserve, så et opslag ikke kan ende som en nøgen titel.
   const description = metaDescription({ summary: row.summary, content: row.content });
+  // A school's photo on the article (migration 085) replaces the card, with its
+  // credit in the text. Facebook and Threads take the image from the page's
+  // og:image, which shows the same photo (src/app/[...segments]/page.tsx).
+  const photo = articlePostPhoto(
+    { ...(row as ArticlePhotoFields), id: row.article_id, card_ready: 1 },
+    profile.language,
+    channel.cardKind === "ig",
+  );
   return {
     text: buildPostText(
-      { title: row.title, description, url, lang: profile.language, sport: row.sport, country: row.country },
+      { title: row.title, description, url, lang: profile.language, sport: row.sport, country: row.country,
+        photoCredit: photo?.credit ?? null },
       channel.platform,
     ),
     url,
     title: row.title,
     summary: description,
-    imageUrl,
+    imageUrl: photo?.imageUrl ?? imageUrl,
   };
 }
 
@@ -323,6 +339,7 @@ export async function postOne(
     await db.query<QueuedRow>(
       `SELECT sp.id, sp.article_id, sp.attempts,
               a.title, a.summary, a.content, a.slug, a.cover_image_url, a.country,
+              ${articlePhotoSql("a")},
               ath.sport
        FROM social_posts sp
        JOIN articles a ON a.id = sp.article_id
