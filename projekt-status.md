@@ -156,7 +156,7 @@ watch. #77 (28/10) cut D1 reads (list queries without bodies, indexes) but **not
 ~1.5M CPU-ms/day (≈46M/month vs 30M included) on 4 Nov. Measured 4 Nov: a Next render costs
 300–600 ms CPU; ~30 % of Worker calls were uncached 404s (scanners, Googlebot on removed
 profiles); 5-min edge TTL gave ~5 % hits; `/api/track` 180 ms per beacon through Next.
-**CPU cut (branch `cpu-cut`):** `workers/entry.ts` answers probes (`isProbe`: dot-paths, .php/.env/
+**CPU cut live 5/11 07:37 UTC (#106, deploy 63ae14e7):** `workers/entry.ts` answers probes (`isProbe`: dot-paths, .php/.env/
 .json…, unknown `/api/*`) with a plain 404 and the beacon itself (`src/lib/track-ingest.ts`);
 404s cached 1 h; article pages (`/<sport>/<slug>`) 1 h edge TTL (middleware), so an article
 correction can take up to an hour to show. Expected ~0.6–0.9M CPU-ms/day. 403s on `/.env` etc.
