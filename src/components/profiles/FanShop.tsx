@@ -24,9 +24,14 @@ export function FanShop({ url, name, slug, lang }: { url: string; name: string; 
       <p className="text-xs text-muted leading-relaxed mb-3">{t("profile.merch_body", lang, vars)}</p>
       <a href={href} target="_blank" rel="noopener nofollow"
         data-track="merch" data-track-target={slug}
-        className="block text-center text-sm font-semibold text-white px-3 py-2.5 transition-opacity hover:opacity-90"
+        className="flex items-center justify-center gap-1.5 text-sm font-semibold text-white px-3 py-2.5 transition-opacity hover:opacity-90"
         style={{ background: "#00205B" }}>
         {t("profile.merch_button", lang, vars)}
+        {/* An SVG, not "↗": Windows draws that character as a blue emoji tile (2026-11-05). */}
+        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none"
+          stroke="currentColor" strokeWidth="1.6" strokeLinecap="square">
+          <path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" />
+        </svg>
       </a>
       <p className="text-[11px] text-muted mt-2">{t("profile.merch_via", lang)}</p>
     </section>

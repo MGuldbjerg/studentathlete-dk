@@ -569,7 +569,7 @@ const ui: LanguagePack["ui"] = {
   "profile.merch_kicker": "Fanshop",
   "profile.merch_heading": "Støt {first}",
   "profile.merch_body": "Merch med {possessive} navn. {first} får en del af hvert salg.",
-  "profile.merch_button": "Gå til {possessive} shop ↗",
+  "profile.merch_button": "Gå til {possessive} shop",
   "profile.merch_via": "Sælges gennem Influxer",
   // Photo credit next to a photo (src/components/ui/PhotoCredit.tsx); the school's own name is a proper noun.
   "photo.credit": "Foto: {credit}",
