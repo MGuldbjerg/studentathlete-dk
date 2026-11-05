@@ -7,6 +7,7 @@ import { PhotoCredit } from "@/components/ui/PhotoCredit";
 import { creditedSchoolName } from "@/lib/photo-credit";
 import { ShareBar } from "@/components/ui/ShareBar";
 import { FanShop } from "@/components/profiles/FanShop";
+import { ArrowText, ExternalArrow } from "@/components/ui/ExternalArrow";
 import { sourceParam } from "@/lib/routes";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 import { buildProfileProse } from "@/lib/profile-prose";
@@ -241,7 +242,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 className="inline-flex items-center gap-1.5 mt-5 text-xs font-bold tracking-[0.1em]
                            uppercase hover:underline"
                 style={{ color: "#BF0A30" }}>
-                {t("profile.official_bio", lang, { school: athlete.university })}
+                <ArrowText text={t("profile.official_bio", lang, { school: athlete.university })} />
               </a>
             )}
 
@@ -293,7 +294,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                 ))}
                 <p className="text-xs text-muted mt-2">
                   <a href={seasonStats.source_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                    {t("profile.stats_source", lang, { school: seasonStats.school, date: formatDateShort(seasonStats.fetched_on, lang) })} ↗
+                    {t("profile.stats_source", lang, { school: seasonStats.school, date: formatDateShort(seasonStats.fetched_on, lang) })} <ExternalArrow />
                   </a>
                 </p>
               </section>
@@ -362,7 +363,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                   {t("profile.timeline", lang)}
                 </p>
                 {honoursText && <p className="text-base text-ink/90 leading-relaxed mb-3">{honoursText}</p>}
-                <p className="text-xs text-muted mb-4">{t("profile.timeline_note", lang)}</p>
+                <p className="text-xs text-muted mb-4"><ArrowText text={t("profile.timeline_note", lang)} /></p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <tbody>
@@ -392,7 +393,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
                                 style={{ color: "#BF0A30" }}
                                 aria-label={t("profile.source", lang)}
                               >
-                                ↗
+                                <ExternalArrow />
                               </a>
                             ) : null}
                           </td>

@@ -7,6 +7,7 @@
  * fanget 29. august. Sproget er påkrævet — se regel 6 i ARKITEKTUR-motor.md.
  */
 import { t } from "@/lib/i18n";
+import { ExternalArrow } from "@/components/ui/ExternalArrow";
 
 interface SourceBoxProps {
   sourceUrl: string | null | undefined;
@@ -39,7 +40,7 @@ export function SourceBox({ sourceUrl, lang }: SourceBoxProps) {
         className="text-sm text-ink hover:underline decoration-flag-red break-all"
       >
         {domain}
-        <span className="text-muted ml-1">↗</span>
+        <span className="text-muted ml-1"><ExternalArrow /></span>
       </a>
     </div>
   );
