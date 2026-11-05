@@ -36,6 +36,13 @@ export interface Article {
   card_ready?: number | boolean | null;
   /** The same for the Instagram card; only post-social sets it (its queue gate checked it). */
   ig_card_ready?: number | boolean | null;
+  /** The school's photo for the page hero (migration 085; src/lib/article-photo.ts). */
+  photo_url?: string | null;
+  photo_photographer?: string | null;
+  photo_school?: string | null;
+  photo_source_url?: string | null;
+  photo_school_permission?: string | null;
+  photo_school_common_name?: string | null;
   /** Presseetik-flag fra stories.sensitive (kun joinet i admin-kladdelisten) */
   sensitive?: string | null;
   // Joined fra athletes

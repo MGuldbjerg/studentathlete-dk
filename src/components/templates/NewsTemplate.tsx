@@ -1,5 +1,7 @@
 import type { Article, ArticleListItem, Athlete } from "@/lib/types";
-import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
+import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
+import { articleHero } from "@/lib/article-photo";
+import { PhotoCredit } from "@/components/ui/PhotoCredit";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { ArticleEnd } from "@/components/ui/ArticleEnd";
@@ -23,6 +25,7 @@ interface Props {
 
 export async function NewsTemplate({ article, athlete, readNext = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
+  const hero = articleHero(article);
   const site = await currentSite();
   const readTime = getReadingTime(countWords(article.content));
   const typeLabel = articleTypeLabel(article.article_type, lang) || t("tpl.news_plural", lang);
@@ -121,8 +124,11 @@ export async function NewsTemplate({ article, athlete, readNext = [], seasonStat
         {/* ── Hero-billede ───────────────────────────────────────── */}
         <div className="px-5 md:px-0 mt-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={getArticleCoverUrl(article)} alt={article.title}
-            className="w-full object-cover max-h-[28rem]" />
+          <img src={hero.src} alt={article.title}
+            className={hero.credit ? "w-full h-auto" : "w-full object-cover max-h-[28rem]"} />
+          {hero.credit && (
+            <PhotoCredit className="text-xs text-muted mt-2" {...hero.credit} lang={lang} />
+          )}
         </div>
 
         {/* ── Brødtekst ──────────────────────────────────────────── */}

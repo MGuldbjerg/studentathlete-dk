@@ -1,5 +1,7 @@
 import type { Article, ArticleListItem, Athlete } from "@/lib/types";
-import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
+import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
+import { articleHero } from "@/lib/article-photo";
+import { PhotoCredit } from "@/components/ui/PhotoCredit";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { ArticleEnd } from "@/components/ui/ArticleEnd";
@@ -44,6 +46,7 @@ export function getSeason(dateStr: string | null): string {
 
 export async function SeasonUpdateTemplate({ article, athlete, athletes = [], readNext = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
+  const hero = articleHero(article);
   const site = await currentSite();
   const readTime = getReadingTime(countWords(article.content));
   const season = getSeason(article.published_at);
@@ -123,8 +126,11 @@ export async function SeasonUpdateTemplate({ article, athlete, athletes = [], re
         {/* Hero-billede */}
         <figure className="mb-8 -mx-5 md:mx-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={getArticleCoverUrl(article)} alt={article.title}
-            className="w-full object-cover max-h-80" />
+          <img src={hero.src} alt={article.title}
+            className={hero.credit ? "w-full h-auto" : "w-full object-cover max-h-80"} />
+          {hero.credit && (
+            <PhotoCredit className="text-xs text-muted mt-2 px-5 md:px-0" {...hero.credit} lang={lang} />
+          )}
         </figure>
 
         <ArticleBody content={article.content} />

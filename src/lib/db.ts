@@ -125,6 +125,11 @@ export const ARTICLE_SELECT = `
   a.model_used, a.llm_provider, a.original_content, a.featured,
   a.correction_note, a.corrected_at,
   a.fabrication_risk, a.fact_flags, a.story_id,
+  a.photo_url, a.photo_photographer, a.photo_school, a.photo_source_url,
+  CASE WHEN a.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.photo_permission FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_permission,
+  CASE WHEN a.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.common_name FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_common_name,
   ${cardReadySql("a")} AS card_ready,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;

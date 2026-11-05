@@ -1,5 +1,7 @@
 import type { Article, ArticleListItem, Athlete } from "@/lib/types";
-import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl, getArticleCoverUrl } from "@/lib/seo";
+import { formatDate, countWords, getReadingTime, articleStructuredData, getAthleteUrl } from "@/lib/seo";
+import { articleHero } from "@/lib/article-photo";
+import { PhotoCredit } from "@/components/ui/PhotoCredit";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { ArticleEnd } from "@/components/ui/ArticleEnd";
@@ -23,6 +25,7 @@ interface Props {
 
 export async function FeatureTemplate({ article, athlete, readNext = [], seasonStats = null }: Props) {
   const lang = await currentLanguage();
+  const hero = articleHero(article);
   const site = await currentSite();
   const readTime = getReadingTime(countWords(article.content));
 
@@ -38,7 +41,7 @@ export async function FeatureTemplate({ article, athlete, readNext = [], seasonS
           style={{ minHeight: "85vh" }}>
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={getArticleCoverUrl(article)} alt=""
+          <img src={hero.src} alt=""
             className="absolute inset-0 w-full h-full object-cover" />
 
           {/* Gradient-overlay — tung i bunden */}
@@ -112,6 +115,9 @@ export async function FeatureTemplate({ article, athlete, readNext = [], seasonS
             </div>
           </div>
         </header>
+        {hero.credit && (
+            <PhotoCredit className="text-xs text-muted mt-2 px-5 max-w-3xl mx-auto" {...hero.credit} lang={lang} />
+          )}
 
         {/* ── Brødkrumme ─────────────────────────────────────────── */}
         <div className="max-w-3xl mx-auto px-6 md:px-8 pt-8">
