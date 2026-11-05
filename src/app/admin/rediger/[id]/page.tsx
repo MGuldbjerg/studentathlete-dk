@@ -4,9 +4,7 @@ import { getArticleById, getFactSheetForArticle } from "@/lib/admin";
 import { getAllAthletes } from "@/lib/db";
 import { EditArticleForm } from "./EditArticleForm";
 import { FactSheetPanel } from "./FactSheetPanel";
-import { articleHero } from "@/lib/article-photo";
-import { PhotoCredit } from "@/components/ui/PhotoCredit";
-import { countryProfile } from "@/lib/countries";
+import { AdminArticleImage } from "@/components/admin/AdminArticleImage";
 
 export default async function EditArticlePage({
   params,
@@ -57,27 +55,7 @@ export default async function EditArticlePage({
           </span>
         </div>
 
-        {/* The page hero and share image readers will get (migration 085): the
-            school's photo with its credit, or a note that the match card is used. */}
-        {(() => {
-          const hero = articleHero(article);
-          const lang = countryProfile(article.country ?? undefined).language;
-          return (
-            <section className="mb-6 rounded border border-border bg-white p-3">
-              <p className="text-xs font-semibold text-muted mb-2">
-                {hero.credit ? "Billede (side + sociale medier)" : "Billede: genereret kampkort"}
-              </p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={hero.src} alt="" className="w-full h-auto max-h-96 object-contain bg-surface" />
-              {hero.credit && <PhotoCredit className="text-xs text-muted mt-2" {...hero.credit} lang={lang} />}
-              {article.photo_url && !hero.credit && (
-                <p className="text-xs text-red-700 mt-2">
-                  Artiklen har et foto, men skolen tillader ikke fotos (eller mangler) — kortet bruges.
-                </p>
-              )}
-            </section>
-          );
-        })()}
+        <AdminArticleImage article={article} className="mb-6" />
 
         {factSheet ? (
           <div className="grid gap-6 lg:grid-cols-[1fr_340px] items-start">
