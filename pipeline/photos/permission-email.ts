@@ -6,10 +6,11 @@
  * on the school's athletics website — article photos AND the athletes' roster/profile pages —
  * credited to the photographer. Article photos stay our first choice; the profile page is the
  * backup, and is far more likely to show the right athlete (Mikkel 2026-11-05; until then the
- * ask was article photos only, 2026-10-21). Social posts are covered as part of the same
- * publishing process — a post shares a published page, never a standalone photo — and the email
- * promises the same credit there. Kept true by `articlePostPhoto` (src/lib/article-photo.ts):
- * a post carrying a school photo gets «Photo: … Athletics» in its text on every channel
+ * ask was article photos only, 2026-10-21). Social media is asked for broadly on purpose — not
+ * only posts sharing an article, so roundups and other standalone posts stay possible (Mikkel
+ * 2026-11-05) — and the email promises the same credit there. Article posts get it from
+ * `articlePostPhoto` (src/lib/article-photo.ts): «Photo: … Athletics» in the text on every channel.
+ * Any OTHER post that carries a school photo (roundup, reel …) must add that credit itself
  * (Mikkel 2026-11-05).
  * Plain text on purpose (cold one-to-one mail lands in spam less than a designed mail).
  */
