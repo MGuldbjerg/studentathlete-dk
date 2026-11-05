@@ -559,7 +559,7 @@ const ui: LanguagePack["ui"] = {
   "profile.merch_kicker": "Fan shop",
   "profile.merch_heading": "Support {first}",
   "profile.merch_body": "Merch with {possessive} name on it. {first} gets a share of every sale.",
-  "profile.merch_button": "Visit {possessive} shop ↗",
+  "profile.merch_button": "Visit {possessive} shop",
   "profile.merch_via": "Sold through Influxer",
   // Photo credit next to a photo (src/components/ui/PhotoCredit.tsx).
   "photo.credit": "Photo: {credit}",
