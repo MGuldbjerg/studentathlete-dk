@@ -14,7 +14,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  */
 import { siteFromHost } from "./lib/site";
 import { COUNTRIES, DEFAULT_COUNTRY, countryProfile } from "./lib/countries";
-import { routeKeyFromSlug, routeSlug, DEFAULT_LANGUAGE } from "./lib/i18n";
+import { routeKeyFromSlug, routeSlug, DEFAULT_LANGUAGE, sportKeyFromSlugAnyLanguage } from "./lib/i18n";
 
 /** Cookien admin-landevælgeren sætter, og headeren serverkoden læser. */
 const ADMIN_COUNTRY_COOKIE = "sa_country";
@@ -98,6 +98,19 @@ const READER_EDGE_TTL = 300;
  */
 const STATS_EDGE_TTL = 21600;
 
+/**
+ * Article pages (`/<sport>/<slug>`) may sit at the edge for an hour (2026-11-04,
+ * agreed with Mikkel to cut Worker CPU). The cost: a correction to a published
+ * article can take up to an hour to show in a given data centre. Home, hubs and
+ * profiles keep the five minutes.
+ */
+const ARTICLE_EDGE_TTL = 3600;
+
+function isArticlePath(pathname: string): boolean {
+  const segs = pathname.split("/").filter(Boolean);
+  return segs.length === 2 && sportKeyFromSlugAnyLanguage(segs[0], DEFAULT_LANGUAGE) !== null;
+}
+
 function guardCache(req: NextRequest, res: NextResponse): NextResponse {
   if (res.status >= 300 && res.status < 400) return res;
   if (isAdminPath(req.nextUrl.pathname)) {
@@ -109,7 +122,9 @@ function guardCache(req: NextRequest, res: NextResponse): NextResponse {
   // bare vendt om, nu hvor vinduet kan sættes eksplicit i stedet for at være
   // Workers Cache' to timer.
   const first = req.nextUrl.pathname.split("/").filter(Boolean)[0] ?? "";
-  const ttl = routeKeyFromSlug(first) === "stats" ? STATS_EDGE_TTL : READER_EDGE_TTL;
+  const ttl = routeKeyFromSlug(first) === "stats"
+    ? STATS_EDGE_TTL
+    : isArticlePath(req.nextUrl.pathname) ? ARTICLE_EDGE_TTL : READER_EDGE_TTL;
   res.headers.set(
     "Cache-Control",
     `public, max-age=0, s-maxage=${ttl}, stale-while-revalidate=60`,

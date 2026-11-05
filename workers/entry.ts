@@ -44,8 +44,9 @@
 // skal generere bagefter. Målt: exit 1 på første forsøg.
 import worker, { DOQueueHandler, DOShardedTagCache, BucketCachePurge } from "../.open-next/worker.js";
 // Reglerne selv ligger i et modul uden byggeafhængighed, så de kan testes.
-import { bypasses, edgeTtl, isCacheable } from "../src/lib/worker-cache";
+import { bypasses, edgeTtl, isCacheable, isProbe, probeResponse } from "../src/lib/worker-cache";
 import { dynamicFallbackUrl } from "../src/lib/og-static";
+import { ingestTrack, trackAck } from "../src/lib/track-ingest";
 
 // Durable Object-klasserne er en del af den genererede workers offentlige
 // flade. Videreeksporteres de ikke, fejler deployet på manglende bindinger.
@@ -64,9 +65,25 @@ interface WorkerContext {
 
 const handler = {
   async fetch(req: Request, env: unknown, ctx: WorkerContext): Promise<Response> {
+    const url = new URL(req.url);
+
+    // CPU cuts, measured 2026-11-04 (Worker CPU was ~150 % of the monthly
+    // allowance). Both answer without starting Next, which costs 180–600 ms
+    // CPU per call even for a 404 or a one-row INSERT.
+    //
+    // 1) Vulnerability probes (/.env, /wp-admin, /api/stripe …): plain 404.
+    if (isProbe(url.pathname)) return probeResponse();
+    // 2) The analytics beacon, handled here (same code as the Next route).
+    if (url.pathname === "/api/track" && req.method === "POST") {
+      const e = env as Record<string, unknown>;
+      const asn = (req as unknown as { cf?: { asn?: number } }).cf?.asn;
+      await ingestTrack(req, { db: (e.DB ?? null) as Parameters<typeof ingestTrack>[1]["db"], env: e, asn });
+      return trackAck();
+    }
+
     // `/og/…` only reaches the Worker when the static file is NOT in the build
     // (see src/lib/og-static.ts) — render it the old way, same query string.
-    const og = dynamicFallbackUrl(new URL(req.url));
+    const og = dynamicFallbackUrl(url);
     if (og) return worker.fetch(new Request(og.toString(), req), env, ctx);
 
     if (bypasses(req)) return worker.fetch(req, env, ctx);
