@@ -29,10 +29,10 @@ has(m.text, "accompany your articles", "article photos included");
 has(m.text, "roster profile pages", "profile-page photos included (backup, 2026-11-05)");
 has(m.text, "name the photographer", "photographer credit");
 has(m.text, "link to the page the photo came from", "source link");
-// Social posts are part of publishing, not a separate licence (Mikkel 2026-11-05).
-has(m.text, "share it on our own social media accounts", "social sharing included");
-has(m.text, "as part of the same process", "social framed as one process with the site");
-has(m.text, "never a photo on its own", "no standalone social use");
+// Social posts are part of publishing, not a separate licence (Mikkel's wording, 2026-11-05).
+has(m.text, "When we publish an article on our site, we also share it on our own social media accounts", "social tied to publishing");
+has(m.text, "cover social media as well", "social sharing included");
+has(m.text, "sports fans on these platforms", "why social");
 has(m.text, "not celebrities", "human framing");
 has(m.text, "more than willing to elaborate", "offers to elaborate");
 eq(m.text.includes("draw on"), false, "no claim that stories draw on the school's material");
