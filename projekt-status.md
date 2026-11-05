@@ -188,9 +188,10 @@ editing connector — a different thing.
    **Credits live since 29/10 (#86, migration 080 + backfill: 2,905 photos got a source
    link):** «Foto/Photo: {School} Athletics · Kilde/Source» on profiles, «Fotos/Photos: …» under
    school rosters; schools with `declined`/`do_not_contact` show no photo anywhere (read-time
-   gate, `src/lib/photo-permission.ts`); «Fjern foto» in admin removes at once. Open: today's
-   photos are roster HEADSHOTS, which the email does not ask about — Mikkel's call whether
-   they stay; the article-photo pipeline (with photographer) waits for a «yes».
+   gate, `src/lib/photo-permission.ts`); «Fjern foto» in admin removes at once. Grants so far:
+   Newberry, Hofstra (+ Fresno 2023). From 5/11 the email asks for photos on the athletics WEBSITE
+   (articles + roster profile pages; article photo first, profile as backup). Newberry/Hofstra said
+   yes to the old article-only wording — profile photos there need a one-line confirmation.
 2. **Influxer merch links** — 104 verified stores live on profiles (#70); ~17 probable
    (transfers) + ~80 namesakes need his choice. `merch-clicks.ts` for the pitch.
 3. **Fanatics** — declined 28/10 (generic reasons). Appeal to partners@fanatics.com with traffic
