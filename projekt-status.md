@@ -145,8 +145,8 @@ on the 1st (first: 1 Nov). Earlier seasons (`backfill-career.ts`) and bio facts
 the 13 countries in `src/lib/countries/collecting.ts`.
 
 **Social.** `social-post.yml` hourly (Bluesky DK `bluesky`, UK `bluesky_uk`; Instagram; reels
-gated by `REELS_ENABLED_UK`). Facebook disabled (Meta ad restriction). Threads built, inert until
-Mikkel creates the profiles and runs `setup-threads.bat`. Social links carry `?source=`.
+gated by `REELS_ENABLED_UK`). UK Facebook (345 posts) and UK Threads (291) post since early Oct;
+DK has neither. Their human click-through, 30 days to 5 Nov: ZERO (all visits were Meta bots).
 
 **Platform.** Workers Paid. 27/10 (`platform-limits.ts`): D1 reads 0.7 %, writes 3.9 %, requests
 3.6 % of the monthly allowance — **Worker CPU 151 %** (≈ $0.31 over). CPU, not D1, is the cost to
@@ -204,7 +204,7 @@ editing connector — a different thing.
    says AdSense's own index takes 1–2 weeks to reflect changes. GSC (2/11): ~82% of the 1,276
    removed profiles still indexed in Search, last crawled Sept — that is Search, not AdSense.
    Crawl 2/11: no indexed UK page under 200 words except the /athletes hub (167, nav page).
-6. **Threads** — create profiles + Threads use case, then `setup-threads.bat` per market.
+6. **DK Facebook/Threads** — not set up (UK runs). No human clicks from UK FB/Threads yet.
 
 ## Schedule decisions 28/10 (PR #76)
 
