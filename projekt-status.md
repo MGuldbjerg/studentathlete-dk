@@ -81,12 +81,18 @@ Every experiment: own `?source=` tag, ≥ 4 weeks, one metric fixed in advance.
   them HTTP 403). repair-feeds' 3 proposed swaps (Marymount, Alice Lloyd, Brescia) NOT applied —
   college `/rss`, content unverified.
 
-## 🔎 Body-pass starvation fixed (2026-10-31, ef6f1d9)
+## 📸 Article photos (2026-11-05) — LIVE, first one by hand
 
-- Discovery's body pass (opening feed articles to find names below the headline) used its 600 pages in a fixed order and ran out around school 150 of 200. **174 of 638 schools with UK/DK athletes (750 athletes) had never had an article opened**; those athletes only got stories when named in a headline or summary.
-- Fix (`pipeline/discover/body-budget.ts`): site schools first within a run, an even share of the remaining pages per school, items newest first. `check-sources.ts --school <id>` checks one school now.
-- Found by Josh Lane (RMU, UK): program record of 18 career shutouts, in the body of "RMU Earns a Point … at Cleveland State". Run once for RMU → story 16848 (also 16845 Abdul Kamara UK, 16846 Filip Jeppesen DK). Desk picks it up at its next run.
-- To check: `SELECT count(*) FROM feed_items_seen WHERE school_id=…` should be > 0 for most site schools within a few days.
+- Migration 085: `articles.photo_url/photo_photographer/photo_school/photo_source_url`. The article
+  hero shows the photo + «Photo: {photographer} · {School} Athletics · Source» when the school's
+  `photo_permission` allows it (read at render time, `src/lib/article-photo.ts`), else the card.
+  Card stays og:image + list thumbnail. Photos live in R2 `studentathlete-media/photos/`.
+- First: article 1038 (Meadows + McTiffin, All-CAA Second Team; McTiffin `featured`), photo by
+  Matteo Bracco from Hofstra's 13 Sep Brown report, set by hand. Picking/crediting photos
+  automatically (the pipeline) is NOT built — Mikkel finds photos by hand for now.
+- Open: discovery reaches a school only every ~1–2 days (200 of ~800 per run, runs 5–10 h apart
+  despite the 2 h cron). FSC's All-SSC release (Ollie Stephens Freshman of the Year) waited until
+  run by hand: `check-sources.ts --school 1435`; `build-factsheet.ts --story N` now exists too.
 
 ## 🤖 Bot traffic + desk source cut (2026-10-30)
 
