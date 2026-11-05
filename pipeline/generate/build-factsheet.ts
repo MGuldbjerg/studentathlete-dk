@@ -110,7 +110,7 @@ const SCHEMA_HINT = `{
   "box_score_url": string|null   // if the source links a box score / stats page
 }`;
 
-function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxScore: boolean; boxScoreBudget: number; paceMs: number } {
+function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxScore: boolean; boxScoreBudget: number; paceMs: number; storyId: number | null } {
   const args = process.argv.slice(2);
   // 20 → 60 (2026-08-26): faktaark-bygningen fodrer generate-articles, og med
   // 12 artikler pr. kørsel × flere kørsler skal der være ark nok at vælge
@@ -124,6 +124,8 @@ function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxS
   // 60 stories back to back with no pause blow them in under a minute, however
   // ample the daily quota — this broke factsheet building 4-8 September 2026.
   let paceMs = 2000;
+  // One story now, like generate-articles.ts --story: the queue order may not reach it this run.
+  let storyId: number | null = null;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--limit" && args[i + 1]) limit = parseInt(args[i + 1], 10) || 20;
     if (args[i] === "--max-age-days" && args[i + 1]) maxAgeDays = parseInt(args[i + 1], 10) || 14;
@@ -131,8 +133,9 @@ function parseArgs(): { limit: number; maxAgeDays: number; dryRun: boolean; boxS
     if (args[i] === "--no-boxscore") boxScore = false;
     if (args[i] === "--boxscore-budget" && args[i + 1]) boxScoreBudget = parseInt(args[i + 1], 10) || 8;
     if (args[i] === "--pace-ms" && args[i + 1]) paceMs = Math.max(0, parseInt(args[i + 1], 10) || 0);
+    if (args[i] === "--story" && args[i + 1]) storyId = parseInt(args[i + 1], 10) || null;
   }
-  return { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget, paceMs };
+  return { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget, paceMs, storyId };
 }
 
 function sleep(ms: number): Promise<void> {
@@ -402,7 +405,7 @@ export async function buildFactSheet(
 }
 
 async function main(): Promise<void> {
-  const { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget, paceMs } = parseArgs();
+  const { limit, maxAgeDays, dryRun, boxScore, boxScoreBudget, paceMs, storyId } = parseArgs();
   const db = createD1Client();
   const chain = new ProviderChain(db);
 
@@ -425,9 +428,10 @@ async function main(): Promise<void> {
        -- Collecting countries have no site: their stories wait, no LLM spent.
        AND ${siteCountrySql()}
        AND datetime(s.discovered_at, '+' || ? || ' days') >= datetime('now')
+       ${storyId ? "AND s.id = ?" : ""}
      ORDER BY (s.content_raw IS NOT NULL) DESC, s.fact_attempts ASC, s.relevance_score DESC
      LIMIT ?`,
-    [maxAgeDays, limit],
+    [maxAgeDays, ...(storyId ? [storyId] : []), limit],
   );
   const stories = result.results;
   console.log(`Bygger faktaark for ${stories.length} historie(r)${dryRun ? " (DRY-RUN)" : ""}...\n`);
