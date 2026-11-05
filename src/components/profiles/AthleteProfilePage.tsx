@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { PhotoCredit } from "@/components/ui/PhotoCredit";
 import { creditedSchoolName } from "@/lib/photo-credit";
 import { ShareBar } from "@/components/ui/ShareBar";
+import { FanShop } from "@/components/profiles/FanShop";
 import { sourceParam } from "@/lib/routes";
 import type { AthleteEventRow } from "@/lib/athlete-events";
 import { buildProfileProse } from "@/lib/profile-prose";
@@ -209,6 +210,10 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
               labels={{ heading: t("share.heading", lang), native: t("share.native", lang),
                 copy: t("share.copy", lang), copied: t("share.copied", lang) }} />
 
+            {athlete.merch_url && (
+              <FanShop url={athlete.merch_url} name={athlete.name} slug={athlete.slug} lang={lang} />
+            )}
+
             {schoolmates.length > 0 && (
               <section className="mt-8">
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-muted mb-3">
@@ -240,22 +245,6 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
               </a>
             )}
 
-            {/* The athlete's own merchandise store (Influxer), verified by name
-                and school (pipeline/profiles/merch-stores.ts). Clicks are
-                counted as 'merch'; the referrer and UTM tags are kept so
-                Influxer can see the traffic too (Mikkel, 2026-10-27). */}
-            {athlete.merch_url && (
-              <div className="mt-4">
-                <a href={`${athlete.merch_url}?utm_source=studentathlete&utm_medium=referral&utm_campaign=profile`}
-                  target="_blank" rel="noopener nofollow"
-                  data-track="merch" data-track-target={athlete.slug}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.1em] uppercase hover:underline"
-                  style={{ color: "#BF0A30" }}>
-                  {t("profile.merch", lang, { name: athlete.name })}
-                </a>
-                <p className="text-[11px] text-muted mt-1">{t("profile.merch_note", lang)}</p>
-              </div>
-            )}
           </aside>
 
           {/* ── Hoved ────────────────────────────────────────────── */}
