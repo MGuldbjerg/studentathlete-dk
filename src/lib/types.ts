@@ -36,6 +36,8 @@ export interface Article {
   card_ready?: number | boolean | null;
   /** The same for the Instagram card; only post-social sets it (its queue gate checked it). */
   ig_card_ready?: number | boolean | null;
+  /** articles.country — the site the article belongs to (admin previews in its language). */
+  country?: string | null;
   /** The school's photo for the page hero (migration 085; src/lib/article-photo.ts). */
   photo_url?: string | null;
   photo_photographer?: string | null;

@@ -44,6 +44,12 @@ sqlite.exec(`
     NULL, 'UK', 1, 1, datetime('now'));
   INSERT INTO social_posts (id, article_id, channel, status) VALUES (1, 1, 'test-share', 'queued');
   INSERT INTO social_posts (id, article_id, channel, status) VALUES (2, 1, 'test-ig', 'queued');
+  -- The queue reads the article's photo too (migration 085, src/lib/article-photo.ts).
+  ALTER TABLE articles ADD COLUMN photo_url TEXT;
+  ALTER TABLE articles ADD COLUMN photo_photographer TEXT;
+  ALTER TABLE articles ADD COLUMN photo_school TEXT;
+  ALTER TABLE articles ADD COLUMN photo_source_url TEXT;
+  CREATE TABLE schools (name TEXT, photo_permission TEXT, common_name TEXT);
 `);
 const db = {
   async query<T>(sql: string, params: unknown[] = []) {

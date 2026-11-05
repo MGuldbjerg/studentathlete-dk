@@ -8,7 +8,7 @@
  */
 import type { Article } from "./types";
 import { photoAllowed } from "./photo-permission";
-import { creditedSchoolName, safeSourceUrl, type PhotoCreditInput } from "./photo-credit";
+import { creditedSchoolName, photoCreditParts, safeSourceUrl, type PhotoCreditInput } from "./photo-credit";
 import { getArticleCoverUrl } from "./seo";
 
 /** The article fields this needs; the photo_* columns come from ARTICLE_SELECT. */
@@ -46,4 +46,35 @@ export function articleHero(article: ArticlePhotoFields): ArticleHero {
     };
   }
   return { src: getArticleCoverUrl(article), credit: null };
+}
+
+/**
+ * The photo columns as SQL, for queries outside ARTICLE_SELECT (the social queue).
+ * The school lookups run only for an article that has a photo.
+ */
+export function articlePhotoSql(alias: string): string {
+  return `${alias}.photo_url, ${alias}.photo_photographer, ${alias}.photo_school, ${alias}.photo_source_url,
+  CASE WHEN ${alias}.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.photo_permission FROM schools ps WHERE ps.name = ${alias}.photo_school LIMIT 1) END AS photo_school_permission,
+  CASE WHEN ${alias}.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.common_name FROM schools ps WHERE ps.name = ${alias}.photo_school LIMIT 1) END AS photo_school_common_name`;
+}
+
+/**
+ * The photo a social post carries, with its credit as plain text
+ * ("Photo: Hofstra Athletics") — captions do not link, so no «Source» label.
+ * Null → the post uses its generated card, as before.
+ *
+ * Instagram takes JPEG only, so a non-JPEG photo is skipped there (`jpegOnly`).
+ */
+export function articlePostPhoto(
+  article: ArticlePhotoFields,
+  lang: string,
+  jpegOnly: boolean,
+): { imageUrl: string; credit: string } | null {
+  const hero = articleHero(article);
+  if (!hero.credit) return null;
+  if (jpegOnly && !/\.jpe?g(\?|$)/i.test(hero.src)) return null;
+  const credit = photoCreditParts({ ...hero.credit, sourceUrl: null, lang }).text;
+  return credit ? { imageUrl: hero.src, credit } : null;
 }

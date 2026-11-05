@@ -41,6 +41,20 @@ export interface PostCopyInput {
    */
   sport?: string | null;
   country?: string;
+  /**
+   * The photo credit when the post carries a school's photo instead of our card
+   * ("Photo: Hofstra Athletics", src/lib/article-photo.ts). Absent → no line.
+   */
+  photoCredit?: string | null;
+}
+
+/** Characters the credit line takes, with its blank line. */
+function creditRoom(credit: string | null | undefined): number {
+  return credit ? [...credit].length + 2 : 0;
+}
+
+function withCredit(body: string, credit: string | null | undefined): string {
+  return credit ? `${body}\n\n${credit}` : body;
 }
 
 /**
@@ -75,8 +89,9 @@ export function buildPostText(input: PostCopyInput, platform: Platform): string 
       // Tags'ene får deres plads FØR teksten fylder resten. Lagt i enden ville
       // afkortningen spise dem, og et halvt hashtag er hverken tekst eller tag.
       const line = hashtagLine(hashtagsFor(input.sport, input.country));
-      if (!line) return withDescription(input.title, input.description, 300);
-      const body = withDescription(input.title, input.description, 300 - line.length - 2);
+      const c = input.photoCredit;
+      if (!line) return withCredit(withDescription(input.title, input.description, 300 - creditRoom(c)), c);
+      const body = withCredit(withDescription(input.title, input.description, 300 - line.length - 2 - creditRoom(c)), c);
       return `${body}
 
 ${line}`;
@@ -85,15 +100,15 @@ ${line}`;
       return `${truncate(input.title, 250)}\n\n${input.url}`;
     case "facebook":
       // Facebook har rigelig plads, og linket sendes som sit eget felt.
-      return withDescription(input.title, input.description, 2000);
+      return withCredit(withDescription(input.title, input.description, 2000 - creditRoom(input.photoCredit)), input.photoCredit);
     case "instagram": {
       // Grænsen er 2.200 tegn; bio-linjen skal ALTID med, så den får sin plads
       // reserveret før teksten fylder resten.
       const bio = languagePack(input.lang).ui["social.link_in_bio"];
-      const body = withDescription(input.title, input.description, 2200 - bio.length - 2);
+      const body = withCredit(withDescription(input.title, input.description, 2200 - bio.length - 2 - creditRoom(input.photoCredit)), input.photoCredit);
       return `${body}\n\n${bio}`;
     }
     case "threads":
-      return withDescription(input.title, input.description, 500);
+      return withCredit(withDescription(input.title, input.description, 500 - creditRoom(input.photoCredit)), input.photoCredit);
   }
 }

@@ -1,3 +1,4 @@
+import { articleHero } from "@/lib/article-photo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -294,6 +295,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       // Brug det genererede 16:9 kampkort som og:image (skarpt + ensartet),
       // ikke et evt. stamplet portræt-headshot fra cover_image_url.
       const ogImage = absoluteUrl(base, getArticleCoverUrl(article)); // absolute already when cards are in R2
+      // A school's photo (migration 085) is the share image too: Facebook and Threads
+      // build their preview from this tag. Its size is not stored, so none is claimed.
+      const hero = articleHero(article);
+      const ogImages = hero.credit
+        ? [{ url: hero.src, alt: article.title }]
+        : [{ url: ogImage, width: 1200, height: 630, alt: article.title }];
 
       // Artiklens egne ord frem for skabelonen: `summary` hvis den findes,
       // ellers artiklens første afsnit — begge klippet til det Google viser.
@@ -321,7 +328,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
         openGraph: {
           title: article.title,
           description,
-          images: [{ url: ogImage, width: 1200, height: 630, alt: article.title }],
+          images: ogImages,
           type: "article",
           publishedTime: article.published_at ?? undefined,
           modifiedTime: article.updated_at,
@@ -336,7 +343,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
           card: "summary_large_image",
           title: article.title,
           description,
-          images: [ogImage],
+          images: [ogImages[0].url],
         },
         alternates: { canonical: canonicalUrl },
         robots: await profileRobots(meetsWordFloor(article.index_words, site.code)),
