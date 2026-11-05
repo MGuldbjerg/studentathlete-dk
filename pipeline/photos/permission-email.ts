@@ -8,8 +8,9 @@
  * backup, and is far more likely to show the right athlete (Mikkel 2026-11-05; until then the
  * ask was article photos only, 2026-10-21). Social posts are covered as part of the same
  * publishing process — a post shares a published page, never a standalone photo — and the email
- * promises the same credit there. pipeline/social carries NO photo credit today: add it before a
- * school photo ever goes into a social card (Mikkel 2026-11-05).
+ * promises the same credit there. Kept true by `articlePostPhoto` (src/lib/article-photo.ts):
+ * a post carrying a school photo gets «Photo: … Athletics» in its text on every channel
+ * (Mikkel 2026-11-05).
  * Plain text on purpose (cold one-to-one mail lands in spam less than a designed mail).
  */
 
