@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCheckData } from "@/lib/admin";
+import { getArticleById, getCheckData } from "@/lib/admin";
+import { AdminArticleImage } from "@/components/admin/AdminArticleImage";
 import { buildCheckModel, type CheckFinding } from "@/lib/check-view";
 import { AdminActions } from "../../[id]/AdminActions";
 import { timelineLine } from "@/lib/timeline-entry";
@@ -30,7 +31,7 @@ export default async function CheckPage({ params }: { params: Promise<{ id: stri
   const id = parseInt(idStr, 10);
   if (isNaN(id)) notFound();
 
-  const data = await getCheckData(id);
+  const [data, article] = await Promise.all([getCheckData(id), getArticleById(id)]);
   if (!data) notFound();
 
   const model = buildCheckModel({
@@ -83,6 +84,8 @@ export default async function CheckPage({ params }: { params: Promise<{ id: stri
             {data.review.summary}
           </p>
         )}
+
+        {article && <AdminArticleImage article={article} className="mb-3" />}
 
         <CheckView model={model} />
       </div>

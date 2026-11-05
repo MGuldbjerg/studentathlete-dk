@@ -4,6 +4,7 @@ import { getArticleById } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
 import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminActions } from "./AdminActions";
+import { AdminArticleImage } from "@/components/admin/AdminArticleImage";
 import { timelineLine } from "@/lib/timeline-entry";
 
 import { ADMIN_LANG, sportLabel } from "@/lib/i18n";
@@ -83,6 +84,8 @@ export default async function AdminArticlePage({
             <span className="shrink-0">↗</span>
           </a>
         )}
+
+        <AdminArticleImage article={article} className="mb-6" />
 
         {/* Artikelindhold */}
         <ArticleBody content={article.content} />
