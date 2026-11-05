@@ -1,6 +1,7 @@
 import type { AwardTally } from "@/lib/award-tally";
 import { awardLabel } from "@/lib/athlete-events";
 import { sportLabel, routePath, t } from "@/lib/i18n";
+import { ExternalArrow } from "@/components/ui/ExternalArrow";
 import { getAthleteUrl, formatDate } from "@/lib/seo";
 
 /** The awards page's slug under the stats page, per language: /statistics/awards, /statistik/priser. */
@@ -86,7 +87,7 @@ export function AwardsView({ tally, lang }: { tally: AwardTally; lang: string })
                     <td className="py-2 pr-3">{awardLabel(r.award, lang)}</td>
                     <td className="py-2 pr-3 text-muted">{r.conference ?? "—"}</td>
                     <td className="py-2 text-right">
-                      {r.source ? <a href={r.source} target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: "#BF0A30" }}>↗</a> : null}
+                      {r.source ? <a href={r.source} target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: "#BF0A30" }}><ExternalArrow /></a> : null}
                     </td>
                   </tr>
                 ))}
