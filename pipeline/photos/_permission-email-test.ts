@@ -24,9 +24,11 @@ const m = buildPermissionEmail({ schoolName: "NC State", contactName: "Jane Doe"
 eq(m.subject, "Photo permission for international student-athletes at NC State", "subject");
 has(m.text, "Hello Jane,", "first-name greeting");
 has(m.text, "all international student-athletes at NC State, in every sport", "school-wide ask");
-has(m.text, "photos that accompany articles about these athletes", "article photos, not headshots");
+has(m.text, "photos of these athletes from your athletics website", "website photos, not only article photos");
+has(m.text, "accompany your articles", "article photos included");
+has(m.text, "roster profile pages", "profile-page photos included (backup, 2026-11-05)");
 has(m.text, "name the photographer", "photographer credit");
-has(m.text, "link to the source article", "source link");
+has(m.text, "link to the page the photo came from", "source link");
 has(m.text, "not celebrities", "human framing");
 has(m.text, "more than willing to elaborate", "offers to elaborate");
 eq(m.text.includes("draw on"), false, "no claim that stories draw on the school's material");
