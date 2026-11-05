@@ -191,7 +191,8 @@ editing connector — a different thing.
    gate, `src/lib/photo-permission.ts`); «Fjern foto» in admin removes at once. Grants so far:
    Newberry, Hofstra (+ Fresno 2023). From 5/11 the email asks for photos on the athletics WEBSITE
    (articles + roster profile pages; article photo first, profile as backup). Newberry/Hofstra said
-   yes to the old article-only wording: ARTICLE PHOTOS ONLY there (Mikkel 5/11: no follow-up).
+   yes to the old article-only wording: ARTICLE PHOTOS ONLY there until Mikkel's follow-up
+   (he sends it later) confirms profile photos; then record it with `--respond`.
 2. **Influxer merch links** — 104 verified stores live on profiles (#70); ~17 probable
    (transfers) + ~80 namesakes need his choice. `merch-clicks.ts` for the pitch.
 3. **Fanatics** — declined 28/10 (generic reasons). Appeal to partners@fanatics.com with traffic
