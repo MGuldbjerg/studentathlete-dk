@@ -237,8 +237,9 @@ editing connector — a different thing.
   visitors. Before: «related» was empty under 47 % UK / 36 % DK of articles. Run
   `npx tsx pipeline/report/social-retention.ts` (GA4 Data API, read-only; equal windows around
   29 Oct). Baseline 15–28 Oct, social sessions: UK 1,156 (2× the fortnight before), 29 % engaged,
-  1.01 views/session, 2 s engaged time; DK 14. Reminder task fires 5 Nov 09:00. Small numbers —
-  read the direction, not the decimals.
+  1.01 views/session, 2 s engaged time; DK 14. ⚠️ That baseline is mostly META BOTS: our own
+  events show ~620 "Facebook" views 22–30 Oct from US/SE/IE (Meta data centres), zero UK, zero
+  clicks; they stopped when #95 dropped Meta's ASNs (30 Oct). Compare human traffic only.
 
 ## Standing decisions
 
