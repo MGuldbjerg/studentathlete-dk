@@ -1,140 +1,22 @@
-import { NextResponse } from "next/server";
-import { currentLanguage, currentSite } from "@/lib/site-server";
 import type { NextRequest } from "next/server";
-import { isbot } from "isbot";
-import { getDB, getEnv } from "@/lib/db";
-import { classify, deviceFromUA, hashVisitor, isClickKind, isDatacenterAsn, normalizeSource } from "@/lib/analytics";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { isKnownHost } from "@/lib/site";
+import { getDB, getEnv } from "@/lib/db";
+import { ingestTrack, trackAck } from "@/lib/track-ingest";
 
-// Værterne kommer fra landeprofilerne (src/lib/site.ts) — ikke en konstant her.
-const NO_CONTENT = new NextResponse(null, { status: 204 });
-
-/** Tom 204 — vi lækker aldrig om en hændelse blev gemt. */
-function ack() {
-  return NO_CONTENT;
-}
-
+/**
+ * The analytics beacon. In production the Worker entry (`workers/entry.ts`)
+ * answers POST /api/track itself and this route is not reached; it stays for
+ * local dev (`npm run dev`), where there is no Worker entry. Both call
+ * `ingestTrack`, so the logic exists once.
+ */
 export async function POST(req: NextRequest) {
+  let asn: number | undefined;
   try {
-    const ua = req.headers.get("user-agent") ?? "";
-
-    // 1) Bots der eksekverer JS og bevarer bot-UA — frasortér.
-    if (isbot(ua)) return ack();
-
-    // 1b) Bots that run JS with a normal browser UA, recognised by their network
-    // (Meta's link checkers, cloud servers). Unknown network → keep the visit.
-    try {
-      const { cf } = await getCloudflareContext({ async: true });
-      if (isDatacenterAsn((cf as { asn?: number } | undefined)?.asn)) return ack();
-    } catch {
-      /* no Cloudflare context (local dev) */
-    }
-
-    // 2) Same-origin-værn: afvis hvis Origin findes og ikke matcher os.
-    const origin = req.headers.get("origin");
-    if (origin) {
-      try {
-        const h = new URL(origin).hostname;
-        const ok = isKnownHost(h) || h === "localhost";
-        if (!ok) return ack();
-      } catch {
-        return ack();
-      }
-    }
-
-    const body = (await req.json().catch(() => null)) as {
-      type?: string;
-      path?: string;
-      referrer?: string;
-      clickKind?: string;
-      clickTarget?: string;
-      source?: string;
-    } | null;
-    if (!body || typeof body.path !== "string") return ack();
-
-    const path = body.path.slice(0, 512);
-    if (path.startsWith("/admin") || path.startsWith("/api")) return ack();
-
-    const type = body.type;
-    if (type !== "pageview" && type !== "click") return ack();
-    if (type === "click" && !isClickKind(body.clickKind)) return ack();
-
-    const db = await getDB();
-    if (!db) return ack();
-
-    // Server udleder selv sidetype/sport (stol ikke på klienten) — og gør det
-    // på det site kaldet kom FRA: sport-sluggen i stien er sitets, ikke
-    // standardsitets.
-    const { pageType, sport } = classify(path, await currentLanguage());
-    // Which site the visit landed on. `country` below is the VISITOR's
-    // country, not the site's (migration 061).
-    const site = (await currentSite()).code;
-    const country = req.headers.get("cf-ipcountry");
-    const device = deviceFromUA(ua);
-    const ip = req.headers.get("cf-connecting-ip") ?? "0.0.0.0";
-
-    const env = await getEnv();
-
-    // Intern trafik: ekskludér konfigurerede IP'er (fx ejerens eget netværk).
-    // Sat som Cloudflare-secret ANALYTICS_EXCLUDE_IPS (kommasepareret) — ikke i repoet.
-    const excludeRaw = (env.ANALYTICS_EXCLUDE_IPS as string | undefined) ?? "";
-    if (excludeRaw) {
-      const excluded = excludeRaw.split(",").map((s) => s.trim()).filter(Boolean);
-      if (excluded.includes(ip)) return ack();
-    }
-
-    const salt = (env.ANALYTICS_SALT as string | undefined) ?? "studentathlete-dev-salt";
-    const visitorHash = await hashVisitor(ip, ua, salt);
-
-    // Ekstern referrer-host (kun pageviews; intern/tom referrer ignoreres).
-    let referrer: string | null = null;
-    if (type === "pageview" && body.referrer) {
-      try {
-        const h = new URL(body.referrer).hostname;
-        // Egne værter er ikke en henvisning — kun eksterne gemmes.
-        if (h && !isKnownHost(h)) referrer = h.slice(0, 255);
-      } catch {
-        /* ignorér ugyldig referrer */
-      }
-    }
-
-    const clickKind = type === "click" ? body.clickKind! : null;
-    const clickTarget =
-      type === "click" && typeof body.clickTarget === "string"
-        ? body.clickTarget.slice(0, 300)
-        : null;
-
-    // Trafikkilde (?kilde=/utm_source) — kun på landings-sidevisningen, og kun
-    // som saniteret kanalnavn, aldrig rå tekst fra URL'en.
-    const source = type === "pageview" ? normalizeSource(body.source) : null;
-
-    const values = [type, path, pageType, sport, referrer, country, device, visitorHash, clickKind, clickTarget, source];
-    try {
-      await db
-        .prepare(
-          `INSERT INTO events
-             (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source, site)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(...values, site)
-        .run();
-    } catch {
-      // Deployed before migration 061 ran: keep the visit, lose only its site.
-      // Without this, every page view would be dropped by the catch below.
-      await db
-        .prepare(
-          `INSERT INTO events
-             (event_type, path, page_type, sport, referrer, country, device_type, visitor_hash, click_kind, click_target, source)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(...values)
-        .run();
-    }
-
-    return ack();
+    const { cf } = await getCloudflareContext({ async: true });
+    asn = (cf as { asn?: number } | undefined)?.asn;
   } catch {
-    // Analytics må aldrig fejle synligt.
-    return ack();
+    /* no Cloudflare context (local dev) */
   }
+  await ingestTrack(req, { db: await getDB(), env: await getEnv(), asn });
+  return trackAck();
 }
