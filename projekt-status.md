@@ -12,6 +12,18 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 ---
 
 
+## 🏆 Award fast lane (2026-11-06) — LIVE
+
+- `award-fast-lane.yml` runs after every discovery run (every 2 h). A check that makes no model calls
+  (`pipeline/fix/award-fast-lane.ts`, `isSeasonAward()` in `award-section.ts`) finds fresh UK
+  season-award stories; drafting, the Opus editor (`--stories`) and the publish (`--site-gap`: 17–23 min
+  from the site's last publish) run only for those. At most 5 per run. Off switch: repo var `AWARD_FAST_LANE=off`.
+- Why: drafting makes at most 10 drafts per run and GitHub starts the "07:30/19:30" runs ~8 h late
+  (~15:35/00:30 UTC). 69 stories were ready to draft; six UK award stories were waiting on 6/11.
+- First run 6/11: 5 drafts → 2 published (Keay #1059, Williams #1060), 3 under 200 words → timeline lines.
+  Ginny Lackey #1054 published by hand the same day.
+- Open: 2,060 stories without a fact sheet (~20 built per run) — that backlog slows all non-award stories.
+
 ## 🧩 UK profiles approved on the template level (2026-11-04) — LIVE
 
 Mikkel: «I want the UK profiles to be approved on a template level.» An audit of all 2,908 UK
