@@ -29,14 +29,17 @@
  * `--public-log` (the auto-editor's CI run; the repo is public) prints ids only,
  * never a title — a rejected draft's title is draft text.
  *
- *   npx tsx pipeline/fix/apply-draft-decisions.ts <decisions.json> [--dry-run] [--no-spacing] [--public-log]
+ * `--site-gap` also spaces the FIRST publish from the site's last one (any
+ * run): the award fast lane uses it, since the midday editor may be mid-batch.
+ *
+ *   npx tsx pipeline/fix/apply-draft-decisions.ts <decisions.json> [--dry-run] [--no-spacing] [--public-log] [--site-gap]
  */
 
 import { readFileSync, statSync } from "node:fs";
 import { createD1Client } from "../lib/d1-client";
 import { createCardStore, type CardStore } from "../lib/card-store";
 import { renderCards } from "../render/render-cards";
-import { renderThenPublish } from "./publish-order";
+import { firstPublishWaitSeconds, renderThenPublish } from "./publish-order";
 import { generateSlug } from "../../src/lib/slug";
 import {
   REJECT_DELETE_SQL,
@@ -68,6 +71,7 @@ const [file, ...flags] = process.argv.slice(2);
 const DRY = flags.includes("--dry-run");
 const NO_SPACING = flags.includes("--no-spacing");
 const PUBLIC_LOG = flags.includes("--public-log");
+const SITE_GAP = flags.includes("--site-gap");
 const shown = (title: string) => (PUBLIC_LOG ? "" : `: ${title}`);
 
 const GAP_MIN_S = 17 * 60;
@@ -225,6 +229,16 @@ async function main() {
       params.push(d.content);
     }
 
+    if (!publishedAny && SITE_GAP && !NO_SPACING) {
+      const last = (await db.query<{ at: string | null }>(
+        "SELECT MAX(published_at) AS at FROM articles WHERE published = 1 AND country = ?", [row.country],
+      )).results[0]?.at ?? null;
+      const wait = firstPublishWaitSeconds(last, randomGapSeconds());
+      if (wait > 0) {
+        console.log(`  … site published ${last} UTC — waiting ${Math.round(wait / 60)} min first`);
+        if (!DRY) await sleep(wait);
+      }
+    }
     if (publishedAny && !NO_SPACING) {
       const gap = randomGapSeconds();
       const at = new Date(Date.now() + gap * 1000).toLocaleTimeString("da-DK");

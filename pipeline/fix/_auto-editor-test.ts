@@ -1,5 +1,5 @@
 /** Tests for the automatic editor's guardrails. Run: npx tsx pipeline/fix/_auto-editor-test.ts */
-import { buildEditorPack, guard, overdue, parseVerdict, type EditorRow } from "./auto-editor";
+import { buildEditorPack, guard, overdue, parseIdList, parseVerdict, type EditorRow } from "./auto-editor";
 
 let pass = 0, fail = 0;
 function expect(name: string, got: unknown, want: unknown) {
@@ -65,6 +65,13 @@ expect("overdue: failed call still holds (not a doubt)", guard(old, null, NOW).a
 const latePack = buildEditorPack(old, [], NOW);
 expect("overdue pack offers no hold", latePack.includes('{"action":"hold"'), false);
 expect("fresh pack offers hold", buildEditorPack(row, [], NOW).includes('{"action":"hold"'), true);
+
+// --stories (the award fast lane)
+expect("no --stories = no filter", parseIdList(undefined), null);
+expect("ids parsed", parseIdList("20686, 18195"), [20686, 18195]);
+let threw = false;
+try { parseIdList("1) OR (1=1"); } catch { threw = true; }
+expect("non-integer ids refused (they go into SQL)", threw, true);
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -3,7 +3,7 @@
  * Run: npx tsx pipeline/generate/_award-section-test.ts
  */
 import type { FactSheet } from "./build-factsheet";
-import { cleanSection, findParent, isWeeklyAward, nameCore, sectionPrompt, type ParentCandidate } from "./award-section";
+import { cleanSection, findParent, isSeasonAward, isWeeklyAward, nameCore, sectionPrompt, type ParentCandidate } from "./award-section";
 import { appendAddition, updateLabel } from "../../src/lib/article-addition";
 
 let pass = 0, fail = 0;
@@ -68,6 +68,38 @@ ok(cleanSection('{"text": "x"}') === null, "JSON is not a section");
 ok(cleanSection("x".repeat(800)) === null, "an essay is not a section");
 const p = sectionPrompt("en", "Martin made three saves.", "- Named RMAC Goalkeeper of the Week");
 ok(p.prompt.includes("already told") && p.prompt.includes("Martin made three saves.") && p.prompt.includes("RMAC"), "the prompt carries the article as already told and the new facts");
+
+// ─── Which stories are season awards (the fast lane) ────────────────────────
+for (const h of [
+  "Women's Soccer: Dukes Earn Three Major Awards, Six Named All-Sun Belt",
+  "Aiko Price Named Rookie Of The Year, Five Total Huskies Honored In CAA Regular Season Awards",
+  "Azouer, Hendriks and Pigford Named All-GSC Second Team",
+  "Barratt, Kuefler, Penty and Halkes earn America East all-conference honors",
+  "Bjork earns MEC Defensive Player of the Year; Falcons Land Eight All-MEC Accolades",
+  "Elena Perez Alejandro Named Second Team All-BIG EAST",
+  "Five CSI Men's Soccer players named to All-Region team",
+  "Eckert Named to America East All-Rookie Team",
+  "Billson & Blumentritt Earn ITA Regional Titles, All-American Honors",
+  "FIVE TIGERS NAMED TO GAC/MIAA ALL CONFERENCE TEAMS",
+  "Jessica Jensen Named First Team All-CACC for Women's Soccer; Miley Jones and Maria Fonseca Tabbed Second Team",
+]) ok(isSeasonAward(h), `season award: «${h}»`);
+for (const h of [
+  "Martin tabbed RMAC Goalkeeper of the Week",
+  "Abby Droner and Alexa Hadley Earn BIG EAST Weekly Awards",
+  "Hidalgo Selected As ACC Preseason Player Of The Year",
+  "Bolanga Voted to Preseason All-UAC Team",
+  "Anderson Named to Ray Guy Award Midseason Watch List",
+  "Esme Daplyn and Connor Foley Named to Academic All-Ivy Team",
+  "Brandeis places 33 on Fall UAA All-Academic team",
+  "Genoulaz Earns American Conference Golfer of the Month Award",
+  "Chen, Little Give Rebels Mountain West Monthly Award Sweep Again",
+  "Jefferson Advances at ITA All-American Championships",
+  "Cummings tops field in 500 Free, Sycamores put three new marks on all-time performance list",
+  "Amy Wall Named to 2025-26 All-Sun Belt Community Service Team",
+  "Great Danes Ready for America East Championships",
+  "Aarflot Earns TopDrawerSoccer Team of the Week Honorable Mention Honors",
+]) ok(!isSeasonAward(h), `not a season award: «${h}»`);
+ok(!isSeasonAward(null), "no headline is not a season award");
 
 // ─── Applying it ────────────────────────────────────────────────────────────
 const when = new Date("2026-10-07T10:00:00Z");

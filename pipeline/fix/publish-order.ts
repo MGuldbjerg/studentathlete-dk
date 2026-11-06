@@ -47,3 +47,16 @@ export async function renderThenPublish(
   await steps.publish();
   return { cardError };
 }
+
+/**
+ * How long the FIRST publish of a run must wait so it lands at least `gapS`
+ * after the site's last publish. The 17–23 min spacing (Mikkel, 2026-09-24) is
+ * per site, not per run: the award fast lane can publish while the midday
+ * editor run is mid-batch. `lastPublishedAt` is a D1 UTC timestamp or null.
+ */
+export function firstPublishWaitSeconds(lastPublishedAt: string | null, gapS: number, now = Date.now()): number {
+  if (!lastPublishedAt) return 0;
+  const t = Date.parse(lastPublishedAt.replace(" ", "T") + (/[zZ]|[+-]\d\d:?\d\d$/.test(lastPublishedAt) ? "" : "Z"));
+  if (!Number.isFinite(t)) return 0;
+  return Math.max(0, Math.ceil(gapS - (now - t) / 1000));
+}

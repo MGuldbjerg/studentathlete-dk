@@ -33,7 +33,10 @@
  * and text go to Discord (private) and to the decisions file in the runner's
  * temp dir, which dies with the runner.
  *
- *   npx tsx pipeline/fix/auto-editor.ts --country UK --out /tmp/decisions.json [--dry-run] [--limit N]
+ *   npx tsx pipeline/fix/auto-editor.ts --country UK --out /tmp/decisions.json [--dry-run] [--limit N] [--stories 1,2]
+ *
+ * --stories: only drafts written from these story ids — the award fast lane
+ * (award-fast-lane.yml) decides what it just drafted, nothing else.
  */
 
 import { writeFileSync } from "node:fs";
@@ -60,6 +63,14 @@ export function overdue(r: Pick<EditorRow, "created_at">, now = Date.now()): boo
   if (!r.created_at) return false;
   const t = Date.parse(r.created_at.replace(" ", "T") + (/[zZ]|[+-]\d\d:?\d\d$/.test(r.created_at) ? "" : "Z"));
   return Number.isFinite(t) && now - t > DEADLINE_DAYS * 86_400_000;
+}
+
+/** "1,2,3" → [1,2,3]; empty or absent → null (no filter). Integers only: it goes into SQL. */
+export function parseIdList(raw: string | undefined): number[] | null {
+  if (!raw) return null;
+  const ids = raw.split(",").map((x) => x.trim()).filter(Boolean);
+  if (!ids.every((x) => /^\d+$/.test(x))) throw new Error(`--stories takes ids like 1,2,3 — got «${raw}»`);
+  return ids.length ? ids.map(Number) : null;
 }
 
 export interface PriorArticle {
@@ -236,6 +247,7 @@ async function main() {
   const out = val("--out");
   const limit = Number(val("--limit") ?? 30);
   const dry = args.includes("--dry-run");
+  const stories = parseIdList(val("--stories"));
   if (!country || !out) {
     console.error("Usage: auto-editor.ts --country UK --out <decisions.json> [--dry-run] [--limit N]");
     process.exit(1);
@@ -248,7 +260,9 @@ async function main() {
     "s.headline",
     "s.sensitive",
     "a.created_at",
-  ])} WHERE a.published = 0 AND a.country = ? ORDER BY a.id LIMIT ?`;
+  ])} WHERE a.published = 0 AND a.country = ?${
+    stories ? ` AND a.story_id IN (${stories.join(",")})` : ""
+  } ORDER BY a.id LIMIT ?`;
   const rows = (await db.query<EditorRow>(sql, [country, limit])).results;
   console.log(`${rows.length} unpublished ${country} draft(s)`);
 
