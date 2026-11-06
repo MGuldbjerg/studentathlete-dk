@@ -1,0 +1,118 @@
+name: Award fast lane (UK)
+
+# Mikkel, 2026-11-06: end-of-season honours (Player of the Year, All-<league>
+# teams) are news the day they come out. The normal path drafts 10 stories per
+# run, twice a day, and GitHub starts those runs ~8 h late (07:30 → ~15:35,
+# 19:30 → ~00:30 UTC); then the Opus editor decides twice a day. Ginny Lackey's
+# Sun Belt Player of the Year was found 18:29 UTC and published by hand the
+# next day — while six more UK award stories sat behind the 10-draft cap.
+#
+# After every discovery run this probes for fresh UK season-award stories
+# (pipeline/fix/award-fast-lane.ts — no model call). None: the run ends after
+# the probe. Some: fact sheet + draft for exactly those stories, the Opus editor
+# decides exactly those drafts, and the publish keeps the per-site 17–23 min
+# spacing from whatever the site published last (--site-gap).
+#
+# An approved machine publisher (CLAUDE.md), same rules as auto-editor-uk.yml:
+# the repo is public, so stdout is ids and actions only; decisions live in
+# $RUNNER_TEMP; titles and reasons go to Discord. Never upload an artifact here.
+#
+# Off switch: repo variable AWARD_FAST_LANE = off.
+
+on:
+  workflow_run:
+    workflows: ["Discovery (token-fri)"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Draft and decide — publish and reject nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: award-fast-lane
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
+
+jobs:
+  awards:
+    runs-on: ubuntu-latest
+    # A full lane: 5 stories × (fact sheet + draft + editor) plus up to 5 spaced
+    # publishes (~2 h). Well inside GitHub's 6 h.
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+
+      - name: Any fresh UK season awards?
+        id: probe
+        run: |
+          if [ "${{ vars.AWARD_FAST_LANE }}" = "off" ]; then echo "AWARD_FAST_LANE=off — skipping"; echo "stories=" >> $GITHUB_OUTPUT; exit 0; fi
+          npx tsx pipeline/fix/award-fast-lane.ts --days 3 --limit 5 | tee $RUNNER_TEMP/probe.txt
+          echo "stories=$(grep -oP '(?<=^STORIES=)[0-9,]*' $RUNNER_TEMP/probe.txt)" >> $GITHUB_OUTPUT
+
+      - run: npm install -g @anthropic-ai/claude-code
+        if: steps.probe.outputs.stories != ''
+      - name: Pick a Claude account
+        if: steps.probe.outputs.stories != ''
+        uses: ./.github/actions/claude-account
+        with:
+          primary: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          fallback: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
+
+      # Same steps and keys as generate-manual.yml, one story at a time. Both
+      # scripts skip a story that is already past their phase, so a story the
+      # normal run reached first is a no-op here.
+      - name: Fact sheets and drafts
+        if: steps.probe.outputs.stories != ''
+        run: |
+          for id in $(echo "${{ steps.probe.outputs.stories }}" | tr ',' ' '); do
+            npx tsx pipeline/generate/build-factsheet.ts --story "$id" --max-age-days 3 || echo "! fact sheet failed for $id"
+            npx tsx pipeline/generate/generate-articles.ts --story "$id" --max-age-days 3 || echo "! draft failed for $id"
+          done
+          npx tsx pipeline/generate/check-drafts.ts || true
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LLM_CLAUDE_CLI: '1'
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_UK: ${{ secrets.DISCORD_WEBHOOK_UK }}
+
+      - name: Opus decides the award drafts
+        if: steps.probe.outputs.stories != ''
+        run: |
+          ARGS="--country UK --stories ${{ steps.probe.outputs.stories }} --out $RUNNER_TEMP/decisions.json --limit 5"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          npx tsx pipeline/fix/auto-editor.ts $ARGS
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_UK: ${{ secrets.DISCORD_WEBHOOK_UK }}
+
+      - name: Reject and publish (spaced from the site's last publish)
+        if: steps.probe.outputs.stories != '' && github.event.inputs.dry_run != 'true'
+        run: npx tsx pipeline/fix/apply-draft-decisions.ts "$RUNNER_TEMP/decisions.json" --public-log --site-gap
+        env:
+          CARD_STORE: ${{ vars.CARD_STORE }}
+          CARD_R2_BUCKET: ${{ vars.CARD_R2_BUCKET }}
+
+      - name: Discord on failure
+        if: failure()
+        uses: ./.github/actions/notify-failure
+        with:
+          title: "❌ Award fast lane (UK) failed"
+          webhook: ${{ secrets.DISCORD_WEBHOOK_UK || secrets.DISCORD_WEBHOOK_URL }}

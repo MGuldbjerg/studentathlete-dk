@@ -8,7 +8,7 @@
  *     publishes, and the failure is reported (for the run's summary)
  *   - a failing publish is not swallowed
  */
-import { renderThenPublish, type RenderOutcome } from "./publish-order";
+import { renderThenPublish, type RenderOutcome, firstPublishWaitSeconds } from "./publish-order";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -61,6 +61,14 @@ async function main(): Promise<void> {
       threw = true;
     }
     ok(threw && calls.join(",") === "render,publish", "a failing publish is not swallowed");
+  }
+  // Per-site spacing for the first publish of a run (award fast lane)
+  {
+    const now = Date.parse("2026-11-06T12:30:00Z");
+    ok(firstPublishWaitSeconds(null, 1200, now) === 0, "no earlier publish: no wait");
+    ok(firstPublishWaitSeconds("2026-11-06 12:00:00", 1200, now) === 0, "last publish 30 min ago: no wait");
+    ok(firstPublishWaitSeconds("2026-11-06 12:25:00", 1200, now) === 900, "last publish 5 min ago: wait the remaining 15 min");
+    ok(firstPublishWaitSeconds("garbage", 1200, now) === 0, "unreadable timestamp: no wait");
   }
   console.log(`${pass} passed, ${fail} failed`);
   if (fail) process.exit(1);

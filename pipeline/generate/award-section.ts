@@ -28,6 +28,25 @@ export function isWeeklyAward(headline: string | null): boolean {
   return WEEKLY_AWARD.test(h) && !NOT_WEEKLY.test(h);
 }
 
+/**
+ * End-of-season honours: X of the Year, All-<league>/All-Region/All-America
+ * teams, first/second/third team. Mikkel, 2026-11-06: these are news the day
+ * they come out (JMU's Player of the Year post had 816 likes within a day), so
+ * they skip the twice-daily drafting and editing — award-fast-lane.ts.
+ * Generous on purpose: a false positive only drafts a story early, the editor
+ * still decides it. Weekly/monthly honours, preseason lists, watch lists and
+ * academic teams are not season awards.
+ */
+const SEASON_AWARD =
+  /\b(of the year|all[- ](conference|region|america\w*|tournament|freshman|rookie)|(first|second|third)[- ]team|major awards?)\b|\ball-(?!time\b|academic\b|american championships?\b)[a-z]/i;
+const NOT_SEASON =
+  /\b(preseason|midseason|watch list|of the (week|month)|weekly|monthly|academic|scholar|community service|all-american championships?)\b/i;
+
+export function isSeasonAward(headline: string | null): boolean {
+  const h = headline ?? "";
+  return SEASON_AWARD.test(h) && !NOT_SEASON.test(h);
+}
+
 /** How far back a report the award can be added to is looked for. */
 export const PARENT_DAYS = 10;
 

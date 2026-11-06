@@ -108,7 +108,8 @@ its FULL source, corrects what the source supports, and publishes through
 apart (Mikkel, 2026-09-24: a batch going live at once looks spammy). Run it
 detached, give the expected end time, and never publish without that instruction.
 **Approved machine publishers** (no instruction needed, each agreed with Mikkel): the Opus
-editor for UK drafts (`auto-editor-uk.yml`), the assignment desk's profile lines, sourced
+editor for UK drafts (`auto-editor-uk.yml`), its award fast lane (`award-fast-lane.yml`, UK
+season awards drafted + decided after each discovery run — Mikkel 2026-11-06), the assignment desk's profile lines, sourced
 table facts (honours, stats, leaderboards, awards), rule-based profile refreshes that only
 ADD a fact, and — UK only, since 2026-11-04 — the rule-based profile TEMPLATE
 (`pipeline/profiles/apply-template-profiles.ts`, switch `profileTemplateApproved` on the
