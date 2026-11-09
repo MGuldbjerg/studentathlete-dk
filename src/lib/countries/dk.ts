@@ -190,4 +190,5 @@ export const dk: CountryProfile = {
   standaloneMinWords: 150,
   indexMinWords: 0,
   profileTemplateApproved: false,
+  seasonHonourSports: [],
 };

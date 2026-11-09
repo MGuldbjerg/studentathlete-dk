@@ -8,13 +8,18 @@ import { getLeaderboard, getLeaderboardWeekDays } from "@/lib/db";
 import { formatDate } from "@/lib/seo";
 import { LeaderboardView, LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 import { AwardsView, AWARDS_SLUG } from "@/components/AwardsView";
-import { getAwardTally } from "@/lib/db";
+import { getAwardTally, getSeasonHonours } from "@/lib/db";
+import { countryProfile } from "@/lib/countries";
+import { sportLabel } from "@/lib/i18n";
+import { seasonHonoursPath, seasonYear } from "@/components/SeasonHonoursView";
 
 /** The awards page lives under the stats page too (Mikkel 2026-10-22). */
 async function awardsFor(params: Promise<{ nation: string }>) {
   const [{ nation }, site, lang] = await Promise.all([params, currentSite(), currentLanguage()]);
   if (nation !== AWARDS_SLUG[lang]) return null;
-  return { site, lang, tally: await getAwardTally(site.code) };
+  const honours = (await Promise.all(countryProfile(site.code).seasonHonourSports.map((s) => getSeasonHonours(site.code, s))))
+    .filter((h): h is NonNullable<typeof h> => !!h && h.athletes > 0);
+  return { site, lang, tally: await getAwardTally(site.code), honours };
 }
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { withAds } from "@/components/AdsenseScript";
@@ -87,6 +92,13 @@ async function NationStatsPage({ params }: { params: Promise<{ nation: string }>
         ]} />
         <h1 className="text-3xl font-bold text-ink mt-6 mb-3" style={{ fontFamily: "var(--font-serif)" }}>{title}</h1>
         <p className="text-sm text-ink/80 mb-3 max-w-2xl border-l-4 pl-3" style={{ borderColor: "#BF0A30" }}>{t("awards.intro", aw.lang)}</p>
+        {aw.honours.map((h) => (
+          <p key={h.sport} className="text-sm mt-4">
+            <a href={seasonHonoursPath(h.sport, h.season, aw.lang)} className="font-semibold hover:underline" style={{ color: "#BF0A30" }}>
+              {t("honours.link", aw.lang, { sport: sportLabel(h.sport, aw.lang), year: seasonYear(h.season) })}
+            </a>
+          </p>
+        ))}
         <AwardsView tally={aw.tally} lang={aw.lang} />
         <p className="text-sm text-ink/80 mt-10 max-w-2xl leading-relaxed">{t("awards.method", aw.lang)}</p>
       </main>

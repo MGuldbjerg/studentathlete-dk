@@ -11,6 +11,9 @@ import { siteStats, type StatsRow } from "../../src/lib/athlete-stats";
 import { countryProfile } from "../../src/lib/countries";
 import { seasonFromDate } from "../../src/lib/athlete-events";
 import { AWARDS_KEY, buildAwardTally, type AwardInput } from "../../src/lib/award-tally";
+import { SEASON_HONOURS_KEY, SEASON_HONOUR_BUCKETS, buildSeasonHonours, type HonourInput } from "../../src/lib/season-honours";
+import { learnTowns, resolveNation } from "../../src/lib/home-nation";
+import { sportOf } from "../scrape/conference-honors";
 
 async function main(): Promise<void> {
   const dry = process.argv.includes("--dry-run");
@@ -35,6 +38,60 @@ async function main(): Promise<void> {
     );
   }
   await storeAwardTallies(db, dry);
+  await storeSeasonHonours(db, dry);
+}
+
+/**
+ * The end-of-season honours page per site and sport (src/lib/season-honours.ts).
+ * An athlete's events can belong to another of their sports (a soccer player's
+ * cross-country All-Conference), so a row whose own text or source names a
+ * different sport is left out.
+ */
+export async function seasonHonoursFor(db: ReturnType<typeof createD1Client>, country: string, sport: string) {
+  const season = seasonFromDate(null);
+  const today = new Date().toISOString().slice(0, 10);
+  const buckets = SEASON_HONOUR_BUCKETS.map(() => "?").join(",");
+  const publicSql = countryProfile(country).profilePublicMinArticles > 0
+    ? `(EXISTS (SELECT 1 FROM articles ar WHERE ar.athlete_id = a.id AND ar.published = 1)
+        OR EXISTS (SELECT 1 FROM article_athletes aa JOIN articles ar ON ar.id = aa.article_id WHERE aa.athlete_id = a.id AND ar.published = 1)
+        OR EXISTS (SELECT 1 FROM athlete_season_stats st WHERE st.athlete_id = a.id AND st.season = '${season}' AND st.games > 0))`
+    : "1";
+  const rows = (await db.query<HonourInput & { hometown: string | null }>(
+    `SELECT e.athlete_id, a.name, CASE WHEN ${publicSql} THEN a.slug END AS slug,
+            COALESCE(NULLIF(trim(substr(sc.common_name, 1, instr(sc.common_name || '/', '/') - 1)), ''), a.university) AS school,
+            sc.conference, a.gender, a.division, a.hometown, e.award_name, e.summary, e.occurred_on, e.source_url
+       FROM athlete_events e JOIN athletes a ON a.id = e.athlete_id
+       LEFT JOIN schools sc ON sc.name = a.university
+      WHERE e.kind = 'award' AND e.season = ? AND a.home_country = ? AND a.sport = ?
+        AND e.award_name IN (${buckets})`,
+    [season, country, sport, ...SEASON_HONOUR_BUCKETS])).results;
+  const votes = learnTowns(rows.map((r) => r.hometown));
+  const input: HonourInput[] = rows
+    .filter((r) => {
+      const own = sportOf(`${r.summary ?? ""} ${(r.source_url ?? "").replace(/[-/_.]+/g, " ")}`);
+      // British text calls soccer "football": not a different sport here.
+      return !own || own.sport === sport || (sport === "soccer" && own.sport === "football");
+    })
+    .map(({ hometown, ...r }) => {
+      const n = resolveNation(hometown, votes);
+      return { ...r, nation: n === "unknown" || n === "not-uk" ? null : n };
+    });
+  return { honours: buildSeasonHonours(country, sport, season, today, input), leftOut: rows.length - input.length };
+}
+
+async function storeSeasonHonours(db: ReturnType<typeof createD1Client>, dry: boolean): Promise<void> {
+  for (const country of Object.keys(COUNTRIES)) {
+    for (const sport of countryProfile(country).seasonHonourSports) {
+      const { honours, leftOut } = await seasonHonoursFor(db, country, sport);
+      console.log(`${country} ${sport}: ${honours.honours} season honours to ${honours.athletes} athletes (${leftOut} other-sport rows left out)`);
+      if (dry) continue;
+      await db.execute(
+        `INSERT INTO stats_cache (key, country, value, computed_at) VALUES (?, ?, ?, datetime('now'))
+         ON CONFLICT(key, country) DO UPDATE SET value = excluded.value, computed_at = excluded.computed_at`,
+        [`${SEASON_HONOURS_KEY}:${sport}`, country, JSON.stringify(honours)],
+      );
+    }
+  }
 }
 
 /**

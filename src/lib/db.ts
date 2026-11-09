@@ -1377,6 +1377,21 @@ export async function getAwardTally(country: string): Promise<import("./award-ta
   }
 }
 
+/** The end-of-season honours page for one sport (src/lib/season-honours.ts). One row. */
+export async function getSeasonHonours(country: string, sport: string): Promise<import("./season-honours").SeasonHonours | null> {
+  const db = await getDB();
+  if (!db) return null;
+  try {
+    const row = (await db
+      .prepare("SELECT value FROM stats_cache WHERE key = ? AND country = ?")
+      .bind(`season_honours:${sport}`, country)
+      .first()) as { value: string } | null;
+    return row ? (JSON.parse(row.value) as import("./season-honours").SeasonHonours) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** One weekly update of the leaderboard (src/lib/leaderboard-week.ts), by its Monday. One row. */
 export async function getLeaderboardWeek(country: string, day: string): Promise<import("./leaderboard-week").LeaderboardWeek | null> {
   const db = await getDB();
