@@ -38,6 +38,7 @@ import {
   parseUtc,
   postsAllowedNow,
   postsFittingInRun,
+  selectTopShare,
   shareEvery,
   shouldPostNow,
   spacingWouldCostPosts,
@@ -509,6 +510,20 @@ expect("threads_uk takes every 4th article", shareEvery("threads_uk"), 4);
 expect("bluesky_uk takes all", shareEvery("bluesky_uk"), 1);
 expect("instagram takes all", shareEvery("instagram_uk"), 1);
 expect("unknown channel takes all", shareEvery("nope"), 1);
+// selectTopShare: the best-scored share; unscored = 5; ties fall back to every-Nth by id
+const ids = (s: Set<number>) => [...s].sort((a, b) => a - b).join(",");
+const scored = [
+  { id: 1, social_score: 9 }, { id: 2, social_score: 3 }, { id: 3, social_score: 7 }, { id: 4, social_score: 2 },
+  { id: 5, social_score: null }, { id: 6, social_score: 8 }, { id: 7, social_score: 4 }, { id: 8, social_score: 1 },
+];
+expect("half = the 4 best", ids(selectTopShare(scored, 2)), "1,3,5,6");
+expect("quarter = the 2 best", ids(selectTopShare(scored, 4)), "1,6");
+expect("every 1 = all", selectTopShare(scored, 1).size, 8);
+const unscored = [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({ id, social_score: null }));
+expect("no scores: the old every-2nd rule", ids(selectTopShare(unscored, 2)), "2,4,6,8");
+expect("no scores: the old every-4th rule", ids(selectTopShare(unscored, 4)), "4,8");
+expect("odd count rounds up", selectTopShare(scored.slice(0, 5), 2).size, 3);
+expect("empty window", selectTopShare([], 2).size, 0);
 expect("instagram rører sig ikke", pacingFor("instagram").maxGapMinutes, 180);
 expect("ukendt kanal falder tilbage på DEFAULT", pacingFor("threads").maxGapMinutes, 180);
 

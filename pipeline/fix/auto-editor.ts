@@ -80,7 +80,7 @@ export interface PriorArticle {
 }
 
 export type Verdict =
-  | { action: "publish"; title: string; summary: string; content: string; note?: string }
+  | { action: "publish"; title: string; summary: string; content: string; note?: string; social?: number }
   | { action: "reject"; reason: string }
   | { action: "hold"; reason: string };
 
@@ -148,9 +148,16 @@ Publish only after correcting, so that every sentence holds:
 - summary: one or two sentences, under 250 characters
 - content: plain paragraphs separated by one blank line, no headings, no markdown
 
+When you publish, also give "social": a whole number 1-10 for how strongly the CORRECTED article would
+make a sports fan scrolling Facebook or Threads stop and click. Only part of what we publish is posted
+there; this decides which. Weigh the size of the achievement (national honour > conference honour >
+a goal in a regular-season game), how clear and specific the headline result is, and how well the
+article reads. Use the whole scale: 5 is an ordinary result story, 8+ is rare, 1-3 is publishable but thin.
+It never changes WHETHER you publish.
+
 Answer with ONLY a JSON object, nothing before or after it:
 
-{"action":"publish","title":"...","summary":"...","content":"...","note":"one line: what you changed"}
+{"action":"publish","title":"...","summary":"...","content":"...","note":"one line: what you changed","social":5}
 {"action":"reject","reason":"one sentence"}${late ? "" : `
 {"action":"hold","reason":"one sentence"}`}
 `;
@@ -174,7 +181,10 @@ export function parseVerdict(text: string): Verdict | null {
     case "publish": {
       const title = str("title"), summary = str("summary"), content = str("content");
       if (!title || !summary || !content) return null;
-      return { action: "publish", title, summary, content, note: str("note") ?? undefined };
+      // The social score is optional: a missing or odd one never turns a publish into a hold.
+      const s = typeof o.social === "number" ? o.social : typeof o.social === "string" ? Number(o.social) : NaN;
+      const social = Number.isFinite(s) ? Math.min(10, Math.max(1, Math.round(s))) : undefined;
+      return { action: "publish", title, summary, content, note: str("note") ?? undefined, social };
     }
     case "reject":
     case "hold": {
@@ -266,7 +276,7 @@ async function main() {
   const rows = (await db.query<EditorRow>(sql, [country, limit])).results;
   console.log(`${rows.length} unpublished ${country} draft(s)`);
 
-  const decisions: { id: number; action: "publish" | "reject"; title?: string; summary?: string; content?: string; reason?: string }[] = [];
+  const decisions: { id: number; action: "publish" | "reject"; title?: string; summary?: string; content?: string; reason?: string; social_score?: number }[] = [];
   const report: { id: number; v: Verdict; title: string }[] = [];
 
   for (const r of rows) {
@@ -283,7 +293,7 @@ async function main() {
     const v = guard(r, answer === null ? null : parseVerdict(answer));
     console.log(`  #${r.id}: ${v.action}`);
     report.push({ id: r.id, v, title: v.action === "publish" ? v.title : r.title });
-    if (v.action === "publish") decisions.push({ id: r.id, action: "publish", title: v.title, summary: v.summary, content: v.content });
+    if (v.action === "publish") decisions.push({ id: r.id, action: "publish", title: v.title, summary: v.summary, content: v.content, social_score: v.social });
     if (v.action === "reject") decisions.push({ id: r.id, action: "reject", reason: v.reason });
   }
 

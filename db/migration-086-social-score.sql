@@ -1,0 +1,11 @@
+-- Migration 086: the editor's social score on an article (Mikkel, 2026-11-09).
+--
+-- «Maybe the Opus editor should assign a value in terms of quality and relevance,
+-- so the poster takes the highest scored articles first.» UK Facebook posts half
+-- of the articles and UK Threads a quarter; this score decides WHICH half/quarter
+-- (pipeline/social/post-social.ts, selectTopShare). 1-10, set by the automatic
+-- editor when it publishes (pipeline/fix/auto-editor.ts → apply-draft-decisions.ts).
+-- NULL = not scored (published by hand): the poster treats it as a middling 5.
+--
+-- Additive only (scripts/migrate-live.sh).
+ALTER TABLE articles ADD COLUMN social_score INTEGER;

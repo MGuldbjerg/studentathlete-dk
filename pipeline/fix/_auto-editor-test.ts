@@ -23,6 +23,14 @@ expect("publish parsed", parseVerdict('{"action":"publish","title":"T","summary"
 expect("prose around JSON tolerated", parseVerdict('Here:\n{"action":"reject","reason":"dup"}\n')?.action, "reject");
 expect("publish without content is no verdict", parseVerdict('{"action":"publish","title":"T","summary":"S"}'), null);
 expect("reject without reason is no verdict", parseVerdict('{"action":"reject"}'), null);
+// social score (migration 086): optional, clamped to 1-10, never blocks a publish
+const pv = (s: string) => { const v = parseVerdict(s); return v && v.action === "publish" ? v.social : "not publish"; };
+expect("social score read", pv('{"action":"publish","title":"T","summary":"S","content":"C","social":7}'), 7);
+expect("social score as string", pv('{"action":"publish","title":"T","summary":"S","content":"C","social":"8"}'), 8);
+expect("social score clamped high", pv('{"action":"publish","title":"T","summary":"S","content":"C","social":14}'), 10);
+expect("social score rounded and clamped low", pv('{"action":"publish","title":"T","summary":"S","content":"C","social":0.2}'), 1);
+expect("missing social score still publishes", pv('{"action":"publish","title":"T","summary":"S","content":"C"}'), undefined);
+expect("odd social score still publishes", pv('{"action":"publish","title":"T","summary":"S","content":"C","social":"high"}'), undefined);
 expect("unknown action is no verdict", parseVerdict('{"action":"approve","reason":"x"}'), null);
 expect("broken JSON is no verdict", parseVerdict('{"action":"hold",'), null);
 expect("no JSON at all", parseVerdict("I cannot decide this."), null);
