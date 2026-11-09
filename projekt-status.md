@@ -35,10 +35,7 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 
 ## 🧩 UK profiles approved on the template level (2026-11-04) — LIVE
 
-Mikkel: «I want the UK profiles to be approved on a template level.» An audit of all 2,908 UK
-template texts found raw codes as roles («as a UT», «She/Her»), seed-cut school names («Hinds
-Community»), «Washington, Washington D.C.», «runs as a distance runner», «as an epee», and
-«Lake Wales Fla.» / «Grimsby, ON» filed as UK. All fixed, with tests.
+Mikkel: «I want the UK profiles to be approved on a template level.» (Audit of 2,908 texts: fixed.)
 - `apply-template-profiles.ts` publishes the template where no person wrote the text; switch
   `profileTemplateApproved` (UK on, DK off). Holds: hometown not UK, school changed without a
   transfer. Runs in profile-drafts.yml (Sun) + quality-sweep.yml (Mon), before queue-stale.
@@ -84,23 +81,12 @@ Danish pipeline (athletics, field hockey, basketball …); for soccer the academ
    (there is an audience). No mention bot (resources).
 Every experiment: own `?source=` tag, ≥ 4 weeks, one metric fixed in advance.
 
-## 📡 Feeds that never showed whole sports or the athletics site (2026-11-02)
+## 📡 School feeds (2026-11-02)
 
-- **Curated main feeds:** Illinois's `/rss` carries ~10 football/basketball/volleyball stories;
-  XC, track and golf only in sport feeds (`?path=mcross` …). Frank Buchanan's Second-Team
-  All-Big Ten (30/10) was never seen. New table `school_feeds` (migration 082): extra feeds per
-  school, read after the main feed by `check-sources.ts`, body-pass share per school. Illinois
-  has 5 (m/w XC, m/w track, m golf). Run once → 18 stories, Buchanan = story 18549.
-  Other `/rss` feeds sampled (8) carry mixed sports — curation looked Illinois-only; no
-  general detector yet (a school with stories in some sports passes every check).
-- **Feeds on the college site, not athletics:** 134 of 638 site schools had 0 feed stories in
-  30 days. 33 of them (125 UK/DK athletes) pointed at the college's general news; replaced
-  with the athletics site's `/rss` (host taken from the athletes' `bio_url`, feed verified
-  ≥3 items, newest < 21 days). Old → new in `logs/feed-fix-2026-11-02.tsv` (WSL only, gitignored).
-  Belmont Abbey (20 athletes) → 5 stories on the first run. The other 98 zero-story schools
-  already read their athletics site: quiet, or dead (`repair-feeds.ts`: 42 still dead, 21 of
-  them HTTP 403). repair-feeds' 3 proposed swaps (Marymount, Alice Lloyd, Brescia) NOT applied —
-  college `/rss`, content unverified.
+- Extra per-school sport feeds: table `school_feeds` (migration 082), read by `check-sources.ts`
+  (Illinois has 5). Open: no general detector for curated main feeds that hide whole sports.
+- 33 schools moved from the college's news feed to the athletics `/rss` (`logs/feed-fix-2026-11-02.tsv`).
+  Open: 42 feeds still dead (21 HTTP 403); repair-feeds' swaps for Marymount, Alice Lloyd, Brescia NOT applied.
 
 ## 📸 Article photos (2026-11-05) — LIVE, first one by hand
 
@@ -169,17 +155,12 @@ the 13 countries in `src/lib/countries/collecting.ts`.
 gated by `REELS_ENABLED_UK`). UK Facebook (345 posts) and UK Threads (291) post since early Oct;
 DK has neither. Their human click-through, 30 days to 5 Nov: ZERO (all visits were Meta bots).
 
-**Platform.** Workers Paid. 27/10 (`platform-limits.ts`): D1 reads 0.7 %, writes 3.9 %, requests
-3.6 % of the monthly allowance — **Worker CPU 151 %** (≈ $0.31 over). CPU, not D1, is the cost to
-watch. #77 (28/10) cut D1 reads (list queries without bodies, indexes) but **not CPU**: still
-~1.5M CPU-ms/day (≈46M/month vs 30M included) on 4 Nov. Measured 4 Nov: a Next render costs
-300–600 ms CPU; ~30 % of Worker calls were uncached 404s (scanners, Googlebot on removed
-profiles); 5-min edge TTL gave ~5 % hits; `/api/track` 180 ms per beacon through Next.
-**CPU cut live 5/11 07:37 UTC (#106, deploy 63ae14e7):** `workers/entry.ts` answers probes (`isProbe`: dot-paths, .php/.env/
-.json…, unknown `/api/*`) with a plain 404 and the beacon itself (`src/lib/track-ingest.ts`);
-404s cached 1 h; article pages (`/<sport>/<slug>`) 1 h edge TTL (middleware), so an article
-correction can take up to an hour to show. Expected ~0.6–0.9M CPU-ms/day. 403s on `/.env` etc.
-come from Cloudflare's WAF and never reach the Worker.
+**Platform.** Workers Paid. D1 is far under its limits; **Worker CPU is the cost** (30M CPU-ms/month
+included, overage $0.02/M). A Next render costs 300–600 ms CPU. #106 (live 5/11): `workers/entry.ts`
+answers probes (`isProbe`) with a plain 404 and the beacon itself (`track-ingest.ts`); 404s cached
+1 h; articles 1 h edge TTL (an article correction can take up to an hour to show).
+**Result 6–8 Nov: 1.32–1.52M CPU-ms/day (was ~1.6M) — calls fell ~15 %, ms per call did not.
+Still ~45M/month. The edge cache is per data centre, so most renders still miss.**
 
 **Tooling.** Ops MCP server (`mcp/`, #74): `status` overview, CI runs/failures, Claude usage +
 quota, guarded D1 reads, D1 top queries. Every workflow's failure alert goes through
@@ -191,19 +172,10 @@ editing connector — a different thing.
 ## Waiting on Mikkel
 
 1. **Photo-permission outreach** — built (`pipeline/photos/`, ledger migration 068).
-   **First batch sent 2026-11-02:** all 7 South Atlantic Conference schools (Anderson, Catawba,
-   Lenoir–Rhyne, Lincoln Memorial, Newberry, UVA Wise, Wingate), 11:46–12:29 UTC, all `sent` in
-   `photo_events` (Anderson also has one `failed` row from a first run without `BREVO_API_KEY` in
-   that shell). Influxer never answered (emailed 27/10), so we went ahead. Lincoln Memorial went
-   to christopher.haley@ with an extra line apologising for a possible mix-up with an Adam Haley
-   (`SCHOOL_NOTES` in `request-permission.ts`). Open: replies — record each with `--respond`
-   (granted/conditional/declined/forwarded/bounced/do-not-contact); no automatic follow-ups.
-   **First answer 2026-11-02: Newberry — granted** (Christopher Williams, Asst AD Communications:
-   «Yes you have permission to use our material», no conditions); recorded with `--respond`. Delivery is unconfirmed (Brevo accepted ≠ delivered): watch
-   info@studentathlete.dk for bounces. Next conference needs Mikkel's contact approval. `--pause
-   min-max` (minutes, default 8-15) shortens the gap between mails for small batches.
-   `BREVO_API_KEY` is set (2026-10-29, verified read-only); in a plain shell it can be missing —
-   run via `bash -ic`.
+   Sent so far: the 7 South Atlantic schools (2/11) + Hofstra (4/11); ledger in `photo_events`,
+   `--status` shows it. Record each reply with `--respond`; no automatic follow-ups. Watch
+   info@studentathlete.dk for bounces. Next conference needs Mikkel's contact approval.
+   Run via `bash -ic` (BREVO_API_KEY lives in ~/.bashrc).
    **Credits live since 29/10 (#86, migration 080 + backfill: 2,905 photos got a source
    link):** «Foto/Photo: {School} Athletics · Kilde/Source» on profiles, «Fotos/Photos: …» under
    school rosters; schools with `declined`/`do_not_contact` show no photo anywhere (read-time
@@ -248,9 +220,7 @@ editing connector — a different thing.
 
 - Collecting countries arrive: `SELECT home_country, COUNT(*) FROM athletes GROUP BY 1`.
 - Discovery every 2 h (was 6): story volume, DK draft queue, D1 reads.
-- First award roundup 1 Nov; first weekly leaderboard 3 Nov.
-- **CPU after the cpu-cut deploy** (a day of traffic): `npx tsx pipeline/checks/platform-limits.ts`
-  — daily CPU should fall from ~1.5M to under 1M CPU-ms. If not, `wrangler tail --format json`
+- **Worker CPU still over (see Platform):** find what renders most — `wrangler tail --format json`
   carries `cpuTime` per request.
 - **Social retention after #80 — check from ~5 Nov, ideally 12 Nov.** Live since
   **2026-10-29 07:42 UTC** (deploy 271865f0, commit 1770fe8): read next that never runs dry
