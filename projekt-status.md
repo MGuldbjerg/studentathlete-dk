@@ -12,6 +12,15 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 ---
 
 
+## 🏅 Season-honours page (2026-11-09) — LIVE (UK soccer)
+
+`/statistics/awards/football-2026` on .co.uk: every end-of-season honour (All-Conference/Region/American, X of the Year, All-Freshman) for UK players, grouped women/men → division → conference → surname. No ranking. Source link per honour. Built daily by `build-stats.ts` into stats_cache `season_honours:<sport>`; switched on per site by `seasonHonourSports` in the country profile (UK `["soccer"]`, DK `[]`).
+- The honours scraper now stores the release's own label in `athlete_events.summary` (`FoundHonour.detail`), reads "F – Name" position lists, and prefixes the conference when a label is exactly a bucket name ("Sun Belt Player of the Year"; `conferenceShort` in conference-sites.ts).
+- Display: `src/lib/honour-label.ts`. English gets the label tidied (capitals → title case, sport phrase dropped). Other languages get the translated bucket. Article sentences give the honour they name (`labelFromSentence`), else a deliberately general label.
+- Backfill since 2026-08-20 run: +266 honours, ~670 rows reworded. Snapshot of the pre-backfill bucket-only ids: /tmp/claude-1000/sa/honours-snapshot.json (local, temporary).
+- First publish: 109 honours, 92 players, 33 conferences; 14 rows still general (bucket only).
+- Open: title says "US college football" (UK sport word). Proposed "US college soccer" for this title only; not decided. Mid-December dated roundup article (option A) from the same data. Possibly a weekly social post pointing to the page.
+
 ## 🏆 Award fast lane (2026-11-06) — LIVE
 
 - `award-fast-lane.yml` runs after every discovery run (every 2 h). A check that makes no model calls
