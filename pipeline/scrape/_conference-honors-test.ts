@@ -198,5 +198,27 @@ eq(headlineAward("No. 5-ranked Smith Named ACC Player of the Week") !== null, tr
 eq((classifyLabel("Freshman of the Year") as { award_name: string }).award_name, "Freshman of the Year", "freshman of the year label");
 eq((classifyLabel("Newcomer of the Year") as { award_name: string }).award_name, "Freshman of the Year", "newcomer of the year is the same tier");
 
+{
+  // Sun Belt women's soccer 2026: position-prefixed lists ("F – Ginny Lackey")
+  // and the exact label kept as `detail` for the season-honours page.
+  const lackey = cand("Ginny Lackey", "James Madison University", "James Madison", "soccer", "f");
+  const minshull = cand("Holly Minshull", "James Madison University", "James Madison", "soccer", "f");
+  const williams = cand("Maddie Williams", "Appalachian State University", "App State", "soccer", "f");
+  const holmes = cand("Libby Holmes", "Old Dominion University", "Old Dominion", "soccer", "f");
+  const found = run("sbc_wsoc_allconf", { headline: "Sun Belt Announces 2026 Women’s Soccer Awards, All-Conference Teams", date: "2026-11-05", category: "Women's Soccer" }, [lackey, minshull, williams, holmes]);
+  const det = (c: Candidate) => found.filter((f) => f.athleteId === c.id).map((f) => `${f.award_name}: ${f.detail}`).sort();
+  eq(det(lackey), ["All-Conference: All-Sun Belt Conference First Team", "Player of the Year: Player of the Year"], "Lackey: Player of the Year and First Team (position prefix «F –»)");
+  eq(det(minshull), ["All-Conference: All-Sun Belt Conference Third Team", "Freshman of the Year: Freshman of the Year"], "Minshull: Freshman of the Year and Third Team");
+  eq(det(williams), ["All-Conference: All-Sun Belt Conference Second Team"], "Williams: Second Team (position prefix «D –»)");
+  eq(det(holmes), ["All-Conference: All-Sun Belt Conference First Team"], "Holmes: First Team");
+}
+{
+  // A bare tier under a headline award keeps both: "All-Conference First Team".
+  const manufor = cand("Samuel Manufor", "University of North Carolina at Charlotte", "Charlotte", "soccer", "m");
+  const found = run("amer_honors", { headline: "American Conference Announces 2025 Men’s Soccer Honors", date: "2025-11-05", category: "Men's Soccer" }, [manufor]);
+  ok(found.filter((f) => f.athleteId === manufor.id).every((f) => f.detail.length > 0 && f.detail.length <= 80), "every honour carries a short detail");
+  ok(found.some((f) => f.athleteId === manufor.id && /freshman of the year/i.test(f.detail)), "Manufor's detail names Freshman of the Year");
+}
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

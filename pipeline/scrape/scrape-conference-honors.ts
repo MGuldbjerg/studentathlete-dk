@@ -143,6 +143,7 @@ interface EventRow {
   award_name: string;
   season: string | null;
   occurred_on: string | null;
+  summary: string | null;
 }
 
 const dayDiff = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)) / 86400_000;
@@ -161,25 +162,33 @@ async function record(
   db: D1Client | null,
   h: FoundHonour,
   existing: Map<number, EventRow[]>,
-): Promise<"new" | "known"> {
+): Promise<"new" | "known" | "detailed"> {
   const season = seasonForEvent(h.occurred_on, h.significance);
   const rows = existing.get(h.athleteId) ?? [];
   const same = rows.filter((r) => r.award_name === h.award_name && r.season === season);
 
-  if (WEEKLY_AWARDS.includes(h.award_name)) {
-    if (same.some((r) => !r.occurred_on || dayDiff(r.occurred_on, h.occurred_on) <= 6)) return "known";
-  } else if (same.length > 0) {
+  const match = WEEKLY_AWARDS.includes(h.award_name)
+    ? same.find((r) => !r.occurred_on || dayDiff(r.occurred_on, h.occurred_on) <= 6)
+    : same[0];
+  if (match) {
+    // A row that only carries the bucket ("Player of the Year" for a Rookie of
+    // the Year) gets the release's own words. Nothing else on it changes.
+    if (match.summary === match.award_name && h.detail !== h.award_name && match.id > 0) {
+      if (db) await db.execute("UPDATE athlete_events SET summary = ? WHERE id = ?", [h.detail, match.id]);
+      match.summary = h.detail;
+      return "detailed";
+    }
     return "known";
   }
 
   let changes = 1;
   if (db) {
     const res = await db.execute(HARVEST_INSERT_SQL, [
-      h.athleteId, h.occurred_on, season, h.kind, h.award_name, h.award_name, h.significance, h.source_url, null,
+      h.athleteId, h.occurred_on, season, h.kind, h.award_name, h.detail, h.significance, h.source_url, null,
     ]);
     changes = res.meta?.changes ?? 0;
   }
-  rows.push({ id: -1, athlete_id: h.athleteId, award_name: h.award_name, season, occurred_on: h.occurred_on });
+  rows.push({ id: -1, athlete_id: h.athleteId, award_name: h.award_name, season, occurred_on: h.occurred_on, summary: h.detail });
   existing.set(h.athleteId, rows);
   return changes > 0 ? "new" : "known";
 }
@@ -199,7 +208,7 @@ async function main(): Promise<void> {
     )
   ).results;
   const events = (
-    await db.query<EventRow>(`SELECT id, athlete_id, award_name, season, occurred_on FROM athlete_events`)
+    await db.query<EventRow>(`SELECT id, athlete_id, award_name, season, occurred_on, summary FROM athlete_events`)
   ).results;
   const existing = new Map<number, EventRow[]>();
   for (const e of events) {
@@ -213,7 +222,7 @@ async function main(): Promise<void> {
     `${athletes.length} athletes · ${sites.length} conference site(s) · since ${args.since}${args.dryRun ? " — DRY RUN" : ""}`,
   );
 
-  const totals = { stories: 0, fetched: 0, found: 0, new: 0, known: 0 };
+  const totals = { stories: 0, fetched: 0, found: 0, new: 0, known: 0, detailed: 0 };
   const honoured = new Set<number>();
   let next = 0;
 
@@ -251,7 +260,7 @@ async function main(): Promise<void> {
           totals[outcome]++;
           if (args.verbose || outcome !== "known") {
             console.log(
-              `  ${outcome === "known" ? "·" : "✓"} ${names.get(h.athleteId)}: ${h.award_name} ${h.occurred_on} — ${story.headline}`,
+              `  ${outcome === "known" ? "·" : outcome === "detailed" ? "≈" : "✓"} ${names.get(h.athleteId)}: ${h.award_name} (${h.detail}) ${h.occurred_on} — ${story.headline}`,
             );
             if (args.verbose) console.log(`      «${h.evidence.slice(0, 140)}»`);
           }
@@ -267,7 +276,7 @@ async function main(): Promise<void> {
   await Promise.all(Array.from({ length: SITE_CONCURRENCY }, () => worker()));
   console.log(
     `\nDone: ${totals.fetched}/${totals.stories} releases read · ${totals.found} honours for ${honoured.size} athletes · ` +
-      `${totals.new} new, ${totals.known} already on file` +
+      `${totals.new} new, ${totals.detailed} given the release's wording, ${totals.known} already on file` +
       `${args.dryRun ? " (dry run — nothing written)" : ""}.`,
   );
 }
