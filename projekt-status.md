@@ -172,9 +172,11 @@ editing connector — a different thing.
 ## Waiting on Mikkel
 
 1. **Photo-permission outreach** — built (`pipeline/photos/`, ledger migration 068).
-   Sent so far: the 7 South Atlantic schools (2/11) + Hofstra (4/11); ledger in `photo_events`,
+   Sent: South Atlantic 7 (2/11), CAA 13 (4/11), GLVC 13 (9/11); ledger in `photo_events`,
    `--status` shows it. Record each reply with `--respond`; no automatic follow-ups. Watch
-   info@studentathlete.dk for bounces. Next conference needs Mikkel's contact approval.
+   info@studentathlete.dk for bounces. Next conference needs Mikkel's contact approval; he wants
+   LOWER divisions first (D2 and below before D1). Next by UK+DK athletes: Great Midwest, Sunshine
+   State. Bad `common_name` → `EMAIL_SCHOOL_NAMES` in request-permission.ts.
    Run via `bash -ic` (BREVO_API_KEY lives in ~/.bashrc).
    **Credits live since 29/10 (#86, migration 080 + backfill: 2,905 photos got a source
    link):** «Foto/Photo: {School} Athletics · Kilde/Source» on profiles, «Fotos/Photos: …» under

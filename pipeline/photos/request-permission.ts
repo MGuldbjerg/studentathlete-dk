@@ -30,6 +30,15 @@ const SCHOOL_NOTES: Record<string, string> = {
   "Lincoln Memorial University":
     "While finding your address I also came across the name Adam Haley, so if I have mixed up your names, I apologize.",
 };
+/** The name the email uses where schools.common_name reads badly (each athletics site's own
+ *  short form). Email-only, so site display is untouched. */
+const EMAIL_SCHOOL_NAMES: Record<string, string> = {
+  "Missouri University of Science and Technology": "Missouri S&T",
+  "University of Illinois at Springfield": "UIS",
+  "University of Missouri–St. Louis": "UMSL",
+  "University of Indianapolis": "UIndy",
+  "Lincoln University (MO)": "Lincoln University",
+};
 /** 8-15 minutes between emails by default, a few a day: a burst of cold mail lands in spam. */
 const DEFAULT_PAUSE_MIN = [8, 15] as const;
 const pauseMs = ([lo, hi]: readonly [number, number]) => (lo + Math.random() * (hi - lo)) * 60_000;
@@ -178,7 +187,7 @@ async function sendRun(args: ReturnType<typeof parseArgs>) {
     }
     // The school's own short name in the text («Stony Brook Athletics», not «State
     // University of New York at Stony Brook Athletics») — Mikkel 2026-11-04.
-    const email = buildPermissionEmail({ schoolName: t.common_name || t.name, contactName: t.sid_name, liveSites: LIVE_SITES, note: SCHOOL_NOTES[t.name] });
+    const email = buildPermissionEmail({ schoolName: EMAIL_SCHOOL_NAMES[t.name] ?? (t.common_name || t.name), contactName: t.sid_name, liveSites: LIVE_SITES, note: SCHOOL_NOTES[t.name] });
     console.log(`\n--- ${t.name}\nTo: ${t.sid_email}\nSubject: ${email.subject}\n\n${email.text}`);
     sent++;
     if (!args.send) continue;
