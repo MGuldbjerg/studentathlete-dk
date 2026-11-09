@@ -21,7 +21,7 @@
  * 'season_honours'; the page reads one row. Pure: no database here.
  */
 
-import { tidyLabel } from "./honour-label";
+import { isReleaseLabel, tidyLabel } from "./honour-label";
 
 export const SEASON_HONOURS_KEY = "season_honours";
 
@@ -86,7 +86,12 @@ export interface SeasonHonours {
 }
 
 const DIVISION_ORDER = ["NCAA D1", "NCAA D2", "NCAA D3", "NAIA", "NJCAA"];
-const precise = (r: HonourInput) => !!r.summary && r.summary.trim() !== "" && r.summary !== r.award_name;
+/**
+ * The row carries the release's own label. A sentence (an article-harvest
+ * summary: "Named to … after anchoring the defence") is not a list entry — it
+ * counts as bucket-only, and merges into a worded twin when there is one.
+ */
+const precise = (r: HonourInput) => !!r.summary && r.summary.trim() !== "" && r.summary !== r.award_name && isReleaseLabel(r.summary);
 const dayMs = (d: string | null) => (d ? new Date(`${d.slice(0, 10)}T12:00:00Z`).getTime() : NaN);
 const surname = (name: string) => name.trim().split(/\s+/).slice(-1)[0].toLowerCase();
 

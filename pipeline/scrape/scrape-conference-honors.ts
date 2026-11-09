@@ -18,7 +18,7 @@
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { HARVEST_INSERT_SQL, WEEKLY_AWARDS, seasonForEvent } from "../../src/lib/athlete-events";
 import { pipelineUserAgent } from "../../src/lib/site";
-import { CONFERENCE_SITES, type ConferenceSite } from "./conference-sites";
+import { CONFERENCE_SITES, conferenceShort, type ConferenceSite } from "./conference-sites";
 import {
   extractConferenceHonours,
   headlineAward,
@@ -253,7 +253,7 @@ async function main(): Promise<void> {
         await sleep(SPACING_MS);
         if (!html) continue;
         fetched++;
-        for (const h of extractConferenceHonours(story, storyLines(html), index)) {
+        for (const h of extractConferenceHonours({ ...story, conference: conferenceShort(site) }, storyLines(html), index)) {
           found++;
           honoured.add(h.athleteId);
           const outcome = await record(args.dryRun ? null : db, h, existing);

@@ -75,3 +75,25 @@ export const CONFERENCE_SITES: ConferenceSite[] = [
   { host: "wccsports.com", names: ["West Coast Conference"] },
   { host: "wiacsports.com", names: ["Wisconsin Intercollegiate Athletic Conference"] },
 ];
+
+/** How a release names its own conference before an award ("Sun Belt Player of the Year"). */
+const SHORT: Record<string, string> = {
+  "Atlantic Coast Conference": "ACC", "Atlantic Sun Conference": "ASUN",
+  "Central Atlantic Collegiate Conference": "CACC", "Coastal Athletic Association": "CAA",
+  "College Conference of Illinois and Wisconsin": "CCIW", "Great Lakes Intercollegiate Athletic Conference": "GLIAC",
+  "Great Lakes Valley Conference": "GLVC", "Great Midwest Athletic Conference": "G-MAC",
+  "Metro Atlantic Athletic Conference": "MAAC", "Mid-America Intercollegiate Athletics Association": "MIAA",
+  "Mid-American Conference": "MAC", "Mid-Eastern Athletic Conference": "MEAC",
+  "New England Small College Athletic Conference": "NESCAC", "Northern Sun Intercollegiate Conference": "NSIC",
+  "Old Dominion Athletic Conference": "ODAC", "Pennsylvania State Athletic Conference": "PSAC",
+  "Rocky Mountain Athletic Conference": "RMAC", "Southern Athletic Association": "SAA",
+  "Southern California Intercollegiate Athletic Conference": "SCIAC", "Southern Conference": "SoCon",
+  "Southern Intercollegiate Athletic Conference": "SIAC", "Southwestern Athletic Conference": "SWAC",
+  "University Athletic Association": "UAA", "Upper Midwest Athletic Conference": "UMAC",
+  "Wisconsin Intercollegiate Athletic Conference": "WIAC", "Mountain East Conference": "MEC",
+};
+
+export function conferenceShort(site: ConferenceSite): string {
+  const name = site.names[0];
+  return SHORT[name] ?? name.replace(/\s+Conference$/, "");
+}

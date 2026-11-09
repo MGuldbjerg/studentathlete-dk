@@ -264,6 +264,12 @@ export interface StoryMeta {
   date: string;
   /** Sidearm's sport category for the story ("Men's Soccer", "General"), or null. */
   category: string | null;
+  /**
+   * The publishing conference's short name ("Sun Belt"). A release label that is
+   * exactly a bucket name ("Player of the Year") is stored with it, so the stored
+   * wording differs from the bucket and reads as exact (season-honours.ts).
+   */
+  conference?: string;
 }
 
 export interface FoundHonour extends Award {
@@ -417,11 +423,13 @@ export function extractConferenceHonours(
     const key = `${c.id}|${award.award_name}|${occurred}`;
     if (seen.has(key)) return;
     seen.add(key);
-    found.push({ ...award, athleteId: c.id, occurred_on: occurred, source_url: meta.url, evidence, detail: detail || award.award_name });
+    // detail "" = only the bucket is known; a label equal to the bucket is the release's own word.
+    const exact = detail === award.award_name && meta.conference ? `${meta.conference} ${detail}` : detail;
+    found.push({ ...award, athleteId: c.id, occurred_on: occurred, source_url: meta.url, evidence, detail: exact || award.award_name });
   };
 
-  /** The headline names the award only loosely; its bucket is the honest detail. */
-  const storyDetail = storyAward ? storyAward.award_name : "";
+  /** The headline names the award only loosely: "" — add() falls back to the bucket. */
+  const storyDetail = "";
   let sport = storySport;
   let label: Award | "block" | null = storyAward;
   /** The current label as the release words it (see FoundHonour.detail). */
