@@ -41,5 +41,16 @@ eq("a bucket-only year award is shown generally", sb.athletes[0].honours.map((x)
 eq("year award before the team, worded team kept", sb.athletes[1].honours.map((x) => x.text), ["End-of-season conference award", "All-Sun Belt Conference First Team"]);
 eq("counts", [h.honours, h.conferences], [5, 2]);
 
+// An article-harvest sentence is not a list entry: it merges into the worded twin.
+const sent = mergeHonours([
+  row(30, "Sasha McTiffin", "All-Conference", "Named to the All-CAA Second Team on 4 November 2026 after anchoring Hofstra's defence.", "2026-11-04"),
+  row(30, "Sasha McTiffin", "All-Conference", "All-CAA Second Team", "2026-11-04"),
+]);
+eq("sentence merged into the release label", sent.map((r) => r.summary), ["All-CAA Second Team"]);
+const alone = buildSeasonHonours("UK", "soccer", "2026-27", "2026-11-09", [
+  row(31, "Amy Meadows", "All-Conference", "Named to the All-CAA Second Team after a season in which she started every game", "2026-11-04"),
+]);
+eq("a lone sentence shows the general label", alone.groups[0].divisions[0].conferences[0].athletes[0].honours.map((x) => x.text), ["All-Conference team"]);
+
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

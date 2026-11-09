@@ -211,6 +211,10 @@ eq((classifyLabel("Newcomer of the Year") as { award_name: string }).award_name,
   eq(det(minshull), ["All-Conference: All-Sun Belt Conference Third Team", "Freshman of the Year: Freshman of the Year"], "Minshull: Freshman of the Year and Third Team");
   eq(det(williams), ["All-Conference: All-Sun Belt Conference Second Team"], "Williams: Second Team (position prefix «D –»)");
   eq(det(holmes), ["All-Conference: All-Sun Belt Conference First Team"], "Holmes: First Team");
+  // With the conference known, a label that is exactly the bucket gets its name:
+  // stored "Player of the Year" read as bucket-only and the page hid it.
+  const named = run("sbc_wsoc_allconf", { headline: "Sun Belt Announces 2026 Women’s Soccer Awards, All-Conference Teams", date: "2026-11-05", category: "Women's Soccer", conference: "Sun Belt" }, [lackey]);
+  eq(named.map((f) => `${f.award_name}: ${f.detail}`).sort(), ["All-Conference: All-Sun Belt Conference First Team", "Player of the Year: Sun Belt Player of the Year"], "exact bucket-equal label carries the conference");
 }
 {
   // A bare tier under a headline award keeps both: "All-Conference First Team".
