@@ -38,6 +38,7 @@ import {
   parseUtc,
   postsAllowedNow,
   postsFittingInRun,
+  shareEvery,
   shouldPostNow,
   spacingWouldCostPosts,
 } from "./pacing";
@@ -502,6 +503,12 @@ void (async () => {
 expect("bluesky har sin egen pacing", pacingFor("bluesky").maxGapMinutes, 55);
 expect("bluesky_uk deler den", pacingFor("bluesky_uk").maxGapMinutes, 55);
 expect("facebook rører sig ikke", pacingFor("facebook").maxGapMinutes, 180);
+// Share per channel (Mikkel 2026-11-09): half on UK Facebook, a quarter on UK Threads.
+expect("facebook_uk takes every 2nd article", shareEvery("facebook_uk"), 2);
+expect("threads_uk takes every 4th article", shareEvery("threads_uk"), 4);
+expect("bluesky_uk takes all", shareEvery("bluesky_uk"), 1);
+expect("instagram takes all", shareEvery("instagram_uk"), 1);
+expect("unknown channel takes all", shareEvery("nope"), 1);
 expect("instagram rører sig ikke", pacingFor("instagram").maxGapMinutes, 180);
 expect("ukendt kanal falder tilbage på DEFAULT", pacingFor("threads").maxGapMinutes, 180);
 

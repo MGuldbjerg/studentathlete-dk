@@ -153,7 +153,7 @@ the 13 countries in `src/lib/countries/collecting.ts`.
 
 **Social.** `social-post.yml` hourly (Bluesky DK `bluesky`, UK `bluesky_uk`; Instagram; reels
 gated by `REELS_ENABLED_UK`). UK Facebook (345 posts) and UK Threads (291) post since early Oct;
-DK has neither. Their human click-through, 30 days to 5 Nov: ZERO (all visits were Meta bots).
+DK has neither. Human clicks 30 d to 5 Nov: ZERO. From 9 Nov FB UK posts every 2nd article, Threads every 4th (`shareEvery`).
 
 **Platform.** Workers Paid. D1 is far under its limits; **Worker CPU is the cost** (30M CPU-ms/month
 included, overage $0.02/M). A Next render costs 300–600 ms CPU. #106 (live 5/11): `workers/entry.ts`
