@@ -153,8 +153,8 @@ export const uk: CountryProfile = {
   indexMinWords: 200,
   // Mikkel 2026-11-04: profiles approved on the template level (types.ts).
   profileTemplateApproved: true,
-  // ["soccer"] once Mikkel has seen the preview (2026-11-09) — off until then.
-  seasonHonourSports: [],
+  // Mikkel 2026-11-09: preview seen, published — /statistics/awards/football-2026.
+  seasonHonourSports: ["soccer"],
   brand: "Student-Athlete.co.uk",
   nationalityName: "United Kingdom",
   demonym: "UK",
