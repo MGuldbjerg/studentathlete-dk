@@ -53,3 +53,17 @@ export function honourText(summary: string | null, awardName: string, lang: stri
   if (!isReleaseLabel(s)) return s;
   return lang === "en" ? tidyLabel(s) : awardLabel(awardName, lang) || s;
 }
+
+/**
+ * The honour an article-harvest sentence names, or null: "Named to the All-CAA
+ * Second Team on 4 November 2026 after …" → "All-CAA Second Team". Only the
+ * first honour of a sentence that names two; only a phrase that reads as an
+ * honour (Team, All-, of the Year, Mention).
+ */
+export function labelFromSentence(text: string): string | null {
+  const m = /^(?:named|earned|earns|was named)\s+(?:to\s+)?(?:the\s+)?(?:20\d\d(?:-\d\d)?\s+)?(.+?)(?=\s+(?:on|after|as|among|in|with|for|and|having|by|following)\b|[,.;(]|$)/i
+    .exec(text.trim());
+  const label = m?.[1].trim() ?? "";
+  if (!label || !isReleaseLabel(label) || label.split(/\s+/).length > 10) return null;
+  return /\bteam\b|\ball-|\bof the year\b|\bmention\b/i.test(label) ? label : null;
+}
