@@ -97,8 +97,8 @@ export function pacingFor(channel: string): PacingConfig {
  * posted article (~1,800 Worker calls/day, a large share of the CPU overage).
  *
  * Applied when the queue is FILLED, not by stretching the gap: a longer gap
- * would let posts expire unsent and publish the stalest first. Selecting by id
- * keeps every queued post fresh and the choice stable across runs.
+ * would let posts expire unsent and publish the stalest first. Which articles:
+ * `selectTopShare` below.
  */
 const CHANNEL_SHARE_EVERY: Record<string, number> = {
   facebook_uk: 2,
@@ -107,6 +107,33 @@ const CHANNEL_SHARE_EVERY: Record<string, number> = {
 
 export function shareEvery(channel: string): number {
   return Math.max(1, Math.floor(CHANNEL_SHARE_EVERY[channel] ?? 1));
+}
+
+/**
+ * WHICH share: the best by the editor's social score (Mikkel, 2026-11-09: «so the
+ * poster takes the highest scored articles first»; migration 086).
+ *
+ * Ranked against the site's last SHARE_WINDOW_DAYS of articles, so an article is
+ * judged against a week of rivals, not the two or three published the same hour.
+ * Unscored articles (published by hand) count as UNSCORED_SOCIAL. Ties fall back to
+ * the old every-Nth-by-id rule: with no scores at all the choice is exactly what it
+ * was, and it stays stable from run to run (a recency tie-break would let every new
+ * article into the top share for an hour, and once queued a post stays queued).
+ */
+export const SHARE_WINDOW_DAYS = 7;
+export const UNSCORED_SOCIAL = 5;
+
+export interface ScoredArticle {
+  id: number;
+  social_score: number | null;
+}
+
+export function selectTopShare(rows: ScoredArticle[], every: number): Set<number> {
+  if (every <= 1) return new Set(rows.map((r) => r.id));
+  const score = (r: ScoredArticle) => r.social_score ?? UNSCORED_SOCIAL;
+  const nth = (r: ScoredArticle) => (r.id % every === 0 ? 1 : 0);
+  const sorted = [...rows].sort((a, b) => score(b) - score(a) || nth(b) - nth(a) || a.id - b.id);
+  return new Set(sorted.slice(0, Math.ceil(rows.length / every)).map((r) => r.id));
 }
 
 /**

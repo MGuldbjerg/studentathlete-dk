@@ -65,6 +65,8 @@ interface Decision {
   summary?: string;
   content?: string;
   reason?: string;
+  /** The editor's 1-10 social score (migration 086); picks which articles UK FB/Threads post. */
+  social_score?: number;
 }
 
 const [file, ...flags] = process.argv.slice(2);
@@ -253,6 +255,15 @@ async function main() {
     if (sets.length) {
       sets.push("updated_at = datetime('now')");
       await db.execute(`UPDATE articles SET ${sets.join(", ")} WHERE id = ?`, [...params, d.id]);
+    }
+    // Its own statement, and never fatal: a social score must not be able to stop a publish
+    // (e.g. code deployed before migration 086 ran).
+    if (typeof d.social_score === "number") {
+      try {
+        await db.execute("UPDATE articles SET social_score = ? WHERE id = ?", [d.social_score, d.id]);
+      } catch (e) {
+        console.log(`  (social score not saved: ${(e as Error).message.slice(0, 80)})`);
+      }
     }
 
     // Same rule as publishArticle: an /api/og URL is a meta-tag image, never a

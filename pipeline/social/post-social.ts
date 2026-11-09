@@ -39,7 +39,10 @@ import {
   parseUtc,
   postsAllowedNow,
   postsFittingInRun,
+  SHARE_WINDOW_DAYS,
+  selectTopShare,
   shareEvery,
+  type ScoredArticle,
   spacingWouldCostPosts,
 } from "./pacing";
 import { buildPostText } from "./copy";
@@ -167,6 +170,18 @@ interface QueuedRow {
   photo_school_common_name?: string | null;
 }
 
+/** The site's articles of the last SHARE_WINDOW_DAYS with their social score (~70 rows). */
+async function recentScored(db: D1Client, country: string): Promise<ScoredArticle[]> {
+  const where = `WHERE published = 1 AND country = ? AND published_at >= datetime('now', '-${SHARE_WINDOW_DAYS} days')`;
+  try {
+    return (await db.query<ScoredArticle>(`SELECT id, social_score FROM articles ${where}`, [country])).results;
+  } catch {
+    // Before migration 086 the column does not exist: rank unscored (= the old every-Nth rule).
+    return (await db.query<{ id: number }>(`SELECT id FROM articles ${where}`, [country])).results
+      .map((r) => ({ id: r.id, social_score: null }));
+  }
+}
+
 async function enqueue(db: D1Client, channels: SocialChannel[]): Promise<number> {
   let added = 0;
   for (const ch of channels) {
@@ -177,16 +192,22 @@ async function enqueue(db: D1Client, channels: SocialChannel[]): Promise<number>
     // `a.country = ch.country` er hele pointen: en kanal er en KONTO i ét land.
     // Uden det led postede den danske Facebook-side og Bluesky-konto en
     // britisk artikel (2026-08-05), midt i UK-sitets dark launch.
+    // Facebook UK takes the best half, Threads UK the best quarter (pacing.ts, selectTopShare).
+    const every = shareEvery(ch.name);
+    let only = "";
+    if (every > 1) {
+      const picked = [...selectTopShare(await recentScored(db, ch.country), every)];
+      if (!picked.length) continue;
+      only = ` AND a.id IN (${picked.map((id) => Number(id)).join(",")})`;
+    }
     const res = await db.execute(
       `INSERT OR IGNORE INTO social_posts (article_id, channel)
        SELECT a.id, ?
        FROM articles a
        WHERE a.published = 1
          AND a.country = ?
-         AND a.published_at >= datetime('now', ?)
-         AND a.id % ? = 0`,
-      // shareEvery: Facebook UK takes every 2nd article, Threads UK every 4th (pacing.ts).
-      [ch.name, ch.country, `-${pacingFor(ch.name).expiryMinutes} minutes`, shareEvery(ch.name)],
+         AND a.published_at >= datetime('now', ?)${only}`,
+      [ch.name, ch.country, `-${pacingFor(ch.name).expiryMinutes} minutes`],
     );
     added += res.meta.changes;
   }
