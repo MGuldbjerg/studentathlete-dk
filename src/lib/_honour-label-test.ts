@@ -1,5 +1,5 @@
 /** How stored honours read. Run: npx tsx src/lib/_honour-label-test.ts */
-import { honourText, isReleaseLabel, tidyLabel } from "./honour-label";
+import { honourText, isReleaseLabel, labelFromSentence, tidyLabel } from "./honour-label";
 
 let pass = 0, fail = 0;
 function eq(name: string, got: unknown, want: unknown) {
@@ -24,6 +24,15 @@ eq("English site shows the release label", honourText("ALL-GLIAC FIRST TEAM", "A
 eq("Danish site keeps its own bucket name for a bare English label", honourText("All-MEC Second Team", "All-Conference", "da") !== "All-MEC Second Team", true);
 eq("a sentence shows as stored", honourText("Named to All-Summit League first team", "All-Conference", "en"), "Named to All-Summit League first team");
 eq("bucket only → bucket label", honourText("All-Conference", "All-Conference", "en"), "All-Conference");
+
+// Real article-harvest sentences, 2026-11-09.
+eq("named to the … on", labelFromSentence("Named to the All-CAA Second Team on 4 November 2026 after anchoring Hofstra's defence in 16 games and 15 starts."), "All-CAA Second Team");
+eq("tier first", labelFromSentence("Named Third Team All-CAA on 5 November 2026 after scoring two goals"), "Third Team All-CAA");
+eq("year dropped", labelFromSentence("Named to the 2026 All-Conference Carolinas Third Team, his second straight year of all-league honours."), "All-Conference Carolinas Third Team");
+eq("first of two", labelFromSentence("Named to the Conference USA All-Conference Second Team and the CUSA All-Freshman Team on 6 November 2026."), "Conference USA All-Conference Second Team");
+eq("earned … mention", labelFromSentence("Earned All-GAC/MIAA Honorable Mention on 4 November 2026, his third all-conference honour."), "All-GAC/MIAA Honorable Mention");
+eq("no honour phrase", labelFromSentence("Named captain for the 2026 season."), null);
+eq("not a named sentence", labelFromSentence("Scored twice in the final."), null);
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

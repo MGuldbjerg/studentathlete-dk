@@ -50,7 +50,11 @@ eq("sentence merged into the release label", sent.map((r) => r.summary), ["All-C
 const alone = buildSeasonHonours("UK", "soccer", "2026-27", "2026-11-09", [
   row(31, "Amy Meadows", "All-Conference", "Named to the All-CAA Second Team after a season in which she started every game", "2026-11-04"),
 ]);
-eq("a lone sentence shows the general label", alone.groups[0].divisions[0].conferences[0].athletes[0].honours.map((x) => x.text), ["All-Conference team"]);
+eq("a lone sentence shows the honour it names", alone.groups[0].divisions[0].conferences[0].athletes[0].honours.map((x) => x.text), ["All-CAA Second Team"]);
+const vague = buildSeasonHonours("UK", "soccer", "2026-27", "2026-11-09", [
+  row(32, "Ann Vague", "All-Conference", "Picked up all-league recognition after a strong autumn for the side.", "2026-11-04"),
+]);
+eq("a sentence without a named honour shows the general label", vague.groups[0].divisions[0].conferences[0].athletes[0].honours.map((x) => x.text), ["All-Conference team"]);
 
 console.log(`${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

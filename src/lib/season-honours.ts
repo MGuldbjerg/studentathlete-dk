@@ -21,7 +21,7 @@
  * 'season_honours'; the page reads one row. Pure: no database here.
  */
 
-import { isReleaseLabel, tidyLabel } from "./honour-label";
+import { isReleaseLabel, labelFromSentence, tidyLabel } from "./honour-label";
 
 export const SEASON_HONOURS_KEY = "season_honours";
 
@@ -125,7 +125,10 @@ export function buildSeasonHonours(country: string, sport: string, season: strin
   const buckets = new Set<string>(SEASON_HONOUR_BUCKETS);
   // Academic honours are not athletic ones (Mikkel, 2026-10-06); an article
   // harvest can file "Academic All-ASUN" under the All-Conference bucket.
-  const rows = mergeHonours(raw.filter((r) => buckets.has(r.award_name) && !/\bacademic\b|\bscholar|\bgpa\b/i.test(r.summary ?? "")));
+  // A sentence that names its honour reads as that honour's label.
+  const rows = mergeHonours(raw
+    .filter((r) => buckets.has(r.award_name) && !/\bacademic\b|\bscholar|\bgpa\b/i.test(r.summary ?? ""))
+    .map((r) => (r.summary && !isReleaseLabel(r.summary) ? { ...r, summary: labelFromSentence(r.summary) ?? r.summary } : r)));
   const order = (b: string) => (SEASON_HONOUR_BUCKETS as readonly string[]).indexOf(b);
 
   const byAthlete = new Map<number, { info: HonourInput; rows: HonourInput[] }>();
