@@ -272,6 +272,35 @@ export interface FoundHonour extends Award {
   source_url: string;
   /** The line it came from — for the log and for review, never stored. */
   evidence: string;
+  /**
+   * The award as the release words it: "Offensive Player of the Year",
+   * "All-Sun Belt Conference First Team", "All-Conference Second Team". Stored
+   * as the row's summary — award_name is only the bucket (any "X of the Year"
+   * is "Player of the Year"), which overstated a Rookie of the Year.
+   */
+  detail: string;
+}
+
+/** A label line as a short display string: no year, no trailing colon, ≤ 80 chars. */
+export function labelText(raw: string): string {
+  const t = raw
+    .replace(/[:\s]+$/, "")
+    .replace(/^\d{4}(-\d{2,4})?\s+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return t.length > 80 ? t.slice(0, 80).replace(/\s+\S*$/, "") : t;
+}
+
+/** "First Team", "2nd Team", "Honorable Mention" → British display form. */
+function tierText(line: string): string {
+  const t = labelText(line);
+  const m = /^(first|second|third|1st|2nd|3rd|all)[- ]?team/i.exec(t);
+  if (m) {
+    const w = m[1].toLowerCase();
+    const word = ({ "1st": "First", "2nd": "Second", "3rd": "Third" } as Record<string, string>)[w] ?? w[0].toUpperCase() + w.slice(1);
+    return `${word} Team`;
+  }
+  return "Honourable Mention";
 }
 
 const MONTHS: Record<string, number> = {
@@ -303,6 +332,9 @@ function dateFrom(m: RegExpExecArray, storyIso: string): string {
 
 /** A role before the name that is not itself a label: "Offense:", "Defensive:", "Special Teams:". */
 const ROLE_PREFIX = /^(offen[cs]e|offensive|defen[cs]e|defensive|special teams|men|women|men's|women's|singles|doubles|field|track|goalkeeper|specialist|coxswain|cox)\s*:\s*/i;
+
+/** A position before the name in soccer and hockey lists: "F – Ginny Lackey", "GK - Ellie Goodrich". */
+const POSITION_PREFIX = /^(F|M|D|G|GK|MF|FW|DF|B|K|AM|CB|FB|WB|ST|F\/M|M\/F|D\/M|M\/D)\s*[–—-]\s+/;
 
 /** What may follow a name in an entry: a separator, or nothing. */
 const AFTER_NAME = /^\s*($|[,/(:*‡†;&–—-]|\band\b)/;
@@ -381,15 +413,19 @@ export function extractConferenceHonours(
 
   const found: FoundHonour[] = [];
   const seen = new Set<string>();
-  const add = (c: Candidate, award: Award, occurred: string, evidence: string) => {
+  const add = (c: Candidate, award: Award, occurred: string, evidence: string, detail: string) => {
     const key = `${c.id}|${award.award_name}|${occurred}`;
     if (seen.has(key)) return;
     seen.add(key);
-    found.push({ ...award, athleteId: c.id, occurred_on: occurred, source_url: meta.url, evidence });
+    found.push({ ...award, athleteId: c.id, occurred_on: occurred, source_url: meta.url, evidence, detail: detail || award.award_name });
   };
 
+  /** The headline names the award only loosely; its bucket is the honest detail. */
+  const storyDetail = storyAward ? storyAward.award_name : "";
   let sport = storySport;
   let label: Award | "block" | null = storyAward;
+  /** The current label as the release words it (see FoundHonour.detail). */
+  let detail = storyDetail;
   /** The date cell the following names belong to; cleared by every new label. */
   let listDate: string | null = null;
 
@@ -402,6 +438,7 @@ export function extractConferenceHonours(
     if (lineSport && words <= 6 && !line.includes(":") && classifyLabel(line) === null) {
       sport = lineSport.gender || !storySport ? lineSport : { ...lineSport, gender: storySport.gender };
       label = storyAward;
+      detail = storyDetail;
       listDate = null;
       continue;
     }
@@ -427,6 +464,7 @@ export function extractConferenceHonours(
       const own = classifyLabel(line);
       const base = own && own !== "block" ? own : storyAward;
       label = /^honou?rable/i.test(line) ? honourableMention(base) : base;
+      detail = own && own !== "block" ? labelText(line) : base ? `${base.award_name} ${tierText(line)}` : "";
       listDate = null;
       continue;
     }
@@ -434,15 +472,18 @@ export function extractConferenceHonours(
     // Label lines: "Honor Roll:", "SSC OFFENSIVE PLAYER OF THE WEEK".
     let rest = line;
     let inline: Award | "block" | null = null;
+    let inlineDetail = "";
     const colon = line.indexOf(":");
     if (colon > 0 && colon <= 80) {
       const head = line.slice(0, colon);
       const cls = classifyLabel(head);
       if (cls !== null) {
         inline = cls;
+        inlineDetail = labelText(head);
         rest = line.slice(colon + 1).trim();
         if (!rest) {
           label = cls;
+          detail = inlineDetail;
           listDate = null;
           if (lineSport) sport = lineSport;
           continue;
@@ -451,6 +492,7 @@ export function extractConferenceHonours(
     }
     if (inline === null && words <= 12 && classifyLabel(line) !== null && !nameLike(line, index)) {
       label = classifyLabel(line);
+      detail = labelText(line);
       listDate = null;
       if (lineSport) sport = lineSport;
       continue;
@@ -466,7 +508,7 @@ export function extractConferenceHonours(
       occurred = dateFrom(d, meta.date);
       rest = rest.slice(d[0].length);
     }
-    rest = rest.replace(ROLE_PREFIX, "");
+    rest = rest.replace(ROLE_PREFIX, "").replace(POSITION_PREFIX, "");
 
     const items = rest.split(/;|\s&\s|\s+and\s+/);
     const normLine = norm(line);
@@ -477,7 +519,7 @@ export function extractConferenceHonours(
         const m = nameAtStart(item, cands[0].name);
         if (!m || !AFTER_NAME.test(item.normalize("NFD").replace(/[̀-ͯ]/g, "").slice(m[0].length))) break;
         const c = choose(cands, sport, normLine);
-        if (c) add(c, award, occurred, line);
+        if (c) add(c, award, occurred, line, inline ? inlineDetail : detail);
         break;
       }
     }
@@ -497,7 +539,7 @@ export function extractConferenceHonours(
         for (const [key, cands] of named) {
           if (!normLine.includes(` ${key} `)) continue;
           const c = choose(cands, storySport, normLine);
-          if (c) add(c, storyAward, meta.date.slice(0, 10), line);
+          if (c) add(c, storyAward, meta.date.slice(0, 10), line, storyDetail);
         }
       }
     }

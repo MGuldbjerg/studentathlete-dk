@@ -18,7 +18,8 @@
  *
  * Pure: the page passes the URL builder, so this can be tested without a site.
  */
-import { awardLabel, type AthleteEventRow } from "./athlete-events";
+import { honourText } from "./honour-label";
+import type { AthleteEventRow } from "./athlete-events";
 import { timelineLine } from "./timeline-entry";
 import { milestoneEvent } from "./leaderboard";
 
@@ -78,13 +79,13 @@ export function buildTimeline(
       });
       continue;
     }
-    // A kept line carries its own sentence; a harvested honour only its name.
-    const own = e.summary && e.summary !== e.award_name;
+    // A kept line carries its own sentence; a conference honour the release's
+    // label (honour-label.ts decides how each reads per language).
     rows.push({
       key: `e${e.id}`,
       date: e.occurred_on ? e.occurred_on.slice(0, 10) : null,
       season: e.season,
-      text: own ? e.summary : awardLabel(e.award_name, lang) || e.summary,
+      text: e.award_name ? honourText(e.summary, e.award_name, lang) : e.summary ?? "",
       href: e.source_url,
       external: true,
       honor: e.significance === "honor",
