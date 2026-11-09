@@ -39,6 +39,7 @@ import {
   parseUtc,
   postsAllowedNow,
   postsFittingInRun,
+  shareEvery,
   spacingWouldCostPosts,
 } from "./pacing";
 import { buildPostText } from "./copy";
@@ -182,8 +183,10 @@ async function enqueue(db: D1Client, channels: SocialChannel[]): Promise<number>
        FROM articles a
        WHERE a.published = 1
          AND a.country = ?
-         AND a.published_at >= datetime('now', ?)`,
-      [ch.name, ch.country, `-${pacingFor(ch.name).expiryMinutes} minutes`],
+         AND a.published_at >= datetime('now', ?)
+         AND a.id % ? = 0`,
+      // shareEvery: Facebook UK takes every 2nd article, Threads UK every 4th (pacing.ts).
+      [ch.name, ch.country, `-${pacingFor(ch.name).expiryMinutes} minutes`, shareEvery(ch.name)],
     );
     added += res.meta.changes;
   }

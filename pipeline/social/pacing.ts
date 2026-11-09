@@ -89,6 +89,27 @@ export function pacingFor(channel: string): PacingConfig {
 }
 
 /**
+ * Share of articles a channel posts: every Nth article (by id), 1 = all.
+ *
+ * Mikkel, 2026-11-09: «half the frequency on Facebook and quarter Threads».
+ * Measured before: UK Facebook ~10 posts/day and UK Threads ~8.5/day brought
+ * ZERO human clicks in 30 days, while Meta's link checkers re-rendered every
+ * posted article (~1,800 Worker calls/day, a large share of the CPU overage).
+ *
+ * Applied when the queue is FILLED, not by stretching the gap: a longer gap
+ * would let posts expire unsent and publish the stalest first. Selecting by id
+ * keeps every queued post fresh and the choice stable across runs.
+ */
+const CHANNEL_SHARE_EVERY: Record<string, number> = {
+  facebook_uk: 2,
+  threads_uk: 4,
+};
+
+export function shareEvery(channel: string): number {
+  return Math.max(1, Math.floor(CHANNEL_SHARE_EVERY[channel] ?? 1));
+}
+
+/**
  * D1's datetime('now') gemmer "YYYY-MM-DD HH:MM:SS" i UTC uden zone-suffix —
  * new Date() ville tolke det som lokal tid, så vi tilføjer Z selv.
  */
