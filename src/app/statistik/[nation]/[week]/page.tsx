@@ -9,6 +9,11 @@ import { LeaderboardWeekView } from "@/components/LeaderboardWeekView";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { plain, weekHeadline, weekSections } from "@/lib/leaderboard-week";
 import { withAds } from "@/components/AdsenseScript";
+import { getSeasonHonours } from "@/lib/db";
+import { countryProfile } from "@/lib/countries";
+import { sportLabel } from "@/lib/i18n";
+import { AWARDS_SLUG } from "@/components/AwardsView";
+import { SeasonHonoursView, seasonHonoursPath, seasonHonoursSlug, seasonYear } from "@/components/SeasonHonoursView";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +30,28 @@ async function weekFor(params: Promise<{ nation: string; week: string }>) {
   return { site, lang, week, data, title };
 }
 
+/** The end-of-season honours page: /statistics/awards/football-2026 (src/lib/season-honours.ts). */
+async function honoursFor(params: Promise<{ nation: string; week: string }>) {
+  const [{ nation, week }, site, lang] = await Promise.all([params, currentSite(), currentLanguage()]);
+  if (nation !== AWARDS_SLUG[lang]) return null;
+  for (const sport of countryProfile(site.code).seasonHonourSports) {
+    const data = await getSeasonHonours(site.code, sport);
+    if (!data || !data.athletes || seasonHonoursSlug(sport, data.season, lang) !== week) continue;
+    const title = t("honours.title", lang, { sport: sportLabel(sport, lang).toLowerCase(), year: seasonYear(data.season) });
+    return { site, lang, sport, data, title };
+  }
+  return null;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ nation: string; week: string }> }): Promise<Metadata> {
+  const h = await honoursFor(params);
+  if (h) {
+    return {
+      title: `${h.title} | ${h.site.brand}`,
+      description: t("honours.intro", h.lang, { sport: sportLabel(h.sport, h.lang).toLowerCase() }).slice(0, 300),
+      alternates: { canonical: seasonHonoursPath(h.sport, h.data.season, h.lang) },
+    };
+  }
   const w = await weekFor(params);
   if (!w) return {};
   const first = weekSections(w.data, w.lang)[0]?.lines.slice(0, 2).map(plain).join(" ") ?? "";
@@ -37,6 +63,34 @@ export async function generateMetadata({ params }: { params: Promise<{ nation: s
 }
 
 async function LeaderboardWeekPage({ params }: { params: Promise<{ nation: string; week: string }> }) {
+  const h = await honoursFor(params);
+  if (h) {
+    const tallyHref = `${routePath("stats", h.lang)}/${AWARDS_SLUG[h.lang]}`;
+    const sport = sportLabel(h.sport, h.lang).toLowerCase();
+    return (
+      <main className="max-w-3xl mx-auto px-4 md:px-8 py-10">
+        <Breadcrumb crumbs={[
+          { label: t("crumb.home", h.lang), href: "/" },
+          { label: t("stats.crumb", h.lang), href: routePath("stats", h.lang) },
+          { label: t("awards.title", h.lang, { season: h.data.season }), href: tallyHref },
+          { label: `${sportLabel(h.sport, h.lang)} ${seasonYear(h.data.season)}` },
+        ]} />
+        <h1 className="text-3xl font-bold text-ink mt-6 mb-3" style={{ fontFamily: "var(--font-serif)" }}>{h.title}</h1>
+        <p className="text-sm text-ink/80 mb-3 max-w-2xl border-l-4 pl-3" style={{ borderColor: "#BF0A30" }}>{t("honours.intro", h.lang, { sport })}</p>
+        <p className="text-lg font-semibold text-ink mt-6 mb-1">
+          {t("honours.total", h.lang, { n: String(h.data.honours), m: String(h.data.athletes), c: String(h.data.conferences) })}
+        </p>
+        <p className="text-xs text-muted mb-6">
+          {t("board.as_of", h.lang, { date: formatDate(h.data.asOf, h.lang, { day: "numeric", month: "long", year: "numeric" }) })}
+        </p>
+        <SeasonHonoursView honours={h.data} lang={h.lang} />
+        <p className="text-sm text-ink/80 mt-10 max-w-2xl leading-relaxed">{t("honours.method", h.lang)}</p>
+        <p className="text-sm mt-6">
+          <a href={tallyHref} className="font-semibold hover:underline" style={{ color: "#BF0A30" }}>{t("honours.tally_link", h.lang)}</a>
+        </p>
+      </main>
+    );
+  }
   const w = await weekFor(params);
   if (!w) notFound();
   const boardHref = `${routePath("stats", w.lang)}/${LEADERBOARD_SLUG[w.lang]}`;

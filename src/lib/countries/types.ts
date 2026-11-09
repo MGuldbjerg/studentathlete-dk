@@ -108,6 +108,13 @@ export interface CountryProfile {
    * the template audit); DK false — the .dk site promises a person reads it.
    */
   profileTemplateApproved: boolean;
+  /**
+   * Sports with an end-of-season honours page (/statistics/awards/<sport>-<year>,
+   * src/lib/season-honours.ts), computed daily by build-stats. UK ["soccer"]
+   * (Mikkel, 2026-11-09); DK [] — nine athletes is not a page, and the .dk site
+   * promises a person reads what it publishes.
+   */
+  seasonHonourSports: string[];
 }
 
 /**
