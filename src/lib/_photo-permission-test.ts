@@ -8,7 +8,7 @@
  */
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-import { photoAllowed, photoAllowedSql, gatePhoto, BLOCKED_PHOTO_PERMISSIONS } from "./photo-permission";
+import { photoAllowed, photoAllowedSql, gatePhoto, articlePhotoClearedSql, BLOCKED_PHOTO_PERMISSIONS } from "./photo-permission";
 
 let passed = 0;
 let failed = 0;
@@ -26,6 +26,10 @@ ok(!photoAllowed("declined"), "declined is blocked");
 ok(!photoAllowed("do_not_contact"), "do_not_contact (what the ledger writes) is blocked");
 ok(!photoAllowed("do-not-contact"), "do-not-contact (the CLI keyword) is blocked");
 ok(!photoAllowed(" Declined "), "case and spaces do not slip through");
+ok(!photoAllowed("athlete_list"), "athlete_list: an athlete not named is blocked");
+ok(!photoAllowed("athlete_list", null) && !photoAllowed("athlete_list", 0), "athlete_list: NULL/0 cleared is blocked");
+ok(photoAllowed("athlete_list", 1) && photoAllowed(" Athlete_List ", true), "athlete_list: a cleared athlete is allowed");
+ok(photoAllowed("granted", 0) && !photoAllowed("declined", 1), "cleared changes nothing for other states");
 
 // ── gatePhoto ────────────────────────────────────────────────────────────────
 const row = { id: 1, photo_url: "https://x/p.jpg", photo_credit: "Foto: X Athletics", photo_source_url: "https://x/bio", photo_photographer: "Jane" };
@@ -34,6 +38,8 @@ const gated = gatePhoto(row, "declined");
 ok(gated.photo_url === null && gated.photo_credit === null && gated.photo_source_url === null && gated.photo_photographer === null,
   "blocked: every photo field is emptied");
 ok(gated.id === 1 && row.photo_url === "https://x/p.jpg", "blocked: other fields kept, the original not mutated");
+ok(gatePhoto(row, "athlete_list").photo_url === null, "athlete_list: an uncleared row loses its photo");
+ok(gatePhoto({ ...row, photo_cleared: 1 }, "athlete_list").photo_url === row.photo_url, "athlete_list: a cleared row keeps it");
 
 // ── SQL twin agrees with the TS rule ─────────────────────────────────────────
 interface Stmt { run(...p: unknown[]): unknown; get(...p: unknown[]): Record<string, unknown>; all(...p: unknown[]): Record<string, unknown>[] }
@@ -42,9 +48,35 @@ const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as {
 };
 const db = new DatabaseSync(":memory:");
 const values: (string | null)[] = [null, "", "asked", "granted", "conditional", "declined", "do_not_contact", "do-not-contact", " DECLINED", ...BLOCKED_PHOTO_PERMISSIONS];
-for (const v of values) {
-  const r = db.prepare(`SELECT ${photoAllowedSql("?")} AS allowed`).get(v);
-  ok(Boolean(r.allowed) === photoAllowed(v), `SQL and TS agree on ${JSON.stringify(v)}`);
+for (const v of [...values, "athlete_list", " ATHLETE_LIST"]) {
+  for (const c of [null, 0, 1]) {
+    // The column appears twice in the SQL, so it is bound once through a CTE.
+    const r = db.prepare(`WITH v(p, c) AS (SELECT ?, ?) SELECT ${photoAllowedSql("v.p", "v.c")} AS allowed FROM v`).get(v, c);
+    ok(Boolean(r.allowed) === photoAllowed(v, c), `SQL and TS agree on ${JSON.stringify(v)} / cleared ${c}`);
+  }
+}
+
+// ── Article photo cleared: athletes AT the photo's school, all cleared, at least one ──
+{
+  const t = new (DatabaseSync)(":memory:");
+  t.exec(`
+    CREATE TABLE athletes (id INTEGER PRIMARY KEY, university TEXT, photo_cleared INTEGER);
+    CREATE TABLE article_athletes (article_id INTEGER, athlete_id INTEGER);
+    CREATE TABLE articles (id INTEGER PRIMARY KEY, photo_url TEXT, photo_school TEXT);
+    INSERT INTO athletes VALUES (1, 'McK', 1), (2, 'McK', NULL), (3, 'Other', NULL);
+    INSERT INTO articles VALUES (10, 'p', 'McK'), (11, 'p', 'McK'), (12, 'p', 'McK'), (13, NULL, 'McK');
+    INSERT INTO article_athletes VALUES (10, 1), (10, 3), (11, 1), (11, 2), (12, 3);
+  `);
+  const cl = (id: number) => t.prepare(`SELECT ${articlePhotoClearedSql("a")} AS c FROM articles a WHERE a.id = ?`).get(id).c;
+  ok(cl(10) === 1, "article: every athlete at the photo's school is cleared → 1 (others ignored)");
+  ok(cl(11) === 0, "article: one uncleared athlete at the school → 0");
+  ok(cl(12) === 0, "article: no athlete at the photo's school → 0 (its yes covers its own athletes)");
+  ok(cl(13) === null, "article: no photo → NULL, nothing looked up");
+}
+{
+  const mig = readFileSync("db/migration-087-photo-cleared.sql", "utf8");
+  const g = /(^|[^a-z])(drop|delete|truncate|update)([^a-z]|$)/i;
+  ok(!g.test(mig.split("\n").filter((l) => !/^\s*--/.test(l)).join("\n")), "migration-087 passes the additive guard");
 }
 
 // ── Migration 080 + backfill against a minimal schema ───────────────────────

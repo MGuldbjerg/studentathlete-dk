@@ -93,7 +93,7 @@ async function exportAthletes(db: ReturnType<typeof createD1Client>, wanted: Set
     // photo is gated at read time, src/lib/photo-permission.ts), so it needs the file.
     `SELECT a.name, a.university, a.sport, a.home_country FROM athletes a
       WHERE a.photo_url IS NULL OR a.photo_url = ''
-         OR NOT ${photoAllowedSql("(SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1)")}`,
+         OR NOT ${photoAllowedSql("(SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1)", "a.photo_cleared")}`,
   );
   // An athlete page answers only on its own site (getAthleteBySlug filters on
   // home_country), in that site's language — so one image per athlete.

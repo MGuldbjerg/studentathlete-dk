@@ -11,7 +11,7 @@ import { recordsOf } from "./athlete-hub";
 import { seasonFromDate } from "./athlete-events";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
-import { gatePhoto } from "./photo-permission";
+import { articlePhotoClearedSql, gatePhoto } from "./photo-permission";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getDB(): Promise<any | null> {
@@ -130,6 +130,7 @@ export const ARTICLE_SELECT = `
        ELSE (SELECT ps.photo_permission FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_permission,
   CASE WHEN a.photo_url IS NULL THEN NULL
        ELSE (SELECT ps.common_name FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_common_name,
+  ${articlePhotoClearedSql("a")} AS photo_athletes_cleared,
   ${cardReadySql("a")} AS card_ready,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;

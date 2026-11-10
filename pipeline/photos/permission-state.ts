@@ -3,12 +3,15 @@
  * without a database. The point is never to contact anyone twice by accident.
  */
 
-export type PermissionState = "asked" | "granted" | "conditional" | "declined" | "do_not_contact";
+export type PermissionState = "asked" | "granted" | "conditional" | "athlete_list" | "declined" | "do_not_contact";
 
 /** What Mikkel records when a reply arrives: keyword → event name, new state (null = unchanged). */
 export const RESPONSES: Record<string, { event: string; state: PermissionState | null }> = {
   granted: { event: "reply_granted", state: "granted" },
   conditional: { event: "reply_conditional", state: "conditional" },
+  // Yes, but only for athletes named to the school; anyone new needs a separate email
+  // first (McKendree, 2026-11-09). Photos show only for athletes set with --clear.
+  "athlete-list": { event: "reply_athlete_list", state: "athlete_list" },
   declined: { event: "reply_declined", state: "declined" },
   forwarded: { event: "forwarded", state: null },
   bounced: { event: "bounced", state: null },
