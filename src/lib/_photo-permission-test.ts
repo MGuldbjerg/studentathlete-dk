@@ -8,7 +8,7 @@
  */
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-import { photoAllowed, photoAllowedSql, gatePhoto, articlePhotoClearedSql, BLOCKED_PHOTO_PERMISSIONS } from "./photo-permission";
+import { photoAllowed, photoAllowedSql, gatePhoto, articlePhotoClearedSql, photographerListValue, BLOCKED_PHOTO_PERMISSIONS } from "./photo-permission";
 
 let passed = 0;
 let failed = 0;
@@ -27,9 +27,21 @@ ok(!photoAllowed("do_not_contact"), "do_not_contact (what the ledger writes) is 
 ok(!photoAllowed("do-not-contact"), "do-not-contact (the CLI keyword) is blocked");
 ok(!photoAllowed(" Declined "), "case and spaces do not slip through");
 ok(!photoAllowed("athlete_list"), "athlete_list: an athlete not named is blocked");
-ok(!photoAllowed("athlete_list", null) && !photoAllowed("athlete_list", 0), "athlete_list: NULL/0 cleared is blocked");
-ok(photoAllowed("athlete_list", 1) && photoAllowed(" Athlete_List ", true), "athlete_list: a cleared athlete is allowed");
-ok(photoAllowed("granted", 0) && !photoAllowed("declined", 1), "cleared changes nothing for other states");
+ok(!photoAllowed("athlete_list", { cleared: null }) && !photoAllowed("athlete_list", { cleared: 0 }), "athlete_list: NULL/0 cleared is blocked");
+ok(photoAllowed("athlete_list", { cleared: 1 }) && photoAllowed(" Athlete_List ", { cleared: true }), "athlete_list: a cleared athlete is allowed");
+ok(photoAllowed("granted", { cleared: 0 }) && !photoAllowed("declined", { cleared: 1 }), "cleared changes nothing for other states");
+
+// ── photographer_list ────────────────────────────────────────────────────────
+const rock = photographerListValue([" Callie  Knott ", "callie knott", "Jo Smith"]);
+ok(rock === "callie knott;jo smith", "list value: normalised, lower-case, deduplicated");
+const pl = (photographer: string | null, unnamedOk: number | null) =>
+  photoAllowed("photographer_list", { photographer, photographers: rock, unnamedOk });
+ok(pl("Callie Knott", 0) && pl("CALLIE   KNOTT", 0), "photographer_list: an approved photographer passes (case, spaces)");
+ok(!pl("Outside Photog", 1), "photographer_list: another photographer is blocked, unnamed_ok or not");
+ok(!pl("Callie", 1), "photographer_list: no partial match");
+ok(pl(null, 1) && pl("  ", 1), "photographer_list: unnamed passes with unnamed_ok = 1");
+ok(!pl(null, 0) && !pl(null, null), "photographer_list: unnamed is blocked without unnamed_ok");
+ok(!photoAllowed("photographer_list"), "photographer_list: no context → blocked");
 
 // ── gatePhoto ────────────────────────────────────────────────────────────────
 const row = { id: 1, photo_url: "https://x/p.jpg", photo_credit: "Foto: X Athletics", photo_source_url: "https://x/bio", photo_photographer: "Jane" };
@@ -39,6 +51,9 @@ ok(gated.photo_url === null && gated.photo_credit === null && gated.photo_source
   "blocked: every photo field is emptied");
 ok(gated.id === 1 && row.photo_url === "https://x/p.jpg", "blocked: other fields kept, the original not mutated");
 ok(gatePhoto(row, "athlete_list").photo_url === null, "athlete_list: an uncleared row loses its photo");
+ok(gatePhoto({ ...row, school_photo_photographers: "jane" }, "photographer_list").photo_url === row.photo_url, "photographer_list: the row's photographer (Jane) is approved");
+ok(gatePhoto({ ...row, school_photo_photographers: "callie knott" }, "photographer_list").photo_url === null, "photographer_list: an unapproved photographer loses the photo");
+ok(gatePhoto({ ...row, photo_photographer: null, school_photo_unnamed_ok: 1 }, "photographer_list").photo_url === row.photo_url, "photographer_list: an unnamed headshot passes with unnamed_ok");
 ok(gatePhoto({ ...row, photo_cleared: 1 }, "athlete_list").photo_url === row.photo_url, "athlete_list: a cleared row keeps it");
 
 // ── SQL twin agrees with the TS rule ─────────────────────────────────────────
@@ -48,12 +63,21 @@ const { DatabaseSync } = createRequire(import.meta.url)("node:sqlite") as {
 };
 const db = new DatabaseSync(":memory:");
 const values: (string | null)[] = [null, "", "asked", "granted", "conditional", "declined", "do_not_contact", "do-not-contact", " DECLINED", ...BLOCKED_PHOTO_PERMISSIONS];
-for (const v of [...values, "athlete_list", " ATHLETE_LIST"]) {
+for (const v of [...values, "athlete_list", " ATHLETE_LIST", "photographer_list"]) {
   for (const c of [null, 0, 1]) {
-    // The column appears twice in the SQL, so it is bound once through a CTE.
-    const r = db.prepare(`WITH v(p, c) AS (SELECT ?, ?) SELECT ${photoAllowedSql("v.p", "v.c")} AS allowed FROM v`).get(v, c);
-    ok(Boolean(r.allowed) === photoAllowed(v, c), `SQL and TS agree on ${JSON.stringify(v)} / cleared ${c}`);
+    for (const ph of [null, "", "Callie Knott", "callie knott ", "Jo Smith", "Other One"]) {
+      // Values are bound once through a CTE (the SQL names some of them twice).
+      const r = db.prepare(`WITH v(p, c, ph, l, u) AS (SELECT ?, ?, ?, ?, ?)
+        SELECT ${photoAllowedSql("v.p", { cleared: "v.c", photographer: "v.ph", photographers: "v.l", unnamedOk: "v.u" })} AS allowed FROM v`)
+        .get(v, c, ph, rock, c);
+      const ts = photoAllowed(v, { cleared: c, photographer: ph, photographers: rock, unnamedOk: c });
+      ok(Boolean(r.allowed) === ts, `SQL and TS agree on ${JSON.stringify(v)} / ${c} / ${JSON.stringify(ph)}`);
+    }
   }
+}
+{
+  const r = db.prepare(`SELECT ${photoAllowedSql("'photographer_list'", { anyPhotographer: true })} AS allowed`).get();
+  ok(Boolean(r.allowed), "suggestions: photographer_list may still look for a photo (checked when shown)");
 }
 
 // ── Article photo cleared: athletes AT the photo's school, all cleared, at least one ──

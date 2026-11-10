@@ -10,7 +10,9 @@
  *         --pause = min-max minutes between emails (default 8-15)
  *   npx tsx pipeline/photos/request-permission.ts --status [--conference X]       the ledger
  *   npx tsx pipeline/photos/request-permission.ts --respond "School" granted|conditional|athlete-list|
- *         declined|forwarded|bounced|contact-changed|do-not-contact|note [--note "text"]  record a reply
+ *         photographer-list|declined|forwarded|bounced|contact-changed|do-not-contact|note [--note "text"]
+ *   npx tsx pipeline/photos/request-permission.ts --photographers "School" --names "A; B" --unnamed-ok yes|no
+ *         photographer-list: the approved photographers (replaces the list) and whether unnamed photos pass
  *   npx tsx pipeline/photos/request-permission.ts --clear "School" --names "A; B; C"   athlete-list:
  *         mark the athletes the school approved by name (all or nothing; --dry to preview)
  *   (contact-changed: the person has left — then import the new contact and send as usual)
@@ -23,6 +25,7 @@
 import { readFileSync } from "node:fs";
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { buildPermissionEmail } from "./permission-email";
+import { photographerListValue } from "../../src/lib/photo-permission";
 import { REOPENING_EVENTS, daysSince, emailCooledDown, parseResponse } from "./permission-state";
 
 const SENDER = { name: "Mikkel Guldbjerg Jensen", email: "info@studentathlete.dk" };
@@ -62,6 +65,8 @@ function parseArgs() {
     status: a.includes("--status"),
     respond: val("--respond"),
     clear: val("--clear"),
+    photographers: val("--photographers"),
+    unnamedOk: val("--unnamed-ok"),
     names: val("--names"),
     dry: a.includes("--dry"),
     keyword: val("--respond") ? a[a.indexOf("--respond") + 2] ?? null : null,
@@ -109,7 +114,7 @@ async function record(db: D1Client, schoolId: number, event: string, f: { to?: s
 }
 
 async function respond(name: string, keyword: string | null, note: string | null) {
-  if (!keyword) throw new Error("Usage: --respond \"School\" granted|conditional|athlete-list|declined|forwarded|bounced|contact-changed|do-not-contact|note [--note \"text\"]");
+  if (!keyword) throw new Error("Usage: --respond \"School\" granted|conditional|athlete-list|photographer-list|declined|forwarded|bounced|contact-changed|do-not-contact|note [--note \"text\"]");
   const { event, state } = parseResponse(keyword);
   const db = createD1Client();
   const school = await findSchool(db, name);
@@ -155,6 +160,22 @@ async function clearAthletes(name: string, namesArg: string | null, dry: boolean
   for (const id of ids) await db.query("UPDATE athletes SET photo_cleared = 1 WHERE id = ?", [id]);
   await record(db, school.id, "athletes_cleared", { detail: names.join("; ") });
   console.log("done");
+}
+
+/** Set a photographer_list school's approved photographers and whether unnamed photos pass. */
+async function setPhotographers(name: string, namesArg: string | null, unnamedArg: string | null) {
+  const names = (namesArg ?? "").split(/[;,]/).map((n) => n.trim()).filter(Boolean);
+  if (!names.length || !["yes", "no"].includes(unnamedArg ?? "")) {
+    throw new Error('Usage: --photographers "School" --names "A; B" --unnamed-ok yes|no');
+  }
+  const db = createD1Client();
+  const school = await findSchool(db, name);
+  if (!school) throw new Error(`No single school matches «${name}»`);
+  const list = photographerListValue(names);
+  const unnamed = unnamedArg === "yes" ? 1 : 0;
+  await db.query("UPDATE schools SET photo_photographers = ?, photo_unnamed_ok = ? WHERE id = ?", [list, unnamed, school.id]);
+  await record(db, school.id, "photographers_set", { detail: `${names.join("; ")} | unnamed ${unnamedArg}` });
+  console.log(`${school.name}: photographers «${list}», unnamed photos ${unnamed ? "allowed" : "blocked"}`);
 }
 
 async function status(conference: string | null) {
@@ -260,6 +281,7 @@ async function main() {
   if (args.importFile) return importContacts(args.importFile);
   if (args.respond) return respond(args.respond, args.keyword, args.note);
   if (args.clear) return clearAthletes(args.clear, args.names, args.dry);
+  if (args.photographers) return setPhotographers(args.photographers, args.names, args.unnamedOk);
   if (args.status) return status(args.conference);
   return sendRun(args);
 }
