@@ -11,6 +11,8 @@ function eq(actual: unknown, expected: unknown, name: string) {
 eq(parseResponse("granted").state, "granted", "granted sets state");
 eq(parseResponse("declined").state, "declined", "declined sets state");
 eq(parseResponse("conditional").state, "conditional", "conditional is its own state, not a plain yes");
+eq(parseResponse("athlete-list").state, "athlete_list", "athlete-list is stored with an underscore, like do_not_contact");
+eq(parseResponse("photographer-list").state, "photographer_list", "photographer-list is stored with an underscore");
 eq(parseResponse("do-not-contact").state, "do_not_contact", "do-not-contact blocks further mail");
 eq(parseResponse("forwarded").state, null, "forwarded leaves the state at asked");
 eq(parseResponse("bounced").event, "bounced", "bounced event");

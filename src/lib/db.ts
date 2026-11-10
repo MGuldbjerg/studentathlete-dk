@@ -11,7 +11,7 @@ import { recordsOf } from "./athlete-hub";
 import { seasonFromDate } from "./athlete-events";
 import type { AthleteEventRow } from "./athlete-events";
 import { MOCK_ARTICLES, MOCK_ATHLETES, MOCK_SCHOOLS } from "./mock-data";
-import { gatePhoto } from "./photo-permission";
+import { articlePhotoClearedSql, gatePhoto } from "./photo-permission";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getDB(): Promise<any | null> {
@@ -130,6 +130,11 @@ export const ARTICLE_SELECT = `
        ELSE (SELECT ps.photo_permission FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_permission,
   CASE WHEN a.photo_url IS NULL THEN NULL
        ELSE (SELECT ps.common_name FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_common_name,
+  CASE WHEN a.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.photo_photographers FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_photographers,
+  CASE WHEN a.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.photo_unnamed_ok FROM schools ps WHERE ps.name = a.photo_school LIMIT 1) END AS photo_school_unnamed_ok,
+  ${articlePhotoClearedSql("a")} AS photo_athletes_cleared,
   ${cardReadySql("a")} AS card_ready,
   at.name as athlete_name, at.sport, at.slug as athlete_slug
 `;
@@ -665,6 +670,7 @@ export async function getAthleteBySlug(slug: string, country?: string): Promise<
     const r = await db
       .prepare(
         `SELECT a.*, s.slug AS school_slug, s.photo_permission AS school_photo_permission,
+                s.photo_photographers AS school_photo_photographers, s.photo_unnamed_ok AS school_photo_unnamed_ok,
                 s.common_name AS school_common_name,
                 ${HAS_ARTICLE_SQL} AS has_article, ${hasStatsSql("a")} AS has_stats,
                 ${articleCountSql("a")} AS article_count
@@ -696,6 +702,7 @@ export async function getArticleAthletes(articleId: number, country?: string): P
     const r = await db
       .prepare(
         `SELECT a.*, s.slug AS school_slug, s.photo_permission AS school_photo_permission,
+                s.photo_photographers AS school_photo_photographers, s.photo_unnamed_ok AS school_photo_unnamed_ok,
                 s.common_name AS school_common_name
            FROM article_athletes aa
            JOIN athletes a ON a.id = aa.athlete_id
@@ -755,7 +762,9 @@ export async function getAthletesByUniversity(
       .prepare(
         // The school's photo permission is one lookup on idx_schools_name (migration 057).
         // A scalar subquery, not a join: a duplicate school name must not duplicate the roster.
-        `SELECT a.*, (SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1) AS school_photo_permission
+        `SELECT a.*, (SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1) AS school_photo_permission,
+                (SELECT s.photo_photographers FROM schools s WHERE s.name = a.university LIMIT 1) AS school_photo_photographers,
+                (SELECT s.photo_unnamed_ok FROM schools s WHERE s.name = a.university LIMIT 1) AS school_photo_unnamed_ok
            FROM athletes a
           WHERE a.university = ? AND a.home_country = ? AND a.active = 1
            ${publicAthleteClause(code)} ${opts.listed ? listedClause(code) : ""} ORDER BY a.name LIMIT ?`

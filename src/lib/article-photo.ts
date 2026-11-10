@@ -7,7 +7,7 @@
  * photo on the next render — the same rule as athlete photos (photo-permission.ts).
  */
 import type { Article } from "./types";
-import { photoAllowed } from "./photo-permission";
+import { articlePhotoClearedSql, photoAllowed } from "./photo-permission";
 import { creditedSchoolName, photoCreditParts, safeSourceUrl, type PhotoCreditInput } from "./photo-credit";
 import { getArticleCoverUrl } from "./seo";
 
@@ -19,6 +19,11 @@ export type ArticlePhotoFields = Pick<Article, "id" | "card_ready"> & {
   photo_source_url?: string | null;
   /** schools.photo_permission of photo_school, joined at read time. */
   photo_school_permission?: string | null;
+  /** 1 when the article's athletes at photo_school are all cleared (articlePhotoClearedSql). */
+  photo_athletes_cleared?: number | null;
+  /** schools.photo_photographers / photo_unnamed_ok of photo_school (photographer_list). */
+  photo_school_photographers?: string | null;
+  photo_school_unnamed_ok?: number | null;
   /** schools.common_name of photo_school — the name the credit uses. */
   photo_school_common_name?: string | null;
 };
@@ -33,7 +38,12 @@ export function articleHero(article: ArticlePhotoFields): ArticleHero {
   const src = safeSourceUrl(article.photo_url);
   const school = (article.photo_school ?? "").trim();
   // A photo without a known rights holder is never shown: there is no one to credit.
-  if (src && school && photoAllowed(article.photo_school_permission)) {
+  if (src && school && photoAllowed(article.photo_school_permission, {
+    cleared: article.photo_athletes_cleared,
+    photographer: article.photo_photographer,
+    photographers: article.photo_school_photographers,
+    unnamedOk: article.photo_school_unnamed_ok,
+  })) {
     const credited = creditedSchoolName(school, article.photo_school_common_name);
     return {
       src,
@@ -57,7 +67,12 @@ export function articlePhotoSql(alias: string): string {
   CASE WHEN ${alias}.photo_url IS NULL THEN NULL
        ELSE (SELECT ps.photo_permission FROM schools ps WHERE ps.name = ${alias}.photo_school LIMIT 1) END AS photo_school_permission,
   CASE WHEN ${alias}.photo_url IS NULL THEN NULL
-       ELSE (SELECT ps.common_name FROM schools ps WHERE ps.name = ${alias}.photo_school LIMIT 1) END AS photo_school_common_name`;
+       ELSE (SELECT ps.common_name FROM schools ps WHERE ps.name = ${alias}.photo_school LIMIT 1) END AS photo_school_common_name,
+  CASE WHEN ${alias}.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.photo_photographers FROM schools ps WHERE ps.name = ${alias}.photo_school LIMIT 1) END AS photo_school_photographers,
+  CASE WHEN ${alias}.photo_url IS NULL THEN NULL
+       ELSE (SELECT ps.photo_unnamed_ok FROM schools ps WHERE ps.name = ${alias}.photo_school LIMIT 1) END AS photo_school_unnamed_ok,
+  ${articlePhotoClearedSql(alias)} AS photo_athletes_cleared`;
 }
 
 /**

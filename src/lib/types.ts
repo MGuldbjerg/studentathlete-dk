@@ -44,6 +44,9 @@ export interface Article {
   photo_school?: string | null;
   photo_source_url?: string | null;
   photo_school_permission?: string | null;
+  photo_athletes_cleared?: number | null;
+  photo_school_photographers?: string | null;
+  photo_school_unnamed_ok?: number | null;
   photo_school_common_name?: string | null;
   /** Presseetik-flag fra stories.sensitive (kun joinet i admin-kladdelisten) */
   sensitive?: string | null;
@@ -106,6 +109,11 @@ export interface Athlete {
    * emptied by gatePhoto() (src/lib/photo-permission.ts) before they leave db.ts.
    */
   school_photo_permission?: string | null;
+  /** 1 = named in the school's athlete-level photo grant (migration 087, photo-permission.ts). */
+  photo_cleared?: number | null;
+  /** schools.photo_photographers / photo_unnamed_ok (photographer_list, photo-permission.ts). */
+  school_photo_photographers?: string | null;
+  school_photo_unnamed_ok?: number | null;
   /** The school's short name (`schools.common_name`), selected with the athlete where a photo credit is shown. */
   school_common_name?: string | null;
   /** 1 when the athlete has a published article (getAthleteBySlug only). */

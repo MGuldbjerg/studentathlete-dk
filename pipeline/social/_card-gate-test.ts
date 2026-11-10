@@ -49,7 +49,11 @@ sqlite.exec(`
   ALTER TABLE articles ADD COLUMN photo_photographer TEXT;
   ALTER TABLE articles ADD COLUMN photo_school TEXT;
   ALTER TABLE articles ADD COLUMN photo_source_url TEXT;
-  CREATE TABLE schools (name TEXT, photo_permission TEXT, common_name TEXT);
+  CREATE TABLE schools (name TEXT, photo_permission TEXT, common_name TEXT, photo_photographers TEXT, photo_unnamed_ok INTEGER);
+  -- An athlete_list school needs the article's athletes cleared (migration 087).
+  CREATE TABLE article_athletes (article_id INTEGER, athlete_id INTEGER);
+  ALTER TABLE athletes ADD COLUMN university TEXT;
+  ALTER TABLE athletes ADD COLUMN photo_cleared INTEGER;
 `);
 const db = {
   async query<T>(sql: string, params: unknown[] = []) {
