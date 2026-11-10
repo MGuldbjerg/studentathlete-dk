@@ -165,7 +165,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
     // Legacy-redirects: gamle /{slug} → /atleter/{slug} eller /skoler/{slug}
     // generateMetadata kan ikke redirecte, men vi returnerer noindex for gamle URLs
-    return { title: "Side ikke fundet" };
+    return { title: t("notfound.title", await currentLanguage()) };
   }
 
   // ── 2 segmenter ─────────────────────────────────────────────────────────
@@ -351,7 +351,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     }
   }
 
-  return { title: "Side ikke fundet" };
+  return { title: t("notfound.title", await currentLanguage()) };
 }
 
 export default async function DynamicPage({
