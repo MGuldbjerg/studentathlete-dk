@@ -156,7 +156,7 @@ async function main(): Promise<void> {
      WHERE a.active = 1
        AND a.bio_url IS NOT NULL
        AND (a.photo_url IS NULL OR a.photo_url = '')
-       AND ${photoAllowedSql("(SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1)")}
+       AND ${photoAllowedSql("(SELECT s.photo_permission FROM schools s WHERE s.name = a.university LIMIT 1)", { cleared: "a.photo_cleared", anyPhotographer: true })}
        AND ${siteCountrySql()}
        AND NOT EXISTS (
          SELECT 1 FROM photo_suggestions ps
