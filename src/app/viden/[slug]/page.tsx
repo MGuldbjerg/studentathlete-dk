@@ -5,7 +5,7 @@ import { ArticleBody } from "@/components/ui/ArticleBody";
 import { AdminEditButton } from "@/components/AdminEditButton";
 import { getOgImageUrl, breadcrumbStructuredData, formatDate} from "@/lib/seo";
 import { getPublishedGuideBySlug } from "@/lib/admin";
-import { currentSite, currentBaseUrl, siteRobots } from "@/lib/site-server";
+import { currentSite, currentBaseUrl, currentLanguage, siteRobots } from "@/lib/site-server";
 import { routePath, t } from "@/lib/i18n";
 import {
   getGuide,
@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const site = await currentSite();
   const { slug } = await params;
   const g = await resolveGuide(slug);
-  if (!g) return { title: "Side ikke fundet" };
+  if (!g) return { title: t("notfound.title", await currentLanguage()) };
   const canonical = `${base}${routePath("guides", site.language)}/${slug}`;
   const ogImage = getOgImageUrl({ title: g.title, subtitle: site.brand, type: "article" }, site);
   return {
