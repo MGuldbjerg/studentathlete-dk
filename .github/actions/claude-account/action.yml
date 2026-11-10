@@ -31,13 +31,21 @@ runs:
         T2: ${{ inputs.fallback }}
         REQUIRED: ${{ inputs.required }}
       run: |
-        answers() { CLAUDE_CODE_OAUTH_TOKEN="$1" claude -p "Reply with exactly: OK" --allowed-tools "" 2>&1 | grep -q "OK"; }
-        if [ -n "$T1" ] && answers "$T1"; then
+        # On failure, log the CLI's first line, so a usage limit and an expired login can be
+        # told apart (2026-11-10: both accounts failed and the log could not say why).
+        answers() {
+          local out
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$1" timeout 90 claude -p "Reply with exactly: OK" --allowed-tools "" 2>&1) || true
+          if grep -q "OK" <<< "$out"; then return 0; fi
+          echo "  $2 did not answer: $(grep -m1 -v '^[[:space:]]*$' <<< "$out" | cut -c1-200)"
+          return 1
+        }
+        if [ -n "$T1" ] && answers "$T1" main; then
           echo "CLAUDE_CODE_OAUTH_TOKEN=$T1" >> "$GITHUB_ENV"
           [ -n "$T2" ] && echo "CLAUDE_CODE_OAUTH_TOKEN_FALLBACK=$T2" >> "$GITHUB_ENV"
           echo "CLAUDE_ACCOUNT=primary" >> "$GITHUB_ENV"
           echo "Claude account: primary${T2:+ (fallback ready)}"
-        elif [ -n "$T2" ] && answers "$T2"; then
+        elif [ -n "$T2" ] && answers "$T2" fallback; then
           echo "CLAUDE_CODE_OAUTH_TOKEN=$T2" >> "$GITHUB_ENV"
           echo "CLAUDE_ACCOUNT=fallback" >> "$GITHUB_ENV"
           echo "Claude account: fallback (the main account did not answer — usage limit or login)"
