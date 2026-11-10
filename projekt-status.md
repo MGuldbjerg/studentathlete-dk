@@ -186,6 +186,9 @@ editing connector — a different thing.
    profiles; article first) incl. our social posts of what we publish (posts carry the credit, d5cf9b5).
    Newberry/Hofstra said yes to the old article-only, site-only wording: ARTICLE PHOTOS, SITE ONLY
    until Mikkel's follow-up (later) confirms profiles + social; then record it with `--respond`.
+   Conditional states (#107, migration 087, enforced at read time): McKendree `athlete_list` (27
+   named; a NEW UK/DK athlete there has no photo until Mikkel emails Alex Staab and runs `--clear`;
+   `--status` lists them). Rockhurst `photographer_list` (Callie Knott + unnamed roster headshots).
 2. **Influxer merch links** — 104 verified stores live on profiles (#70); ~17 probable
    (transfers) + ~80 namesakes need his choice. `merch-clicks.ts` for the pitch.
 3. **Fanatics** — declined 28/10 (generic reasons). Appeal to partners@fanatics.com with traffic
