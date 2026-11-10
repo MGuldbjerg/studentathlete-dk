@@ -201,7 +201,8 @@ editing connector — a different thing.
    noindex, so the 569 UK profiles under the 200-word floor were still in its review. Google
    says AdSense's own index takes 1–2 weeks to reflect changes. GSC (2/11): ~82% of the 1,276
    removed profiles still indexed in Search, last crawled Sept — that is Search, not AdSense.
-   Crawl 2/11: no indexed UK page under 200 words except the /athletes hub (167, nav page).
+   Crawl 10/11 (site-check): 1,977/1,978 pages 200, 0 Danish/junk/empty, median 329 words; only
+   /athletes hub under 200 (169). Danish 404 <title> on .co.uk fixed (#108). Reapply once ~16/11.
 6. **DK Facebook/Threads** — not set up (UK runs). No human clicks from UK FB/Threads yet.
 
 ## Schedule decisions 28/10 (PR #76)
