@@ -56,6 +56,10 @@ logs/
 /public/og/
 .claude/settings.local.json
 
+# Photo-permission contact lists: named people's emails, and the repo is public. Local only
+# (import with request-permission.ts --import). Purged from history 2026-11-12.
+pipeline/photos/contacts/
+
 # generated (regenerate with their scripts — see docs/ARCHIVE.md)
 /UDKAST-sportsider-da.md
 /UDKAST-sportsider-en.md

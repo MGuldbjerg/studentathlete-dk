@@ -18,6 +18,8 @@
  *   (contact-changed: the person has left — then import the new contact and send as usual)
  *
  * contacts.csv: school,email,name[,title,source]  (school = schools.name or common_name).
+ * The CSVs live in pipeline/photos/contacts/, which is gitignored: they name real people and
+ * the repo is public. Keep them local; never commit them or paste their addresses into docs.
  * Never sent: to a school with any state set, with a send not followed by a bounce or a
  * contact change, to an
  * address mailed in the last 90 days, or without --send. No automatic follow-ups.
