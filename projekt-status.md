@@ -195,14 +195,16 @@ editing connector — a different thing.
    numbers, or drop. Impact's recommender returned no UK/DK programs.
 4. **LIA section D** (`UDKAST-LIA-interesseafvejning.md`) — legal basis for the 13 collecting
    countries incl. a 12-month deletion limit. Collecting already runs.
-5. **AdSense .co.uk** — reapply ~16–20 Nov. Live 2026-11-02 (6680336): the AdSense script is
+5. **AdSense .co.uk** — REAPPLIED 16/11 (third review); wait for the answer, do not re-request.
+   Check with `scripts/adsense-report.ts`. Crawl 16/11: 2,026/2,027 pages 200, median 333; the one
+   404 (/athletes/q in the sitemap) fixed by #111 before applying. Live 2026-11-02 (6680336): the AdSense script is
    only on INDEXABLE pages (`src/components/AdsenseScript.tsx`; layout keeps only the
    verification meta). Why: the AdSense crawler reads every page with the ad tag and ignores
    noindex, so the 569 UK profiles under the 200-word floor were still in its review. Google
    says AdSense's own index takes 1–2 weeks to reflect changes. GSC (2/11): ~82% of the 1,276
    removed profiles still indexed in Search, last crawled Sept — that is Search, not AdSense.
    Crawl 10/11 (site-check): 1,977/1,978 pages 200, 0 Danish/junk/empty, median 329 words; only
-   /athletes hub under 200 (169). Danish 404 <title> on .co.uk fixed (#108). Reapply once ~16/11.
+   /athletes hub under 200 (169). Danish 404 <title> on .co.uk fixed (#108).
 6. **DK Facebook/Threads** — not set up (UK runs). No human clicks from UK FB/Threads yet.
 
 ## Schedule decisions 28/10 (PR #76)
