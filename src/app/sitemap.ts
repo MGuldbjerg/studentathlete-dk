@@ -149,13 +149,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // atleter — et sitemap der peger på tomme sider er soft-404'er, og dem har
   // et ungt domæne ikke råd til. Alumni tæller ikke med: bogstavsiden viser
   // den aktive liste, præcis som oversigten.
-  const letterCounts = countByLetter(athletes.filter((a) => a.active === 1), lang);
+  //
+  // The letter page lists only PUBLIC, LISTED athletes (getAthletesByLetter:
+  // publicAthleteClause + listedClause), so the count here must use the same rule.
+  // Counting every active athlete put /athletes/q in the UK sitemap while the page
+  // answered 404: two active Q athletes, neither with an article or stats (2026-11-16).
+  const minArticles = site.profilePublicMinArticles;
+  const activeAthletes = athletes.filter((a) =>
+    a.active === 1
+    && (minArticles <= 0 || a.article_count >= minArticles || a.has_stats === 1)
+    && meetsWordFloor(a.index_words, site.code));
+  const letterCounts = countByLetter(activeAthletes, lang);
   // `lastModified` skal være et SIGNAL, ikke et tidsstempel for hentningen.
   // Stod som `new Date()`, altså «ændret lige nu» hver eneste gang Google
   // hentede sitemappet — for hele den statiske del af sitet. Et sitemap der
   // altid råber «alt er nyt» lærer Google at ignorere feltet. Bogstavsiden
   // ændrer sig når en atlet under bogstavet gør, så det er dét vi skriver.
-  const activeAthletes = athletes.filter((a) => a.active === 1);
   const letterPages: MetadataRoute.Sitemap = alphabetFor(lang)
     .filter((letter) => (letterCounts.get(letter) ?? 0) > 0)
     .map((letter) => {
