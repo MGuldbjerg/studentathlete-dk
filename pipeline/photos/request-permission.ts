@@ -47,6 +47,8 @@ const EMAIL_SCHOOL_NAMES: Record<string, string> = {
   "University of Missouri–St. Louis": "UMSL",
   "University of Indianapolis": "UIndy",
   "Lincoln University (MO)": "Lincoln University",
+  "Florida Institute of Technology": "Florida Tech",
+  "Embry-Riddle Aeronautical University": "Embry-Riddle",
 };
 /** 8-15 minutes between emails by default, a few a day: a burst of cold mail lands in spam. */
 const DEFAULT_PAUSE_MIN = [8, 15] as const;
