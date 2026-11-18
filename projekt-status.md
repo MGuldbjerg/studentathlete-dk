@@ -182,7 +182,7 @@ editing connector — a different thing.
    link):** «Foto/Photo: {School} Athletics · Kilde/Source» on profiles, «Fotos/Photos: …» under
    school rosters; schools with `declined`/`do_not_contact` show no photo anywhere (read-time
    gate, `src/lib/photo-permission.ts`); «Fjern foto» in admin removes at once. Grants so far:
-   Newberry, Hofstra (+ Fresno 2023). From 5/11 the email asks for WEBSITE photos (articles + roster
+   Newberry, Hofstra, Barry 18/11 (+ Fresno 2023). Barry's condition: headshots credit «Michelle Murch · Barry Athletic Communications» (set by hand on the 2 live ones; NEW Barry headshots get the default «Barry University Athletics» — fix in admin), action shots the named photographer. From 5/11 the email asks for WEBSITE photos (articles + roster
    profiles; article first) incl. our social posts of what we publish (posts carry the credit, d5cf9b5).
    Newberry/Hofstra said yes to the old article-only, site-only wording: ARTICLE PHOTOS, SITE ONLY
    until Mikkel's follow-up (later) confirms profiles + social; then record it with `--respond`.
