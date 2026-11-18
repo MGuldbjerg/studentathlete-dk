@@ -111,3 +111,23 @@ export function photoCreditText(input: PhotoCreditInput): string {
   const p = photoCreditParts(input);
   return [p.text, p.link?.label].filter(Boolean).join(CREDIT_SEPARATOR);
 }
+
+/** A school's own credit for its roster headshots (schools.photo_headshot_*, migration 089). */
+export interface SchoolHeadshotCredit {
+  credit?: string | null;
+  photographer?: string | null;
+}
+
+/**
+ * The credit and photographer a new roster headshot is stored with. The default is
+ * "Foto: {University} Athletics" with no photographer; a school that asked for its
+ * own credit (Barry, 2026-11-18: «Credit all head shots to Michelle Murch/Barry
+ * Athletic Communications») gets its line and photographer instead. Set with
+ * `request-permission.ts --headshot-credit`, used by suggest-photos.ts.
+ */
+export function headshotCredit(university: string, school: SchoolHeadshotCredit): { credit: string; photographer: string | null } {
+  return {
+    credit: clean(school.credit) || `Foto: ${clean(university)} Athletics`,
+    photographer: clean(school.photographer) || null,
+  };
+}

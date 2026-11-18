@@ -5,7 +5,7 @@
  * Holds the wording the permission email promises: photographer when known,
  * "{School} Athletics", a Source link — on both sites.
  */
-import { creditedSchoolName, photoCreditParts, photoCreditText, safeSourceUrl } from "./photo-credit";
+import { creditedSchoolName, headshotCredit, photoCreditParts, photoCreditText, safeSourceUrl } from "./photo-credit";
 
 let passed = 0;
 let failed = 0;
@@ -58,6 +58,18 @@ eq(photoCreditText({ schoolNames: sb, creditLine: "Foto: State University of New
   "Foto: Stony Brook Athletics", "legacy row (no school passed) also gets the short name");
 eq(photoCreditText({ schoolName: sb.credited, schoolNames: sb, creditLine: "Stony Brook Athletics/John Smith", lang: "en" }),
   "Photo: Stony Brook Athletics/John Smith", "a school's own line is left alone");
+
+// A school's own headshot credit (Barry, 2026-11-18: «Credit all head shots to
+// Michelle Murch/Barry Athletic Communications»), stored on schools (migration 089).
+eq(headshotCredit("Duke University", {}), { credit: "Foto: Duke University Athletics", photographer: null },
+  "no school wish → the default line, no photographer");
+eq(headshotCredit("Barry University", { credit: "Barry Athletic Communications", photographer: "Michelle Murch" }),
+  { credit: "Barry Athletic Communications", photographer: "Michelle Murch" }, "school wish → its line and photographer");
+eq(headshotCredit("Barry University", { credit: "  ", photographer: " Michelle Murch " }),
+  { credit: "Foto: Barry University Athletics", photographer: "Michelle Murch" }, "photographer only → default line + photographer");
+const barry = headshotCredit("Barry University", { credit: "Barry Athletic Communications", photographer: "Michelle Murch" });
+eq(photoCreditText({ schoolName: "Barry", creditLine: barry.credit, photographer: barry.photographer, sourceUrl: url, lang: "en" }),
+  "Photo: Michelle Murch · Barry Athletic Communications · Source", "Barry's line as readers see it");
 
 console.log(`\nphoto-credit: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);

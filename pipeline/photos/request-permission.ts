@@ -13,6 +13,9 @@
  *         photographer-list|declined|forwarded|bounced|contact-changed|do-not-contact|note [--note "text"]
  *   npx tsx pipeline/photos/request-permission.ts --photographers "School" --names "A; B" --unnamed-ok yes|no
  *         photographer-list: the approved photographers (replaces the list) and whether unnamed photos pass
+ *   npx tsx pipeline/photos/request-permission.ts --headshot-credit "School" --credit "Line" [--photographer "Name"]
+ *         the school's own credit for roster headshots (--credit "" resets to the default); also
+ *         rewrites its live headshots and pending suggestions (--dry to preview)
  *   npx tsx pipeline/photos/request-permission.ts --clear "School" --names "A; B; C"   athlete-list:
  *         mark the athletes the school approved by name (all or nothing; --dry to preview)
  *   (contact-changed: the person has left — then import the new contact and send as usual)
@@ -28,6 +31,7 @@ import { readFileSync } from "node:fs";
 import { createD1Client, type D1Client } from "../lib/d1-client";
 import { buildPermissionEmail } from "./permission-email";
 import { photographerListValue } from "../../src/lib/photo-permission";
+import { headshotCredit } from "../../src/lib/photo-credit";
 import { REOPENING_EVENTS, daysSince, emailCooledDown, parseResponse } from "./permission-state";
 
 const SENDER = { name: "Mikkel Guldbjerg Jensen", email: "info@studentathlete.dk" };
@@ -70,6 +74,9 @@ function parseArgs() {
     respond: val("--respond"),
     clear: val("--clear"),
     photographers: val("--photographers"),
+    headshotCredit: val("--headshot-credit"),
+    credit: val("--credit"),
+    photographer: val("--photographer"),
     unnamedOk: val("--unnamed-ok"),
     names: val("--names"),
     dry: a.includes("--dry"),
@@ -182,6 +189,36 @@ async function setPhotographers(name: string, namesArg: string | null, unnamedAr
   console.log(`${school.name}: photographers «${list}», unnamed photos ${unnamed ? "allowed" : "blocked"}`);
 }
 
+/**
+ * A school's own credit for its roster headshots (migration 089). Stored on the school
+ * for new suggestions (suggest-photos.ts), and written onto what is already there: live
+ * headshots (athlete photos with no photographer — article-sourced ones name theirs)
+ * and pending suggestions.
+ */
+async function setHeadshotCredit(name: string, creditArg: string | null, photographerArg: string | null, dry: boolean) {
+  if (creditArg === null) throw new Error('Usage: --headshot-credit "School" --credit "Line" [--photographer "Name"] [--dry]');
+  const db = createD1Client();
+  const school = await findSchool(db, name);
+  if (!school) throw new Error(`No single school matches «${name}»`);
+  const stored = { credit: creditArg.trim() || null, photographer: photographerArg?.trim() || null };
+  const { credit, photographer } = headshotCredit(school.name, stored);
+  const live = (await db.query<{ id: number; name: string }>(
+    `SELECT id, name FROM athletes WHERE university = ? AND photo_url IS NOT NULL
+       AND (photo_photographer IS NULL OR photo_photographer = (SELECT photo_headshot_photographer FROM schools WHERE id = ?))`,
+    [school.name, school.id])).results;
+  const pending = (await db.query<{ id: number }>(
+    `SELECT ps.id FROM photo_suggestions ps JOIN athletes a ON a.id = ps.athlete_id
+      WHERE a.university = ? AND ps.status = 'pending' AND ps.photographer IS NULL`, [school.name])).results;
+  console.log(`${school.name}: «${credit}»${photographer ? `, photographer ${photographer}` : ""} → ${live.length} live headshots (${live.map((r) => r.name).join(", ") || "none"}), ${pending.length} pending suggestions${dry ? " (dry run)" : ""}`);
+  if (dry) return;
+  await db.query("UPDATE schools SET photo_headshot_credit = ?, photo_headshot_photographer = ? WHERE id = ?",
+    [stored.credit, stored.photographer, school.id]);
+  for (const r of live) await db.query("UPDATE athletes SET photo_credit = ?, photo_photographer = ? WHERE id = ?", [credit, photographer, r.id]);
+  for (const r of pending) await db.query("UPDATE photo_suggestions SET credit = ?, photographer = ? WHERE id = ?", [credit, photographer, r.id]);
+  await record(db, school.id, "headshot_credit_set", { detail: `${credit}${photographer ? ` | ${photographer}` : ""}` });
+  console.log("done");
+}
+
 async function status(conference: string | null) {
   const db = createD1Client();
   const rows = (await db.query<{ name: string; conference: string | null; state: string | null; email: string | null; note: string | null; last_at: string | null; last_event: string | null }>(
@@ -285,6 +322,7 @@ async function main() {
   if (args.importFile) return importContacts(args.importFile);
   if (args.respond) return respond(args.respond, args.keyword, args.note);
   if (args.clear) return clearAthletes(args.clear, args.names, args.dry);
+  if (args.headshotCredit) return setHeadshotCredit(args.headshotCredit, args.credit, args.photographer, args.dry);
   if (args.photographers) return setPhotographers(args.photographers, args.names, args.unnamedOk);
   if (args.status) return status(args.conference);
   return sendRun(args);

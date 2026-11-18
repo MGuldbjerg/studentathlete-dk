@@ -5,7 +5,8 @@
  * sidder på atletens egen bio-side. Regelbaseret, ingen LLM, fail-soft pr. atlet.
  *
  * Kredit forudfyldes "Foto: <University> Athletics" (korrekt for roster-fotos;
- * Mikkel kan rette i admin før godkendelse).
+ * Mikkel kan rette i admin før godkendelse) — eller skolens egen headshot-kredit
+ * og fotograf, når den har bedt om en (schools.photo_headshot_*, migration 089).
  *
  * Kør:  npx tsx pipeline/scrape/suggest-photos.ts
  *       npx tsx pipeline/scrape/suggest-photos.ts --dry-run --limit 10
@@ -16,11 +17,15 @@ import { createD1Client } from "../lib/d1-client";
 import { pipelineUserAgent } from "../../src/lib/site";
 import { siteCountrySql } from "../../src/lib/countries";
 import { photoAllowedSql } from "../../src/lib/photo-permission";
+import { headshotCredit } from "../../src/lib/photo-credit";
 interface AthleteRow {
   id: number;
   name: string;
   university: string;
   bio_url: string;
+  /** schools.photo_headshot_* — the school's own headshot credit (migration 089). */
+  headshot_credit: string | null;
+  headshot_photographer: string | null;
 }
 
 function parseArgs(): { limit: number; dryRun: boolean } {
@@ -151,7 +156,9 @@ async function main(): Promise<void> {
   // (src/lib/photo-permission.ts) — in SQL, before the LIMIT, so they never take
   // places in the batch. One lookup on idx_schools_name per candidate row.
   const athletes = await db.query<AthleteRow>(
-    `SELECT a.id, a.name, a.university, a.bio_url
+    `SELECT a.id, a.name, a.university, a.bio_url,
+            (SELECT s.photo_headshot_credit FROM schools s WHERE s.name = a.university LIMIT 1) AS headshot_credit,
+            (SELECT s.photo_headshot_photographer FROM schools s WHERE s.name = a.university LIMIT 1) AS headshot_photographer
      FROM athletes a
      WHERE a.active = 1
        AND a.bio_url IS NOT NULL
@@ -187,16 +194,17 @@ async function main(): Promise<void> {
       console.log(`– ${athlete.name}: intet headshot fundet på bio-siden`);
       continue;
     }
-    const credit = `Foto: ${athlete.university} Athletics`;
+    const { credit, photographer } = headshotCredit(athlete.university,
+      { credit: athlete.headshot_credit, photographer: athlete.headshot_photographer });
     if (dryRun) {
       console.log(`(dry-run) ${athlete.name}: ${imageUrl} [${credit}]`);
       suggested++;
       continue;
     }
     const result = await db.execute(
-      `INSERT OR IGNORE INTO photo_suggestions (athlete_id, image_url, credit, source_url)
-       VALUES (?, ?, ?, ?)`,
-      [athlete.id, imageUrl, credit, athlete.bio_url],
+      `INSERT OR IGNORE INTO photo_suggestions (athlete_id, image_url, credit, source_url, photographer)
+       VALUES (?, ?, ?, ?, ?)`,
+      [athlete.id, imageUrl, credit, athlete.bio_url, photographer],
     );
     if ((result.meta?.changes ?? 0) > 0) {
       suggested++;
