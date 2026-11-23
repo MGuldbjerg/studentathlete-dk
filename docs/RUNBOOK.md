@@ -109,7 +109,20 @@ Claude-account failures («No Claude account answered») are the usage limit or 
 token; the early switch in `pipeline/lib/claude-run.ts` moves runs to the fallback
 account at 85 % (5 h) / 90 % (7 d).
 
+### Restore the database from a backup
+`weekly-backup.yml` stores `backup.sql.gz.gpg` (AES-256, passphrase in secret
+`D1_BACKUP_PASSPHRASE`; Mikkel's copy: `~/studentathlete-private/backup-passphrase.txt`).
+Download the artifact from the run page (or `gh run download <id>`), then:
+`gpg --decrypt backup.sql.gz.gpg | gunzip > restore.sql`. Test it locally first
+(`sqlite3 test.db < restore.sql`, compare row counts with live) before any
+`wrangler d1 execute --file` against production — that is Mikkel's call, never automatic.
+D1 Time Travel covers the last 30 days without a file.
+
 ## Traps
+
+- **The repo is PUBLIC, and so are its Actions artifacts** (anyone signed in to GitHub can
+  download them). Never upload data as an artifact unencrypted; the D1 backup was plain SQL
+  until 2026-11-23. Contact lists live only in the gitignored `pipeline/photos/contacts/`.
 
 - **A social channel name is a database value.** `social_posts.channel` drives pacing,
   queue depth, «last posted» and dedup. Renaming a channel loses its history and
