@@ -16,7 +16,7 @@ import type { D1Client } from "../lib/d1-client";
 import { createCardStore, R2ObjectClient } from "../lib/card-store";
 import { cardBlobKey, igCardBlobKey } from "../../src/lib/seo";
 import { postOne } from "./post-social";
-import type { PostContent, SocialChannel } from "./types";
+import { ChannelAuthError, type PostContent, type SocialChannel } from "./types";
 
 let pass = 0, fail = 0;
 function ok(cond: boolean, label: string): void {
@@ -60,6 +60,7 @@ const db = {
     return { results: sqlite.prepare(sql).all(...params) as T[] };
   },
   async execute(sql: string, params: unknown[] = []) {
+    if (failPostedWrite && /SET status = 'posted'/.test(sql)) throw new Error("D1 unavailable");
     sqlite.prepare(sql).run(...params);
     return { results: [] };
   },
@@ -102,6 +103,12 @@ function channel(name: string, cardKind: "share" | "ig"): SocialChannel {
 }
 const share = channel("test-share", "share");
 const ig = channel("test-ig", "ig");
+/** Set to make the "mark as posted" write fail, as a D1 outage right after a post would. */
+let failPostedWrite = false;
+/** A channel whose post() throws the given error. */
+function failing(name: string, err: Error): SocialChannel {
+  return { ...channel(name, "share"), async post() { throw err; } } as SocialChannel;
+}
 
 const WEBP = Buffer.concat([Buffer.from("RIFF"), Buffer.from([1, 0, 0, 0]), Buffer.from("WEBPVP8 "), Buffer.alloc(8)]);
 const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0]);
@@ -161,6 +168,30 @@ async function main(): Promise<void> {
     setAge(igCardBlobKey(1), 7);
     r = await postOne(db, ig, false);
     ok(r.posted && posted[1]?.imageUrl === `${MEDIA}/cards/${igCardBlobKey(1)}.jpg` && posted[1]?.imageExists, "IG card stored → posted with the existing bucket JPEG");
+
+    // 4) The post goes out but "posted" cannot be written (2026-11-23): the row must
+    //    NOT go back to the queue, or the next run posts the article again.
+    const requeue = () => sqlite.prepare("UPDATE social_posts SET status = 'queued', attempts = 0 WHERE id = 1").run();
+    requeue();
+    failPostedWrite = true;
+    const quietErr = console.error;
+    console.error = () => {};
+    r = await postOne(db, share, false);
+    failPostedWrite = false;
+    ok(r.posted && r.fatal && posted.length === 3, "posted, but the record failed → reported as posted, burst stopped");
+    ok(row(1).status === "posting", "…the row stays 'posting'");
+    r = await postOne(db, share, false);
+    ok(r.empty && posted.length === 3, "…and the next run does not post it a second time");
+
+    // 5) A login failure releases the claim: back to 'queued', no attempt used.
+    requeue();
+    r = await postOne(db, failing("test-share", new ChannelAuthError("bad password")), false);
+    ok(!r.posted && row(1).status === "queued" && row(1).attempts === 0, "auth error → row back to queued, attempts untouched");
+
+    // 6) An ordinary failure: back to 'queued' with one attempt counted.
+    r = await postOne(db, failing("test-share", new Error("HTTP 500")), false);
+    ok(!r.posted && row(1).status === "queued" && row(1).attempts === 1, "post error → queued again, one attempt used");
+    console.error = quietErr;
   } finally {
     console.warn = quiet;
     delete process.env.NEXT_PUBLIC_MEDIA_BASE_URL;

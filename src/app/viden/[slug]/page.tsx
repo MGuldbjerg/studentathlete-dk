@@ -15,6 +15,7 @@ import {
   type GuideCategory,
 } from "@/lib/viden-content";
 import { withAds } from "@/components/AdsenseScript";
+import { jsonLdHtml } from "@/lib/json-ld";
 
 export const dynamic = "force-dynamic";
 
@@ -115,7 +116,7 @@ async function GuidePage({ params }: { params: Params }) {
 
   return (
     <main className="max-w-3xl mx-auto px-4 md:px-8 py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }} />
 
       <Breadcrumb
         crumbs={[

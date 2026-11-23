@@ -1,6 +1,7 @@
 import { breadcrumbStructuredData } from "@/lib/seo";
 import { currentBaseUrl, currentLanguage } from "@/lib/site-server";
 import { t } from "@/lib/i18n";
+import { jsonLdHtml } from "@/lib/json-ld";
 
 interface Crumb { label: string; href?: string }
 
@@ -16,7 +17,7 @@ export async function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml(schemaData) }}
       />
       <nav aria-label={t("crumb.aria", lang)} className="text-sm text-muted flex items-center gap-1.5 flex-wrap">
         {crumbs.map((crumb, i) => (

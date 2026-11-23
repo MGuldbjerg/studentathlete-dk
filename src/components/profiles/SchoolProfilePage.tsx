@@ -6,6 +6,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { cleanPosition } from "@/lib/roster-clean";
 import { creditedSchoolName } from "@/lib/photo-credit";
 import { schoolFactsParagraph, schoolStatsParagraph, schoolTeamParagraphs, type SchoolFacts, type SchoolPlayer } from "@/lib/school-season";
+import { jsonLdHtml } from "@/lib/json-ld";
 
 interface Props {
   school: School;
@@ -38,7 +39,7 @@ export async function SchoolProfilePage({ school, athletes, articles, totalAthle
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(schoolStructuredData(school, site))
+        __html: jsonLdHtml(schoolStructuredData(school, site))
       }} />
 
       {/* ── Hero ───────────────────────────────────────────────── */}

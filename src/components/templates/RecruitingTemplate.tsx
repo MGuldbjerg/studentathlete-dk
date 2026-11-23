@@ -16,6 +16,7 @@ import { sportLabel, t, articleTypeLabel } from "@/lib/i18n";
 import { localizeHometown } from "@/lib/hometown";
 import { countryProfile } from "@/lib/countries";
 import { currentLanguage, currentSite } from "@/lib/site-server";
+import { jsonLdHtml } from "@/lib/json-ld";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -33,7 +34,7 @@ export async function RecruitingTemplate({ article, athlete, athletes = [], read
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(articleStructuredData(article, athlete, site))
+        __html: jsonLdHtml(articleStructuredData(article, athlete, site))
       }} />
 
       <article>
