@@ -129,11 +129,8 @@ the cloud never review the same text twice.
 holds finished UK drafts, max 12 per run, spaced 17–23 min. Runs **Sonnet, effort medium**
 since #73. DK drafts are published by Mikkel (or on his instruction).
 
-**Claude accounts.** `.github/actions/claude-account` picks the main token or
-`CLAUDE_CODE_OAUTH_TOKEN_FALLBACK`. Until 23/11 BOTH secrets were the same account (identical
-usage), so there was no real fallback. Now: main = mgj@groenagergaard.dk (also the WSL `claude`
-login), fallback = mgj@grd.dk (Mikkel's interactive account, often high). Verify any time with
-`claude-accounts-check.yml` (manual): two different 5 h / 7 d lines = two accounts. In
+**Claude accounts.** `.github/actions/claude-account`: main = mgj@groenagergaard.dk (also WSL `claude`),
+`_FALLBACK` = mgj@grd.dk since 23/11 (before: same account twice). Verify: `claude-accounts-check.yml`. In
 `pipeline/lib/claude-run.ts` (desk + editor) a Haiku probe reads utilisation before the first
 call and every 6 calls; at 85 % (5 h) / 90 % (7 d) the run moves to the fallback, which always
 runs Sonnet/medium. Usage per job: `claude_calls` + `llm_usage` (`claude_usage` MCP tool).
