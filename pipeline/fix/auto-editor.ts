@@ -85,8 +85,10 @@ export type Verdict =
   | { action: "hold"; reason: string };
 
 // Mikkel, 2026-10-28: Sonnet at medium effort — the Opus runs hit the usage limit too often.
+// Mikkel, 2026-11-23: back to Opus, at medium effort. At 85 % (5 h) / 90 % (7 d) claude-run.ts
+// still moves the run to the fallback account, which always runs Sonnet/medium.
 // (The workflow and step keep the name "Opus editor"; the gate finds the step by name.)
-const MODEL = process.env.AUTO_EDITOR_MODEL || "sonnet";
+const MODEL = process.env.AUTO_EDITOR_MODEL || "opus";
 const EFFORT = process.env.AUTO_EDITOR_EFFORT || "medium";
 
 // ── the prompt ──────────────────────────────────────────────────────────────
