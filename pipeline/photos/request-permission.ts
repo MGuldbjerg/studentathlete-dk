@@ -53,6 +53,20 @@ const EMAIL_SCHOOL_NAMES: Record<string, string> = {
   "Lincoln University (MO)": "Lincoln University",
   "Florida Institute of Technology": "Florida Tech",
   "Embry-Riddle Aeronautical University": "Embry-Riddle",
+  // common_name "Mississippi" would read as the University of Mississippi.
+  "Mississippi College": "Mississippi College",
+  "University of North Carolina at Pembroke": "UNC Pembroke",
+  "University of Alabama in Huntsville": "UAH",
+  "Auburn University at Montgomery": "AUM",
+  "University of West Alabama": "West Alabama",
+  "University of West Florida": "West Florida",
+  "University of Findlay": "Findlay",
+  "University of Mount Olive": "Mount Olive",
+  "University of Montevallo": "Montevallo",
+  // One-word common names that read oddly alone in "… Athletics".
+  "King University": "King University",
+  "Union University": "Union University",
+  "Lee University": "Lee University",
 };
 /** 8-15 minutes between emails by default, a few a day: a burst of cold mail lands in spam. */
 const DEFAULT_PAUSE_MIN = [8, 15] as const;
