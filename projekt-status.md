@@ -130,7 +130,10 @@ holds finished UK drafts, max 12 per run, spaced 17–23 min. Runs **Sonnet, eff
 since #73. DK drafts are published by Mikkel (or on his instruction).
 
 **Claude accounts.** `.github/actions/claude-account` picks the main token or
-`CLAUDE_CODE_OAUTH_TOKEN_FALLBACK` (set 28/10, account mgj@groenagergaard.dk). In
+`CLAUDE_CODE_OAUTH_TOKEN_FALLBACK`. Until 23/11 BOTH secrets were the same account (identical
+usage), so there was no real fallback. Now: main = mgj@groenagergaard.dk (also the WSL `claude`
+login), fallback = mgj@grd.dk (Mikkel's interactive account, often high). Verify any time with
+`claude-accounts-check.yml` (manual): two different 5 h / 7 d lines = two accounts. In
 `pipeline/lib/claude-run.ts` (desk + editor) a Haiku probe reads utilisation before the first
 call and every 6 calls; at 85 % (5 h) / 90 % (7 d) the run moves to the fallback, which always
 runs Sonnet/medium. Usage per job: `claude_calls` + `llm_usage` (`claude_usage` MCP tool).
