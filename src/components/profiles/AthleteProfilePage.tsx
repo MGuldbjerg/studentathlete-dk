@@ -19,6 +19,7 @@ import { sportLabel, sportSlug, t, articleTypeLabel, routePath } from "@/lib/i18
 import { localizeHometown } from "@/lib/hometown";
 import { countryProfile } from "@/lib/countries";
 import { currentLanguage, currentSite } from "@/lib/site-server";
+import { jsonLdHtml } from "@/lib/json-ld";
 interface Props {
   athlete: Athlete;
   articles: ArticleListItem[];
@@ -87,7 +88,7 @@ export async function AthleteProfilePage({ athlete, articles, events = [], schoo
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(athleteStructuredData(athlete, articles, site))
+        __html: jsonLdHtml(athleteStructuredData(athlete, articles, site))
       }} />
 
       {/* ── Hero ───────────────────────────────────────────────── */}

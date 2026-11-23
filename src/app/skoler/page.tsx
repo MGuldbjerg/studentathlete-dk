@@ -6,6 +6,7 @@ import { currentBaseUrl, currentLanguage, currentSite } from "@/lib/site-server"
 import { routePath, t } from "@/lib/i18n";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { withAds } from "@/components/AdsenseScript";
+import { jsonLdHtml } from "@/lib/json-ld";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,7 @@ async function SkolerPage() {
     <main className="max-w-4xl mx-auto px-4 md:px-8 py-10">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }}
       />
 
       <Breadcrumb

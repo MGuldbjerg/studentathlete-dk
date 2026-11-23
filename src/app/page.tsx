@@ -18,6 +18,7 @@ import { currentLanguage, currentSite } from "@/lib/site-server";
 import { siteStructuredData } from "@/lib/seo";
 import { t } from "@/lib/i18n";
 import { withAds } from "@/components/AdsenseScript";
+import { jsonLdHtml } from "@/lib/json-ld";
 
 interface SearchParams {
   q?: string;
@@ -145,7 +146,7 @@ async function HomePage({
       {/* Udgiver-identiteten. Forsiden var den eneste sidetype uden schema. */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteStructuredData(site)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml(siteStructuredData(site)) }}
       />
 
       {/*

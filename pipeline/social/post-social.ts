@@ -408,34 +408,30 @@ export async function postOne(
     return { posted: false, error: null, empty: true, fatal: false };
   }
 
+  // Claim the row BEFORE anything leaves the house (2026-11-23, from the Skovkort
+  // review's "a retried write must not count twice"). The post used to go out and
+  // THEN the row was marked posted; if that write failed, the catch below put the
+  // row back to 'queued' and the next run posted the article a second time. Now:
+  // queued → posting → posted. A row that stays 'posting' (the post went out but
+  // could not be recorded, or the runner died mid-post) is never picked again —
+  // the queue reads 'queued' only. Find them with `WHERE status = 'posting'`.
+  await db.execute(
+    "UPDATE social_posts SET status = 'posting' WHERE id = ? AND status = 'queued'",
+    [row.id],
+  );
+
+  let result: Awaited<ReturnType<SocialChannel["post"]>>;
   try {
-    const { postUrl, mediaId, collaborators } = await ch.post(content);
-    await db.execute(
-      `UPDATE social_posts
-       SET status = 'posted', posted_at = datetime('now'), post_url = ?, attempts = attempts + 1
-       WHERE id = ?`,
-      [postUrl, row.id],
-    );
-    console.log(`  ${ch.name}: postet "${row.title}"${postUrl ? ` → ${postUrl}` : ""}`);
-    // Only the invites that actually went out count against the weekly limit.
-    const sent = invites.filter((c) => (collaborators ?? []).includes(normaliseHandle(c.handle)));
-    if (sent.length) {
-      try {
-        await recordInvites(db, sent, row.article_id, ch.name, mediaId ?? null);
-        console.log(`  ${ch.name}: collab invite → ${sent.map((c) => normaliseHandle(c.handle)).join(", ")}`);
-      } catch (err) {
-        // The post is out; a failed bookkeeping row must not mark it failed.
-        console.error(`  ${ch.name}: collab invites sent but not recorded: ${err instanceof Error ? err.message : err}`);
-      }
-    }
-    return { posted: true, error: null, empty: false, fatal: false };
+    result = await ch.post(content);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
 
     // Kontoen kunne ikke logge ind: lad kø-rækken være HELT i fred. Artiklen
     // fejlede ikke — den nåede aldrig ud af huset. Talte vi forsøg op her,
     // ville et forkert kodeord tømme køen i timen, tre timer pr. artikel.
+    // (It is only released from 'posting' back to 'queued', attempts untouched.)
     if (err instanceof ChannelAuthError) {
+      await db.execute("UPDATE social_posts SET status = 'queued' WHERE id = ?", [row.id]);
       console.error(`  ${ch.name}: KONTO-FEJL — intet forsøg brugt, køen står urørt: ${msg}`);
       return { posted: false, error: msg, empty: false, fatal: true };
     }
@@ -450,6 +446,36 @@ export async function postOne(
     console.error(`  ${ch.name}: FEJL (forsøg ${row.attempts + 1}/${MAX_ATTEMPTS}): ${msg}`);
     return { posted: false, error: msg, empty: false, fatal: true };
   }
+
+  // The post is OUT. From here nothing may put the row back in the queue.
+  const { postUrl, mediaId, collaborators } = result;
+  try {
+    await db.execute(
+      `UPDATE social_posts
+       SET status = 'posted', posted_at = datetime('now'), post_url = ?, attempts = attempts + 1
+       WHERE id = ?`,
+      [postUrl, row.id],
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`  ${ch.name}: POSTED "${row.title}"${postUrl ? ` → ${postUrl}` : ""} but NOT recorded — `
+      + `the row stays 'posting' and will not be posted again: ${msg}`);
+    // Stop this channel's burst: the database is not answering.
+    return { posted: true, error: msg, empty: false, fatal: true };
+  }
+  console.log(`  ${ch.name}: postet "${row.title}"${postUrl ? ` → ${postUrl}` : ""}`);
+  // Only the invites that actually went out count against the weekly limit.
+  const sent = invites.filter((c) => (collaborators ?? []).includes(normaliseHandle(c.handle)));
+  if (sent.length) {
+    try {
+      await recordInvites(db, sent, row.article_id, ch.name, mediaId ?? null);
+      console.log(`  ${ch.name}: collab invite → ${sent.map((c) => normaliseHandle(c.handle)).join(", ")}`);
+    } catch (err) {
+      // The post is out; a failed bookkeeping row must not mark it failed.
+      console.error(`  ${ch.name}: collab invites sent but not recorded: ${err instanceof Error ? err.message : err}`);
+    }
+  }
+  return { posted: true, error: null, empty: false, fatal: false };
 }
 
 /**

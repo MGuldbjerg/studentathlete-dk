@@ -14,6 +14,7 @@ import { CorrectionNotice } from "@/components/ui/CorrectionNotice";
 
 import { sportLabel, t, articleTypeLabel, routePath } from "@/lib/i18n";
 import { currentLanguage, currentSite } from "@/lib/site-server";
+import { jsonLdHtml } from "@/lib/json-ld";
 interface Props {
   article: Article;
   athlete?: Athlete | null;
@@ -54,7 +55,7 @@ export async function SeasonUpdateTemplate({ article, athlete, athletes = [], re
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{
-        __html: JSON.stringify(articleStructuredData(article, athlete, site))
+        __html: jsonLdHtml(articleStructuredData(article, athlete, site))
       }} />
 
       <article className="max-w-2xl mx-auto px-5 md:px-0 py-10">

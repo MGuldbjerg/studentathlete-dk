@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { StatsView } from "./StatsView";
 import { LEADERBOARD_SLUG } from "@/components/LeaderboardView";
 import { AWARDS_SLUG } from "@/components/AwardsView";
+import { jsonLdHtml } from "@/lib/json-ld";
 
 /** Shared frame for the stats pages: crumbs, heading, disclaimer, numbers. */
 export async function StatsShell({
@@ -30,7 +31,7 @@ export async function StatsShell({
 
   return (
     <main className="max-w-4xl mx-auto px-4 md:px-8 py-10">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }} />
       <Breadcrumb
         crumbs={[
           { label: t("crumb.home", lang), href: "/" },
