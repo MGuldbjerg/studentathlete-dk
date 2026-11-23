@@ -53,8 +53,9 @@ const EMAIL_SCHOOL_NAMES: Record<string, string> = {
   "Lincoln University (MO)": "Lincoln University",
   "Florida Institute of Technology": "Florida Tech",
   "Embry-Riddle Aeronautical University": "Embry-Riddle",
-  // common_name "Mississippi" would read as the University of Mississippi.
-  "Mississippi College": "Mississippi College",
+  // common_name "Mississippi" would read as the University of Mississippi, and the school
+  // is now Mississippi Christian University (its athletics site, gochoctaws.com, 2026-11-23).
+  "Mississippi College": "Mississippi Christian",
   "University of North Carolina at Pembroke": "UNC Pembroke",
   "University of Alabama in Huntsville": "UAH",
   "Auburn University at Montgomery": "AUM",
