@@ -1,0 +1,68 @@
+name: Claude accounts check
+
+# Mikkel, 2026-11-23: is CLAUDE_CODE_OAUTH_TOKEN_FALLBACK really a second account?
+# On 10/11 both tokens hit the 5-hour limit with the same reset time to the minute,
+# and the fallback had never taken a call. This probes each token with one tiny
+# Haiku call and prints ONLY its usage windows: utilisation and reset times. Two
+# tokens on the same account show the same 7-day reset (a fixed weekly time per
+# account) and the same utilisation. No email, no token, nothing else is printed —
+# the repo and its logs are public. Manual only; two Haiku calls a run.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: npm install -g @anthropic-ai/claude-code
+
+      - name: Probe each token
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_FALLBACK }}
+        run: |
+          probe() {
+            local label=$1 tok=$2
+            if [ -z "$tok" ]; then echo "$label: secret not set"; return; fi
+            echo OK | CLAUDE_CODE_OAUTH_TOKEN="$tok" timeout 90 claude -p --model haiku \
+              --output-format stream-json --verbose --tools "" --no-session-persistence \
+              --system-prompt "Reply with OK." > out.jsonl 2> err.txt || true
+            LABEL="$label" python3 - <<'PY'
+          import json, os, datetime
+          label = os.environ["LABEL"]
+          info = None
+          for line in open("out.jsonl", encoding="utf-8", errors="replace"):
+              if "rate_limit_event" in line:
+                  try:
+                      info = json.loads(line).get("rate_limit_info")
+                      break
+                  except Exception:
+                      pass
+          if not info:
+              err = open("err.txt", encoding="utf-8", errors="replace").read().strip().splitlines()
+              out = [l for l in open("out.jsonl", encoding="utf-8", errors="replace") if '"result"' in l]
+              msg = (err[:1] or [""])[0][:200]
+              if not msg and out:
+                  try:
+                      msg = str(json.loads(out[-1]).get("result", ""))[:200]
+                  except Exception:
+                      pass
+              print(f"{label}: no usage report. CLI said: {msg or '(nothing)'}")
+          else:
+              def ts(x):
+                  return datetime.datetime.fromtimestamp(int(x), datetime.timezone.utc).strftime("%a %d %b %H:%M UTC") if x else "-"
+              w = info.get("unifiedWindows", {})
+              f, s = w.get("five_hour", {}), w.get("seven_day", {})
+              print(f"{label}: status {info.get('status')} | 5h {round(100*float(f.get('utilization', 0)))}% resets {ts(f.get('resetsAt'))}"
+                    f" | 7d {round(100*float(s.get('utilization', 0)))}% resets {ts(s.get('resetsAt'))}")
+          PY
+          }
+          probe main "$T1"
+          probe fallback "$T2"
+          echo
+          echo "Same 7-day reset time = the same account. Different = two accounts."
