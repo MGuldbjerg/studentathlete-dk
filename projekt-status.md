@@ -94,11 +94,8 @@ Every experiment: own `?source=` tag, ≥ 4 weeks, one metric fixed in advance.
   hero shows the photo + «Photo: {photographer} · {School} Athletics · Source» when the school's
   `photo_permission` allows it (read at render time, `src/lib/article-photo.ts`), else the card.
   Card stays og:image + list thumbnail. Photos live in R2 `studentathlete-media/photos/`.
-- First: article 1038 (Meadows + McTiffin, All-CAA Second Team; McTiffin `featured`), photo by
-  Matteo Bracco from Hofstra's 13 Sep Brown report, set by hand. Picking/crediting photos
-  automatically (the pipeline) is NOT built — Mikkel finds photos by hand for now.
-- 2026-11-24 by hand: 1165 (Matton, Hofstra team huddle, Joe Orovitz) and 1230 (Toualeu, Newberry,
-  #10 matches roster). 1102 Johnson / 1150 Price: report photos show other athletes — left on the card.
+- Set by hand (no pipeline yet): 1038 (Meadows+McTiffin), 1165 (Matton, team huddle, Joe Orovitz),
+  1230 (Toualeu, #10 = roster). 1102/1150: report photos show other athletes — card kept.
 - Open: discovery reaches a school only every ~1–2 days (200 of ~800 per run, runs 5–10 h apart
   despite the 2 h cron). FSC's All-SSC release (Ollie Stephens Freshman of the Year) waited until
   run by hand: `check-sources.ts --school 1435`; `build-factsheet.ts --story N` now exists too.
