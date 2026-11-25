@@ -94,8 +94,8 @@ Every experiment: own `?source=` tag, ≥ 4 weeks, one metric fixed in advance.
   hero shows the photo + «Photo: {photographer} · {School} Athletics · Source» when the school's
   `photo_permission` allows it (read at render time, `src/lib/article-photo.ts`), else the card.
   Card stays og:image + list thumbnail. Photos live in R2 `studentathlete-media/photos/`.
-- Set by hand (no pipeline yet): 1038, 1165, 1230, UAH 231/279/551/645 (award graphics naming the
-  player; schools.common_name 'UAH' so credit = «UAH Athletics»). Card kept: 1102/1150/190 (unverified).
+- Set by hand (no pipeline yet), 2026-11-25 backfill: 21 of 29 permitted articles. Rule: caption/alt/graphic
+  names the athlete, or roster jersey # visible, or team/group photo. Card kept (unverified): 190 226 294 342 354 801 1102 1150.
 - Open: discovery reaches a school only every ~1–2 days (200 of ~800 per run, runs 5–10 h apart
   despite the 2 h cron). FSC's All-SSC release (Ollie Stephens Freshman of the Year) waited until
   run by hand: `check-sources.ts --school 1435`; `build-factsheet.ts --story N` now exists too.
