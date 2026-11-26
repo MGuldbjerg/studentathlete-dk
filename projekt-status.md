@@ -195,7 +195,9 @@ editing connector — a different thing.
    numbers, or drop. Impact's recommender returned no UK/DK programs.
 4. **LIA section D** (`UDKAST-LIA-interesseafvejning.md`) — legal basis for the 13 collecting
    countries incl. a 12-month deletion limit. Collecting already runs.
-5. **AdSense .co.uk** — REAPPLIED 16/11 (third review); wait for the answer, do not re-request.
+5. **AdSense .co.uk** — REJECTED a 3rd time 26/11 (low value content). PARKED (Mikkel). Not word counts:
+   .co.uk already has 13 guides + sport pages. Mikkel's read: .dk was approved while hand-curated, with
+   his YouTube athlete interviews embedded — original material; .co.uk is ~690 retold press releases.
    Check with `scripts/adsense-report.ts`. Crawl 16/11: 2,026/2,027 pages 200, median 333; the one
    404 (/athletes/q in the sitemap) fixed by #111 before applying. Live 2026-11-02 (6680336): the AdSense script is
    only on INDEXABLE pages (`src/components/AdsenseScript.tsx`; layout keeps only the
