@@ -178,6 +178,7 @@ export const VIDEN_GUIDES: VidenGuide[] = [
       { label: "Hvad er NCAA?", href: "/viden/hvad-er-ncaa" },
       { label: "NCAA vs NAIA vs NJCAA", href: "/viden/ncaa-naia-njcaa" },
       { label: "Universiteter med danske atleter", href: "/skoler" },
+      { label: "NCAA sæsonkalender: mesterskabsdatoer i hver division", href: "/ncaa-saesonkalender" },
     ],
     sources: [
       { label: "NCAA. (2021). NCAA 101: Our three divisions.", url: "https://www.ncaa.org/sports/2021/2/10/about-resources-media-center-ncaa-101-our-three-divisions.aspx" },
@@ -371,10 +372,12 @@ export const VIDEN_GUIDES: VidenGuide[] = [
         heading: "Ikke kun kampsæsonen",
         body: [
           "Uden for selve kampsæsonen ('non-traditional season') trænes der videre, og flere sportsgrene har stævner i begge halvår. Mesterskaberne — som [March Madness](/viden/march-madness-forklaret) i basketball — kulminerer typisk i slutningen af sæsonen.",
+          "[Sæsonkalenderen](/ncaa-saesonkalender) viser årets datoer for hver sportsgren og division, fra de første kampe til de nationale finaler.",
         ],
       },
     ],
     related: [
+      { label: "Sæsonkalender", href: "/ncaa-saesonkalender" },
       { label: "March Madness forklaret", href: "/viden/march-madness-forklaret" },
       { label: "College Football Playoff forklaret", href: "/viden/college-football-playoff-forklaret" },
       { label: "Alle sportsgrene", href: "/viden" },

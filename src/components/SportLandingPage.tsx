@@ -8,6 +8,7 @@ import { DigestSignup } from "./ui/DigestSignup";
 import { Breadcrumb } from "./ui/Breadcrumb";
 import { t, routePath } from "@/lib/i18n";
 import { currentLanguage } from "@/lib/site-server";
+import { SportSeasonCalendar } from "./season-calendar/SeasonCalendarServer";
 
 interface Props {
   sport: string;
@@ -186,6 +187,9 @@ export async function SportLandingPage({ sport, dbSport, content, articles, athl
           <p className="text-sm">{t("sport.empty_note", lang)}</p>
         </section>
       )}
+
+      {/* Season calendar: this sport's rows only, linking to the full calendar. */}
+      <SportSeasonCalendar sport={dbSport} lang={lang} />
 
       {/* ── Evergreen pillar-tekst (SEO) ───────────────────────────── */}
       <section className="px-4 md:px-8 py-10 border-t border-border">

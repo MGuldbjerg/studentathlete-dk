@@ -148,6 +148,7 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
     related: [
       { label: "NCAA vs NAIA vs NJCAA", href: "/guides/ncaa-naia-njcaa" },
       { label: "Transfer portal explained", href: "/guides/transfer-portal" },
+      { label: "NCAA season calendar: championship dates in each division", href: "/ncaa-season-calendar" },
     ],
     sources: [{ label: "NCAA — divisional differences", url: "https://www.ncaa.org/sports/2021/2/16/about-resources-media-center-ncaa-101-what-differences-between-divisions-i-ii-and-iii.aspx" }],
     updated: "2026-08-04",
@@ -344,10 +345,12 @@ export const VIDEN_GUIDES_EN: VidenGuide[] = [
         body: [
           "Even outside the competitive window, athletes train with the programme, lift, and take part in limited organised practice. The NCAA caps the hours, but the year is close to continuous.",
           "Each sport ends with its own NCAA championship in each division, so a Division II player's season can finish at a different time and place from a Division I player's in the same sport. Junior colleges and NAIA schools have championships of their own, outside the NCAA.",
+          "The [season calendar](/ncaa-season-calendar) shows this year's dates for every sport and division, from the first games to the national finals.",
         ],
       },
     ],
     related: [
+      { label: "Season calendar", href: "/ncaa-season-calendar" },
       { label: "March Madness explained", href: "/guides/march-madness" },
       { label: "College Football Playoff explained", href: "/guides/college-football-playoff" },
     ],

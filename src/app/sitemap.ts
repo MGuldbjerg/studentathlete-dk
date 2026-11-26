@@ -78,6 +78,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
+      url: `${base}${routePath("calendar", lang)}`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
       url: `${base}${routePath("stats", lang)}/${LEADERBOARD_SLUG[lang] ?? LEADERBOARD_SLUG.en}`,
       changeFrequency: "daily",
       priority: 0.6,
