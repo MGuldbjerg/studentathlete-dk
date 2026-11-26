@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDraftArticles, getPublishedArticlesPage, getPendingPhotoSuggestionCount, getNewLeadCount, getPendingProfileDraftCount, getMergeCandidateCount, getInstagramCandidateCount } from "@/lib/admin";
 import { ARTICLE_TYPE_LABELS, getSportColor } from "@/lib/types";
+import { getOpenIssueCount } from "@/lib/admin-issues";
 
 export default async function AdminDashboard({
   searchParams,
@@ -10,7 +11,7 @@ export default async function AdminDashboard({
 }) {
   const { side } = await searchParams;
 
-  const [drafts, publishedPage, pendingPhotos, newLeads, pendingProfiles, pendingDupes, pendingHandles] = await Promise.all([
+  const [drafts, publishedPage, pendingPhotos, newLeads, pendingProfiles, pendingDupes, pendingHandles, openIssues] = await Promise.all([
     getDraftArticles(),
     getPublishedArticlesPage(side),
     getPendingPhotoSuggestionCount(),
@@ -18,6 +19,7 @@ export default async function AdminDashboard({
     getPendingProfileDraftCount(),
     getMergeCandidateCount(),
     getInstagramCandidateCount(),
+    getOpenIssueCount(),
   ]);
   const { articles: published, total: publishedTotal, page, pages } = publishedPage;
 
@@ -33,6 +35,12 @@ export default async function AdminDashboard({
             style={{ backgroundColor: "#00205B" }}
           >
             + Ny artikel
+          </Link>
+          <Link
+            href={`/admin/sager`}
+            className="inline-block px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-paper text-ink"
+          >
+            Åbne sager{openIssues > 0 ? ` (${openIssues})` : ""}
           </Link>
           <Link
             href={`/admin/tilfoej`}
