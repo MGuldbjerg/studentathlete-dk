@@ -34,8 +34,6 @@ calendar, ncaa championship dates 2027, when does college soccer start). DK guid
   from the site's last publish) run only for those. At most 5 per run. Off switch: repo var `AWARD_FAST_LANE=off`.
 - Why: drafting makes at most 10 drafts per run and GitHub starts the "07:30/19:30" runs ~8 h late
   (~15:35/00:30 UTC). 69 stories were ready to draft; six UK award stories were waiting on 6/11.
-- First run 6/11: 5 drafts → 2 published (Keay #1059, Williams #1060), 3 under 200 words → timeline lines.
-  Ginny Lackey #1054 published by hand the same day.
 - Open: 2,060 stories without a fact sheet (~20 built per run) — that backlog slows all non-award stories.
 
 ## 🧩 UK profiles approved on the template level (2026-11-04) — LIVE
@@ -175,6 +173,8 @@ editing connector — a different thing.
 
 ## Waiting on Mikkel
 
+**`/admin/sager`** (#117, migration 090) lists open queues, unanswered photo asks and a hand-kept list.
+
 1. **Photo-permission outreach** — built (`pipeline/photos/`, ledger migration 068).
    Sent: South Atlantic 7 (2/11), CAA 13 (4/11), GLVC 13 (9/11), Sunshine State 10 (18/11); 23–24/11 GMAC 11, MEC 10, CC 11, GSC 12 in batches 6 h apart (local script,
    log ~/studentathlete-private/outreach-2026-11-23.log — check `--status` that all 44 went); ledger in `photo_events`,
@@ -191,9 +191,7 @@ editing connector — a different thing.
    profiles; article first) incl. our social posts of what we publish (posts carry the credit, d5cf9b5).
    Newberry/Hofstra said yes to the old article-only, site-only wording: ARTICLE PHOTOS, SITE ONLY
    until Mikkel's follow-up (later) confirms profiles + social; then record it with `--respond`.
-   **WVU (Big 12) contacted by hand 26/11:** Mikkel emailed Adam Grossmann (athletics comms) about
-   photo credits AND reaching out to Toby Mawer (soccer). School set to `asked` + `note` event, so the
-   Brevo batch skips it. When Big 12 comes up: do NOT email WVU; any Toby Mawer contact waits on that reply.
+   **WVU emailed by hand 26/11** (Adam Grossmann: photo credits + contacting Toby Mawer) → `asked`; never re-email at Big 12.
    Conditional states (#107, migration 087, enforced at read time): McKendree `athlete_list` (27
    named; a NEW UK/DK athlete there has no photo until Mikkel emails McKendree's SID and runs `--clear`;
    `--status` lists them). Rockhurst `photographer_list` (Callie Knott + unnamed roster headshots).
