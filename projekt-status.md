@@ -174,7 +174,6 @@ editing connector — a different thing.
 ## Waiting on Mikkel
 
 **`/admin/sager`** (#117, migration 090) lists open queues, unanswered photo asks and a hand-kept list.
-
 1. **Photo-permission outreach** — built (`pipeline/photos/`, ledger migration 068).
    Sent: South Atlantic 7 (2/11), CAA 13 (4/11), GLVC 13 (9/11), Sunshine State 10 (18/11); 23–24/11 GMAC 11, MEC 10, CC 11, GSC 12 in batches 6 h apart (local script,
    log ~/studentathlete-private/outreach-2026-11-23.log — check `--status` that all 44 went); ledger in `photo_events`,
