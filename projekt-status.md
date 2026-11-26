@@ -191,6 +191,9 @@ editing connector — a different thing.
    profiles; article first) incl. our social posts of what we publish (posts carry the credit, d5cf9b5).
    Newberry/Hofstra said yes to the old article-only, site-only wording: ARTICLE PHOTOS, SITE ONLY
    until Mikkel's follow-up (later) confirms profiles + social; then record it with `--respond`.
+   **WVU (Big 12) contacted by hand 26/11:** Mikkel emailed Adam Grossmann (athletics comms) about
+   photo credits AND reaching out to Toby Mawer (soccer). School set to `asked` + `note` event, so the
+   Brevo batch skips it. When Big 12 comes up: do NOT email WVU; any Toby Mawer contact waits on that reply.
    Conditional states (#107, migration 087, enforced at read time): McKendree `athlete_list` (27
    named; a NEW UK/DK athlete there has no photo until Mikkel emails McKendree's SID and runs `--clear`;
    `--status` lists them). Rockhurst `photographer_list` (Callie Knott + unnamed roster headshots).
