@@ -61,7 +61,12 @@ export default async function AdminSagerPage() {
             <code>request-permission.ts --respond</code>.
           </p>
           {asked.length > 0 && (
-            <div className="bg-paper rounded-lg border border-border divide-y divide-border">
+            <details className="bg-paper rounded-lg border border-border">
+              <summary className="px-4 py-3 cursor-pointer text-ink font-semibold">
+                {asked.length} skoler venter på svar
+                {stale > 0 && <span className="text-muted font-normal"> · ældste {asked[0]?.days ?? "?"} d</span>}
+              </summary>
+              <div className="divide-y divide-border border-t border-border">
               {asked.map((s) => {
                 const old = (s.days ?? 0) >= STALE_REPLY_DAYS;
                 return (
@@ -78,7 +83,8 @@ export default async function AdminSagerPage() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+            </details>
           )}
         </section>
 

@@ -15,7 +15,7 @@ your own worktree (`bash scripts/worktree.sh <name>`), never in the shared check
 `/ncaa-season-calendar` · `/ncaa-saesonkalender` + own rows on each sport page; data and copy in
 `src/lib/season-calendar.ts`, SEO per `PLAN-seo-season-calendar.md` (approved). **Recurring:** swap in
 2027–28 data each July before the season starts. **GSC check 6–8 weeks after launch** (queries: ncaa
-calendar, ncaa championship dates 2027, when does college soccer start). DK guide links need a `pages` edit.
+calendar, ncaa championship dates 2027, when does college soccer start). DK guide links live in `pages` (checked 26/11: both guides link it, same as UK).
 
 ## 🏅 Season-honours page (2026-11-09) — LIVE (UK soccer)
 
