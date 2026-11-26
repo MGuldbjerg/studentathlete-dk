@@ -79,6 +79,11 @@ export async function Footer() {
               </Link>
             </li>
             <li>
+              <Link prefetch={false} href={routePath("calendar", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
+                {t("cal.crumb", lang)}
+              </Link>
+            </li>
+            <li>
               <Link prefetch={false} href={routePath("guides", lang)} className="text-white/60 text-sm hover:text-white transition-colors">
                 {t("footer.knowledge", lang)}
               </Link>
