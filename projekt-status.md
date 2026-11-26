@@ -198,15 +198,9 @@ editing connector — a different thing.
 5. **AdSense .co.uk** — REJECTED a 3rd time 26/11 (low value content). PARKED (Mikkel). Not word counts:
    .co.uk already has 13 guides + sport pages. Mikkel's read: .dk was approved while hand-curated, with
    his YouTube athlete interviews embedded — original material; .co.uk is ~690 retold press releases.
-   Check with `scripts/adsense-report.ts`. Crawl 16/11: 2,026/2,027 pages 200, median 333; the one
-   404 (/athletes/q in the sitemap) fixed by #111 before applying. Live 2026-11-02 (6680336): the AdSense script is
-   only on INDEXABLE pages (`src/components/AdsenseScript.tsx`; layout keeps only the
-   verification meta). Why: the AdSense crawler reads every page with the ad tag and ignores
-   noindex, so the 569 UK profiles under the 200-word floor were still in its review. Google
-   says AdSense's own index takes 1–2 weeks to reflect changes. GSC (2/11): ~82% of the 1,276
-   removed profiles still indexed in Search, last crawled Sept — that is Search, not AdSense.
-   Crawl 10/11 (site-check): 1,977/1,978 pages 200, 0 Danish/junk/empty, median 329 words; only
-   /athletes hub under 200 (169). Danish 404 <title> on .co.uk fixed (#108).
+   Check with `scripts/adsense-report.ts`. Already done: ad script only on indexable pages
+   (`AdsenseScript.tsx`, the crawler ignores noindex), 200-word floor, crawl 16/11 clean (2,026/2,027
+   pages 200, median 333 words). Don't redo those; reapply only with new original material.
 6. **DK Facebook/Threads** — not set up (UK runs). No human clicks from UK FB/Threads yet.
 
 ## Schedule decisions 28/10 (PR #76)
